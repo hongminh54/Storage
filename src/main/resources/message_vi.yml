@@ -1,0 +1,4 @@
+admin:
+  new_version_available: "Đã có phiên bản mới. Phiên bản bạn đang xài là v#old_version#, Phiên bản mới là v#new_version#"
+user:
+  full_storage: "&cKho đồ đã đầy, hãy lấy ra bớt để có thể đào tiếp"

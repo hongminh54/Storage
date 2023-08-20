@@ -1,0 +1,11 @@
+name: Storage
+version: '${project.version}'
+main: net.danh.storage.Storage
+api-version: '1.13'
+softdepend:
+  - WorldGuard
+commands:
+  storage:
+    description: Main command
+    aliases:
+      - kho

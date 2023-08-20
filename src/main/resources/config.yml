@@ -1,0 +1,65 @@
+#Send a notification to console when new version is available
+check_update: true
+
+#Prefix for every message from plugin
+prefix: "&7[&fStorage&7]"
+
+settings:
+  #Default max storage for all item
+  default_max_storage: 100000
+
+#Player can storage list blocks below here
+blocks:
+  #MATERIAL_1:
+  # drop: MATERIAL_2;NUMBER
+  #When player mine MATERIAL_1, player will get MATERIAL_2 with NUMBER is amount (fortune enchant will be plus later)
+  #MUST REMEMBER: DON'T CONFIG 2 SAME MATERIAL_1 BELOW THIS!
+  COBBLESTONE:
+    drop: COBBLESTONE;1
+  STONE:
+    drop: COBBLESTONE;1
+  COAL_ORE:
+    drop: COAL;1
+  COAL_BLOCK:
+    drop: COAL;9
+  IRON_ORE:
+    drop: IRON_INGOT;1
+  IRON_BLOCK:
+    drop: IRON_INGOT;9
+  GOLD_ORE:
+    drop: GOLDEN_INGOT;1
+  GOLD_BLOCK:
+    drop: GOLDEN_INGOT;9
+  REDSTONE_ORE:
+    drop: REDSTONE;1
+  REDSTONE_BLOCK:
+    drop: REDSTONE;9
+  LAPIS_ORE:
+    drop: LAPIS_LAZULI;1
+  LAPIS_BLOCK:
+    drop: LAPIS_LAZULI;9
+  DIAMOND_ORE:
+    drop: DIAMOND;1
+  DIAMOND_BLOCK:
+    drop: DIAMOND;9
+  EMERALD_ORE:
+    drop: EMERALD;1
+  EMERALD_BLOCK:
+    drop: EMERALD;9
+items:
+  COBBLESTONE: "Cobblestone"
+  COAL: "Coal"
+  IRON_INGOT: "Iron Ingot"
+  GOLDEN_INGOT: "Golden Ingot"
+  LAPIS_LAZULI: "Lapis"
+  REDSTONE: "Redstone"
+  DIAMOND: "Diamond"
+  EMERALD: "Emerald"
+mine:
+  title:
+    enable: true
+    title: "&e+#amount# #item#"
+    subtitle: "&b#storage#/#max#"
+  actionbar:
+    enable: true
+    action: "&6+#amount# #item# [#storage#/#max#]"
