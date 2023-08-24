@@ -1,4 +1,10 @@
 admin:
   new_version_available: "Đã có phiên bản mới. Phiên bản bạn đang xài là v#old_version#, Phiên bản mới là v#new_version#"
+  add_material_amount: "&bĐã thêm #amount# #material# vào #player#"
+  remove_material_amount: "&bĐã lấy #amount# #material# khỏi #player#"
+  reload: "&eĐã tải lại tệp"
+  set_max_storage: "&aĐã đặt số lượng tối đa của người chơi #player# thành #amount#"
 user:
   full_storage: "&cKho đồ đã đầy, hãy lấy ra bớt để có thể đào tiếp"
+  add_material_amount: "&a+ #amount# #material# &7[From #player#]"
+  remove_material_amount: "&c- #amount# #material# &7[From #player#]"

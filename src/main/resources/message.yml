@@ -1,7 +1,7 @@
 admin:
   new_version_available: "New version is available. You are using v#old_version#, new version v#new_version#"
   add_material_amount: "&bAdded #amount# #material# to #player#"
-  remove_material_amount: "&bRemoved #amount# #material# to #player#"
+  remove_material_amount: "&bRemoved #amount# #material# from #player#"
   reload: "&eReloaded Files"
   set_max_storage: "&aSetted max storage of #player# to #amount#"
 user:
