@@ -8,6 +8,7 @@ import net.danh.storage.Manager.DatabaseManager.SQLite;
 import net.danh.storage.Manager.GameManager.MineManager;
 import net.danh.storage.Manager.UtilsManager.FileManager;
 import net.danh.storage.Manager.UtilsManager.GitManager;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.UpdateChecker;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.entity.Player;
@@ -47,6 +48,10 @@ public final class Storage extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             WorldGuard = true;
             getLogger().log(Level.INFO, "[✔️] WorldGuard Support");
+        }
+        if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
+            getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
+            getLogger().log(Level.WARNING, "If material doesn't work, you should go to discord and report to author!");
         }
     }
 

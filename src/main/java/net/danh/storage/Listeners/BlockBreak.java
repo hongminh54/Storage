@@ -36,9 +36,9 @@ public class BlockBreak implements Listener {
             int amount;
             ItemStack hand = p.getInventory().getItemInMainHand();
             if (!hand.containsEnchantment(Enchantment.LOOT_BONUS_BLOCKS)) {
-                amount = MineManager.getDropAmount(block);
+                amount = 1;
             } else {
-                amount = Number.getRandomInteger(MineManager.getDropAmount(block), hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
+                amount = Number.getRandomInteger(1, hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
             }
             if (MineManager.addBlockAmount(p, drop, amount)) {
                 if (FileManager.getConfig().getBoolean("mine.actionbar.enable")) {

@@ -1,6 +1,7 @@
 package net.danh.storage.Manager.GameManager;
 
 import net.danh.storage.Manager.UtilsManager.FileManager;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Number;
 import org.bukkit.block.Block;
@@ -158,22 +159,34 @@ public class MineManager {
     }
 
     public static String getDrop(Block block) {
-        return blocksdrop.get(block.getType().name()).split(";")[0];
+        return blocksdrop.get(block.getType().name());
     }
 
-    public static Integer getDropAmount(Block block) {
-        return Number.getInteger(blocksdrop.get(block.getType().name()).split(";")[1]);
-    }
 
     public static void loadBlocks() {
         for (String block_break : Objects.requireNonNull(FileManager.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
-            String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
-            if (item_drop != null) {
-                String[] item_data = item_drop.split(";");
-                String item_material = item_data[0];
-                String item_amount = item_data[1];
-                addPluginBlocks(item_material);
-                blocksdrop.put(block_break, item_material + ";" + item_amount);
+            NMSAssistant nms = new NMSAssistant();
+            if (nms.isVersionGreaterThan(12)) {
+                String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
+                if (item_drop != null) {
+                    addPluginBlocks(item_drop);
+                    blocksdrop.put(block_break, item_drop);
+                }
+            }
+            if (nms.isVersionGreaterThan(12)) {
+                String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
+                if (item_drop != null) {
+                    String[] item_data = item_drop.split(";");
+                    if (item_data.length == 1) {
+                        String item_material = item_data[0];
+                        addPluginBlocks(item_material);
+                        blocksdrop.put(block_break, item_material);
+                    } else if (item_data.length == 2) {
+                        String item_material = item_data[0] + ";" + item_data[1];
+                        addPluginBlocks(item_material);
+                        blocksdrop.put(block_break, item_material);
+                    }
+                }
             }
         }
     }
