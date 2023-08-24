@@ -1,11 +1,13 @@
 package net.danh.storage.Manager.GameManager;
 
+import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.Manager.UtilsManager.FileManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Number;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -159,6 +161,11 @@ public class MineManager {
     }
 
     public static String getDrop(Block block) {
+        NMSAssistant nms = new NMSAssistant();
+        ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
+        if (nms.isVersionLessThanOrEqualTo(12) && itemStack != null) {
+            return blocksdrop.get(itemStack.getType() + ";" + XMaterial.matchXMaterial(block.getType()).getData());
+        }
         return blocksdrop.get(block.getType().name());
     }
 
