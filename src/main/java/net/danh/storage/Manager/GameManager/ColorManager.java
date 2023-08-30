@@ -1,6 +1,8 @@
 package net.danh.storage.Manager.GameManager;
 
 import net.md_5.bungee.api.ChatColor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
@@ -36,11 +38,11 @@ public class ColorManager {
      *
      * */
 
-    public static String colorize(String text) {
+    public static @NotNull String colorize(String text) {
         return colorize(text, '&');
     }
 
-    public static String colorize(String text, char colorSymbol) {
+    public static @NotNull String colorize(String text, char colorSymbol) {
         Matcher g = gradient.matcher(text);
         Matcher l = legacyGradient.matcher(text);
         Matcher r = rgb.matcher(text);
@@ -78,7 +80,7 @@ public class ColorManager {
         return ChatColor.stripColor(text);
     }
 
-    public static List<Character> charactersWithoutColors(String text) {
+    public static @NotNull List<Character> charactersWithoutColors(String text) {
         text = removeColors(text);
         final List<Character> result = new ArrayList<>();
         for (char var : text.toCharArray()) {
@@ -87,11 +89,11 @@ public class ColorManager {
         return result;
     }
 
-    public static List<String> charactersWithColors(String text) {
+    public static @NotNull List<String> charactersWithColors(String text) {
         return charactersWithColors(text, '§');
     }
 
-    public static List<String> charactersWithColors(String text, char colorSymbol) {
+    public static @NotNull List<String> charactersWithColors(@NotNull String text, char colorSymbol) {
         final List<String> result = new ArrayList<>();
         StringBuilder colors = new StringBuilder();
         boolean colorInput = false;
@@ -123,7 +125,7 @@ public class ColorManager {
      *
      * */
 
-    private static String rgbGradient(String text, Color start, Color end, char colorSymbol) {
+    private static @NotNull String rgbGradient(String text, @NotNull Color start, @NotNull Color end, char colorSymbol) {
         final StringBuilder builder = new StringBuilder();
         text = ChatColor.translateAlternateColorCodes(colorSymbol, text);
         final List<String> characters = charactersWithColors(text);
@@ -141,7 +143,8 @@ public class ColorManager {
         return builder.toString();
     }
 
-    private static double[] linear(double from, double to, int max) {
+    @Contract(pure = true)
+    private static double @NotNull [] linear(double from, double to, int max) {
         final double[] res = new double[max];
         for (int i = 0; i < max; i++) {
             res[i] = from + i * ((to - from) / (max - 1));

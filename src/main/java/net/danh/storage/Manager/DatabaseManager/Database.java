@@ -2,6 +2,7 @@ package net.danh.storage.Manager.DatabaseManager;
 
 import net.danh.storage.Manager.GameManager.PlayerData;
 import net.danh.storage.Storage;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,7 +62,7 @@ public abstract class Database {
         return null;
     }
 
-    public void createTable(PlayerData playerData) {
+    public void createTable(@NotNull PlayerData playerData) {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -85,7 +86,7 @@ public abstract class Database {
         }
     }
 
-    public void updateTable(PlayerData playerData) {
+    public void updateTable(@NotNull PlayerData playerData) {
         Connection conn = null;
         PreparedStatement ps = null;
         try {

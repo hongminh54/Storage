@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -24,7 +25,7 @@ public class UpdateChecker implements Listener {
     private String spigotVersion;
     private boolean updateAvailable;
 
-    public UpdateChecker(Storage storage) {
+    public UpdateChecker(@NotNull Storage storage) {
         plugin = storage;
         pluginVersion = storage.getDescription().getVersion();
     }
@@ -83,7 +84,7 @@ public class UpdateChecker implements Listener {
         }
     }
 
-    private int[] toReadable(String version) {
+    private int[] toReadable(@NotNull String version) {
         if (version.contains("-SNAPSHOT")) {
             version = version.split("-SNAPSHOT")[0];
         }
@@ -95,7 +96,7 @@ public class UpdateChecker implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent e) {
+    public void onJoin(@NotNull PlayerJoinEvent e) {
         if (e.getPlayer().hasPermission("storage.admin")) {
             Player player = e.getPlayer();
             player.sendMessage(ChatColor.GREEN + String.format("An update is available for Storage at %s", "https://www.spigotmc.org/resources/100516/"));

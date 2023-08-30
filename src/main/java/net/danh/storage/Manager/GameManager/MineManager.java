@@ -8,6 +8,8 @@ import net.danh.storage.Utils.Number;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,11 +25,11 @@ public class MineManager {
     public static HashMap<String, String> blocksdata = new HashMap<>();
     public static HashMap<String, String> blocksdrop = new HashMap<>();
 
-    public static int getPlayerBlock(Player p, String material) {
+    public static int getPlayerBlock(@NotNull Player p, String material) {
         return playerdata.get(p.getName() + "_" + material);
     }
 
-    public static boolean hasPlayerBlock(Player p, String material) {
+    public static boolean hasPlayerBlock(@NotNull Player p, String material) {
         return playerdata.containsKey(p.getName() + "_" + material);
     }
 
@@ -35,7 +37,8 @@ public class MineManager {
         return playermaxdata.get(p);
     }
 
-    public static List<String> getPluginBlocks() {
+    @Contract(" -> new")
+    public static @NotNull List<String> getPluginBlocks() {
         return new ArrayList<>(blocksdata.values());
     }
 
@@ -43,7 +46,7 @@ public class MineManager {
         blocksdata.put(material, material);
     }
 
-    public static PlayerData getPlayerDatabase(Player player) throws SQLException {
+    public static @NotNull PlayerData getPlayerDatabase(@NotNull Player player) throws SQLException {
 
         PlayerData playerStats = Storage.db.getData(player.getName());
 
@@ -55,7 +58,7 @@ public class MineManager {
         return playerStats;
     }
 
-    private static String createNewData() {
+    private static @NotNull String createNewData() {
         StringBuilder mapAsString = new StringBuilder("{");
         for (String block : getPluginBlocks()) {
             mapAsString.append(block).append("=").append(0).append(", ");
@@ -64,7 +67,7 @@ public class MineManager {
         return mapAsString.toString();
     }
 
-    public static String convertOfflineData(Player p) {
+    public static @NotNull String convertOfflineData(Player p) {
         StringBuilder mapAsString = new StringBuilder("{");
         for (String block : getPluginBlocks()) {
             if (playerdata.containsKey(p.getName() + "_" + block)) {
@@ -77,7 +80,7 @@ public class MineManager {
         return mapAsString.toString();
     }
 
-    public static List<String> convertOnlineData(String data) {
+    public static @NotNull List<String> convertOnlineData(@NotNull String data) {
         String data_1 = data.replace("{", "").replace("}", "").replace(" ", "");
         List<String> list = new ArrayList<>();
         List<String> testlist = new ArrayList<>();
@@ -97,11 +100,11 @@ public class MineManager {
         return list;
     }
 
-    public static void setBlock(Player p, String material, int amount) {
+    public static void setBlock(@NotNull Player p, String material, int amount) {
         playerdata.put(p.getName() + "_" + material, amount);
     }
 
-    public static void setBlock(Player p, List<String> list) {
+    public static void setBlock(Player p, @NotNull List<String> list) {
         list.forEach(block -> {
             String[] block_data = block.split(";");
             String material = block_data[0];
@@ -151,16 +154,16 @@ public class MineManager {
         }
     }
 
-    public static void savePlayerData(Player p) {
+    public static void savePlayerData(@NotNull Player p) {
         PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p));
         Storage.db.updateTable(playerData);
     }
 
-    public static boolean checkBreak(Block block) {
+    public static boolean checkBreak(@NotNull Block block) {
         return FileManager.getConfig().getString("blocks." + block.getType().name() + ".drop") != null;
     }
 
-    public static String getDrop(Block block) {
+    public static String getDrop(@NotNull Block block) {
         NMSAssistant nms = new NMSAssistant();
         ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
         if (nms.isVersionLessThanOrEqualTo(12) && itemStack != null) {

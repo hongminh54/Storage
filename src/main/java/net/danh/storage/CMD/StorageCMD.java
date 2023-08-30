@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +22,7 @@ public class StorageCMD extends CMDBase {
     }
 
     @Override
-    public void execute(CommandSender c, String[] args) {
+    public void execute(@NotNull CommandSender c, String[] args) {
         if (c.hasPermission("storage.admin")) {
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("reload")) {
@@ -78,7 +79,7 @@ public class StorageCMD extends CMDBase {
     }
 
     @Override
-    public List<String> TabComplete(CommandSender sender, String[] args) {
+    public List<String> TabComplete(@NotNull CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
         List<String> commands = new ArrayList<>();
         if (sender.hasPermission("storage.admin")) {
