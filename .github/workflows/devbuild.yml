@@ -41,5 +41,6 @@ jobs:
           embed-description: |
             ${{ github.event.head_commit.message }}
             
+            [`📃 Download 📃`](https://nightly.link/${{github.repository}}/actions/runs/${{ github.run_id }}/%5B%23${{github.run_number}}%5D-Storage.zip)
             This is beta version for v2.0 and not complete yet!
             SpigotMC: [Storage](https://www.spigotmc.org/resources/100516/)
