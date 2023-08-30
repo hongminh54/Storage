@@ -26,11 +26,11 @@ jobs:
           msg: ${{github.repository}}
           separator: "/"
       - name: Build passsed
-        uses: tsickert/discord-webhook@v4.0.0
+        uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: ${{ secrets.DISCORD }}
           username: "${{ steps.split.outputs._1 }}"
-          embed-title: "[`📃 Download 📃`](https://nightly.link/${{github.repository}}/actions/runs/${{ github.run_id }}/%5B%23${{github.run_number}}%5D-Storage.zip)"
+          content: "[`📃 Download 📃`](https://nightly.link/${{github.repository}}/actions/runs/${{ github.run_id }}/%5B%23${{github.run_number}}%5D-Storage.zip)"
           avatar-url: "https://github.com/${{ github.actor }}.png"
           embed-color: "65280"
           embed-author-name: "${{ github.actor }} pushed an update for ${{ steps.split.outputs._1 }}"
@@ -38,6 +38,7 @@ jobs:
           embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
           embed-footer-text: "Build #${{github.run_number}} passed"
           embed-footer-icon-url: "https://i.imgur.com/D5KVghH.png"
+          filename: "./target/Storage.jar"
           embed-description: |
             ${{ github.event.head_commit.message }}
             
