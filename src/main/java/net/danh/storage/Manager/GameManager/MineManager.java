@@ -172,17 +172,12 @@ public class MineManager {
 
     public static void loadBlocks() {
         for (String block_break : Objects.requireNonNull(FileManager.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
-            NMSAssistant nms = new NMSAssistant();
-            if (nms.isVersionGreaterThan(12)) {
-                String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
-                if (item_drop != null) {
+            String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
+            if (item_drop != null) {
+                if (!item_drop.contains(";")) {
                     addPluginBlocks(item_drop);
                     blocksdrop.put(block_break, item_drop);
-                }
-            }
-            if (nms.isVersionGreaterThan(12)) {
-                String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
-                if (item_drop != null) {
+                } else {
                     String[] item_data = item_drop.split(";");
                     if (item_data.length == 1) {
                         String item_material = item_data[0];
