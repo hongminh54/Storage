@@ -37,9 +37,9 @@ jobs:
           embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
           embed-footer-text: "Build #${{github.run_number}} passed"
           embed-footer-icon-url: "https://i.imgur.com/D5KVghH.png"
-          filename: "[#${{github.run_number}}]-Storage"
           embed-description: |
             ${{ github.event.head_commit.message }}
             
             This is beta version for v2.0 and not complete yet!
             SpigotMC: [Storage](https://www.spigotmc.org/resources/100516/)
+          filename: "./target/Storage.jar"
