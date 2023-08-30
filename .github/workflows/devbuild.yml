@@ -1,0 +1,45 @@
+name: DevBuild
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package
+      - uses: "actions/upload-artifact@v3"
+        with:
+          name: "[#${{github.run_number}}]-Storage"
+          path: |
+            ./target/Storage.jar
+      - uses: jungwinter/split@v2
+        id: split
+        with:
+          msg: ${{github.repository}}
+          separator: "/"
+      - name: Build passsed
+        uses: tsickert/discord-webhook@v4.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD }}
+          username: "${{ steps.split.outputs._1 }}"
+          embed-title: "${{ github.actor }} pushed an update for ${{ steps.split.outputs._1 }}"
+          avatar-url: "https://github.com/${{ github.actor }}.png"
+          embed-color: "65280"
+          embed-author-name: "${{ github.actor }}"
+          embed-author-url: "https://github.com/${{ github.actor }}"
+          embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
+          embed-footer-text: "Build #${{github.run_number}} passed"
+          embed-footer-icon-url: "https://i.imgur.com/D5KVghH.png"
+          embed-description: |
+            ${{ github.event.head_commit.message }}
+            
+            This is beta version for v2.0 and not complete yet!
+            SpigotMC: [Storage](https://www.spigotmc.org/resources/100516/)
