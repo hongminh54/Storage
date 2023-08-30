@@ -11,12 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
+import java.util.*;
 
 public class MineManager {
 
@@ -46,7 +41,7 @@ public class MineManager {
         blocksdata.put(material, material);
     }
 
-    public static @NotNull PlayerData getPlayerDatabase(@NotNull Player player) throws SQLException {
+    public static @NotNull PlayerData getPlayerDatabase(@NotNull Player player) {
 
         PlayerData playerStats = Storage.db.getData(player.getName());
 
@@ -101,7 +96,9 @@ public class MineManager {
     }
 
     public static void setBlock(@NotNull Player p, String material, int amount) {
-        playerdata.put(p.getName() + "_" + material, amount);
+        if (checkBreak(material)) {
+            playerdata.put(p.getName() + "_" + material, amount);
+        }
     }
 
     public static void setBlock(Player p, @NotNull List<String> list) {
@@ -114,16 +111,31 @@ public class MineManager {
     }
 
     public static boolean addBlockAmount(Player p, String material, int amount) {
-        if (amount > 0) {
-            if (blocksdata.containsKey(material) && hasPlayerBlock(p, material)) {
+        if (checkBreak(material)) {
+            if (amount > 0) {
+                if (blocksdata.containsKey(material) && hasPlayerBlock(p, material)) {
+                    int old_data = getPlayerBlock(p, material);
+                    int new_data = old_data + amount;
+                    int max_storage = getMaxBlock(p);
+                    if (old_data >= max_storage) return false;
+                    playerdata.replace(p.getName() + "_" + material, Math.min(new_data, max_storage));
+                    return true;
+                } else if (blocksdata.containsKey(material) && !hasPlayerBlock(p, material)) {
+                    setBlock(p, material, amount);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean removeBlockAmount(Player p, String material, int amount) {
+        if (checkBreak(material)) {
+            if (amount > 0) {
                 int old_data = getPlayerBlock(p, material);
-                int new_data = old_data + amount;
-                int max_storage = getMaxBlock(p);
-                if (old_data >= max_storage) return false;
-                playerdata.replace(p.getName() + "_" + material, Math.min(new_data, max_storage));
-                return true;
-            } else if (blocksdata.containsKey(material) && !hasPlayerBlock(p, material)) {
-                setBlock(p, material, amount);
+                int new_data = old_data - amount;
+                if (old_data <= 0) return false;
+                playerdata.replace(p.getName() + "_" + material, Math.max(new_data, 0));
                 return true;
             }
             return false;
@@ -131,27 +143,11 @@ public class MineManager {
         return false;
     }
 
-    public static boolean removeBlockAmount(Player p, String material, int amount) {
-        if (amount > 0) {
-            int old_data = getPlayerBlock(p, material);
-            int new_data = old_data - amount;
-            if (old_data <= 0) return false;
-            playerdata.replace(p.getName() + "_" + material, Math.max(new_data, 0));
-            return true;
-        }
-        return false;
-    }
-
     public static void loadPlayerData(Player p) {
-        try {
-            PlayerData playerData = getPlayerDatabase(p);
-            List<String> list = convertOnlineData(playerData.getData());
-            playermaxdata.put(p, playerData.getMax());
-            setBlock(p, list);
-        } catch (SQLException e) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Can't loadPlayerData() ! Report to author!");
-            throw new RuntimeException(e);
-        }
+        PlayerData playerData = getPlayerDatabase(p);
+        List<String> list = convertOnlineData(playerData.getData());
+        playermaxdata.put(p, playerData.getMax());
+        setBlock(p, list);
     }
 
     public static void savePlayerData(@NotNull Player p) {
@@ -159,40 +155,67 @@ public class MineManager {
         Storage.db.updateTable(playerData);
     }
 
-    public static boolean checkBreak(@NotNull Block block) {
-        return FileManager.getConfig().getString("blocks." + block.getType().name() + ".drop") != null;
-    }
-
     public static String getDrop(@NotNull Block block) {
         NMSAssistant nms = new NMSAssistant();
         ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
         if (nms.isVersionLessThanOrEqualTo(12) && itemStack != null) {
-            return blocksdrop.get(itemStack.getType() + ";" + XMaterial.matchXMaterial(block.getType()).getData());
+            return blocksdrop.get(itemStack.getType() + ";" + XMaterial.matchXMaterial(block.getType()).parseItem().getDurability());
         }
-        return blocksdrop.get(block.getType().name());
+        return blocksdrop.get(block.getType().name() + ";0");
     }
 
 
     public static void loadBlocks() {
         for (String block_break : Objects.requireNonNull(FileManager.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
             String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
+            NMSAssistant nms = new NMSAssistant();
             if (item_drop != null) {
                 if (!item_drop.contains(";")) {
-                    addPluginBlocks(item_drop);
-                    blocksdrop.put(block_break, item_drop);
+                    addPluginBlocks(item_drop + ";0");
+                    blocksdrop.put(block_break, item_drop + ";0");
                 } else {
-                    String[] item_data = item_drop.split(";");
-                    if (item_data.length == 1) {
-                        String item_material = item_data[0];
-                        addPluginBlocks(item_material);
-                        blocksdrop.put(block_break, item_material);
-                    } else if (item_data.length == 2) {
+                    if (nms.isVersionLessThanOrEqualTo(12)) {
+                        String[] item_data = item_drop.split(";");
                         String item_material = item_data[0] + ";" + item_data[1];
                         addPluginBlocks(item_material);
                         blocksdrop.put(block_break, item_material);
+                    } else {
+                        String[] item_data = item_drop.split(";");
+                        addPluginBlocks(item_data[0] + ";0");
+                        blocksdrop.put(block_break, item_data[0] + ";0");
                     }
                 }
             }
         }
     }
+
+    public static boolean checkBreak(@NotNull Block block) {
+        ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
+        if (itemStack != null) {
+            if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
+                return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
+            } else if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
+                return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    public static boolean checkBreak(@NotNull String block) {
+        Optional<XMaterial> material = XMaterial.matchXMaterial(block.replace(";", ":"));
+        if (material.isPresent()) {
+            ItemStack itemStack = material.get().parseItem();
+            if (itemStack != null) {
+                if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
+                    return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
+                } else if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
+                    return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
+                }
+                return false;
+            }
+        }
+        return false;
+    }
+
 }

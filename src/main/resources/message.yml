@@ -4,6 +4,12 @@ admin:
   remove_material_amount: "&bRemoved #amount# #material# from #player#"
   reload: "&eReloaded Files"
   set_max_storage: "&aSetted max storage of #player# to #amount#"
+  help:
+    - "&f/Storage reload - Reload Files"
+    - "&f/Storage max <player> <amount> - Set max item player can storage"
+    - "&f/Storage add <material;data> <player> <amount> - Add item to player (data for 1.12.2 and below, if you use 1.13+ use <material>;0"
+    - "&f/Storage remove <material;data> <player> <amount> - Remove item to player (data for 1.12.2 and below, if you use 1.13+ use <material>;0"
+    - "&f/Storage set <material;data> <player> <amount> - Set item to player (data for 1.12.2 and below, if you use 1.13+ use <material>;0"
 user:
   full_storage: "&cStorage has been full, please take some out to mine more"
   add_material_amount: "&a+ #amount# #material# &7[From #player#]"

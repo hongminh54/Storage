@@ -23,6 +23,13 @@ public class StorageCMD extends CMDBase {
 
     @Override
     public void execute(@NotNull CommandSender c, String[] args) {
+        if (args.length == 1) {
+            if (args[0].equalsIgnoreCase("help")) {
+                if (c.hasPermission("storage.admin")) {
+                    FileManager.getMessage().getStringList("admin.help").forEach(s -> c.sendMessage(ChatManager.colorize(s)));
+                }
+            }
+        }
         if (c.hasPermission("storage.admin")) {
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("reload")) {
@@ -82,6 +89,9 @@ public class StorageCMD extends CMDBase {
     public List<String> TabComplete(@NotNull CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
         List<String> commands = new ArrayList<>();
+        if (args.length == 1) {
+            commands.add("help");
+        }
         if (sender.hasPermission("storage.admin")) {
             if (args.length == 1) {
                 commands.add("add");

@@ -4,6 +4,12 @@ admin:
   remove_material_amount: "&bĐã lấy #amount# #material# khỏi #player#"
   reload: "&eĐã tải lại tệp"
   set_max_storage: "&aĐã đặt số lượng tối đa của người chơi #player# thành #amount#"
+  help:
+    - "&f/Storage reload - Tải lại file"
+    - "&f/Storage max <player> <amount> - Đặt số lượng kho tối đa người chơi có thể chứa vật phẩm"
+    - "&f/Storage add <material;data> <player> <amount> - Thêm vật phẩm vào kho người chơi (data dùng cho 1.12.2 trở xuống, nếu bạn dùng 1.13 trở lên thì dùng <material>;0"
+    - "&f/Storage remove <material;data> <player> <amount> - Rút bớt vật phẩm khỏi kho người chơi (data dùng cho 1.12.2 trở xuống, nếu bạn dùng 1.13 trở lên thì dùng <material>;0"
+    - "&f/Storage set <material;data> <player> <amount> - Đặt số lượng vật phẩm trong kho người chơi (data dùng cho 1.12.2 trở xuống, nếu bạn dùng 1.13 trở lên thì dùng <material>;0"
 user:
   full_storage: "&cKho đồ đã đầy, hãy lấy ra bớt để có thể đào tiếp"
   add_material_amount: "&a+ #amount# #material# &7[From #player#]"

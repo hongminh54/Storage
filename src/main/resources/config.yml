@@ -10,44 +10,44 @@ settings:
 
 #Player can storage list blocks below here
 blocks:
-  #MATERIAL_1:
-  # drop: MATERIAL_2
   #MUST REMEMBER: DON'T CONFIG 2 SAME MATERIAL_1 BELOW THIS!
-  #For minecraft server 1.12.2 and below:
   #MATERIAL_1;DATA_NUMBER:
   # drop: MATERIAL_2;DATA_NUMBER
-  COBBLESTONE:
-    drop: COBBLESTONE
-  STONE:
-    drop: COBBLESTONE
-  COAL_ORE:
-    drop: COAL
-  COAL_BLOCK:
-    drop: COAL_BLOCK
-  IRON_ORE:
-    drop: IRON_INGOT
-  IRON_BLOCK:
-    drop: IRON_BLOCK
-  GOLD_ORE:
-    drop: GOLDEN_INGOT
-  GOLD_BLOCK:
-    drop: GOLD_BLOCK
-  REDSTONE_ORE:
-    drop: REDSTONE
-  REDSTONE_BLOCK:
-    drop: REDSTONE_BLOCK
-  LAPIS_ORE:
-    drop: LAPIS_LAZULI
-  LAPIS_BLOCK:
-    drop: LAPIS_BLOCK
-  DIAMOND_ORE:
-    drop: DIAMOND
-  DIAMOND_BLOCK:
-    drop: DIAMOND_BLOCK
-  EMERALD_ORE:
-    drop: EMERALD
-  EMERALD_BLOCK:
-    drop: EMERALD_BLOCK
+  #For 1.12.2 and below, MATERIAL;0 | 0 -> item data
+  #For example: If you want LAPIS_LAZULI for 1.12.2 and below -> INK_SACK;4
+  #If you want diamond for all version -> DIAMOND;0
+  COBBLESTONE;0:
+    drop: COBBLESTONE;0
+  STONE;0:
+    drop: COBBLESTONE;0
+  COAL_ORE;0:
+    drop: COAL;0
+  COAL_BLOCK;0:
+    drop: COAL_BLOCK;0
+  IRON_ORE;0:
+    drop: IRON_INGOT;0
+  IRON_BLOCK;0:
+    drop: IRON_BLOCK;0
+  GOLD_ORE;0:
+    drop: GOLDEN_INGOT;0
+  GOLD_BLOCK;0:
+    drop: GOLD_BLOCK;0
+  REDSTONE_ORE;0:
+    drop: REDSTONE;0
+  REDSTONE_BLOCK;0:
+    drop: REDSTONE_BLOCK;0
+  LAPIS_ORE;0:
+    drop: LAPIS_LAZULI;0
+  LAPIS_BLOCK;0:
+    drop: LAPIS_BLOCK;0
+  DIAMOND_ORE;0:
+    drop: DIAMOND;0
+  DIAMOND_BLOCK;0:
+    drop: DIAMOND_BLOCK;0
+  EMERALD_ORE;0:
+    drop: EMERALD;0
+  EMERALD_BLOCK;0:
+    drop: EMERALD_BLOCK;0
 items:
   COBBLESTONE: "Cobblestone"
   COAL: "Coal"
