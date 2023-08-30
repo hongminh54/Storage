@@ -30,10 +30,10 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD }}
           username: "${{ steps.split.outputs._1 }}"
-          embed-title: "${{ github.actor }} pushed an update for ${{ steps.split.outputs._1 }}"
+          embed-title: "[`📃 Download 📃`](https://nightly.link/${{github.repository}}/actions/runs/${{ github.run_id }}/%5B%23${{github.run_number}}%5D-Storage.zip)"
           avatar-url: "https://github.com/${{ github.actor }}.png"
           embed-color: "65280"
-          embed-author-name: "${{ github.actor }}"
+          embed-author-name: "${{ github.actor }} pushed an update for ${{ steps.split.outputs._1 }}"
           embed-author-url: "https://github.com/${{ github.actor }}"
           embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
           embed-footer-text: "Build #${{github.run_number}} passed"
@@ -41,6 +41,5 @@ jobs:
           embed-description: |
             ${{ github.event.head_commit.message }}
             
-            [`📃 Download 📃`](https://nightly.link/${{github.repository}}/actions/runs/${{ github.run_id }}/%5B%23${{github.run_number}}%5D-Storage.zip)
             This is beta version for v2.0 and not complete yet!
             SpigotMC: [Storage](https://www.spigotmc.org/resources/100516/)
