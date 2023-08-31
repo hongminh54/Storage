@@ -1,5 +1,6 @@
 package net.danh.storage;
 
+import dev.digitality.digitalgui.DigitalGUI;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Listeners.BlockBreak;
 import net.danh.storage.Listeners.JoinQuit;
@@ -36,6 +37,7 @@ public final class Storage extends JavaPlugin {
     @Override
     public void onEnable() {
         storage = this;
+        DigitalGUI.register(storage);
         SimpleConfigurationManager.register(storage);
         FileManager.loadFiles();
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak());

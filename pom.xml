@@ -39,6 +39,10 @@
 							<!-- Be sure to change the package below -->
 							<shadedPattern>net.danh.utils</shadedPattern>
 						</relocation>
+						<relocation>
+							<pattern>dev.digitality.digitalgui</pattern>
+							<shadedPattern>net.danh.digitalgui</shadedPattern>
+						</relocation>
 					</relocations>
 					<!-- Here you can remove the classes you don't use. -->
 					<!-- These are some examples. -->
@@ -50,8 +54,15 @@
 							<excludes>
 								<exclude>com/cryptomorin/xseries/XBiome*</exclude>
 								<exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
+								<exclude>com/cryptomorin/xseries/ReflectionUtils*</exclude>
 								<exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
 								<exclude>com/cryptomorin/xseries/SkullCacheListener*</exclude>
+								<exclude>com/cryptomorin/xseries/SkullUtils*</exclude>
+								<exclude>com/cryptomorin/xseries/XBlock*</exclude>
+								<exclude>com/cryptomorin/xseries/XEntity*</exclude>
+								<exclude>com/cryptomorin/xseries/XPotion*</exclude>
+								<exclude>com/cryptomorin/xseries/XSound*</exclude>
+								<exclude>com/cryptomorin/xseries/XTag*</exclude>
 							</excludes>
 						</filter>
 					</filters>
@@ -153,6 +164,11 @@
 			<artifactId>worldguardwrapper</artifactId>
 			<version>1.2.1-SNAPSHOT</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.DigitalityDev</groupId>
+			<artifactId>DigitalGUI</artifactId>
+			<version>1.0.1</version>
 		</dependency>
 	</dependencies>
 </project>
