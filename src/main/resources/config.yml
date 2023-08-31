@@ -29,7 +29,7 @@ blocks:
   IRON_BLOCK;0:
     drop: IRON_BLOCK;0
   GOLD_ORE;0:
-    drop: GOLDEN_INGOT;0
+    drop: GOLD_INGOT;0
   GOLD_BLOCK;0:
     drop: GOLD_BLOCK;0
   REDSTONE_ORE;0:
@@ -49,14 +49,21 @@ blocks:
   EMERALD_BLOCK;0:
     drop: EMERALD_BLOCK;0
 items:
-  COBBLESTONE: "Cobblestone"
-  COAL: "Coal"
-  IRON_INGOT: "Iron Ingot"
-  GOLDEN_INGOT: "Golden Ingot"
-  LAPIS_LAZULI: "Lapis"
-  REDSTONE: "Redstone"
-  DIAMOND: "Diamond"
-  EMERALD: "Emerald"
+  COBBLESTONE;0: "&7Cobblestone"
+  COAL;0: "&8Coal"
+  COAL_BLOCK;0: "&8Coal Block"
+  IRON_INGOT;0: "&fIron Ingot"
+  IRON_BLOCK;0: "&fIron Block"
+  GOLD_INGOT;0: "&eGolden Ingot"
+  GOLD_BLOCK;0: "&eGold Block"
+  REDSTONE;0: "&cRedstone Ore"
+  REDSTONE_BLOCK;0: "&cRedstone Block"
+  LAPIS_LAZULI;0: "&1Lapis Lazuli"
+  LAPIS_BLOCK;0: "&1Lapis Block"
+  DIAMOND;0: "&bDiamond"
+  DIAMOND_BLOCK;0: "&bDiamond Block"
+  EMERALD;0: "&aEmerald"
+  EMERALD_Block;0: "&aEmerald Block"
 mine:
   title:
     enable: true

@@ -40,6 +40,7 @@ public final class Storage extends JavaPlugin {
         DigitalGUI.register(storage);
         SimpleConfigurationManager.register(storage);
         FileManager.loadFiles();
+        FileManager.loadGUI();
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak());
         new UpdateChecker(storage).fetch();
         GitManager.checkGitUpdate();

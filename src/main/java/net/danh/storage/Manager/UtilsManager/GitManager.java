@@ -8,7 +8,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,14 +20,18 @@ public class GitManager {
 
     public static void checkGitUpdate() {
         Logger logger = Storage.getStorage().getLogger();
-        logger.log(Level.INFO, "Github latest build: " + getGitBuild());
+        if (getGitBuild() != null) {
+            logger.log(Level.INFO, "Github latest build: " + getGitBuild());
+        }
         logger.log(Level.INFO, "Github latest changelog: ");
-        getGitMessage().forEach(message -> {
-            logger.log(Level.INFO, message);
-        });
+        if (getGitMessage() != null) {
+            getGitMessage().forEach(message -> {
+                logger.log(Level.INFO, message);
+            });
+        }
     }
 
-    public static @NotNull String getGitBuild() {
+    public static String getGitBuild() {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(
                     "https://api.github.com/repos/VoChiDanh/Storage/commits");
@@ -37,15 +40,19 @@ public class GitManager {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(responseBody);
-            JsonNode latestCommit = root.get(0);
-            String sha = latestCommit.get("sha").textValue();
-            return sha.substring(0, Math.min(7, sha.length()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            if (root != null) {
+                JsonNode latestCommit = root.get(0);
+                if (latestCommit != null) {
+                    String sha = latestCommit.get("sha").textValue();
+                    return sha.substring(0, Math.min(7, sha.length()));
+                }
+            }
+        } catch (IOException ignored) {
         }
+        return null;
     }
 
-    public static @NotNull List<String> getGitMessage() {
+    public static List<String> getGitMessage() {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(
                     "https://api.github.com/repos/VoChiDanh/Storage/commits");
@@ -54,12 +61,19 @@ public class GitManager {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(responseBody);
-            JsonNode latestCommit = root.get(0);
-            String sha = latestCommit.get("commit").get("message").textValue();
-            return new ArrayList<>(Arrays.asList(sha.split("\\n")));
+            if (root != null) {
+                JsonNode latestCommit = root.get(0);
+                if (latestCommit != null) {
+                    String sha = latestCommit.get("commit").get("message").textValue();
+                    if (sha != null) {
+                        return new ArrayList<>(Arrays.asList(sha.split("\\n")));
+                    }
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
 }

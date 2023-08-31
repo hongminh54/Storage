@@ -1,0 +1,51 @@
+# Title of gui
+title: "&0Storage | #player#"
+# Size of gui: 1,2,3,4,5,6
+size: 6
+items:
+  decorates:
+    slot: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53
+    name: "&7 "
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7 "
+    amount: 1
+    # for 1.13.2 and below
+    damage: 0
+    # for 1.14 and above
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+  #      HIDE_ATTRIBUTES: true
+  #      HIDE_DESTROYS: true
+  #      HIDE_ENCHANTS: true
+  #      HIDE_PLACED_ON: true
+  #      HIDE_UNBREAKABLE: true
+  #      HIDE_POTION_EFFECTS: true
+  storage_item:
+    slot: 10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 31
+    name: "&7 "
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7 "
+      - "&fTest lore"
+      - "&7 "
+    amount: 1
+    # for 1.13.2 and below
+    damage: 0
+    # for 1.14 and above
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+#      HIDE_ATTRIBUTES: true
+#      HIDE_DESTROYS: true
+#      HIDE_ENCHANTS: true
+#      HIDE_PLACED_ON: true
+#      HIDE_UNBREAKABLE: true
+#      HIDE_POTION_EFFECTS: true

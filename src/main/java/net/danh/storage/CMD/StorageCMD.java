@@ -1,6 +1,7 @@
 package net.danh.storage.CMD;
 
 import net.danh.storage.API.CMDBase;
+import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.Manager.GameManager.ChatManager;
 import net.danh.storage.Manager.GameManager.MineManager;
 import net.danh.storage.Manager.UtilsManager.FileManager;
@@ -23,6 +24,11 @@ public class StorageCMD extends CMDBase {
 
     @Override
     public void execute(@NotNull CommandSender c, String[] args) {
+        if (args.length == 0) {
+            if (c instanceof Player) {
+                ((Player) c).openInventory(new PersonalStorage((Player) c).getInventory());
+            }
+        }
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("help")) {
                 if (c.hasPermission("storage.admin")) {
@@ -46,9 +52,7 @@ public class StorageCMD extends CMDBase {
                         int amount = Number.getInteger(args[2]);
                         if (amount > 0 && amount >= FileManager.getConfig().getInt("settings.default_max_storage")) {
                             MineManager.playermaxdata.put(p, amount);
-                            c.sendMessage(ChatManager.colorize(Objects.requireNonNull(FileManager.getMessage().getString("admin.set_max_storage"))
-                                    .replace("#player#", p.getName())
-                                    .replace("#amount#", String.valueOf(amount))));
+                            c.sendMessage(ChatManager.colorize(Objects.requireNonNull(FileManager.getMessage().getString("admin.set_max_storage")).replace("#player#", p.getName()).replace("#amount#", String.valueOf(amount))));
                         }
                     }
                 }
@@ -103,9 +107,7 @@ public class StorageCMD extends CMDBase {
                 StringUtil.copyPartialMatches(args[0], commands, completions);
             }
             if (args.length == 2) {
-                if (args[0].equalsIgnoreCase("add")
-                        || args[0].equalsIgnoreCase("remove")
-                        || args[0].equalsIgnoreCase("set")) {
+                if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (commands.addAll(MineManager.getPluginBlocks())) {
                         StringUtil.copyPartialMatches(args[1], commands, completions);
                     }
@@ -116,9 +118,7 @@ public class StorageCMD extends CMDBase {
                 }
             }
             if (args.length == 3) {
-                if (args[0].equalsIgnoreCase("add")
-                        || args[0].equalsIgnoreCase("remove")
-                        || args[0].equalsIgnoreCase("set")) {
+                if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (MineManager.getPluginBlocks().contains(args[1])) {
                         Bukkit.getServer().getOnlinePlayers().forEach(player -> commands.add(player.getName()));
                         StringUtil.copyPartialMatches(args[2], commands, completions);
@@ -129,9 +129,7 @@ public class StorageCMD extends CMDBase {
                 }
             }
             if (args.length == 4) {
-                if (args[0].equalsIgnoreCase("add")
-                        || args[0].equalsIgnoreCase("remove")
-                        || args[0].equalsIgnoreCase("set")) {
+                if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (MineManager.getPluginBlocks().contains(args[1])) {
                         StringUtil.copyPartialMatches(args[3], Collections.singleton("<number>"), completions);
                     }

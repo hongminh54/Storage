@@ -7,7 +7,6 @@ import net.danh.storage.Manager.GameManager.MineManager;
 import net.danh.storage.Manager.UtilsManager.FileManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -26,12 +25,12 @@ public class BlockBreak implements Listener {
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
-        if (Storage.isWorldGuardInstalled()) {
-            if (!WorldGuard.handleForLocation(p, block.getLocation())) {
-                e.setCancelled(true);
-                return;
-            }
-        }
+//        if (Storage.isWorldGuardInstalled()) {
+//            if (!WorldGuard.handleForLocation(p, block.getLocation())) {
+//                e.setCancelled(true);
+//                return;
+//            }
+//        }
         if (MineManager.checkBreak(block)) {
             String drop = MineManager.getDrop(block);
             int amount;

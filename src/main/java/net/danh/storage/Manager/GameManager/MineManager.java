@@ -218,4 +218,18 @@ public class MineManager {
         return false;
     }
 
+    public static String getMaterial(String material) {
+        String material_data = material.replace(";", ":");
+        NMSAssistant nms = new NMSAssistant();
+        if (nms.isVersionGreaterThanOrEqualTo(13)) {
+            return material_data.split(":")[0];
+        } else {
+            if (Number.getInteger(material_data.split(":")[1]) > 0) {
+                return material_data;
+            } else {
+                return material_data.split(":")[0];
+            }
+        }
+    }
+
 }

@@ -54,7 +54,6 @@
 							<excludes>
 								<exclude>com/cryptomorin/xseries/XBiome*</exclude>
 								<exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
-								<exclude>com/cryptomorin/xseries/ReflectionUtils*</exclude>
 								<exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
 								<exclude>com/cryptomorin/xseries/SkullCacheListener*</exclude>
 								<exclude>com/cryptomorin/xseries/SkullUtils*</exclude>
