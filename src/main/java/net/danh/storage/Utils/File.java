@@ -1,9 +1,9 @@
-package net.danh.storage.Manager.UtilsManager;
+package net.danh.storage.Utils;
 
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.configuration.file.FileConfiguration;
 
-public class FileManager {
+public class File {
 
     public static SimpleConfigurationManager getFileSetting() {
         return SimpleConfigurationManager.get();

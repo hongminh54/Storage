@@ -2,10 +2,10 @@ package net.danh.storage.GUI;
 
 import dev.digitality.digitalgui.api.IGUI;
 import dev.digitality.digitalgui.api.InteractiveItem;
-import net.danh.storage.Manager.GameManager.ChatManager;
-import net.danh.storage.Manager.GameManager.MineManager;
-import net.danh.storage.Manager.UtilsManager.FileManager;
-import net.danh.storage.Manager.UtilsManager.ItemManager;
+import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -26,13 +26,13 @@ public class PersonalStorage implements IGUI {
 
     public PersonalStorage(Player p) {
         this.p = p;
-        config = FileManager.getGUIStorage();
+        config = File.getGUIStorage();
     }
 
     @NotNull
     @Override
     public Inventory getInventory() {
-        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, ChatManager.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
+        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
             if (item_tag.equalsIgnoreCase("storage_item")) {
@@ -41,7 +41,7 @@ public class PersonalStorage implements IGUI {
                     List<String> item_list = new ArrayList<>(MineManager.getPluginBlocks());
                     for (int i = 0; i < slot_list.size(); i++) {
                         String material = MineManager.getMaterial(item_list.get(i));
-                        String name = FileManager.getConfig().getString("items." + item_list.get(i));
+                        String name = File.getConfig().getString("items." + item_list.get(i));
                         ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
                         InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(i)))
                                 .onClick((player, clickType) -> player.openInventory(new ItemStorage(p, material).getInventory()));

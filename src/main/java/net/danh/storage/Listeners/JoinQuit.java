@@ -1,6 +1,6 @@
 package net.danh.storage.Listeners;
 
-import net.danh.storage.Manager.GameManager.MineManager;
+import net.danh.storage.Manager.MineManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

@@ -2,14 +2,14 @@ package net.danh.storage;
 
 import dev.digitality.digitalgui.DigitalGUI;
 import net.danh.storage.CMD.StorageCMD;
+import net.danh.storage.Database.Database;
+import net.danh.storage.Database.SQLite;
 import net.danh.storage.Listeners.BlockBreak;
 import net.danh.storage.Listeners.JoinQuit;
-import net.danh.storage.Manager.DatabaseManager.Database;
-import net.danh.storage.Manager.DatabaseManager.SQLite;
-import net.danh.storage.Manager.GameManager.MineManager;
-import net.danh.storage.Manager.UtilsManager.FileManager;
-import net.danh.storage.Manager.UtilsManager.GitManager;
+import net.danh.storage.Manager.GitManager;
+import net.danh.storage.Manager.MineManager;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.UpdateChecker;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.entity.Player;
@@ -48,8 +48,8 @@ public final class Storage extends JavaPlugin {
     public void onEnable() {
         DigitalGUI.register(storage);
         SimpleConfigurationManager.register(storage);
-        FileManager.loadFiles();
-        FileManager.loadGUI();
+        File.loadFiles();
+        File.loadGUI();
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak());
         new UpdateChecker(storage).fetch();
         GitManager.checkGitUpdate();
@@ -68,7 +68,7 @@ public final class Storage extends JavaPlugin {
         for (Player p : getServer().getOnlinePlayers()) {
             MineManager.savePlayerData(p);
         }
-        FileManager.saveFiles();
+        File.saveFiles();
     }
 
 

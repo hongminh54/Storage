@@ -1,11 +1,11 @@
-package net.danh.storage.Manager.UtilsManager;
+package net.danh.storage.Utils;
 
 import org.bukkit.Location;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class CooldownManager {
+public class Cooldown {
 
     private static final Map<Location, Integer> cooldown = new HashMap<>();
 

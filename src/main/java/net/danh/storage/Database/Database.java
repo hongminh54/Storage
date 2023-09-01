@@ -1,6 +1,5 @@
-package net.danh.storage.Manager.DatabaseManager;
+package net.danh.storage.Database;
 
-import net.danh.storage.Manager.GameManager.PlayerData;
 import net.danh.storage.Storage;
 import org.jetbrains.annotations.NotNull;
 

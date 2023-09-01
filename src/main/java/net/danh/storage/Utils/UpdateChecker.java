@@ -1,6 +1,5 @@
 package net.danh.storage.Utils;
 
-import net.danh.storage.Manager.UtilsManager.FileManager;
 import net.danh.storage.Storage;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -36,7 +35,7 @@ public class UpdateChecker implements Listener {
 
     public void fetch() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            if (FileManager.getConfig().getBoolean("check_update")) {
+            if (File.getConfig().getBoolean("check_update")) {
                 try {
                     HttpsURLConnection con = (HttpsURLConnection) new URL("https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID).openConnection();
                     con.setRequestMethod("GET");

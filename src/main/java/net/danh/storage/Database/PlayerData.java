@@ -1,4 +1,4 @@
-package net.danh.storage.Manager.GameManager;
+package net.danh.storage.Database;
 
 public class PlayerData {
     private final String player;

@@ -1,4 +1,4 @@
-package net.danh.storage.Manager.UtilsManager;
+package net.danh.storage.Manager;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

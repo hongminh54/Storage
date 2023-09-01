@@ -1,10 +1,9 @@
-package net.danh.storage.Manager.UtilsManager;
+package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
-import net.danh.storage.Manager.GameManager.ChatManager;
-import net.danh.storage.Manager.GameManager.MineManager;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Utils.Chat;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -35,8 +34,8 @@ public class ItemManager {
         }
         itemStack.setAmount(section.getInt("amount"));
         meta.setUnbreakable(section.getBoolean("unbreakable"));
-        meta.setLore(ChatManager.colorizewp(section.getStringList("lore")));
-        meta.setDisplayName(ChatManager.colorizewp(section.getString("name")));
+        meta.setLore(Chat.colorizewp(section.getStringList("lore")));
+        meta.setDisplayName(Chat.colorizewp(section.getString("name")));
         if (section.contains("enchants")) {
             for (String enchant_name : Objects.requireNonNull(section.getConfigurationSection("enchants")).getKeys(false)) {
                 int level = section.getInt("enchants." + enchant_name);
@@ -80,10 +79,10 @@ public class ItemManager {
         }
         itemStack.setAmount(section.getInt("amount"));
         meta.setUnbreakable(section.getBoolean("unbreakable"));
-        meta.setLore(ChatManager.colorizewp(section.getStringList("lore")
+        meta.setLore(Chat.colorizewp(section.getStringList("lore")
                 .stream().map(s -> s.replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)))
                         .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))).collect(Collectors.toList())));
-        meta.setDisplayName(ChatManager.colorizewp(section.getString("name")));
+        meta.setDisplayName(Chat.colorizewp(section.getString("name")));
         if (section.contains("enchants")) {
             for (String enchant_name : Objects.requireNonNull(section.getConfigurationSection("enchants")).getKeys(false)) {
                 int level = section.getInt("enchants." + enchant_name);
@@ -126,10 +125,10 @@ public class ItemManager {
         }
         itemStack.setAmount(section.getInt("amount"));
         meta.setUnbreakable(section.getBoolean("unbreakable"));
-        meta.setLore(ChatManager.colorizewp(section.getStringList("lore")
+        meta.setLore(Chat.colorizewp(section.getStringList("lore")
                 .stream().map(s -> s.replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)))
                         .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))).collect(Collectors.toList())));
-        meta.setDisplayName(ChatManager.colorizewp(name));
+        meta.setDisplayName(Chat.colorizewp(name));
         if (section.contains("enchants")) {
             for (String enchant_name : Objects.requireNonNull(section.getConfigurationSection("enchants")).getKeys(false)) {
                 int level = section.getInt("enchants." + enchant_name);

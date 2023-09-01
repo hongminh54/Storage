@@ -1,4 +1,4 @@
-package net.danh.storage.Manager.DatabaseManager;
+package net.danh.storage.Database;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;

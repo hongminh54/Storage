@@ -1,9 +1,10 @@
-package net.danh.storage.Manager.GameManager;
+package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XMaterial;
-import net.danh.storage.Manager.UtilsManager.FileManager;
+import net.danh.storage.Database.PlayerData;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -47,7 +48,7 @@ public class MineManager {
         PlayerData playerStats = Storage.db.getData(player.getName());
 
         if (playerStats == null) {
-            playerStats = new PlayerData(player.getName(), createNewData(), FileManager.getConfig().getInt("settings.default_max_storage"));
+            playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"));
             Storage.db.createTable(playerStats);
         }
 
@@ -160,8 +161,8 @@ public class MineManager {
 
 
     public static void loadBlocks() {
-        for (String block_break : Objects.requireNonNull(FileManager.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
-            String item_drop = FileManager.getConfig().getString("blocks." + block_break + ".drop");
+        for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
+            String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
             NMSAssistant nms = new NMSAssistant();
             if (item_drop != null) {
                 if (!item_drop.contains(";")) {
@@ -186,10 +187,10 @@ public class MineManager {
     public static boolean checkBreak(@NotNull Block block) {
         ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
         if (itemStack != null) {
-            if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
-                return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
-            } else if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
-                return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
+            if (File.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
+                return File.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
+            } else if (File.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
+                return File.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
             }
             return false;
         }
@@ -201,10 +202,10 @@ public class MineManager {
         if (material.isPresent()) {
             ItemStack itemStack = material.get().parseItem();
             if (itemStack != null) {
-                if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
-                    return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
-                } else if (FileManager.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
-                    return FileManager.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
+                if (File.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
+                    return File.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
+                } else if (File.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
+                    return File.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
                 }
                 return false;
             }

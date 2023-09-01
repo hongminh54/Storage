@@ -1,4 +1,4 @@
-package net.danh.storage.Manager.DatabaseManager;
+package net.danh.storage.Database;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

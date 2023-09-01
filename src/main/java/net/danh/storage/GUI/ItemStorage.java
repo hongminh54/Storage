@@ -2,9 +2,9 @@ package net.danh.storage.GUI;
 
 import dev.digitality.digitalgui.api.IGUI;
 import dev.digitality.digitalgui.api.InteractiveItem;
-import net.danh.storage.Manager.GameManager.ChatManager;
-import net.danh.storage.Manager.UtilsManager.FileManager;
-import net.danh.storage.Manager.UtilsManager.ItemManager;
+import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -24,13 +24,13 @@ public class ItemStorage implements IGUI {
     public ItemStorage(Player p, String material) {
         this.p = p;
         this.material = material;
-        config = FileManager.getItemStorage();
+        config = File.getItemStorage();
     }
 
     @NotNull
     @Override
     public Inventory getInventory() {
-        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, ChatManager.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName()).replace("#material#", material.split(";")[0])));
+        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName()).replace("#material#", material.split(";")[0])));
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
             if (slot.contains(",")) {

@@ -2,9 +2,9 @@ package net.danh.storage.CMD;
 
 import net.danh.storage.API.CMDBase;
 import net.danh.storage.GUI.PersonalStorage;
-import net.danh.storage.Manager.GameManager.ChatManager;
-import net.danh.storage.Manager.GameManager.MineManager;
-import net.danh.storage.Manager.UtilsManager.FileManager;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -32,15 +32,15 @@ public class StorageCMD extends CMDBase {
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("help")) {
                 if (c.hasPermission("storage.admin")) {
-                    FileManager.getMessage().getStringList("admin.help").forEach(s -> c.sendMessage(ChatManager.colorize(s)));
+                    File.getMessage().getStringList("admin.help").forEach(s -> c.sendMessage(Chat.colorize(s)));
                 }
             }
         }
         if (c.hasPermission("storage.admin")) {
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("reload")) {
-                    FileManager.reloadFiles();
-                    c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.reload")));
+                    File.reloadFiles();
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.reload")));
                 }
             }
         }
@@ -50,9 +50,9 @@ public class StorageCMD extends CMDBase {
                     Player p = Bukkit.getPlayer(args[1]);
                     if (p != null) {
                         int amount = Number.getInteger(args[2]);
-                        if (amount > 0 && amount >= FileManager.getConfig().getInt("settings.default_max_storage")) {
+                        if (amount > 0 && amount >= File.getConfig().getInt("settings.default_max_storage")) {
                             MineManager.playermaxdata.put(p, amount);
-                            c.sendMessage(ChatManager.colorize(Objects.requireNonNull(FileManager.getMessage().getString("admin.set_max_storage")).replace("#player#", p.getName()).replace("#amount#", String.valueOf(amount))));
+                            c.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.set_max_storage")).replace("#player#", p.getName()).replace("#amount#", String.valueOf(amount))));
                         }
                     }
                 }
@@ -67,20 +67,20 @@ public class StorageCMD extends CMDBase {
                         if (number > 0) {
                             if (args[0].equalsIgnoreCase("add")) {
                                 if (MineManager.addBlockAmount(p, args[1], number)) {
-                                    c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.add_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
-                                    p.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("user.add_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
+                                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.add_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.add_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
                                 }
                             }
                             if (args[0].equalsIgnoreCase("remove")) {
                                 if (MineManager.removeBlockAmount(p, args[1], number)) {
-                                    c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.remove_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
-                                    p.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("user.remove_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
+                                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.remove_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.remove_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
                                 }
                             }
                             if (args[0].equalsIgnoreCase("set")) {
                                 MineManager.setBlock(p, args[1], number);
-                                c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.set_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
-                                p.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("user.set_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
+                                c.sendMessage(Chat.colorize(File.getMessage().getString("admin.set_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.set_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
                             }
                         }
                     }
