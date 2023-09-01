@@ -35,8 +35,17 @@ public final class Storage extends JavaPlugin {
     }
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         storage = this;
+        if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+            WorldGuard = true;
+            net.danh.storage.WorldGuard.WorldGuard.register(storage);
+            getLogger().log(Level.INFO, "[✔️] WorldGuard Support");
+        }
+    }
+
+    @Override
+    public void onEnable() {
         DigitalGUI.register(storage);
         SimpleConfigurationManager.register(storage);
         FileManager.loadFiles();
@@ -48,10 +57,6 @@ public final class Storage extends JavaPlugin {
         db = new SQLite(Storage.getStorage());
         db.load();
         MineManager.loadBlocks();
-        if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
-            WorldGuard = true;
-            getLogger().log(Level.INFO, "[✔️] WorldGuard Support");
-        }
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
             getLogger().log(Level.WARNING, "If material doesn't work, you should go to discord and report to author!");
