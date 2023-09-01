@@ -20,12 +20,14 @@ public class GitManager {
 
     public static void checkGitUpdate() {
         Logger logger = Storage.getStorage().getLogger();
-        if (getGitBuild() != null) {
-            logger.log(Level.INFO, "Github latest build: " + getGitBuild());
+        String git_build = getGitBuild();
+        if (git_build != null) {
+            logger.log(Level.INFO, "Github latest build: " + git_build);
         }
         logger.log(Level.INFO, "Github latest changelog: ");
-        if (getGitMessage() != null) {
-            getGitMessage().forEach(message -> {
+        List<String> git_msg = getGitMessage();
+        if (git_msg != null) {
+            git_msg.forEach(message -> {
                 logger.log(Level.INFO, message);
             });
         }

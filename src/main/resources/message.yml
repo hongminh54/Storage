@@ -3,7 +3,8 @@ admin:
   add_material_amount: "&bAdded #amount# #material# to #player#"
   remove_material_amount: "&bRemoved #amount# #material# from #player#"
   reload: "&eReloaded Files"
-  set_max_storage: "&aSetted max storage of #player# to #amount#"
+  set_max_storage: "&aSet max storage of #player# to #amount#"
+  set_material_amount: "&cSet #amount# #material# for #player#"
   help:
     - "&f/Storage reload - Reload Files"
     - "&f/Storage max <player> <amount> - Set max item player can storage"
@@ -14,4 +15,4 @@ user:
   full_storage: "&cStorage has been full, please take some out to mine more"
   add_material_amount: "&a+ #amount# #material# &7[From #player#]"
   remove_material_amount: "&c- #amount# #material# &7[From #player#]"
-  set_max_storage: "&a+ #amount# Storage &7[From #player#]"
+  set_material_amount: "&c[~] #amount# #material# &7[From #player#]"

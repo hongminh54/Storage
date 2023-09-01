@@ -21,15 +21,19 @@ public class FileManager {
         return getFileSetting().get("GUI/storage.yml");
     }
 
+    public static FileConfiguration getItemStorage() {
+        return getFileSetting().get("GUI/items.yml");
+    }
+
     public static void loadFiles() {
         getFileSetting().build("", false, "config.yml", "message.yml");
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml");
     }
 
     public static void saveFiles() {
-        getFileSetting().save("config.yml", "message.yml", "GUI/storage.yml");
+        getFileSetting().save("config.yml", "message.yml", "GUI/storage.yml", "GUI/items.yml");
     }
 }

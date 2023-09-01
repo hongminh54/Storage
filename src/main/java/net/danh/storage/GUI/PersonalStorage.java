@@ -34,8 +34,8 @@ public class PersonalStorage implements IGUI {
     public Inventory getInventory() {
         Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, ChatManager.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
+            String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
             if (item_tag.equalsIgnoreCase("storage_item")) {
-                String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
                 if (slot.contains(",")) {
                     List<String> slot_list = new ArrayList<>(Arrays.asList(slot.split(",")));
                     List<String> item_list = new ArrayList<>(MineManager.getPluginBlocks());
@@ -43,12 +43,12 @@ public class PersonalStorage implements IGUI {
                         String material = MineManager.getMaterial(item_list.get(i));
                         String name = FileManager.getConfig().getString("items." + item_list.get(i));
                         ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
-                        InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(i)));
+                        InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(i)))
+                                .onClick((player, clickType) -> player.openInventory(new ItemStorage(p, material).getInventory()));
                         inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                     }
                 }
             } else {
-                String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
                 if (slot.contains(",")) {
                     for (String slot_string : slot.split(",")) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string));
@@ -60,19 +60,6 @@ public class PersonalStorage implements IGUI {
                 }
             }
         }
-
-//        InteractiveItem item = new InteractiveItem(Material.DIAMOND, 0, "§aDiamond", "§7This is a diamond.")
-//                .onClick((player, clickType) -> { // This will run for any click action
-//                    player.sendMessage("You clicked the diamond!");
-//                })
-//                .onLeftClick(player -> { // This will run on left click, regardless of whether it was InventoryClickEvent or PlayerInteractEvent
-//                    player.sendMessage("You left clicked the diamond!");
-//                })
-//                .onRightClick(player -> { // This will run on right click, regardless of whether it was InventoryClickEvent or PlayerInteractEvent
-//                    player.sendMessage("You right clicked the diamond!");
-//                });
-//        inventory.setItem(item.getSlot(), item);
-
         return inventory;
     }
 
