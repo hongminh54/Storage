@@ -10,9 +10,11 @@ import net.danh.storage.Listeners.JoinQuit;
 import net.danh.storage.Manager.GitManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Placeholder.PAPI;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.UpdateChecker;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -51,6 +53,9 @@ public final class Storage extends JavaPlugin {
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
         File.loadGUI();
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PAPI().register();
+        }
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat());
         new UpdateChecker(storage).fetch();
         GitManager.checkGitUpdate();

@@ -4,6 +4,7 @@ main: net.danh.storage.Storage
 api-version: '1.13'
 softdepend:
   - WorldGuard
+  - PlaceholderAPI
 commands:
   storage:
     description: Main command
