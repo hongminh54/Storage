@@ -42,7 +42,7 @@ public class PersonalStorage implements IGUI {
                     for (int i = 0; i < slot_list.size(); i++) {
                         String material = MineManager.getMaterial(item_list.get(i));
                         String name = FileManager.getConfig().getString("items." + item_list.get(i));
-                        ItemStack itemStack = ItemManager.getItemConfig(material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
+                        ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
                         InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(i)));
                         inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                     }

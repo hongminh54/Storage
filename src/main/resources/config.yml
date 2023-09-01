@@ -63,7 +63,7 @@ items:
   DIAMOND;0: "&bDiamond"
   DIAMOND_BLOCK;0: "&bDiamond Block"
   EMERALD;0: "&aEmerald"
-  EMERALD_Block;0: "&aEmerald Block"
+  EMERALD_BLOCK;0: "&aEmerald Block"
 mine:
   title:
     enable: true

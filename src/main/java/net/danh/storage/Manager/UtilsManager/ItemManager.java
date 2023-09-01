@@ -3,15 +3,18 @@ package net.danh.storage.Manager.UtilsManager;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.Manager.GameManager.ChatManager;
+import net.danh.storage.Manager.GameManager.MineManager;
 import net.danh.storage.NMS.NMSAssistant;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ItemManager {
 
@@ -60,10 +63,10 @@ public class ItemManager {
         return itemStack;
     }
 
-    public static ItemStack getItemConfig(String material, String name, ConfigurationSection section) {
+    public static ItemStack getItemConfig(Player p, String material, String name, ConfigurationSection section) {
         ItemStack itemStack = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta meta = itemStack.getItemMeta();
-        Optional<XMaterial> xMaterialOptional = XMaterial.matchXMaterial(material != null ? material : "BLACK_STAINED_GLASS_PANE");
+        Optional<XMaterial> xMaterialOptional = XMaterial.matchXMaterial(material.split(";")[0] != null ? material.split(";")[0] : "BLACK_STAINED_GLASS_PANE");
         if (xMaterialOptional.isPresent() && xMaterialOptional.get().parseItem() != null) {
             itemStack = xMaterialOptional.get().parseItem();
         }
@@ -76,7 +79,9 @@ public class ItemManager {
         }
         itemStack.setAmount(section.getInt("amount"));
         meta.setUnbreakable(section.getBoolean("unbreakable"));
-        meta.setLore(ChatManager.colorizewp(section.getStringList("lore")));
+        meta.setLore(ChatManager.colorizewp(section.getStringList("lore")
+                .stream().map(s -> s.replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)))
+                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))).collect(Collectors.toList())));
         meta.setDisplayName(ChatManager.colorizewp(name));
         if (section.contains("enchants")) {
             for (String enchant_name : Objects.requireNonNull(section.getConfigurationSection("enchants")).getKeys(false)) {

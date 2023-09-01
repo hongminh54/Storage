@@ -14,3 +14,4 @@ user:
   full_storage: "&cKho đồ đã đầy, hãy lấy ra bớt để có thể đào tiếp"
   add_material_amount: "&a+ #amount# #material# &7[From #player#]"
   remove_material_amount: "&c- #amount# #material# &7[From #player#]"
+  set_max_storage: "&a+ #amount# Storage &7[From #player#]"

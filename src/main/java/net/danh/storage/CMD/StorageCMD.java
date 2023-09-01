@@ -79,8 +79,8 @@ public class StorageCMD extends CMDBase {
                             }
                             if (args[0].equalsIgnoreCase("set")) {
                                 MineManager.setBlock(p, args[1], number);
-                                c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.remove_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
-                                p.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("user.remove_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
+                                c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.set_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", p.getName()));
+                                p.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("user.set_material_amount")).replace("#amount#", args[3]).replace("#material#", args[1]).replace("#player#", c.getName()));
                             }
                         }
                     }

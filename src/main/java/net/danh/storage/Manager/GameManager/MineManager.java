@@ -39,6 +39,7 @@ public class MineManager {
 
     public static void addPluginBlocks(String material) {
         blocksdata.put(material, material);
+
     }
 
     public static @NotNull PlayerData getPlayerDatabase(@NotNull Player player) {
@@ -96,49 +97,42 @@ public class MineManager {
     }
 
     public static void setBlock(@NotNull Player p, String material, int amount) {
-        if (checkBreak(material)) {
-            playerdata.put(p.getName() + "_" + material, amount);
-        }
+        playerdata.put(p.getName() + "_" + material, amount);
     }
 
     public static void setBlock(Player p, @NotNull List<String> list) {
         list.forEach(block -> {
             String[] block_data = block.split(";");
-            String material = block_data[0];
-            int amount = Number.getInteger(block_data[1]);
+            String material = block_data[0] + ";" + block_data[1];
+            int amount = Number.getInteger(block_data[2]);
             setBlock(p, material, amount);
         });
     }
 
     public static boolean addBlockAmount(Player p, String material, int amount) {
-        if (checkBreak(material)) {
-            if (amount > 0) {
-                if (blocksdata.containsKey(material) && hasPlayerBlock(p, material)) {
-                    int old_data = getPlayerBlock(p, material);
-                    int new_data = old_data + amount;
-                    int max_storage = getMaxBlock(p);
-                    if (old_data >= max_storage) return false;
-                    playerdata.replace(p.getName() + "_" + material, Math.min(new_data, max_storage));
-                    return true;
-                } else if (blocksdata.containsKey(material) && !hasPlayerBlock(p, material)) {
-                    setBlock(p, material, amount);
-                    return true;
-                }
+        if (amount > 0) {
+            if (blocksdata.containsKey(material) && hasPlayerBlock(p, material)) {
+                int old_data = getPlayerBlock(p, material);
+                int new_data = old_data + amount;
+                int max_storage = getMaxBlock(p);
+                if (old_data >= max_storage) return false;
+                playerdata.replace(p.getName() + "_" + material, Math.min(new_data, max_storage));
+                return true;
+            } else if (blocksdata.containsKey(material) && !hasPlayerBlock(p, material)) {
+                setBlock(p, material, amount);
+                return true;
             }
         }
         return false;
     }
 
     public static boolean removeBlockAmount(Player p, String material, int amount) {
-        if (checkBreak(material)) {
-            if (amount > 0) {
-                int old_data = getPlayerBlock(p, material);
-                int new_data = old_data - amount;
-                if (old_data <= 0) return false;
-                playerdata.replace(p.getName() + "_" + material, Math.max(new_data, 0));
-                return true;
-            }
-            return false;
+        if (amount > 0) {
+            int old_data = getPlayerBlock(p, material);
+            int new_data = old_data - amount;
+            if (old_data <= 0) return false;
+            playerdata.replace(p.getName() + "_" + material, Math.max(new_data, 0));
+            return true;
         }
         return false;
     }
@@ -148,6 +142,7 @@ public class MineManager {
         List<String> list = convertOnlineData(playerData.getData());
         playermaxdata.put(p, playerData.getMax());
         setBlock(p, list);
+        p.sendMessage(list.toString());
     }
 
     public static void savePlayerData(@NotNull Player p) {
@@ -219,15 +214,15 @@ public class MineManager {
     }
 
     public static String getMaterial(String material) {
-        String material_data = material.replace(";", ":");
+        String material_data = material.replace(":", ";");
         NMSAssistant nms = new NMSAssistant();
         if (nms.isVersionGreaterThanOrEqualTo(13)) {
-            return material_data.split(":")[0];
+            return material_data.split(";")[0] + ";0";
         } else {
-            if (Number.getInteger(material_data.split(":")[1]) > 0) {
-                return material_data;
+            if (Number.getInteger(material_data.split(";")[1]) > 0) {
+                return material;
             } else {
-                return material_data.split(":")[0];
+                return material_data.split(";")[0] + ";0";
             }
         }
     }
