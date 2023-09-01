@@ -39,7 +39,7 @@ public class StorageCMD extends CMDBase {
         if (c.hasPermission("storage.admin")) {
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("reload")) {
-                    FileManager.getFileSetting().reload("config.yml", "message.yml");
+                    FileManager.reloadFiles();
                     c.sendMessage(ChatManager.colorize(FileManager.getMessage().getString("admin.reload")));
                 }
             }

@@ -29,6 +29,10 @@ public class FileManager {
         getFileSetting().build("", false, "config.yml", "message.yml");
     }
 
+    public static void reloadFiles() {
+        getFileSetting().reload("config.yml", "message.yml", "GUI/storage.yml", "GUI/items.yml");
+    }
+
     public static void loadGUI() {
         getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml");
     }
