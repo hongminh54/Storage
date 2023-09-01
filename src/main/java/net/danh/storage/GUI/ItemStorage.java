@@ -2,7 +2,11 @@ package net.danh.storage.GUI;
 
 import dev.digitality.digitalgui.api.IGUI;
 import dev.digitality.digitalgui.api.InteractiveItem;
+import net.danh.storage.Action.Deposit;
+import net.danh.storage.Action.Sell;
+import net.danh.storage.Action.Withdraw;
 import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
@@ -10,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -36,10 +41,186 @@ public class ItemStorage implements IGUI {
             if (slot.contains(",")) {
                 for (String slot_string : slot.split(",")) {
                     InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, material, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string));
+                    String type_left = config.getString("items." + item_tag + ".action.left.type");
+                    String action_left = config.getString("items." + item_tag + ".action.left.action");
+                    String type_right = config.getString("items." + item_tag + ".action.right.type");
+                    String action_right = config.getString("items." + item_tag + ".action.right.action");
+                    if (type_left != null && action_left != null) {
+                        item.onLeftClick(player -> {
+                            if (action_left.equalsIgnoreCase("deposit")) {
+                                if (type_left.equalsIgnoreCase("chat")) {
+                                    net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
+                                    p.closeInventory();
+                                } else if (type_left.equalsIgnoreCase("all")) {
+                                    new Deposit(p, material, -1L).doAction();
+                                    p.closeInventory();
+                                }
+                            }
+                            if (action_left.equalsIgnoreCase("withdraw")) {
+                                if (type_left.equalsIgnoreCase("chat")) {
+                                    net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
+                                    p.closeInventory();
+                                } else if (type_left.equalsIgnoreCase("all")) {
+                                    new Withdraw(p, material, -1).doAction();
+                                    p.closeInventory();
+                                }
+                            }
+                            if (action_left.equalsIgnoreCase("sell")) {
+                                if (type_left.equalsIgnoreCase("chat")) {
+                                    net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.chat_number")));
+                                    p.closeInventory();
+                                } else if (type_left.equalsIgnoreCase("all")) {
+                                    new Sell(p, material, -1).doAction();
+                                    p.closeInventory();
+                                }
+                            }
+                            if (type_left.equalsIgnoreCase("command")) {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Storage.getStorage().getServer().dispatchCommand(p, action_left);
+                                    }
+                                }.runTask(Storage.getStorage());
+                            }
+                        });
+                    }
+                    if (type_right != null && action_right != null) {
+                        item.onRightClick(player -> {
+                            if (action_right.equalsIgnoreCase("deposit")) {
+                                if (type_right.equalsIgnoreCase("chat")) {
+                                    net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
+                                    p.closeInventory();
+                                } else if (type_right.equalsIgnoreCase("all")) {
+                                    new Deposit(p, material, -1L).doAction();
+                                    p.closeInventory();
+                                }
+                            }
+                            if (action_right.equalsIgnoreCase("withdraw")) {
+                                if (type_right.equalsIgnoreCase("chat")) {
+                                    net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
+                                    p.closeInventory();
+                                } else if (type_right.equalsIgnoreCase("all")) {
+                                    new Withdraw(p, material, -1).doAction();
+                                    p.closeInventory();
+                                }
+                            }
+                            if (action_right.equalsIgnoreCase("sell")) {
+                                if (type_right.equalsIgnoreCase("chat")) {
+                                    net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
+                                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.chat_number")));
+                                    p.closeInventory();
+                                } else if (type_right.equalsIgnoreCase("all")) {
+                                    new Sell(p, material, -1).doAction();
+                                    p.closeInventory();
+                                }
+                            }
+                            if (type_right.equalsIgnoreCase("command")) {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Storage.getStorage().getServer().dispatchCommand(p, action_right);
+                                    }
+                                }.runTask(Storage.getStorage());
+                            }
+                        });
+                    }
                     inventory.setItem(item.getSlot(), item);
                 }
             } else {
                 InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, material, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot));
+                String type_left = config.getString("items." + item_tag + ".action.left.type");
+                String action_left = config.getString("items." + item_tag + ".action.left.action");
+                String type_right = config.getString("items." + item_tag + ".action.right.type");
+                String action_right = config.getString("items." + item_tag + ".action.right.action");
+                if (type_left != null && action_left != null) {
+                    item.onLeftClick(player -> {
+                        if (action_left.equalsIgnoreCase("deposit")) {
+                            if (type_left.equalsIgnoreCase("chat")) {
+                                net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
+                                p.closeInventory();
+                            } else if (type_left.equalsIgnoreCase("all")) {
+                                new Deposit(p, material, -1L).doAction();
+                                p.closeInventory();
+                            }
+                        }
+                        if (action_left.equalsIgnoreCase("withdraw")) {
+                            if (type_left.equalsIgnoreCase("chat")) {
+                                net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
+                                p.closeInventory();
+                            } else if (type_left.equalsIgnoreCase("all")) {
+                                new Withdraw(p, material, -1).doAction();
+                                p.closeInventory();
+                            }
+                        }
+                        if (action_left.equalsIgnoreCase("sell")) {
+                            if (type_left.equalsIgnoreCase("chat")) {
+                                net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.chat_number")));
+                                p.closeInventory();
+                            } else if (type_left.equalsIgnoreCase("all")) {
+                                new Sell(p, material, -1).doAction();
+                                p.closeInventory();
+                            }
+                        }
+                        if (type_left.equalsIgnoreCase("command")) {
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    Storage.getStorage().getServer().dispatchCommand(p, action_left);
+                                }
+                            }.runTask(Storage.getStorage());
+                        }
+                    });
+                }
+                if (type_right != null && action_right != null) {
+                    item.onRightClick(player -> {
+                        if (action_right.equalsIgnoreCase("deposit")) {
+                            if (type_right.equalsIgnoreCase("chat")) {
+                                net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
+                                p.closeInventory();
+                            } else if (type_right.equalsIgnoreCase("all")) {
+                                new Deposit(p, material, -1L).doAction();
+                                p.closeInventory();
+                            }
+                        }
+                        if (action_right.equalsIgnoreCase("withdraw")) {
+                            if (type_right.equalsIgnoreCase("chat")) {
+                                net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
+                                p.closeInventory();
+                            } else if (type_right.equalsIgnoreCase("all")) {
+                                new Withdraw(p, material, -1).doAction();
+                                p.closeInventory();
+                            }
+                        }
+                        if (action_right.equalsIgnoreCase("sell")) {
+                            if (type_right.equalsIgnoreCase("chat")) {
+                                net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.chat_number")));
+                                p.closeInventory();
+                            } else if (type_right.equalsIgnoreCase("all")) {
+                                new Sell(p, material, -1).doAction();
+                                p.closeInventory();
+                            }
+                        }
+                        if (type_right.equalsIgnoreCase("command")) {
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    Storage.getStorage().getServer().dispatchCommand(p, action_right);
+                                }
+                            }.runTask(Storage.getStorage());
+                        }
+                    });
+                }
                 inventory.setItem(item.getSlot(), item);
             }
         }

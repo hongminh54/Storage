@@ -20,6 +20,7 @@ public class MineManager {
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
     public static HashMap<String, String> blocksdrop = new HashMap<>();
+    public static HashMap<Player, Boolean> toggle = new HashMap<>();
 
     public static int getPlayerBlock(@NotNull Player p, String material) {
         return playerdata.get(p.getName() + "_" + material);

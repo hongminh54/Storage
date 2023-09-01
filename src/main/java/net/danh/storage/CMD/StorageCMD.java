@@ -34,6 +34,7 @@ public class StorageCMD extends CMDBase {
                 if (c.hasPermission("storage.admin")) {
                     File.getMessage().getStringList("admin.help").forEach(s -> c.sendMessage(Chat.colorize(s)));
                 }
+                File.getMessage().getStringList("user.help").forEach(s -> c.sendMessage(Chat.colorize(s)));
             }
         }
         if (c.hasPermission("storage.admin")) {

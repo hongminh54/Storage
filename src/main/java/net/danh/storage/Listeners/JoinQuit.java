@@ -14,6 +14,7 @@ public class JoinQuit implements Listener {
     public void onJoin(@NotNull PlayerJoinEvent e) {
         Player p = e.getPlayer();
         MineManager.loadPlayerData(p);
+        MineManager.toggle.put(p, true);
     }
 
     @EventHandler

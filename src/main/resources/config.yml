@@ -8,6 +8,28 @@ settings:
   #Default max storage for all item
   default_max_storage: 100000
 
+#Sell command | I don't want to required Vault as economy so use command to give balance when sell
+sell:
+  - "eco give #player# #money#"
+
+#Worth of per item
+worth:
+  COBBLESTONE;0: 1
+  COAL;0: 2
+  COAL_BLOCK;0: 18
+  IRON_INGOT;0: 3
+  IRON_BLOCK;0: 27
+  GOLD_INGOT;0: 4
+  GOLD_BLOCK;0: 36
+  REDSTONE;0: 5
+  REDSTONE_BLOCK;0: 45
+  LAPIS_LAZULI;0: 6
+  LAPIS_BLOCK;0: 54
+  DIAMOND;0: 7
+  DIAMOND_BLOCK;0: 43
+  EMERALD;0: 8
+  EMERALD_BLOCK;0: 72
+
 #Player can storage list blocks below here
 blocks:
   #MUST REMEMBER: DON'T CONFIG 2 SAME MATERIAL_1 BELOW THIS!
@@ -16,6 +38,7 @@ blocks:
   #For 1.12.2 and below, MATERIAL;0 | 0 -> item data
   #For example: If you want LAPIS_LAZULI for 1.12.2 and below -> INK_SACK;4
   #If you want diamond for all version -> DIAMOND;0
+  #Don't remove ;0 if you don't want making new issue !
   COBBLESTONE;0:
     drop: COBBLESTONE;0
   STONE;0:
@@ -56,7 +79,7 @@ items:
   IRON_BLOCK;0: "&fIron Block"
   GOLD_INGOT;0: "&eGolden Ingot"
   GOLD_BLOCK;0: "&eGold Block"
-  REDSTONE;0: "&cRedstone Ore"
+  REDSTONE;0: "&cRedstone"
   REDSTONE_BLOCK;0: "&cRedstone Block"
   LAPIS_LAZULI;0: "&1Lapis Lazuli"
   LAPIS_BLOCK;0: "&1Lapis Block"

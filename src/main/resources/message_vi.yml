@@ -16,3 +16,22 @@ user:
   add_material_amount: "&a+ #amount# #material# &7[From #player#]"
   remove_material_amount: "&c- #amount# #material# &7[From #player#]"
   set_material_amount: "&c[~] #amount# #material# &7[From #player#]"
+  number_so_low: "&cBạn cần nhập số lớn hơn 0"
+  not_enough_item: "&cBạn không có đủ vật phẩm"
+  action:
+    deposit:
+      chat_number: "&aBạn muốn cất bao nhiêu vật phẩm?"
+      deposit_item: "&aBạn đã cất #amount# #material# | #item_amount#/#max_storage# vật phẩm"
+    withdraw:
+      chat_number: "&aBạn muốn rút bao nhiêu vật phẩm?"
+      withdraw_item: "&aBạn đã rút #amount# #material# | #item_amount#/#max_storage# vật phẩm"
+    sell:
+      chat_number: "&aBạn muốn bán bao nhiêu vật phẩm?"
+      can_not_sell: "&cVật phẩm này không thể bán"
+      sell_item: "&aBạn đã bán #amount# #material# và nhận được #money#$ | #item_amount#/#max_storage# vật phẩm"
+  status:
+    on: "&aBật"
+    off: "&cTắt"
+    toggle: "&bBạn đã #status#&b kho"
+  help:
+    - "&f/Storage - Mở GUI"

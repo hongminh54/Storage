@@ -5,6 +5,7 @@ import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.Database;
 import net.danh.storage.Database.SQLite;
 import net.danh.storage.Listeners.BlockBreak;
+import net.danh.storage.Listeners.Chat;
 import net.danh.storage.Listeners.JoinQuit;
 import net.danh.storage.Manager.GitManager;
 import net.danh.storage.Manager.MineManager;
@@ -50,7 +51,7 @@ public final class Storage extends JavaPlugin {
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
         File.loadGUI();
-        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak());
+        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat());
         new UpdateChecker(storage).fetch();
         GitManager.checkGitUpdate();
         new StorageCMD("storage");

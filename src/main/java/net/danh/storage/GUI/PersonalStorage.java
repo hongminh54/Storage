@@ -43,10 +43,29 @@ public class PersonalStorage implements IGUI {
                         String material = MineManager.getMaterial(item_list.get(i));
                         String name = File.getConfig().getString("items." + item_list.get(i));
                         ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
-                        InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(i)))
-                                .onClick((player, clickType) -> player.openInventory(new ItemStorage(p, material).getInventory()));
+                        InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(i))).onClick((player, clickType) -> {
+                            player.openInventory(new ItemStorage(p, material).getInventory());
+                        });
                         inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                     }
+                }
+            } else if (item_tag.equalsIgnoreCase("toggle_item")) {
+                if (slot.contains(",")) {
+                    for (String slot_string : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
+                            MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
+                            p.openInventory(this.getInventory());
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
+                        MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
+                        p.openInventory(this.getInventory());
+                    });
+                    inventory.setItem(item.getSlot(), item);
                 }
             } else {
                 if (slot.contains(",")) {
