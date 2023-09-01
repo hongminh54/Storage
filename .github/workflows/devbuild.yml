@@ -40,6 +40,5 @@ jobs:
           embed-description: |
             ${{ github.event.head_commit.message }}
             
-            This is beta version for v2.0 and not complete yet!
             SpigotMC: [Storage](https://www.spigotmc.org/resources/100516/)
           filename: "./target/Storage.jar"
