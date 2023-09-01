@@ -142,7 +142,6 @@ public class MineManager {
         List<String> list = convertOnlineData(playerData.getData());
         playermaxdata.put(p, playerData.getMax());
         setBlock(p, list);
-        p.sendMessage(list.toString());
     }
 
     public static void savePlayerData(@NotNull Player p) {
