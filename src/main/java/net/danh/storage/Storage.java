@@ -5,6 +5,7 @@ import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.Database;
 import net.danh.storage.Database.SQLite;
 import net.danh.storage.Listeners.BlockBreak;
+import net.danh.storage.Listeners.BlockPlace;
 import net.danh.storage.Listeners.Chat;
 import net.danh.storage.Listeners.JoinQuit;
 import net.danh.storage.Manager.MineManager;
@@ -55,7 +56,7 @@ public final class Storage extends JavaPlugin {
         if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
         }
-        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat());
+        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat(), new BlockPlace());
         new UpdateChecker(storage).fetch();
         new StorageCMD("storage");
         db = new SQLite(Storage.getStorage());

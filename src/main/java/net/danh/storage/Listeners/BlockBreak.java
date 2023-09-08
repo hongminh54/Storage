@@ -3,6 +3,7 @@ package net.danh.storage.Listeners;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
@@ -16,8 +17,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 
 public class BlockBreak implements Listener {
@@ -31,6 +34,7 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
+        if (isPlacedBlock(block)) return;
         if (MineManager.toggle.get(p)) {
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);
@@ -55,9 +59,19 @@ public class BlockBreak implements Listener {
                     p.sendMessage(Chat.colorize(File.getMessage().getString("user.full_storage")));
                     e.setCancelled(true);
                 }
-                e.setDropItems(false);
+                if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
+                    e.setDropItems(false);
+                }
                 e.getBlock().getDrops().clear();
             }
         }
     }
+    public boolean isPlacedBlock(Block b) {
+        List<MetadataValue> metaDataValues = b.getMetadata("PlacedBlock");
+        for (MetadataValue value : metaDataValues) {
+            return value.asBoolean();
+        }
+        return false;
+    }
+
 }
