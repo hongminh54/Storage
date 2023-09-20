@@ -121,6 +121,10 @@
 			<id>placeholderapi</id>
 			<url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
 		</repository>
+		<repository>
+			<id>maven-central</id>
+			<url>https://oss.sonatype.org/content/groups/public</url>
+		</repository>
 	</repositories>
 	
 	<dependencies>
