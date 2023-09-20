@@ -155,11 +155,10 @@ public class MineManager {
         NMSAssistant nms = new NMSAssistant();
         ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
         if (nms.isVersionLessThanOrEqualTo(12) && itemStack != null) {
-            return blocksdrop.get(itemStack.getType() + ";" + XMaterial.matchXMaterial(block.getType()).parseItem().getDurability());
+            return blocksdrop.get(itemStack.getType() + ";" + itemStack.getDurability());
         }
         return blocksdrop.get(block.getType().name() + ";0");
     }
-
 
     public static void loadBlocks() {
         if (!blocksdrop.isEmpty()) {
@@ -232,6 +231,41 @@ public class MineManager {
                 return material_data.split(";")[0] + ";0";
             }
         }
+    }
+
+    public static String getItemStackDrop(ItemStack item) {
+        for (String drops : getPluginBlocks()) {
+            if (drops != null) {
+                NMSAssistant nms = new NMSAssistant();
+                if (nms.isVersionLessThanOrEqualTo(12)) {
+                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops);
+                    if (xMaterial.isPresent()) {
+                        ItemStack itemStack = xMaterial.get().parseItem();
+                        if (itemStack != null && item.getType().equals(itemStack.getType())) {
+                            return drops;
+                        }
+                    }
+                }
+                if (drops.contains(";")) {
+                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops.split(";")[0]);
+                    if (xMaterial.isPresent()) {
+                        ItemStack itemStack = xMaterial.get().parseItem();
+                        if (itemStack != null && item.getType().equals(itemStack.getType())) {
+                            return drops;
+                        }
+                    }
+                } else {
+                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops);
+                    if (xMaterial.isPresent()) {
+                        ItemStack itemStack = xMaterial.get().parseItem();
+                        if (itemStack != null && item.getType().equals(itemStack.getType())) {
+                            return drops;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 }

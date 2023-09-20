@@ -29,9 +29,23 @@ public class BlockBreak implements Listener {
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
+        boolean inv_full = (p.getInventory().firstEmpty() == -1);
         if (Storage.isWorldGuardInstalled()) {
             if (!WorldGuard.handleForLocation(p, block.getLocation())) {
                 return;
+            }
+        }
+        if (inv_full) {
+            for (ItemStack itemStack : p.getInventory().getContents()) {
+                if (itemStack != null) {
+                    String drop = MineManager.getItemStackDrop(itemStack);
+                    int amount = itemStack.getAmount();
+                    if (drop != null) {
+                        if (MineManager.addBlockAmount(p, drop, amount)) {
+                            p.getInventory().remove(itemStack);
+                        }
+                    }
+                }
             }
         }
         if (isPlacedBlock(block)) return;
