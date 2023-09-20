@@ -55,20 +55,6 @@ public class File {
         Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating...");
         getFileSetting().save("config.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("config.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        List<String> default_admin_help = defaultConfig.getStringList("help.admin");
-        List<String> default_user_help = defaultConfig.getStringList("help.user");
-        List<String> current_admin_help = currentConfig.getStringList("help.admin");
-        List<String> current_user_help = currentConfig.getStringList("help.user");
-        if (default_admin_help.size() != current_admin_help.size()) {
-            getConfig().set("help.admin", default_admin_help);
-            getFileSetting().save("config.yml");
-        }
-        if (default_user_help.size() != current_user_help.size()) {
-            getConfig().set("help.user", default_user_help);
-            getFileSetting().save("config.yml");
-        }
         try {
             ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile);
             Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful");
@@ -82,7 +68,7 @@ public class File {
     public static void updateMessage() {
         Storage.getStorage().getLogger().log(Level.WARNING, "Your message is updating...");
         getFileSetting().save("message.yml");
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "message.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("message.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         List<String> default_admin_help = defaultConfig.getStringList("admin.help");
@@ -104,6 +90,6 @@ public class File {
             Storage.getStorage().getLogger().log(Level.WARNING, "Can not update message by it self, please backup and rename your message then restart to get newest message!!");
             e.printStackTrace();
         }
-        getFileSetting().reload("config.yml");
+        getFileSetting().reload("message.yml");
     }
 }
