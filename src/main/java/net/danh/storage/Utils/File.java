@@ -56,7 +56,7 @@ public class File {
         getFileSetting().save("config.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
         try {
-            ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile);
+            ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile, "items", "blocks", "worth");
             Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful");
         } catch (IOException e) {
             Storage.getStorage().getLogger().log(Level.WARNING, "Can not update config by it self, please backup and rename your config then restart to get newest config!!");

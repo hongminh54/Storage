@@ -39,7 +39,7 @@ public class PersonalStorage implements IGUI {
                 if (slot.contains(",")) {
                     List<String> slot_list = new ArrayList<>(Arrays.asList(slot.split(",")));
                     List<String> item_list = new ArrayList<>(MineManager.getPluginBlocks());
-                    for (int i = 0; i < slot_list.size(); i++) {
+                    for (int i = 0; i < item_list.size(); i++) {
                         String material = MineManager.getMaterial(item_list.get(i));
                         String name = File.getConfig().getString("items." + item_list.get(i));
                         ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
