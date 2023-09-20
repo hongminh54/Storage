@@ -162,6 +162,12 @@ public class MineManager {
 
 
     public static void loadBlocks() {
+        if (!blocksdrop.isEmpty()) {
+            blocksdrop.clear();
+        }
+        if (!blocksdata.isEmpty()) {
+            blocksdata.clear();
+        }
         for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
             NMSAssistant nms = new NMSAssistant();

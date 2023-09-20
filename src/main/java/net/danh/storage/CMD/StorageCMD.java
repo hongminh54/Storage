@@ -3,6 +3,7 @@ package net.danh.storage.CMD;
 import net.danh.storage.API.CMDBase;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
@@ -41,6 +42,11 @@ public class StorageCMD extends CMDBase {
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("reload")) {
                     File.reloadFiles();
+                    MineManager.loadBlocks();
+                    for (Player p : Storage.getStorage().getServer().getOnlinePlayers()) {
+                        MineManager.convertOfflineData(p);
+                        MineManager.loadPlayerData(p);
+                    }
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.reload")));
                 }
             }
