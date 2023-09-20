@@ -18,6 +18,7 @@ user:
   set_material_amount: "&c[~] #amount# #material# &7[From #player#]"
   number_so_low: "&cYou need a number higher than 0"
   not_enough_item: "&cYou haven't enough item"
+  unknown_number: "&c<number> isn't number"
   action:
     deposit:
       chat_number: "&aHow many item you want to deposit?"

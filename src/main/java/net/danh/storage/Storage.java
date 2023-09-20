@@ -53,7 +53,9 @@ public final class Storage extends JavaPlugin {
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
         File.loadGUI();
-        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+        File.updateConfig();
+        File.updateMessage();
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
         }
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat(), new BlockPlace());

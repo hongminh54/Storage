@@ -14,6 +14,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class Chat implements Listener {
     public static HashMap<Player, String> chat_deposit = new HashMap<>();
@@ -28,7 +29,8 @@ public class Chat implements Listener {
             if (Number.getInteger(message) > 0) {
                 new Deposit(p, chat_deposit.get(p), (long) Number.getInteger(message)).doAction();
             } else {
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(File.getMessage().getString("user.number_so_low")));
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
             }
             chat_deposit.remove(p);
             e.setCancelled(true);
@@ -37,7 +39,8 @@ public class Chat implements Listener {
             if (Number.getInteger(message) > 0) {
                 new Withdraw(p, chat_withdraw.get(p), Number.getInteger(message)).doAction();
             } else {
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(File.getMessage().getString("user.number_so_low")));
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
             }
             chat_withdraw.remove(p);
             e.setCancelled(true);
@@ -46,7 +49,8 @@ public class Chat implements Listener {
             if (Number.getInteger(message) > 0) {
                 new Sell(p, chat_sell.get(p), Number.getInteger(message)).doAction();
             } else {
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(File.getMessage().getString("user.number_so_low")));
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
             }
             chat_sell.remove(p);
             e.setCancelled(true);

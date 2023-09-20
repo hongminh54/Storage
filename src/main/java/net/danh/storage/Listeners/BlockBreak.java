@@ -66,6 +66,7 @@ public class BlockBreak implements Listener {
             }
         }
     }
+
     public boolean isPlacedBlock(Block b) {
         List<MetadataValue> metaDataValues = b.getMetadata("PlacedBlock");
         for (MetadataValue value : metaDataValues) {
