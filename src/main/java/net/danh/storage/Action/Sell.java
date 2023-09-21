@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Sell {
     private final Player p;
@@ -65,7 +66,8 @@ public class Sell {
                     }
                 }
             } else {
-                p.sendMessage(Chat.colorize(File.getMessage().getString("user.not_enough_item")));
+                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items"))
+                        .replace("<amount>", String.valueOf(amount))));
             }
         } else {
             if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {

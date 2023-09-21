@@ -76,11 +76,11 @@ public class UpdateChecker implements Listener {
 
         if (plV[0] < spV[0]) {
             return true;
-        } else if ((plV[1] < spV[1])) {
-            return true;
-        } else {
-            return plV[2] < spV[2];
         }
+        if ((plV[1] < spV[1])) {
+            return true;
+        }
+        return plV[2] < spV[2];
     }
 
     private int[] toReadable(@NotNull String version) {

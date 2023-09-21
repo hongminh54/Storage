@@ -12,6 +12,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class Deposit {
@@ -70,7 +71,8 @@ public class Deposit {
                         }
                     }
                 } else {
-                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.not_enough_item")));
+                    p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items"))
+                            .replace("<amount>", String.valueOf(amount))));
                 }
             } else {
                 removeItems(amount);
