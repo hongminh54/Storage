@@ -203,22 +203,6 @@ public class MineManager {
         return false;
     }
 
-    public static boolean checkBreak(@NotNull String block) {
-        Optional<XMaterial> material = XMaterial.matchXMaterial(block.replace(";", ":"));
-        if (material.isPresent()) {
-            ItemStack itemStack = material.get().parseItem();
-            if (itemStack != null) {
-                if (File.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
-                    return File.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
-                } else if (File.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
-                    return File.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
-                }
-                return false;
-            }
-        }
-        return false;
-    }
-
     public static String getMaterial(String material) {
         String material_data = material.replace(":", ";");
         NMSAssistant nms = new NMSAssistant();

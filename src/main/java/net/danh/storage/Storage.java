@@ -43,7 +43,7 @@ public final class Storage extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
             WorldGuard = true;
             net.danh.storage.WorldGuard.WorldGuard.register(storage);
-            getLogger().log(Level.INFO, "[✔️] WorldGuard Support");
+            getLogger().log(Level.INFO, "Hook with WorldGuard");
         }
     }
 
