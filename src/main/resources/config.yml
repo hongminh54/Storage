@@ -12,6 +12,9 @@ settings:
 sell:
   - "eco give #player# #money#"
 
+#Number format of worth
+number_format: "#.##"
+
 #Worth of per item
 worth:
   COBBLESTONE;0: 1

@@ -58,6 +58,8 @@ public class UpdateChecker implements Listener {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     plugin.getLogger().info("An update for Storage (v" + getSpigotVersion() + ") is available at:");
                     plugin.getLogger().info("https://www.spigotmc.org/resources/" + RESOURCE_ID + "/");
+                    plugin.getLogger().info("You are using version v" + pluginVersion);
+                    plugin.getLogger().info("If your plugin version higher than spigotmc version, you can ignore this notice");
                     Bukkit.getPluginManager().registerEvents(this, plugin);
                 });
             }
@@ -99,6 +101,8 @@ public class UpdateChecker implements Listener {
         if (e.getPlayer().hasPermission("storage.admin")) {
             Player player = e.getPlayer();
             player.sendMessage(ChatColor.GREEN + String.format("An update is available for Storage at %s", "https://www.spigotmc.org/resources/100516/"));
+            player.sendMessage(ChatColor.GREEN + String.format("You are using version %s", pluginVersion));
+            player.sendMessage(ChatColor.GREEN + "If your plugin version higher than spigotmc version, you can ignore this notice");
         }
     }
 }

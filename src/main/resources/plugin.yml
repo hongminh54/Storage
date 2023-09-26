@@ -1,6 +1,8 @@
 name: Storage
 version: '${project.version}'
 main: net.danh.storage.Storage
+author: VoChiDanh
+description: "${project.description}"
 api-version: '1.13'
 softdepend:
   - WorldGuard

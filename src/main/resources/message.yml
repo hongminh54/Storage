@@ -5,6 +5,7 @@ admin:
   reload: "&eReloaded Files"
   set_max_storage: "&aSet max storage of #player# to #amount#"
   set_material_amount: "&cSet #amount# #material# for #player#"
+  not_enough_slot: "&cYou need to add more slot in GUI/storage.yml -> storage_item to open this gui. Slot isn't enough for item you had been config"
   help:
     - "&f/Storage reload - Reload Files"
     - "&f/Storage max <player> <amount> - Set max item player can storage"

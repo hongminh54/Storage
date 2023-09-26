@@ -27,7 +27,11 @@ public class StorageCMD extends CMDBase {
     public void execute(@NotNull CommandSender c, String[] args) {
         if (args.length == 0) {
             if (c instanceof Player) {
-                ((Player) c).openInventory(new PersonalStorage((Player) c).getInventory());
+                try {
+                    ((Player) c).openInventory(new PersonalStorage((Player) c).getInventory());
+                } catch (IndexOutOfBoundsException e) {
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.not_enough_slot")));
+                }
             }
         }
         if (args.length == 1) {

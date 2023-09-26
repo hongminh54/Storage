@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -48,15 +49,17 @@ public class Sell {
                     if (section != null) {
                         List<String> sell_list = new ArrayList<>(section.getKeys(false));
                         if (sell_list.contains(getMaterialData())) {
-                            int worth = section.getInt(getMaterialData());
+                            double worth = section.getDouble(getMaterialData());
                             if (worth > 0) {
-                                int money = worth * getAmount();
-                                runCommand(money);
+                                double money = worth * amount;
+                                String money_round_up = roundWithDecimalFormat(money);
+                                double m_ru = Double.parseDouble(money_round_up);
+                                runCommand(m_ru);
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
-                                        .replace("#amount#", String.valueOf(getAmount()))
+                                        .replace("#amount#", String.valueOf(amount))
                                         .replace("#material#", material)
                                         .replace("#player#", p.getName())
-                                        .replace("#money#", String.valueOf(money))
+                                        .replace("#money#", String.valueOf(m_ru))
                                         .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
                                         .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
                             } else {
@@ -75,15 +78,17 @@ public class Sell {
                 if (section != null) {
                     List<String> sell_list = new ArrayList<>(section.getKeys(false));
                     if (sell_list.contains(getMaterialData())) {
-                        int worth = section.getInt(getMaterialData());
+                        double worth = section.getDouble(getMaterialData());
                         if (worth > 0) {
-                            int money = worth * amount;
-                            runCommand(money);
+                            double money = worth * amount;
+                            String money_round_up = roundWithDecimalFormat(money);
+                            double m_ru = Double.parseDouble(money_round_up);
+                            runCommand(m_ru);
                             p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", material)
                                     .replace("#player#", p.getName())
-                                    .replace("#money#", String.valueOf(money))
+                                    .replace("#money#", String.valueOf(m_ru))
                                     .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
                                     .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
                         } else {
@@ -95,9 +100,9 @@ public class Sell {
         }
     }
 
-    public void runCommand(Integer money) {
+    public void runCommand(Double money) {
         config.getStringList("sell").forEach(cmd -> {
-            String cmd_2 = cmd.replace("#money#", String.valueOf(money))
+            String cmd_2 = cmd.replace("#money#", roundWithDecimalFormat(money))
                     .replace("#player#", p.getName());
             new BukkitRunnable() {
                 @Override
@@ -106,6 +111,17 @@ public class Sell {
                 }
             }.runTask(Storage.getStorage());
         });
+    }
+
+    public String roundWithDecimalFormat(double d) {
+        String nf = File.getConfig().getString("number_format");
+        DecimalFormat df;
+        if (nf != null) {
+            df = new DecimalFormat(nf);
+        } else {
+            df = new DecimalFormat("#.##");
+        }
+        return df.format(d);
     }
 
     public String getMaterialData() {

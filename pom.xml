@@ -11,6 +11,8 @@
 	
 	<name>Storage</name>
 	
+	<description>A virtual vault to hold the blocks that players mine and many others features</description>
+	
 	<properties>
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
