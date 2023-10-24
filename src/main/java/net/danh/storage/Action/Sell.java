@@ -42,21 +42,21 @@ public class Sell {
 
     public void doAction() {
         int amount = MineManager.getPlayerBlock(p, getMaterialData());
-        if (getAmount() > 0) {
-            if (amount >= getAmount()) {
-                if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
+        if (this.amount > 0) {
+            if (amount >= this.amount) {
+                if (MineManager.removeBlockAmount(p, getMaterialData(), this.amount)) {
                     ConfigurationSection section = config.getConfigurationSection("worth");
                     if (section != null) {
                         List<String> sell_list = new ArrayList<>(section.getKeys(false));
                         if (sell_list.contains(getMaterialData())) {
                             double worth = section.getDouble(getMaterialData());
                             if (worth > 0) {
-                                double money = worth * amount;
+                                double money = worth * this.amount;
                                 String money_round_up = roundWithDecimalFormat(money);
                                 double m_ru = Double.parseDouble(money_round_up);
                                 runCommand(m_ru);
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
-                                        .replace("#amount#", String.valueOf(amount))
+                                        .replace("#amount#", String.valueOf(this.amount))
                                         .replace("#material#", material)
                                         .replace("#player#", p.getName())
                                         .replace("#money#", String.valueOf(m_ru))
