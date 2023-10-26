@@ -15,6 +15,9 @@ sell:
 #Number format of worth
 number_format: "#.##"
 
+#Prevent re-place and re-break block to get more item / Only should enable this if you're creating survival server
+prevent_rebreak: false
+
 #Worth of per item
 worth:
   COBBLESTONE;0: 1

@@ -48,7 +48,9 @@ public class BlockBreak implements Listener {
                 }
             }
         }
-        if (isPlacedBlock(block)) return;
+        if (File.getConfig().getBoolean("prevent_rebreak")) {
+            if (isPlacedBlock(block)) return;
+        }
         if (MineManager.toggle.get(p)) {
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);

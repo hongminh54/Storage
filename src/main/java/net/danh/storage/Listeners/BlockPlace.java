@@ -1,6 +1,7 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.File;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,7 +15,7 @@ public class BlockPlace implements Listener {
 
     @EventHandler
     public void onPlace(BlockPlaceEvent e) {
-        if (e.getPlayer() != null) {
+        if (File.getConfig().getBoolean("prevent_rebreak")) {
             setMetaDataPlacedBlock(e.getBlock(), true);
         }
     }
