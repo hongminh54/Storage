@@ -57,10 +57,10 @@ public class File {
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("config.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        List<String> default_admin_help = defaultConfig.getStringList("whitelist_fortune");
-        List<String> current_admin_help = currentConfig.getStringList("whitelist_fortune");
-        if (default_admin_help.size() != current_admin_help.size()) {
-            getConfig().set("whitelist_fortune", default_admin_help);
+        List<String> default_whitelist_fortune = defaultConfig.getStringList("whitelist_fortune");
+        List<String> current_whitelist_fortune = currentConfig.getStringList("whitelist_fortune");
+        if (current_whitelist_fortune.isEmpty()) {
+            getConfig().set("whitelist_fortune", default_whitelist_fortune);
             getFileSetting().save("config.yml");
         }
         try {
