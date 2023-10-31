@@ -15,8 +15,18 @@ sell:
 #Number format of worth
 number_format: "#.##"
 
-#Prevent re-place and re-break block to get more item / Only should enable this if you're creating survival server
-prevent_rebreak: false
+#Prevent re-place and re-break block to get more item
+prevent_rebreak: true
+
+#Fortune enchantment can apply for list block(s) below here
+whitelist_fortune:
+  - COAL_ORE
+  - IRON_ORE
+  - GOLD_ORE
+  - REDSTONE_ORE
+  - LAPIS_ORE
+  - DIAMOND_ORE
+  - EMERALD_ORE
 
 #Worth of per item
 worth:

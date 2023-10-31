@@ -59,7 +59,9 @@ public class BlockBreak implements Listener {
                 if (!hand.containsEnchantment(Enchantment.LOOT_BONUS_BLOCKS)) {
                     amount = 1;
                 } else {
-                    amount = Number.getRandomInteger(1, hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
+                    if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
+                        amount = Number.getRandomInteger(1, hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
+                    } else amount = 1;
                 }
                 if (MineManager.addBlockAmount(p, drop, amount)) {
                     if (File.getConfig().getBoolean("mine.actionbar.enable")) {

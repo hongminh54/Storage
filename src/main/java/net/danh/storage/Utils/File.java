@@ -55,6 +55,14 @@ public class File {
         Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating...");
         getFileSetting().save("config.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("config.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        List<String> default_admin_help = defaultConfig.getStringList("whitelist_fortune");
+        List<String> current_admin_help = currentConfig.getStringList("whitelist_fortune");
+        if (default_admin_help.size() != current_admin_help.size()) {
+            getConfig().set("whitelist_fortune", default_admin_help);
+            getFileSetting().save("config.yml");
+        }
         try {
             ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile, "items", "blocks", "worth");
             Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful");
