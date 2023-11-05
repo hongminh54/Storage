@@ -163,7 +163,7 @@
 		<dependency>
 			<groupId>com.github.VoChiDanh</groupId>
 			<artifactId>DigitalGUI</artifactId>
-			<version>4f6ba500e5</version>
+			<version>16d161667e</version>
 		</dependency>
 		<dependency>
 			<groupId>com.tchristofferson</groupId>
