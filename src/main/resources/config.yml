@@ -1,4 +1,4 @@
-#Send a notification to console when new version is available
+#Send a notification to console when a new version is available
 check_update: true
 
 #Prefix for every message from plugin
@@ -8,7 +8,7 @@ settings:
   #Default max storage for all item
   default_max_storage: 100000
 
-#Sell command | I don't want to required Vault as economy so use command to give balance when sell
+#Sell command | I don't want to require Vault as an economy so use command to give balance when sell
 sell:
   - "eco give #player# #money#"
 
@@ -52,9 +52,9 @@ blocks:
   #MATERIAL_1;DATA_NUMBER:
   # drop: MATERIAL_2;DATA_NUMBER
   #For 1.12.2 and below, MATERIAL;0 | 0 -> item data
-  #For example: If you want LAPIS_LAZULI for 1.12.2 and below -> INK_SACK;4
-  #If you want diamond for all version -> DIAMOND;0
-  #Don't remove ;0 if you don't want making new issue !
+  #For example, If you want LAPIS_LAZULI for 1.12.2 and below -> INK_SACK;4
+  #If you want diamond for all versions -> DIAMOND;0
+  #Don't remove ;0 if you don't want to make a new issue!
   COBBLESTONE;0:
     drop: COBBLESTONE;0
   STONE;0:
