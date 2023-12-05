@@ -112,7 +112,27 @@ public abstract class Database {
             }
         }
     }
-
+    public void deleteData(String player) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("DELETE FROM " + table + " WHERE player = ?");
+            ps.setString(1, player);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null)
+                    ps.close();
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException ex) {
+                Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+    }
 
     public void close(PreparedStatement ps, ResultSet rs) {
         try {
