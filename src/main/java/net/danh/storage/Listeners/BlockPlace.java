@@ -16,7 +16,9 @@ public class BlockPlace implements Listener {
     @EventHandler
     public void onPlace(BlockPlaceEvent e) {
         if (File.getConfig().getBoolean("prevent_rebreak")) {
-            setMetaDataPlacedBlock(e.getBlock(), true);
+            if (!e.getPlayer().hasPermission("storage.admin")) {
+                setMetaDataPlacedBlock(e.getBlock(), true);
+            }
         }
     }
 }
