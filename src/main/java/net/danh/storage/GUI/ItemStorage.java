@@ -1,10 +1,10 @@
 package net.danh.storage.GUI;
 
-import dev.digitality.digitalgui.api.IGUI;
-import dev.digitality.digitalgui.api.InteractiveItem;
 import net.danh.storage.Action.Deposit;
 import net.danh.storage.Action.Sell;
 import net.danh.storage.Action.Withdraw;
+import net.danh.storage.GUI.manager.IGUI;
+import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;

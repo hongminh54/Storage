@@ -1,9 +1,9 @@
 package net.danh.storage;
 
-import dev.digitality.digitalgui.DigitalGUI;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.Database;
 import net.danh.storage.Database.SQLite;
+import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.BlockBreak;
 import net.danh.storage.Listeners.BlockPlace;
 import net.danh.storage.Listeners.Chat;
@@ -49,7 +49,7 @@ public final class Storage extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        DigitalGUI.register(storage);
+        GUI.register(storage);
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
         File.loadGUI();

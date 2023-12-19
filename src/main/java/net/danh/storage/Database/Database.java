@@ -112,6 +112,7 @@ public abstract class Database {
             }
         }
     }
+
     public void deleteData(String player) {
         Connection conn = null;
         PreparedStatement ps = null;
