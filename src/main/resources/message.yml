@@ -1,3 +1,4 @@
+message_version: 1
 admin:
   new_version_available: "New version is available. You are using v#old_version#, new version v#new_version#"
   add_material_amount: "&bAdded #amount# #material# to #player#"
@@ -38,3 +39,4 @@ user:
     toggle: "&bYour storage has been toggled: #status#"
   help:
     - "&f/Storage - Open Gui"
+    - "&f/Storage toggle - Toggle autoPickup"

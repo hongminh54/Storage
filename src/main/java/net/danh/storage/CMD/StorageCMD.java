@@ -2,6 +2,7 @@ package net.danh.storage.CMD;
 
 import net.danh.storage.API.CMDBase;
 import net.danh.storage.GUI.PersonalStorage;
+import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
@@ -40,6 +41,14 @@ public class StorageCMD extends CMDBase {
                     File.getMessage().getStringList("admin.help").forEach(s -> c.sendMessage(Chat.colorize(s)));
                 }
                 File.getMessage().getStringList("user.help").forEach(s -> c.sendMessage(Chat.colorize(s)));
+            }
+            if (args[0].equalsIgnoreCase("toggle")) {
+                if (c instanceof Player) {
+                    Player p = (Player) c;
+                    MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                    p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle"))
+                            .replace("#status#", ItemManager.getStatus(p))));
+                }
             }
         }
         if (c.hasPermission("storage.admin")) {
@@ -106,6 +115,7 @@ public class StorageCMD extends CMDBase {
         List<String> commands = new ArrayList<>();
         if (args.length == 1) {
             commands.add("help");
+            commands.add("toggle");
         }
         if (sender.hasPermission("storage.admin")) {
             if (args.length == 1) {

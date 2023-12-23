@@ -51,6 +51,9 @@ public class MineManager {
         if (playerStats == null) {
             playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"));
             Storage.db.createTable(playerStats);
+            toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
+        } else {
+            toggle.put(player, true);
         }
 
         return playerStats;

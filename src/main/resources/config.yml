@@ -1,3 +1,6 @@
+#Do not touch it
+config_version: 1
+
 #Send a notification to console when a new version is available
 check_update: true
 
@@ -7,6 +10,8 @@ prefix: "&7[&fStorage&7]"
 settings:
   #Default max storage for all item
   default_max_storage: 100000
+  #Default auto pickup on first join
+  default_auto_pickup: false
 
 #Sell command | I don't want to require Vault as an economy so use command to give balance when sell
 sell:
