@@ -82,8 +82,12 @@ public class ItemManager {
         meta.setUnbreakable(section.getBoolean("unbreakable"));
         meta.setLore(Chat.colorizewp(section.getStringList("lore")
                 .stream().map(s -> s.replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)))
-                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))).collect(Collectors.toList())));
-        meta.setDisplayName(Chat.colorizewp(section.getString("name")));
+                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))
+                        .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))).collect(Collectors.toList())));
+        meta.setDisplayName(Chat.colorizewp(Objects.requireNonNull(section.getString("name"))
+                .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)))
+                .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))
+                .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))));
         if (section.contains("enchants")) {
             for (String enchant_name : Objects.requireNonNull(section.getConfigurationSection("enchants")).getKeys(false)) {
                 int level = section.getInt("enchants." + enchant_name);
