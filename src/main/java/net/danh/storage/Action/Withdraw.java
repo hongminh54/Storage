@@ -18,11 +18,14 @@ public class Withdraw {
 
     private final Player p;
     private final String material;
+    private final String materialData;
     private final Integer amount;
 
     public Withdraw(Player p, @NotNull String material, Integer amount) {
         this.p = p;
         String material_data = material.replace(":", ";");
+        if (material_data.contains(";")) materialData = material_data;
+        else materialData = material_data + ";0";
         NMSAssistant nms = new NMSAssistant();
         if (nms.isVersionGreaterThanOrEqualTo(13)) {
             this.material = material_data.split(";")[0];
@@ -58,7 +61,7 @@ public class Withdraw {
                                 p.getInventory().addItem(itemStack);
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                         .replace("#amount#", String.valueOf(getAmount()))
-                                        .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
+                                        .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                         .replace("#player#", p.getName())
                                         .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
                                         .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
@@ -86,7 +89,7 @@ public class Withdraw {
                             p.getInventory().addItem(itemStack);
                             p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                     .replace("#amount#", String.valueOf(amount))
-                                    .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
+                                    .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                     .replace("#player#", p.getName())
                                     .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
                                     .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
