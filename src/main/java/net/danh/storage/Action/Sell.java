@@ -57,7 +57,7 @@ public class Sell {
                                 runCommand(m_ru);
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
                                         .replace("#amount#", String.valueOf(this.amount))
-                                        .replace("#material#", material)
+                                        .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
                                         .replace("#player#", p.getName())
                                         .replace("#money#", String.valueOf(m_ru))
                                         .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
@@ -86,7 +86,7 @@ public class Sell {
                             runCommand(m_ru);
                             p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
                                     .replace("#amount#", String.valueOf(amount))
-                                    .replace("#material#", material)
+                                    .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
                                     .replace("#player#", p.getName())
                                     .replace("#money#", String.valueOf(m_ru))
                                     .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
