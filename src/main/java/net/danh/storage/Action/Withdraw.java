@@ -59,12 +59,12 @@ public class Withdraw {
                         if (free_items >= itemStack.getAmount()) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
                                 p.getInventory().addItem(itemStack);
-                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item"))
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item")
                                         .replace("#amount#", String.valueOf(getAmount()))
                                         .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                         .replace("#player#", p.getName())
                                         .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
+                                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                             }
                         } else {
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot"))
@@ -87,12 +87,12 @@ public class Withdraw {
                         itemStack.setAmount(amount);
                         if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                             p.getInventory().addItem(itemStack);
-                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item"))
+                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item")
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                     .replace("#player#", p.getName())
                                     .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
+                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         }
                     } else {
                         p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot"))

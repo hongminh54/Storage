@@ -55,13 +55,12 @@ public class Sell {
                                 String money_round_up = roundWithDecimalFormat(money);
                                 double m_ru = Double.parseDouble(money_round_up);
                                 runCommand(m_ru);
-                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
-                                        .replace("#amount#", String.valueOf(this.amount))
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item").replace("#amount#", String.valueOf(this.amount))
                                         .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                         .replace("#player#", p.getName())
                                         .replace("#money#", String.valueOf(m_ru))
                                         .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
+                                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                             } else {
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                             }
@@ -84,13 +83,13 @@ public class Sell {
                             String money_round_up = roundWithDecimalFormat(money);
                             double m_ru = Double.parseDouble(money_round_up);
                             runCommand(m_ru);
-                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item"))
+                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item")
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                     .replace("#player#", p.getName())
                                     .replace("#money#", String.valueOf(m_ru))
                                     .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p))));
+                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         } else {
                             p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                         }
