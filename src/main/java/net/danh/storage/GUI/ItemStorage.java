@@ -35,7 +35,8 @@ public class ItemStorage implements IGUI {
     @NotNull
     @Override
     public Inventory getInventory() {
-        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName()).replace("#material#", material.split(";")[0])));
+        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())
+                .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material, material.split(";")[0])))));
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
             if (slot.contains(",")) {
