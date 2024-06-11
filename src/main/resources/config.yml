@@ -21,7 +21,7 @@ sell:
 number_format: "#.##"
 
 #Prevent re-place and re-break block to get more item
-prevent_rebreak: true
+prevent_rebreak: false
 
 #Fortune enchantment can apply for list block(s) below here
 whitelist_fortune:
