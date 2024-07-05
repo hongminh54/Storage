@@ -36,12 +36,12 @@ public class NMSVersion {
      * </p>
      */
     public NMSVersion() {
-        String version = Bukkit.getServer().getClass().getPackage().getName();
-        version = version.substring(version.lastIndexOf(".") + 1).replace("v", "").trim();
-        final String[] versionDetails = version.split("_");
+        String version = Bukkit.getServer().getBukkitVersion();
+        version = version.split("-")[0];
+        final String[] versionDetails = version.split("\\.");
         major = Integer.parseInt(versionDetails[0]); // Always probably going to be '1'.
         minor = Integer.parseInt(versionDetails[1]); // 16/18/7/8 etc. etc.
-        revision = Integer.parseInt(versionDetails[2].replace("R", "").trim());
+        revision = versionDetails.length == 3 ? Integer.parseInt(versionDetails[2]) : 0;
     }
 
     public int getMajor() {
