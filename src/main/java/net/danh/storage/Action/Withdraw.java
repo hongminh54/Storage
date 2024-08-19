@@ -55,11 +55,11 @@ public class Withdraw {
                                 free_slot++;
                             }
                         }
-                        int free_items = free_slot * 64;
+                        int free_items = free_slot * itemStack.getMaxStackSize();
                         if (free_items >= itemStack.getAmount()) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
                                 p.getInventory().addItem(itemStack);
-                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item")
+                                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                         .replace("#amount#", String.valueOf(getAmount()))
                                         .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                         .replace("#player#", p.getName())
@@ -82,12 +82,12 @@ public class Withdraw {
                             free_slot++;
                         }
                     }
-                    int free_items = free_slot * 64;
+                    int free_items = free_slot * itemStack.getMaxStackSize();
                     if (amount <= free_items) {
                         itemStack.setAmount(amount);
                         if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                             p.getInventory().addItem(itemStack);
-                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.withdraw.withdraw_item")
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                     .replace("#player#", p.getName())

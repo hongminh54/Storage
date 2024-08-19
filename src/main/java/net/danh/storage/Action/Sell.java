@@ -83,7 +83,7 @@ public class Sell {
                             String money_round_up = roundWithDecimalFormat(money);
                             double m_ru = Double.parseDouble(money_round_up);
                             runCommand(m_ru);
-                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item")
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.sell.sell_item"))
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
                                     .replace("#player#", p.getName())

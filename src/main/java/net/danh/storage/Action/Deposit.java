@@ -53,7 +53,7 @@ public class Deposit {
                     String material = getMaterialData();
                     if (material.contains(";")) {
                         if (MineManager.addBlockAmount(p, material, Math.toIntExact(getAmount()))) {
-                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.deposit_item")
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
                                     .replace("#player#", p.getName())
@@ -62,7 +62,7 @@ public class Deposit {
                         }
                     } else {
                         if (MineManager.addBlockAmount(p, getMaterialData(), Math.toIntExact(getAmount()))) {
-                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.deposit_item")
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
                                     .replace("#player#", p.getName())
@@ -79,7 +79,7 @@ public class Deposit {
                 String material = getMaterialData();
                 if (material.contains(";")) {
                     if (MineManager.addBlockAmount(p, material, amount)) {
-                        p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.deposit_item")
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
                                 .replace("#amount#", String.valueOf(amount))
                                 .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
                                 .replace("#player#", p.getName())
@@ -88,9 +88,9 @@ public class Deposit {
                     }
                 } else {
                     if (MineManager.addBlockAmount(p, getMaterialData(), amount)) {
-                        p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.deposit.deposit_item")
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
                                 .replace("#amount#", String.valueOf(amount))
-                                .replace("#material#", File.getConfig().getString("items." + material))
+                                .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material)))
                                 .replace("#player#", p.getName())
                                 .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)))
                                 .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
