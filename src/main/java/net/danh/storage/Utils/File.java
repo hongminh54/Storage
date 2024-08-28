@@ -61,9 +61,15 @@ public class File {
         if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
             List<String> default_whitelist_fortune = defaultConfig.getStringList("whitelist_fortune");
             List<String> current_whitelist_fortune = currentConfig.getStringList("whitelist_fortune");
+            List<String> default_blacklist_world = defaultConfig.getStringList("blacklist_world");
+            List<String> current_blacklist_world = currentConfig.getStringList("blacklist_world");
             Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating...");
             if (current_whitelist_fortune.isEmpty()) {
                 getConfig().set("whitelist_fortune", default_whitelist_fortune);
+                getFileSetting().save("config.yml");
+            }
+            if (current_blacklist_world.isEmpty()) {
+                getConfig().set("blacklist_world", default_blacklist_world);
                 getFileSetting().save("config.yml");
             }
             try {

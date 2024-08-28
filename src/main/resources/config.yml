@@ -1,5 +1,9 @@
 #Do not touch it
-config_version: 1
+config_version: 2
+
+blacklist_world:
+  - defaultworld
+  - exampleworld
 
 #Send a notification to console when a new version is available
 check_update: true

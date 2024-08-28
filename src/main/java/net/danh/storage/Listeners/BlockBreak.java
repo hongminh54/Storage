@@ -51,6 +51,9 @@ public class BlockBreak implements Listener {
         if (File.getConfig().getBoolean("prevent_rebreak")) {
             if (isPlacedBlock(block)) return;
         }
+        if (File.getConfig().contains("blacklist_world")) {
+            if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
+        }
         if (MineManager.toggle.get(p)) {
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);
