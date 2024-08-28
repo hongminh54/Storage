@@ -155,12 +155,7 @@ public class MineManager {
     }
 
     public static String getDrop(@NotNull Block block) {
-        NMSAssistant nms = new NMSAssistant();
-        ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
-        if (nms.isVersionLessThanOrEqualTo(12) && itemStack != null) {
-            return blocksdrop.get(itemStack.getType() + ";" + itemStack.getDurability());
-        }
-        return blocksdrop.get(block.getType().name() + ";0");
+        return blocksdrop.get(block.getType() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
     }
 
     public static void loadBlocks() {
@@ -194,14 +189,10 @@ public class MineManager {
     }
 
     public static boolean checkBreak(@NotNull Block block) {
-        ItemStack itemStack = XMaterial.matchXMaterial(block.getType()).parseItem();
-        if (itemStack != null) {
-            if (File.getConfig().contains("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop")) {
-                return File.getConfig().getString("blocks." + itemStack.getType().name() + ";" + itemStack.getDurability() + ".drop") != null;
-            } else if (File.getConfig().contains("blocks." + itemStack.getType().name() + ".drop")) {
-                return File.getConfig().getString("blocks." + itemStack.getType().name() + ".drop") != null;
-            }
-            return false;
+        if (File.getConfig().contains("blocks." + block.getType().name() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop")) {
+            return File.getConfig().getString("blocks." + block.getType().name() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop") != null;
+        } else if (File.getConfig().contains("blocks." + block.getType().name() + ".drop")) {
+            return File.getConfig().getString("blocks." + block.getType().name() + ".drop") != null;
         }
         return false;
     }
