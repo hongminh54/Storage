@@ -167,8 +167,7 @@ public class ItemManager {
     }
 
     public static ItemStack getItemConfig(Player p, String material, String name, ConfigurationSection section) {
-        String m_s = section.getString("material");
-        Optional<XMaterial> xMaterialOptional = XMaterial.matchXMaterial(m_s != null ? m_s : "BLACK_STAINED_GLASS_PANE");
+        Optional<XMaterial> xMaterialOptional = XMaterial.matchXMaterial(material.split(";")[0] != null ? material.split(";")[0] : "BLACK_STAINED_GLASS_PANE");
         if (xMaterialOptional.isPresent() && xMaterialOptional.get().parseItem() != null) {
             ItemStack itemStack = xMaterialOptional.get().parseItem();
             ItemMeta meta = itemStack.getItemMeta();
