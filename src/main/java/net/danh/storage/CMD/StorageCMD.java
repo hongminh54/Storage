@@ -45,9 +45,11 @@ public class StorageCMD extends CMDBase {
             if (args[0].equalsIgnoreCase("toggle")) {
                 if (c instanceof Player) {
                     Player p = (Player) c;
-                    MineManager.toggle.replace(p, !MineManager.toggle.get(p));
-                    p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle"))
-                            .replace("#status#", ItemManager.getStatus(p))));
+                    if (p.hasPermission("storage.toggle")) {
+                        MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle"))
+                                .replace("#status#", ItemManager.getStatus(p))));
+                    }
                 }
             }
         }
@@ -115,7 +117,9 @@ public class StorageCMD extends CMDBase {
         List<String> commands = new ArrayList<>();
         if (args.length == 1) {
             commands.add("help");
-            commands.add("toggle");
+            if (sender.hasPermission("storage.toggle")) {
+                commands.add("toggle");
+            }
         }
         if (sender.hasPermission("storage.admin")) {
             if (args.length == 1) {

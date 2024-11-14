@@ -53,7 +53,7 @@ public class MineManager {
             Storage.db.createTable(playerStats);
             toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
         } else {
-            toggle.put(player, true);
+            toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
         }
 
         return playerStats;
