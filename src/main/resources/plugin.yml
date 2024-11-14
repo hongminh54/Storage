@@ -17,3 +17,13 @@ permissions:
     description: Toggle permission
   storage.admin:
     description: Admin permission
+  storage.admin.add:
+    description: Admin add permission command
+  storage.admin.remove:
+    description: Admin remove permission command
+  storage.admin.set:
+    description: Admin set permission command
+  storage.admin.max:
+    description: Admin max permission command
+  storage.admin.reload:
+    description: Admin reload permission command
