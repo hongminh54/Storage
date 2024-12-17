@@ -86,7 +86,7 @@ items:
       - "&f#item_amount#/#max_storage# Items"
       - "&7 "
       - "&eLeft Click - Withdraw item with custom number"
-      - "&eRight Click - Deposit all item to inventory"
+      - "&eRight Click - Withdraw all item to inventory"
     amount: 1
     # for 1.13.2 and below
     damage: 0

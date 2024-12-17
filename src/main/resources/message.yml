@@ -1,4 +1,4 @@
-message_version: 1
+message_version: 2
 admin:
   new_version_available: "New version is available. You are using v#old_version#, new version v#new_version#"
   add_material_amount: "&bAdded #amount# #material# to #player#"
@@ -24,6 +24,7 @@ user:
   not_enough_slot: "&cYou don't have enough slots to withdraw items, you can only hold <slots> items"
   action:
     deposit:
+      full_storage: "&cStorage has been full &8(#item_amount#/#max_storage#)&c, you can't deposit #amount# #material#!"
       chat_number: "&aHow many item you want to deposit?"
       deposit_item: "&aYou deposited #amount# #material# | #item_amount#/#max_storage# Items"
     withdraw:
