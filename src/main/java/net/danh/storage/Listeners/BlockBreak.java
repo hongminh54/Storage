@@ -60,11 +60,11 @@ public class BlockBreak implements Listener {
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
                 if (!hand.containsEnchantment(Enchantment.LOOT_BONUS_BLOCKS)) {
-                    amount = 1;
+                    amount = getDropAmount(block);
                 } else {
                     if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
-                        amount = Number.getRandomInteger(1, hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
-                    } else amount = 1;
+                        amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
+                    } else amount = getDropAmount(block);
                 }
                 if (MineManager.addBlockAmount(p, drop, amount)) {
                     if (File.getConfig().getBoolean("mine.actionbar.enable")) {
@@ -86,6 +86,13 @@ public class BlockBreak implements Listener {
                 e.getBlock().getDrops().clear();
             }
         }
+    }
+
+    private int getDropAmount(Block block) {
+        int amount = 1;
+        if (block != null) for (ItemStack itemStack : block.getDrops())
+            if (itemStack != null) amount += itemStack.getAmount();
+        return amount;
     }
 
     public boolean isPlacedBlock(Block b) {
