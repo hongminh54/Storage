@@ -71,7 +71,7 @@ public class StorageCMD extends CMDBase {
                     Player p = Bukkit.getPlayer(args[1]);
                     if (p != null) {
                         int amount = Number.getInteger(args[2]);
-                        if (amount > 0 && amount >= File.getConfig().getInt("settings.default_max_storage")) {
+                        if (amount > 0) {
                             MineManager.playermaxdata.put(p, amount);
                             c.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.set_max_storage")).replace("#player#", p.getName()).replace("#amount#", String.valueOf(amount))));
                         }
@@ -86,7 +86,7 @@ public class StorageCMD extends CMDBase {
                     Player p = Bukkit.getPlayer(args[2]);
                     if (p != null) {
                         int number = Number.getInteger(args[3]);
-                        if (number > 0) {
+                        if (number >= 0) {
                             if (args[0].equalsIgnoreCase("add")) {
                                 if (c.hasPermission("storage.admin")
                                         || c.hasPermission("storage.admin.add")) {

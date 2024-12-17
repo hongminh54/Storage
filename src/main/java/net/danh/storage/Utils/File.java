@@ -1,10 +1,13 @@
 package net.danh.storage.Utils;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
+import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Storage;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,6 +44,10 @@ public class File {
 
     public static void reloadFiles() {
         getFileSetting().reload("config.yml", "message.yml", "GUI/storage.yml", "GUI/items.yml");
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            MineManager.savePlayerData(p);
+            MineManager.loadPlayerData(p);
+        }
     }
 
     public static void loadGUI() {
