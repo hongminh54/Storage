@@ -35,19 +35,6 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
-        if (inv_full) {
-            for (ItemStack itemStack : p.getInventory().getContents()) {
-                if (itemStack != null) {
-                    String drop = MineManager.getItemStackDrop(itemStack);
-                    int amount = itemStack.getAmount();
-                    if (drop != null) {
-                        if (MineManager.addBlockAmount(p, drop, amount)) {
-                            p.getInventory().remove(itemStack);
-                        }
-                    }
-                }
-            }
-        }
         if (File.getConfig().getBoolean("prevent_rebreak")) {
             if (isPlacedBlock(block)) return;
         }
@@ -55,6 +42,19 @@ public class BlockBreak implements Listener {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
         if (MineManager.toggle.get(p)) {
+            if (inv_full) {
+                for (ItemStack itemStack : p.getInventory().getContents()) {
+                    if (itemStack != null) {
+                        String drop = MineManager.getItemStackDrop(itemStack);
+                        int amount = itemStack.getAmount();
+                        if (drop != null) {
+                            if (MineManager.addBlockAmount(p, drop, amount)) {
+                                p.getInventory().remove(itemStack);
+                            }
+                        }
+                    }
+                }
+            }
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);
                 int amount;

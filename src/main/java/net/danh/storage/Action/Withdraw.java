@@ -9,6 +9,7 @@ import net.danh.storage.Utils.Number;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -39,6 +40,30 @@ public class Withdraw {
         this.amount = amount;
     }
 
+    public static void addItemToInventory(Player player, ItemStack itemStack, int amount) {
+        PlayerInventory inventory = player.getInventory();
+        itemStack.setAmount(amount);
+        int remainingAmount = amount;
+        for (ItemStack item : inventory.getContents()) {
+            if (item != null && item.getType() == itemStack.getType() && item.isSimilar(itemStack)) {
+                int spaceLeft = item.getMaxStackSize() - item.getAmount();
+                if (spaceLeft > 0) {
+                    int toAdd = Math.min(spaceLeft, remainingAmount);
+                    item.setAmount(item.getAmount() + toAdd);
+                    remainingAmount -= toAdd;
+
+                    if (remainingAmount <= 0) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (remainingAmount > 0) {
+            itemStack.setAmount(remainingAmount);
+            inventory.addItem(itemStack);
+        }
+    }
+
     public void doAction() {
         Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(material);
         if (xMaterial.isPresent()) {
@@ -47,18 +72,21 @@ public class Withdraw {
                 int amount = MineManager.getPlayerBlock(p, getMaterialData());
                 if (getAmount() > 0) {
                     if (amount >= getAmount()) {
-                        itemStack.setAmount(getAmount());
                         int free_slot = 0;
-                        for (int i = 0; i <= 35; i++) {
+                        for (int i = 0; i < p.getInventory().getStorageContents().length; i++) {
                             ItemStack istack = p.getInventory().getItem(i);
                             if (istack == null || istack.getType().equals(Material.AIR)) {
-                                free_slot++;
+                                free_slot += itemStack.getMaxStackSize();
+                            } else if (istack.isSimilar(itemStack)) {
+                                int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
+                                if (spaceLeft > 0)
+                                    free_slot += spaceLeft;
                             }
                         }
-                        int free_items = free_slot * itemStack.getMaxStackSize();
+                        int free_items = free_slot;
                         if (free_items >= itemStack.getAmount()) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
-                                p.getInventory().addItem(itemStack);
+                                addItemToInventory(p, itemStack, getAmount());
                                 p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                         .replace("#amount#", String.valueOf(getAmount()))
                                         .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
@@ -76,17 +104,20 @@ public class Withdraw {
                     }
                 } else {
                     int free_slot = 0;
-                    for (int i = 0; i <= 35; i++) {
+                    for (int i = 0; i < p.getInventory().getStorageContents().length; i++) {
                         ItemStack istack = p.getInventory().getItem(i);
                         if (istack == null || istack.getType().equals(Material.AIR)) {
-                            free_slot++;
+                            free_slot += itemStack.getMaxStackSize();
+                        } else if (istack.isSimilar(itemStack)) {
+                            int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
+                            if (spaceLeft > 0)
+                                free_slot += spaceLeft;
                         }
                     }
-                    int free_items = free_slot * itemStack.getMaxStackSize();
+                    int free_items = free_slot;
                     if (amount <= free_items) {
-                        itemStack.setAmount(amount);
                         if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
-                            p.getInventory().addItem(itemStack);
+                            addItemToInventory(p, itemStack, amount);
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                     .replace("#amount#", String.valueOf(amount))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
@@ -95,9 +126,8 @@ public class Withdraw {
                                     .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         }
                     } else if (free_items > 0) {
-                        itemStack.setAmount(free_items);
                         if (MineManager.removeBlockAmount(p, getMaterialData(), free_items)) {
-                            p.getInventory().addItem(itemStack);
+                            addItemToInventory(p, itemStack, free_items);
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
                                     .replace("#amount#", String.valueOf(free_items))
                                     .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
