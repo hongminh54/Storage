@@ -89,7 +89,7 @@ public class BlockBreak implements Listener {
     }
 
     private int getDropAmount(Block block) {
-        int amount = 1;
+        int amount = 0;
         if (block != null) for (ItemStack itemStack : block.getDrops())
             if (itemStack != null) amount += itemStack.getAmount();
         return amount;
