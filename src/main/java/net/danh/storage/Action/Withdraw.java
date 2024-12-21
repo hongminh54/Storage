@@ -84,7 +84,7 @@ public class Withdraw {
                             }
                         }
                         int free_items = free_slot;
-                        if (free_items >= itemStack.getAmount()) {
+                        if (free_items >= getAmount()) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
                                 addItemToInventory(p, itemStack, getAmount());
                                 p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
