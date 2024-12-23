@@ -76,14 +76,14 @@ public class BlockBreak implements Listener {
                         String replacement = name != null ? name : drop.replace("_", " ");
                         Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", String.valueOf(amount)).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", String.valueOf(amount)).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
                     }
+                    if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
+                        e.setDropItems(false);
+                    }
+                    e.getBlock().getDrops().clear();
                 }
 //                else {
 //                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.full_storage")));
 //                }
-                if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
-                    e.setDropItems(false);
-                }
-                e.getBlock().getDrops().clear();
             }
         }
     }
