@@ -18,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,13 +45,19 @@ public class BlockBreak implements Listener {
         }
         if (MineManager.toggle.get(p)) {
             if (inv_full) {
+                int old_data = MineManager.getPlayerBlock(p, MineManager.getDrop(block));
+                int max_storage = MineManager.getMaxBlock(p);
+                int count = max_storage - old_data;
                 for (ItemStack itemStack : p.getInventory().getContents()) {
                     if (itemStack != null) {
                         String drop = MineManager.getItemStackDrop(itemStack);
                         int amount = itemStack.getAmount();
                         if (drop != null) {
-                            if (MineManager.addBlockAmount(p, drop, amount)) {
-                                p.getInventory().remove(itemStack);
+                            int new_data = old_data + Math.toIntExact(amount);
+                            int min = Math.min(count, Math.toIntExact(amount));
+                            int replacement = new_data >= max_storage ? min : amount;
+                            if (MineManager.addBlockAmount(p, drop, replacement)) {
+                                removeItems(p, itemStack, replacement);
                             }
                         }
                     }
@@ -88,6 +95,31 @@ public class BlockBreak implements Listener {
 //                }
             }
         }
+    }
+
+    public void removeItems(Player player, ItemStack itemStack, long amount) {
+        final PlayerInventory inv = player.getInventory();
+        final ItemStack[] items = inv.getContents();
+        int c = 0;
+        for (int i = 0; i < items.length; ++i) {
+            final ItemStack is = items[i];
+            if (is != null) {
+                if (itemStack != null) {
+                    if (is.isSimilar(itemStack)) {
+                        if (c + is.getAmount() > amount) {
+                            final long canDelete = amount - c;
+                            is.setAmount((int) (is.getAmount() - canDelete));
+                            items[i] = is;
+                            break;
+                        }
+                        c += is.getAmount();
+                        items[i] = null;
+                    }
+                }
+            }
+        }
+        inv.setContents(items);
+        player.updateInventory();
     }
 
     private int getDropAmount(Block block) {
