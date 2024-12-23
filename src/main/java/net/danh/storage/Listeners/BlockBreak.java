@@ -60,11 +60,12 @@ public class BlockBreak implements Listener {
                 String drop = MineManager.getDrop(block);
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
-                if (!hand.containsEnchantment(XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() : Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get()))) {
+                Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() : Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
+                if (!hand.containsEnchantment(fortune)) {
                     amount = getDropAmount(block);
                 } else {
                     if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
-                        amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) + 2);
+                        amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(fortune) + 2);
                     } else amount = getDropAmount(block);
                 }
                 if (MineManager.addBlockAmount(p, drop, amount)) {
