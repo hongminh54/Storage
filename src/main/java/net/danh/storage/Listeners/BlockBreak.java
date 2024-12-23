@@ -1,5 +1,6 @@
 package net.danh.storage.Listeners;
 
+import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.MineManager;
@@ -59,7 +60,7 @@ public class BlockBreak implements Listener {
                 String drop = MineManager.getDrop(block);
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
-                if (!hand.containsEnchantment(Enchantment.LOOT_BONUS_BLOCKS)) {
+                if (!hand.containsEnchantment(XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() : Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get()))) {
                     amount = getDropAmount(block);
                 } else {
                     if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
