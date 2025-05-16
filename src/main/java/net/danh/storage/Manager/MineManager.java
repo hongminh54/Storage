@@ -23,7 +23,7 @@ public class MineManager {
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
 
     public static int getPlayerBlock(@NotNull Player p, String material) {
-        return playerdata.get(p.getName() + "_" + material);
+        return playerdata.getOrDefault(p.getName() + "_" + material, 0);
     }
 
     public static boolean hasPlayerBlock(@NotNull Player p, String material) {
