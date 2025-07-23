@@ -32,7 +32,7 @@ public class Chat implements Listener {
             if (Number.getInteger(message) > 0) {
                 new Deposit(p, chat_deposit.get(p), (long) Number.getInteger(message)).doAction();
                 Bukkit.getScheduler().runTask(Storage.getStorage(), () ->
-                    p.openInventory(new PersonalStorage(p).getInventory()));
+                        p.openInventory(new PersonalStorage(p).getInventory()));
             } else {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
@@ -44,7 +44,7 @@ public class Chat implements Listener {
             if (Number.getInteger(message) > 0) {
                 new Withdraw(p, chat_withdraw.get(p), Number.getInteger(message)).doAction();
                 Bukkit.getScheduler().runTask(Storage.getStorage(), () ->
-                    p.openInventory(new PersonalStorage(p).getInventory()));
+                        p.openInventory(new PersonalStorage(p).getInventory()));
             } else {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
@@ -56,7 +56,7 @@ public class Chat implements Listener {
             if (Number.getInteger(message) > 0) {
                 new Sell(p, chat_sell.get(p), Number.getInteger(message)).doAction();
                 Bukkit.getScheduler().runTask(Storage.getStorage(), () ->
-                    p.openInventory(new PersonalStorage(p).getInventory()));
+                        p.openInventory(new PersonalStorage(p).getInventory()));
             } else {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
