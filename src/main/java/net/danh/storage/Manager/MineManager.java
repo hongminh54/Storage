@@ -39,6 +39,38 @@ public class MineManager {
         return new ArrayList<>(blocksdata.values());
     }
 
+    @Contract(" -> new")
+    public static @NotNull List<String> getOrderedPluginBlocks() {
+        List<String> orderedBlocks = new ArrayList<>();
+        for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
+            String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
+            NMSAssistant nms = new NMSAssistant();
+            if (item_drop != null) {
+                if (!item_drop.contains(";")) {
+                    String material = item_drop + ";0";
+                    if (!orderedBlocks.contains(material)) {
+                        orderedBlocks.add(material);
+                    }
+                } else {
+                    if (nms.isVersionLessThanOrEqualTo(12)) {
+                        String[] item_data = item_drop.split(";");
+                        String item_material = item_data[0] + ";" + item_data[1];
+                        if (!orderedBlocks.contains(item_material)) {
+                            orderedBlocks.add(item_material);
+                        }
+                    } else {
+                        String[] item_data = item_drop.split(";");
+                        String material = item_data[0] + ";0";
+                        if (!orderedBlocks.contains(material)) {
+                            orderedBlocks.add(material);
+                        }
+                    }
+                }
+            }
+        }
+        return orderedBlocks;
+    }
+
     public static void addPluginBlocks(String material) {
         blocksdata.put(material, material);
 

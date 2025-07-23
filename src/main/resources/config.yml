@@ -96,6 +96,7 @@ blocks:
     drop: EMERALD;0
   EMERALD_BLOCK;0:
     drop: EMERALD_BLOCK;0
+
 items:
   COBBLESTONE;0: "&7Cobblestone"
   COAL;0: "&8Coal"
@@ -112,6 +113,7 @@ items:
   DIAMOND_BLOCK;0: "&bDiamond Block"
   EMERALD;0: "&aEmerald"
   EMERALD_BLOCK;0: "&aEmerald Block"
+
 mine:
   title:
     enable: true
