@@ -38,7 +38,7 @@ public class PersonalStorage implements IGUI {
             if (item_tag.equalsIgnoreCase("storage_item")) {
                 if (slot.contains(",")) {
                     List<String> slot_list = new ArrayList<>(Arrays.asList(slot.split(",")));
-                    List<String> item_list = new ArrayList<>(MineManager.getPluginBlocks());
+                    List<String> item_list = new ArrayList<>(MineManager.getOrderedPluginBlocks());
                     for (int i = 0; i < item_list.size(); i++) {
                         String material = MineManager.getMaterial(item_list.get(i));
                         String name = File.getConfig().getString("items." + item_list.get(i));
