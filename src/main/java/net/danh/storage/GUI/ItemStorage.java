@@ -55,7 +55,7 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_left.equalsIgnoreCase("all")) {
                                     new Deposit(p, material, -1L).doAction();
-                                    p.closeInventory();
+                                    p.openInventory(new PersonalStorage(p).getInventory());
                                 }
                             }
                             if (action_left.equalsIgnoreCase("withdraw")) {
@@ -65,7 +65,7 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_left.equalsIgnoreCase("all")) {
                                     new Withdraw(p, material, -1).doAction();
-                                    p.closeInventory();
+                                    p.openInventory(new PersonalStorage(p).getInventory());
                                 }
                             }
                             if (action_left.equalsIgnoreCase("sell")) {
@@ -75,7 +75,7 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_left.equalsIgnoreCase("all")) {
                                     new Sell(p, material, -1).doAction();
-                                    p.closeInventory();
+                                    p.openInventory(new PersonalStorage(p).getInventory());
                                 }
                             }
                             if (type_left.equalsIgnoreCase("command")) {
@@ -97,7 +97,7 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_right.equalsIgnoreCase("all")) {
                                     new Deposit(p, material, -1L).doAction();
-                                    p.closeInventory();
+                                    p.openInventory(new PersonalStorage(p).getInventory());
                                 }
                             }
                             if (action_right.equalsIgnoreCase("withdraw")) {
@@ -107,7 +107,7 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_right.equalsIgnoreCase("all")) {
                                     new Withdraw(p, material, -1).doAction();
-                                    p.closeInventory();
+                                    p.openInventory(new PersonalStorage(p).getInventory());
                                 }
                             }
                             if (action_right.equalsIgnoreCase("sell")) {
@@ -117,7 +117,7 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_right.equalsIgnoreCase("all")) {
                                     new Sell(p, material, -1).doAction();
-                                    p.closeInventory();
+                                    p.openInventory(new PersonalStorage(p).getInventory());
                                 }
                             }
                             if (type_right.equalsIgnoreCase("command")) {
@@ -147,7 +147,7 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_left.equalsIgnoreCase("all")) {
                                 new Deposit(p, material, -1L).doAction();
-                                p.closeInventory();
+                                p.openInventory(new PersonalStorage(p).getInventory());
                             }
                         }
                         if (action_left.equalsIgnoreCase("withdraw")) {
@@ -157,7 +157,7 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_left.equalsIgnoreCase("all")) {
                                 new Withdraw(p, material, -1).doAction();
-                                p.closeInventory();
+                                p.openInventory(new PersonalStorage(p).getInventory());
                             }
                         }
                         if (action_left.equalsIgnoreCase("sell")) {
@@ -167,7 +167,7 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_left.equalsIgnoreCase("all")) {
                                 new Sell(p, material, -1).doAction();
-                                p.closeInventory();
+                                p.openInventory(new PersonalStorage(p).getInventory());
                             }
                         }
                         if (type_left.equalsIgnoreCase("command")) {
@@ -189,7 +189,7 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_right.equalsIgnoreCase("all")) {
                                 new Deposit(p, material, -1L).doAction();
-                                p.closeInventory();
+                                p.openInventory(new PersonalStorage(p).getInventory());
                             }
                         }
                         if (action_right.equalsIgnoreCase("withdraw")) {
@@ -199,7 +199,7 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_right.equalsIgnoreCase("all")) {
                                 new Withdraw(p, material, -1).doAction();
-                                p.closeInventory();
+                                p.openInventory(new PersonalStorage(p).getInventory());
                             }
                         }
                         if (action_right.equalsIgnoreCase("sell")) {
@@ -209,7 +209,7 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_right.equalsIgnoreCase("all")) {
                                 new Sell(p, material, -1).doAction();
-                                p.closeInventory();
+                                p.openInventory(new PersonalStorage(p).getInventory());
                             }
                         }
                         if (type_right.equalsIgnoreCase("command")) {

@@ -3,8 +3,11 @@ package net.danh.storage.Listeners;
 import net.danh.storage.Action.Deposit;
 import net.danh.storage.Action.Sell;
 import net.danh.storage.Action.Withdraw;
+import net.danh.storage.GUI.PersonalStorage;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,6 +31,8 @@ public class Chat implements Listener {
         if (chat_deposit.containsKey(p) && chat_deposit.get(p) != null) {
             if (Number.getInteger(message) > 0) {
                 new Deposit(p, chat_deposit.get(p), (long) Number.getInteger(message)).doAction();
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () ->
+                        p.openInventory(new PersonalStorage(p).getInventory()));
             } else {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
@@ -38,6 +43,8 @@ public class Chat implements Listener {
         if (chat_withdraw.containsKey(p) && chat_withdraw.get(p) != null) {
             if (Number.getInteger(message) > 0) {
                 new Withdraw(p, chat_withdraw.get(p), Number.getInteger(message)).doAction();
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () ->
+                        p.openInventory(new PersonalStorage(p).getInventory()));
             } else {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
@@ -48,6 +55,8 @@ public class Chat implements Listener {
         if (chat_sell.containsKey(p) && chat_sell.get(p) != null) {
             if (Number.getInteger(message) > 0) {
                 new Sell(p, chat_sell.get(p), Number.getInteger(message)).doAction();
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () ->
+                        p.openInventory(new PersonalStorage(p).getInventory()));
             } else {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
