@@ -1,10 +1,12 @@
-# Storage [1.8.x - 1.20.x]
+# Storage [1.8.x - 1.21.x]
 
 > You will have a virtual storage to storage listed blocks in config, when you mine block was listed in config, you'll
 > get block to virtual storage. You can sell it or transfer it to physical item <br>
 
 > This is recoded version from started so everything will be changed. Please reset all file when update from v1 to
 > v2 <br>
+
+> This version has rework by hongminh54 
 
 ## Commands
 
@@ -37,3 +39,6 @@
 
 [![placeholderapi](https://img.shields.io/badge/PlaceholderAPI-2.11.3-blue?style=badge)](https://www.spigotmc.org/resources/6245/) <br>
 [![worldguard](https://img.shields.io/badge/WorldGuard-v6/v7-blue?style=badge)](https://dev.bukkit.org/projects/worldguard) <br>
+
+## Special Thanks
++ VoChiDanh (owner repo ❤) 
