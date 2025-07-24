@@ -99,8 +99,9 @@ public class Withdraw {
                                     .replace("<slots>", String.valueOf(free_items))));
                         }
                     } else {
-                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items"))
-                                .replace("<amount>", String.valueOf(amount))));
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.not_enough_in_storage"))
+                                .replace("#amount#", String.valueOf(amount))
+                                .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))));
                     }
                 } else {
                     int free_slot = 0;
@@ -137,9 +138,15 @@ public class Withdraw {
                         } else
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot"))
                                     .replace("<slots>", String.valueOf(free_items))));
+                    } else {
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.inventory_full"))));
                     }
                 }
+            } else {
+                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.cannot_create_item"))));
             }
+        } else {
+            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.invalid_material"))));
         }
     }
 

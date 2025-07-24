@@ -27,13 +27,21 @@ user:
       full_storage: "&cStorage has been full &8(#item_amount#/#max_storage#)&c, you can't deposit #amount# #material#!"
       chat_number: "&aHow many item you want to deposit?"
       deposit_item: "&aYou deposited #amount# #material# | #item_amount#/#max_storage# Items"
+      invalid_item: "&cInvalid item! Cannot deposit this item."
     withdraw:
       chat_number: "&aHow many item you want to withdraw?"
       withdraw_item: "&aYou withdrew #amount# #material# | #item_amount#/#max_storage# Items"
+      invalid_material: "&cInvalid material! This material doesn't exist."
+      cannot_create_item: "&cCannot create item! Please contact administrator."
+      not_enough_in_storage: "&cYou don't have enough #material# in storage! You only have #amount# items."
+      inventory_full: "&cYour inventory is full! Please make some space to withdraw items."
     sell:
       chat_number: "&aHow many item you want to sell?"
       can_not_sell: "&cThis item can't be sell"
       sell_item: "&aYou sold #amount# #material# and got #money#$ | #item_amount#/#max_storage# Items"
+      no_worth_config: "&cSell system is not configured! Please contact administrator."
+      item_not_sellable: "&cThis item is not sellable! Check the sellable items list."
+      failed_to_remove: "&cFailed to remove items from storage! Please try again."
   status:
     status_on: "&aOn"
     status_off: "&cOff"

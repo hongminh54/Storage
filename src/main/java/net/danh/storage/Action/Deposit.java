@@ -135,6 +135,8 @@ public class Deposit {
                                 .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                 }
             }
+        } else {
+            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.invalid_item"))));
         }
     }
 

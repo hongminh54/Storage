@@ -64,8 +64,14 @@ public class Sell {
                             } else {
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                             }
+                        } else {
+                            p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.item_not_sellable")));
                         }
+                    } else {
+                        p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.no_worth_config")));
                     }
+                } else {
+                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
                 }
             } else {
                 p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items"))
@@ -93,8 +99,14 @@ public class Sell {
                         } else {
                             p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                         }
+                    } else {
+                        p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.item_not_sellable")));
                     }
+                } else {
+                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.no_worth_config")));
                 }
+            } else {
+                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
             }
         }
     }
