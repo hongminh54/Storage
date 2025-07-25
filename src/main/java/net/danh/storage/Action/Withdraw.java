@@ -79,29 +79,20 @@ public class Withdraw {
                                 free_slot += itemStack.getMaxStackSize();
                             } else if (istack.isSimilar(itemStack)) {
                                 int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
-                                if (spaceLeft > 0)
-                                    free_slot += spaceLeft;
+                                if (spaceLeft > 0) free_slot += spaceLeft;
                             }
                         }
                         int free_items = free_slot;
                         if (free_items >= getAmount()) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
                                 addItemToInventory(p, itemStack, getAmount());
-                                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
-                                        .replace("#amount#", String.valueOf(getAmount()))
-                                        .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
-                                        .replace("#player#", p.getName())
-                                        .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
+                                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item")).replace("#amount#", String.valueOf(getAmount())).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData()))).replace("#player#", p.getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData()))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                             }
                         } else {
-                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot"))
-                                    .replace("<slots>", String.valueOf(free_items))));
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot")).replace("<slots>", String.valueOf(free_items))));
                         }
                     } else {
-                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.not_enough_in_storage"))
-                                .replace("#amount#", String.valueOf(amount))
-                                .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))));
+                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.not_enough_in_storage")).replace("#amount#", String.valueOf(amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))));
                     }
                 } else {
                     int free_slot = 0;
@@ -111,33 +102,21 @@ public class Withdraw {
                             free_slot += itemStack.getMaxStackSize();
                         } else if (istack.isSimilar(itemStack)) {
                             int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
-                            if (spaceLeft > 0)
-                                free_slot += spaceLeft;
+                            if (spaceLeft > 0) free_slot += spaceLeft;
                         }
                     }
                     int free_items = free_slot;
                     if (amount <= free_items) {
                         if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                             addItemToInventory(p, itemStack, amount);
-                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
-                                    .replace("#amount#", String.valueOf(amount))
-                                    .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
-                                    .replace("#player#", p.getName())
-                                    .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item")).replace("#amount#", String.valueOf(amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData()))).replace("#player#", p.getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData()))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         }
                     } else if (free_items > 0) {
                         if (MineManager.removeBlockAmount(p, getMaterialData(), free_items)) {
                             addItemToInventory(p, itemStack, free_items);
-                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item"))
-                                    .replace("#amount#", String.valueOf(free_items))
-                                    .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
-                                    .replace("#player#", p.getName())
-                                    .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.withdraw_item")).replace("#amount#", String.valueOf(free_items)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData()))).replace("#player#", p.getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData()))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         } else
-                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot"))
-                                    .replace("<slots>", String.valueOf(free_items))));
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_slot")).replace("<slots>", String.valueOf(free_items))));
                     } else {
                         p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.inventory_full"))));
                     }

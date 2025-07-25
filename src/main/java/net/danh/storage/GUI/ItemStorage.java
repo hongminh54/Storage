@@ -10,6 +10,8 @@ import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SoundContext;
+import net.danh.storage.Manager.SoundManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -41,6 +43,13 @@ public class ItemStorage implements IGUI {
     @NotNull
     @Override
     public Inventory getInventory() {
+        return getInventory(SoundContext.INITIAL_OPEN);
+    }
+
+    @NotNull
+    @Override
+    public Inventory getInventory(SoundContext context) {
+        SoundManager.playItemSound(p, config, "gui_open_sound", context);
         Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName()).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material, material.split(";")[0])))));
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
@@ -54,6 +63,7 @@ public class ItemStorage implements IGUI {
                     if (type_left != null && action_left != null) {
                         item.onLeftClick(player -> {
                             if (action_left.equalsIgnoreCase("deposit")) {
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                                 if (type_left.equalsIgnoreCase("chat")) {
                                     net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
                                     net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -61,10 +71,11 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_left.equalsIgnoreCase("all")) {
                                     new Deposit(p, material, -1L).doAction();
-                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 }
                             }
                             if (action_left.equalsIgnoreCase("withdraw")) {
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                                 if (type_left.equalsIgnoreCase("chat")) {
                                     net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
                                     net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -72,10 +83,11 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_left.equalsIgnoreCase("all")) {
                                     new Withdraw(p, material, -1).doAction();
-                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 }
                             }
                             if (action_left.equalsIgnoreCase("sell")) {
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                                 if (type_left.equalsIgnoreCase("chat")) {
                                     net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
                                     net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -83,22 +95,28 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_left.equalsIgnoreCase("all")) {
                                     new Sell(p, material, -1).doAction();
-                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 }
                             }
                             if (type_left.equalsIgnoreCase("command")) {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Storage.getStorage().getServer().dispatchCommand(p, action_left);
-                                    }
-                                }.runTask(Storage.getStorage());
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
+                                if (action_left.equalsIgnoreCase("storage")) {
+                                    player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                                } else {
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            Storage.getStorage().getServer().dispatchCommand(p, action_left);
+                                        }
+                                    }.runTask(Storage.getStorage());
+                                }
                             }
                         });
                     }
                     if (type_right != null && action_right != null) {
                         item.onRightClick(player -> {
                             if (action_right.equalsIgnoreCase("deposit")) {
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                                 if (type_right.equalsIgnoreCase("chat")) {
                                     net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
                                     net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -106,10 +124,11 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_right.equalsIgnoreCase("all")) {
                                     new Deposit(p, material, -1L).doAction();
-                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 }
                             }
                             if (action_right.equalsIgnoreCase("withdraw")) {
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                                 if (type_right.equalsIgnoreCase("chat")) {
                                     net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
                                     net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -117,10 +136,11 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_right.equalsIgnoreCase("all")) {
                                     new Withdraw(p, material, -1).doAction();
-                                    p.openInventory(new PersonalStorage(p).getInventory());
+                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 }
                             }
                             if (action_right.equalsIgnoreCase("sell")) {
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                                 if (type_right.equalsIgnoreCase("chat")) {
                                     net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
                                     net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -128,16 +148,21 @@ public class ItemStorage implements IGUI {
                                     p.closeInventory();
                                 } else if (type_right.equalsIgnoreCase("all")) {
                                     new Sell(p, material, -1).doAction();
-                                    p.openInventory(new PersonalStorage(p).getInventory());
+                                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 }
                             }
                             if (type_right.equalsIgnoreCase("command")) {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Storage.getStorage().getServer().dispatchCommand(p, action_right);
-                                    }
-                                }.runTask(Storage.getStorage());
+                                SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
+                                if (action_right.equalsIgnoreCase("storage")) {
+                                    player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                                } else {
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            Storage.getStorage().getServer().dispatchCommand(p, action_right);
+                                        }
+                                    }.runTask(Storage.getStorage());
+                                }
                             }
                         });
                     }
@@ -152,6 +177,7 @@ public class ItemStorage implements IGUI {
                 if (type_left != null && action_left != null) {
                     item.onLeftClick(player -> {
                         if (action_left.equalsIgnoreCase("deposit")) {
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                             if (type_left.equalsIgnoreCase("chat")) {
                                 net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
                                 net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -159,10 +185,11 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_left.equalsIgnoreCase("all")) {
                                 new Deposit(p, material, -1L).doAction();
-                                p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             }
                         }
                         if (action_left.equalsIgnoreCase("withdraw")) {
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                             if (type_left.equalsIgnoreCase("chat")) {
                                 net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
                                 net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -170,10 +197,11 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_left.equalsIgnoreCase("all")) {
                                 new Withdraw(p, material, -1).doAction();
-                                p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             }
                         }
                         if (action_left.equalsIgnoreCase("sell")) {
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                             if (type_left.equalsIgnoreCase("chat")) {
                                 net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
                                 net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -181,22 +209,28 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_left.equalsIgnoreCase("all")) {
                                 new Sell(p, material, -1).doAction();
-                                p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             }
                         }
                         if (type_left.equalsIgnoreCase("command")) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    Storage.getStorage().getServer().dispatchCommand(p, action_left);
-                                }
-                            }.runTask(Storage.getStorage());
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
+                            if (action_left.equalsIgnoreCase("storage")) {
+                                player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                            } else {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Storage.getStorage().getServer().dispatchCommand(p, action_left);
+                                    }
+                                }.runTask(Storage.getStorage());
+                            }
                         }
                     });
                 }
                 if (type_right != null && action_right != null) {
                     item.onRightClick(player -> {
                         if (action_right.equalsIgnoreCase("deposit")) {
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                             if (type_right.equalsIgnoreCase("chat")) {
                                 net.danh.storage.Listeners.Chat.chat_deposit.put(p, material);
                                 net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -204,10 +238,11 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_right.equalsIgnoreCase("all")) {
                                 new Deposit(p, material, -1L).doAction();
-                                p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             }
                         }
                         if (action_right.equalsIgnoreCase("withdraw")) {
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                             if (type_right.equalsIgnoreCase("chat")) {
                                 net.danh.storage.Listeners.Chat.chat_withdraw.put(p, material);
                                 net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -215,10 +250,11 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_right.equalsIgnoreCase("all")) {
                                 new Withdraw(p, material, -1).doAction();
-                                p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             }
                         }
                         if (action_right.equalsIgnoreCase("sell")) {
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                             if (type_right.equalsIgnoreCase("chat")) {
                                 net.danh.storage.Listeners.Chat.chat_sell.put(p, material);
                                 net.danh.storage.Listeners.Chat.chat_return_page.put(p, returnPage);
@@ -226,16 +262,21 @@ public class ItemStorage implements IGUI {
                                 p.closeInventory();
                             } else if (type_right.equalsIgnoreCase("all")) {
                                 new Sell(p, material, -1).doAction();
-                                p.openInventory(new PersonalStorage(p, returnPage).getInventory());
+                                p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             }
                         }
                         if (type_right.equalsIgnoreCase("command")) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    Storage.getStorage().getServer().dispatchCommand(p, action_right);
-                                }
-                            }.runTask(Storage.getStorage());
+                            SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
+                            if (action_right.equalsIgnoreCase("storage")) {
+                                player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                            } else {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Storage.getStorage().getServer().dispatchCommand(p, action_right);
+                                    }
+                                }.runTask(Storage.getStorage());
+                            }
                         }
                     });
                 }

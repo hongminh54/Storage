@@ -7,6 +7,8 @@ import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SoundContext;
+import net.danh.storage.Manager.SoundManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -32,9 +34,11 @@ public class Chat implements Listener {
         if (chat_deposit.containsKey(p) && chat_deposit.get(p) != null) {
             if (Number.getInteger(message) > 0) {
                 new Deposit(p, chat_deposit.get(p), (long) Number.getInteger(message)).doAction();
+                SoundManager.playChatDepositSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory()));
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
+                SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_deposit.remove(p);
@@ -44,9 +48,11 @@ public class Chat implements Listener {
         if (chat_withdraw.containsKey(p) && chat_withdraw.get(p) != null) {
             if (Number.getInteger(message) > 0) {
                 new Withdraw(p, chat_withdraw.get(p), Number.getInteger(message)).doAction();
+                SoundManager.playChatWithdrawSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory()));
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
+                SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_withdraw.remove(p);
@@ -56,9 +62,11 @@ public class Chat implements Listener {
         if (chat_sell.containsKey(p) && chat_sell.get(p) != null) {
             if (Number.getInteger(message) > 0) {
                 new Sell(p, chat_sell.get(p), Number.getInteger(message)).doAction();
+                SoundManager.playChatSellSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory()));
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
+                SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_sell.remove(p);

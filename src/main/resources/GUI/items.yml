@@ -2,6 +2,12 @@
 title: "&0Item #material# | #player#"
 # Size of gui: 1,2,3,4,5,6
 size: 3
+# Sound when opening this GUI
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_CHEST_OPEN"
+  volume: 0.7
+  pitch: 1.1
 items:
   # Decorates item
   decorates:
@@ -28,6 +34,9 @@ items:
     # Flag for item | If you use ALL: true -> All flag will be applied to item
     flags:
       ALL: true
+    # Sound when click (disabled for decorative items)
+    sound:
+      enabled: false
   #      HIDE_ATTRIBUTES: true
   #      HIDE_DESTROYS: true
   #      HIDE_ENCHANTS: true
@@ -71,12 +80,24 @@ items:
         type: chat
         # action: deposit, withdraw, sell
         action: deposit
+        # Sound settings (optional, will use default if not specified)
+        sound:
+          enabled: true
+          name: "ENTITY_ITEM_PICKUP"
+          volume: 0.6
+          pitch: 1.1
       # Right click
       right:
         # Type: chat, all
         type: all
         # action: deposit, withdraw, sell
         action: deposit
+        # Sound settings (optional, will use default if not specified)
+        sound:
+          enabled: true
+          name: "ENTITY_ITEM_PICKUP"
+          volume: 0.6
+          pitch: 1.1
   withdraw:
     slot: 16
     name: "&aWithdraw Item"
@@ -101,9 +122,19 @@ items:
       left:
         type: chat
         action: withdraw
+        sound:
+          enabled: true
+          name: "ITEM_ARMOR_EQUIP_LEATHER"
+          volume: 0.6
+          pitch: 1.0
       right:
         type: all
         action: withdraw
+        sound:
+          enabled: true
+          name: "ITEM_ARMOR_EQUIP_LEATHER"
+          volume: 0.6
+          pitch: 1.0
   sell:
     slot: 13
     name: "&aSell Item"
@@ -128,9 +159,19 @@ items:
       left:
         type: chat
         action: sell
+        sound:
+          enabled: true
+          name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+          volume: 0.7
+          pitch: 1.5
       right:
         type: all
         action: sell
+        sound:
+          enabled: true
+          name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+          volume: 0.7
+          pitch: 1.5
   back:
     slot: 18
     name: "&aBack"
@@ -151,6 +192,16 @@ items:
       left:
         type: command
         action: storage
+        sound:
+          enabled: true
+          name: "UI_BUTTON_CLICK"
+          volume: 0.5
+          pitch: 1.2
       right:
         type: command
         action: storage
+        sound:
+          enabled: true
+          name: "UI_BUTTON_CLICK"
+          volume: 0.5
+          pitch: 1.2

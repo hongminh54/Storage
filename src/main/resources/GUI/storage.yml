@@ -2,6 +2,12 @@
 title: "&0Storage | #player#"
 # Size of gui: 1,2,3,4,5,6
 size: 6
+# Sound when opening this GUI
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_CHEST_OPEN"
+  volume: 0.8
+  pitch: 1.0
 items:
   # Decorates item
   decorates:
@@ -28,6 +34,9 @@ items:
     # Flag for item | If you use ALL: true -> All flag will be applied to item
     flags:
       ALL: true
+    # Sound when click (disabled for decorative items)
+    sound:
+      enabled: false
   #      HIDE_ATTRIBUTES: true
   #      HIDE_DESTROYS: true
   #      HIDE_ENCHANTS: true
@@ -57,6 +66,12 @@ items:
     # Flag for item | If you use ALL: true -> All flag will be applied to item
     flags:
       ALL: true
+    # Sound when click to open item storage
+    sound:
+      enabled: true
+      name: "BLOCK_CHEST_OPEN"
+      volume: 0.8
+      pitch: 1.0
   # This item setting for toggle item | Name can't be change
   toggle_item:
     # Slot of item
@@ -82,6 +97,12 @@ items:
     # Flag for item | If you use ALL: true -> All flag will be applied to item
     flags:
       ALL: true
+    # Sound when click
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.8
+      pitch: 1.0
   # Previous page
   previous_page:
     slot: 48
@@ -98,6 +119,12 @@ items:
       DURABILITY: 1
     flags:
       ALL: true
+    # Sound when click
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.2
   # Next page
   next_page:
     slot: 50
@@ -114,3 +141,9 @@ items:
       DURABILITY: 1
     flags:
       ALL: true
+    # Sound when click
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.2

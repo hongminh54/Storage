@@ -2,6 +2,7 @@ package net.danh.storage.GUI.manager;
 
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.GUI;
+import net.danh.storage.Manager.SoundManager;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -25,6 +26,7 @@ public class InteractiveItem extends ItemStack {
     private BiConsumer<Player, ClickType> clickCallback;
     private Consumer<Player> leftClickCallback;
     private Consumer<Player> rightClickCallback;
+    private boolean playSoundOnClick = false;
 
     public InteractiveItem(Material material, int slot, String displayName, String... lore) {
         super(material);
@@ -194,8 +196,17 @@ public class InteractiveItem extends ItemStack {
         return this;
     }
 
+    public InteractiveItem setPlaySoundOnClick(boolean playSound) {
+        this.playSoundOnClick = playSound;
+        return this;
+    }
+
     // Handles InventoryClickEvent
     public void handleClick(Player player, ClickType clickType) {
+        if (playSoundOnClick) {
+            SoundManager.playClickSound(player);
+        }
+
         if ((clickType == ClickType.LEFT || clickType == ClickType.SHIFT_LEFT) && leftClickCallback != null)
             leftClickCallback.accept(player);
         else if ((clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) && rightClickCallback != null)
@@ -206,6 +217,10 @@ public class InteractiveItem extends ItemStack {
 
     // Handles PlayerInteractEvent
     public void handleClick(Player player, Action clickType) {
+        if (playSoundOnClick) {
+            SoundManager.playClickSound(player);
+        }
+
         if ((clickType == Action.LEFT_CLICK_AIR || clickType == Action.LEFT_CLICK_BLOCK) && leftClickCallback != null)
             leftClickCallback.accept(player);
         else if ((clickType == Action.RIGHT_CLICK_AIR || clickType == Action.RIGHT_CLICK_BLOCK) && rightClickCallback != null)

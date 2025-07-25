@@ -122,3 +122,27 @@ mine:
   actionbar:
     enable: true
     action: "&6+#amount# #item# [#storage#/#max#]"
+
+sounds:
+  enabled: true
+  chat_actions:
+    deposit:
+      enabled: true
+      name: "ENTITY_ITEM_PICKUP"
+      volume: 0.6
+      pitch: 1.1
+    withdraw:
+      enabled: true
+      name: "ITEM_ARMOR_EQUIP_LEATHER"
+      volume: 0.6
+      pitch: 1.0
+    sell:
+      enabled: true
+      name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.7
+      pitch: 1.5
+    error:
+      enabled: true
+      name: "ENTITY_VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8

@@ -55,12 +55,7 @@ public class Sell {
                                 String money_round_up = roundWithDecimalFormat(money);
                                 double m_ru = Double.parseDouble(money_round_up);
                                 runCommand(m_ru);
-                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item").replace("#amount#", String.valueOf(this.amount))
-                                        .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
-                                        .replace("#player#", p.getName())
-                                        .replace("#money#", String.valueOf(m_ru))
-                                        .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                        .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
+                                p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.sell_item").replace("#amount#", String.valueOf(this.amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData()))).replace("#player#", p.getName()).replace("#money#", String.valueOf(m_ru)).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData()))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                             } else {
                                 p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                             }
@@ -74,8 +69,7 @@ public class Sell {
                     p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
                 }
             } else {
-                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items"))
-                        .replace("<amount>", String.valueOf(amount))));
+                p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items")).replace("<amount>", String.valueOf(amount))));
             }
         } else {
             if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
@@ -89,13 +83,7 @@ public class Sell {
                             String money_round_up = roundWithDecimalFormat(money);
                             double m_ru = Double.parseDouble(money_round_up);
                             runCommand(m_ru);
-                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.sell.sell_item"))
-                                    .replace("#amount#", String.valueOf(amount))
-                                    .replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))
-                                    .replace("#player#", p.getName())
-                                    .replace("#money#", String.valueOf(m_ru))
-                                    .replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
-                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
+                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.sell.sell_item")).replace("#amount#", String.valueOf(amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData()))).replace("#player#", p.getName()).replace("#money#", String.valueOf(m_ru)).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, getMaterialData()))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         } else {
                             p.sendMessage(Chat.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                         }
@@ -113,8 +101,7 @@ public class Sell {
 
     public void runCommand(Double money) {
         config.getStringList("sell").forEach(cmd -> {
-            String cmd_2 = cmd.replace("#money#", roundWithDecimalFormat(money))
-                    .replace("#player#", p.getName());
+            String cmd_2 = cmd.replace("#money#", roundWithDecimalFormat(money)).replace("#player#", p.getName());
             new BukkitRunnable() {
                 @Override
                 public void run() {
