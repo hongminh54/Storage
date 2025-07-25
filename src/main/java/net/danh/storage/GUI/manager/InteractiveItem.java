@@ -176,23 +176,18 @@ public class InteractiveItem extends ItemStack {
         this.setItemMeta(meta);
     }
 
-    //
-
     public InteractiveItem onClick(BiConsumer<Player, ClickType> consumer) {
         clickCallback = consumer;
-
         return this;
     }
 
     public InteractiveItem onLeftClick(Consumer<Player> consumer) {
         leftClickCallback = consumer;
-
         return this;
     }
 
     public InteractiveItem onRightClick(Consumer<Player> consumer) {
         rightClickCallback = consumer;
-
         return this;
     }
 
@@ -211,7 +206,6 @@ public class InteractiveItem extends ItemStack {
             leftClickCallback.accept(player);
         else if ((clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) && rightClickCallback != null)
             rightClickCallback.accept(player);
-
         if (clickCallback != null) clickCallback.accept(player, clickType);
     }
 
@@ -225,7 +219,6 @@ public class InteractiveItem extends ItemStack {
             leftClickCallback.accept(player);
         else if ((clickType == Action.RIGHT_CLICK_AIR || clickType == Action.RIGHT_CLICK_BLOCK) && rightClickCallback != null)
             rightClickCallback.accept(player);
-
         if (clickCallback != null)
             clickCallback.accept(player, clickType == Action.LEFT_CLICK_AIR || clickType == Action.LEFT_CLICK_BLOCK ? ClickType.LEFT : ClickType.RIGHT);
     }

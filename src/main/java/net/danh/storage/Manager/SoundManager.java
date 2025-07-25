@@ -171,7 +171,7 @@ public class SoundManager {
         String soundName = config.getString(soundPath + ".name");
         if (soundName == null || soundName.equalsIgnoreCase("none")) return;
 
-        // Chỉ phát sound nếu context là INITIAL_OPEN
+        // Only play sound if context is not silent
         if (context == SoundContext.SILENT) return;
 
         float volume = (float) config.getDouble(soundPath + ".volume", 1.0);
