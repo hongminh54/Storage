@@ -1,7 +1,9 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.GUI.PersonalStorage;
+import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.TransferManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,5 +25,9 @@ public class JoinQuit implements Listener {
         MineManager.savePlayerData(p);
         PersonalStorage.playerCurrentPage.remove(p);
         Chat.chat_return_page.remove(p);
+
+        // Cleanup transfer data
+        TransferGUI.setWaitingForInput(p, false);
+        TransferManager.cancelTransfer(p);
     }
 }

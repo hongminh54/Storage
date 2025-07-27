@@ -4,8 +4,8 @@ import com.cryptomorin.xseries.XSound;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
-import org.bukkit.entity.Player;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,33 +15,11 @@ public class SoundManager {
     private static final Map<Player, Map<String, Long>> soundCooldowns = new HashMap<>();
     private static final long SOUND_COOLDOWN_MS = 100;
 
-    public enum SoundType {
-        GUI_CLICK("gui.click"),
-        GUI_OPEN("gui.open"),
-        GUI_CLOSE("gui.close"),
-        ACTION_SUCCESS("action.success"),
-        ACTION_ERROR("action.error"),
-        NAVIGATION("navigation"),
-        DEPOSIT("action.deposit"),
-        WITHDRAW("action.withdraw"),
-        SELL("action.sell");
-
-        private final String configPath;
-
-        SoundType(String configPath) {
-            this.configPath = configPath;
-        }
-
-        public String getConfigPath() {
-            return "sounds." + configPath;
-        }
-    }
-
     public static void playSound(Player player, SoundType soundType) {
         if (player == null || !player.isOnline()) return;
 
         FileConfiguration config = File.getConfig();
-        
+
         if (!config.getBoolean("sounds.enabled", true)) return;
 
         String soundName = config.getString(soundType.getConfigPath() + ".sound");
@@ -82,11 +60,7 @@ public class SoundManager {
         Map<String, Long> playerCooldowns = soundCooldowns.computeIfAbsent(player, k -> new HashMap<>());
         Long lastPlayed = playerCooldowns.get(soundName);
 
-        if (lastPlayed != null && (currentTime - lastPlayed) < SOUND_COOLDOWN_MS) {
-            return false;
-        }
-
-        return true;
+        return lastPlayed == null || (currentTime - lastPlayed) >= SOUND_COOLDOWN_MS;
     }
 
     private static void recordSoundPlayed(Player player, String soundName) {
@@ -213,5 +187,27 @@ public class SoundManager {
 
     public static void playChatErrorSound(Player player) {
         playChatActionSound(player, "error");
+    }
+
+    public enum SoundType {
+        GUI_CLICK("gui.click"),
+        GUI_OPEN("gui.open"),
+        GUI_CLOSE("gui.close"),
+        ACTION_SUCCESS("action.success"),
+        ACTION_ERROR("action.error"),
+        NAVIGATION("navigation"),
+        DEPOSIT("action.deposit"),
+        WITHDRAW("action.withdraw"),
+        SELL("action.sell");
+
+        private final String configPath;
+
+        SoundType(String configPath) {
+            this.configPath = configPath;
+        }
+
+        public String getConfigPath() {
+            return "sounds." + configPath;
+        }
     }
 }

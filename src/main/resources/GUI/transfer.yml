@@ -1,0 +1,195 @@
+title: "&0Transfer to #player#"
+size: 6
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_CHEST_OPEN"
+  volume: 0.8
+  pitch: 1.0
+items:
+  decorates:
+    slot: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53
+    name: "&7 "
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: false
+  
+  material_display:
+    slot: 22
+    name: "&e#material_name#"
+    lore:
+      - "&7 "
+      - "&fYou have: &a#current_amount#"
+      - "&fTransfer amount: &e#transfer_amount#"
+      - "&7 "
+      - "&7Click to change amount"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.8
+      pitch: 1.0
+  
+  amount_decrease:
+    slot: 19
+    name: "&c- Decrease Amount"
+    material: RED_CONCRETE
+    lore:
+      - "&7Click to decrease transfer amount"
+      - "&7Current: &e#transfer_amount#"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.6
+      pitch: 0.8
+  
+  amount_increase:
+    slot: 25
+    name: "&a+ Increase Amount"
+    material: GREEN_CONCRETE
+    lore:
+      - "&7Click to increase transfer amount"
+      - "&7Current: &e#transfer_amount#"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.6
+      pitch: 1.2
+  
+  amount_input:
+    slot: 21
+    name: "&eCustom Amount"
+    material: PAPER
+    lore:
+      - "&7Click to enter custom amount"
+      - "&7Type amount in chat"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "BLOCK_NOTE_BLOCK_PLING"
+      volume: 0.8
+      pitch: 1.5
+  
+  amount_max:
+    slot: 23
+    name: "&6Max Amount"
+    material: GOLD_INGOT
+    lore:
+      - "&7Click to set max amount"
+      - "&7Max: &a#current_amount#"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.8
+      pitch: 1.3
+  
+  confirm_transfer:
+    slot: 42
+    name: "&a✓ Confirm Transfer"
+    material: GREEN_WOOL
+    lore:
+      - "&7 "
+      - "&fTransfer &e#transfer_amount# #material_name#"
+      - "&fto &b#player#"
+      - "&7 "
+      - "&aClick to confirm"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 1.0
+      pitch: 1.2
+  
+  cancel_transfer:
+    slot: 38
+    name: "&c✗ Cancel Transfer"
+    material: RED_WOOL
+    lore:
+      - "&7 "
+      - "&cClick to cancel and go back"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "ENTITY_VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8
+  
+  player_info:
+    slot: 13
+    name: "&b#player#"
+    material: PLAYER_HEAD
+    lore:
+      - "&7 "
+      - "&fTransferring to this player"
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: false

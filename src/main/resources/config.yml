@@ -17,6 +17,17 @@ settings:
   #Default auto pickup on first join
   default_auto_pickup: false
 
+#Auto save player data settings
+auto_save:
+  #Enable auto save feature
+  enabled: true
+  #Auto save interval in minutes (minimum: 1 minute)
+  interval_minutes: 5
+  #Save data asynchronously to prevent lag
+  async: true
+  #Log auto save activity to console
+  log_activity: false
+
 #Sell command | I don't want to require Vault as an economy so use command to give balance when sell
 sell:
   - "eco give #player# #money#"
@@ -122,6 +133,39 @@ mine:
   actionbar:
     enable: true
     action: "&6+#amount# #item# [#storage#/#max#]"
+
+transfer:
+  enabled: true
+  delay: 3
+  max_history_display: 10
+  particles:
+    enabled: true
+    success:
+      type: "VILLAGER_HAPPY"
+      count: 10
+      speed: 0.1
+    receive:
+      type: "HEART"
+      count: 5
+      speed: 0.1
+    failed:
+      type: "SMOKE_NORMAL"
+      count: 8
+      speed: 0.1
+  sounds:
+    enabled: true
+    success:
+      name: "ORB_PICKUP"
+      volume: 1.0
+      pitch: 1.2
+    receive:
+      name: "ITEM_PICKUP"
+      volume: 0.8
+      pitch: 1.0
+    failed:
+      name: "VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8
 
 sounds:
   enabled: true

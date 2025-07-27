@@ -27,3 +27,18 @@ permissions:
     description: Admin max permission command
   storage.admin.reload:
     description: Admin reload permission command
+  storage.transfer.use:
+    description: Use transfer feature
+    default: true
+  storage.transfer.multi:
+    description: Use multi transfer feature
+    default: true
+  storage.transfer.log:
+    description: View own transfer logs
+    default: true
+  storage.transfer.log.others:
+    description: View other players transfer logs
+    default: op
+  storage.transfer.admin:
+    description: Bypass transfer cooldown and limitations
+    default: op

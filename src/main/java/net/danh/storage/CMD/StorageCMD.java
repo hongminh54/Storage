@@ -2,8 +2,12 @@ package net.danh.storage.CMD;
 
 import net.danh.storage.API.CMDBase;
 import net.danh.storage.GUI.PersonalStorage;
+import net.danh.storage.GUI.TransferGUI;
+import net.danh.storage.GUI.TransferMultiGUI;
+import net.danh.storage.Manager.AutoSaveManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.TransferManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
@@ -56,11 +60,32 @@ public class StorageCMD extends CMDBase {
                 if (args[0].equalsIgnoreCase("reload")) {
                     File.reloadFiles();
                     MineManager.loadBlocks();
+                    AutoSaveManager.restartAutoSave();
                     for (Player p : Storage.getStorage().getServer().getOnlinePlayers()) {
                         MineManager.convertOfflineData(p);
                         MineManager.loadPlayerData(p);
                     }
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.reload")));
+                }
+                if (args[0].equalsIgnoreCase("autosave")) {
+                    String statusOn = File.getMessage().getString("user.status.status_on");
+                    String statusOff = File.getMessage().getString("user.status.status_off");
+
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.status_header")));
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.enabled")
+                        .replace("#status#", AutoSaveManager.isEnabled() ? statusOn : statusOff)));
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.running")
+                        .replace("#status#", AutoSaveManager.isRunning() ? statusOn : statusOff)));
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.interval")
+                        .replace("#minutes#", String.valueOf(AutoSaveManager.getIntervalMinutes()))));
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.async")
+                        .replace("#status#", AutoSaveManager.isAsync() ? statusOn : statusOff)));
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.log_activity")
+                        .replace("#status#", AutoSaveManager.isLogActivity() ? statusOn : statusOff)));
+                }
+                if (args[0].equalsIgnoreCase("save")) {
+                    AutoSaveManager.forceSave();
+                    c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.force_save_completed")));
                 }
             }
         }
@@ -113,6 +138,119 @@ public class StorageCMD extends CMDBase {
                 }
             }
         }
+
+        // Transfer commands
+        if (args.length >= 2 && args[0].equalsIgnoreCase("transfer")) {
+            if (!(c instanceof Player)) {
+                c.sendMessage(Chat.colorize(File.getMessage().getString("admin.transfer_commands.only_players")));
+                return;
+            }
+
+            Player player = (Player) c;
+
+            if (args.length == 2 && args[1].equalsIgnoreCase("log")) {
+                // /storage transfer log - view own transfer history
+                TransferManager.displayTransferHistory(player, null, 1);
+                return;
+            }
+
+            if (args.length == 3 && args[1].equalsIgnoreCase("log")) {
+                // Check if third argument is a page number or player name
+                try {
+                    int page = Integer.parseInt(args[2]);
+                    if (page > 0) {
+                        // /storage transfer log <page> - view own transfer history at specific page
+                        TransferManager.displayTransferHistory(player, null, page);
+                        return;
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Not a number, treat as player name
+                }
+                // /storage transfer log <player> - view specific player's transfer history
+                TransferManager.displayTransferHistory(player, args[2], 1);
+                return;
+            }
+
+            if (args.length == 4 && args[1].equalsIgnoreCase("log")) {
+                // /storage transfer log <player> <page> - view specific player's transfer history at specific page
+                try {
+                    int page = Integer.parseInt(args[3]);
+                    if (page > 0) {
+                        TransferManager.displayTransferHistory(player, args[2], page);
+                    } else {
+                        player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.transfer_commands.invalid_page_number")));
+                    }
+                } catch (NumberFormatException e) {
+                    player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.transfer_commands.invalid_page_format")));
+                }
+                return;
+            }
+
+            if (args.length == 3 && args[1].equalsIgnoreCase("multi")) {
+                // /storage transfer multi <player> - open multi transfer GUI
+                if (!player.hasPermission("storage.transfer.multi")) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_permission_multi")));
+                    return;
+                }
+
+                Player targetPlayer = Bukkit.getPlayer(args[2]);
+                if (targetPlayer == null || !targetPlayer.isOnline()) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_offline").replace("#player#", args[2])));
+                    return;
+                }
+
+                if (player.getName().equalsIgnoreCase(targetPlayer.getName())) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_same_player")));
+                    return;
+                }
+
+                try {
+                    player.openInventory(new TransferMultiGUI(player, targetPlayer.getName()).getInventory());
+                } catch (Exception e) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("admin.transfer_commands.error_opening_gui")));
+                }
+                return;
+            }
+
+            if (args.length >= 3 && !args[1].equalsIgnoreCase("log") && !args[1].equalsIgnoreCase("multi")) {
+                // /storage transfer <player> <material> - open single transfer GUI
+                if (!player.hasPermission("storage.transfer.use")) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_permission")));
+                    return;
+                }
+
+                Player targetPlayer = Bukkit.getPlayer(args[1]);
+                if (targetPlayer == null || !targetPlayer.isOnline()) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_offline").replace("#player#", args[1])));
+                    return;
+                }
+
+                if (player.getName().equalsIgnoreCase(targetPlayer.getName())) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_same_player")));
+                    return;
+                }
+
+                String material = args.length >= 3 ? args[2] : null;
+                if (material == null || !MineManager.getPluginBlocks().contains(material)) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_invalid_material")));
+                    return;
+                }
+
+                int currentAmount = MineManager.getPlayerBlock(player, material);
+                if (currentAmount <= 0) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_insufficient")
+                            .replace("#material#", material)
+                            .replace("#current#", "0")));
+                    return;
+                }
+
+                try {
+                    player.openInventory(new TransferGUI(player, targetPlayer.getName(), material).getInventory());
+                } catch (Exception e) {
+                    player.sendMessage(Chat.colorize(File.getMessage().getString("admin.transfer_commands.error_opening_gui")));
+                }
+            }
+        }
     }
 
     @Override
@@ -125,23 +263,48 @@ public class StorageCMD extends CMDBase {
             if (sender.hasPermission("storage.toggle")) {
                 commands.add("toggle");
             }
+            if (sender.hasPermission("storage.transfer.use") || sender.hasPermission("storage.transfer.multi") || sender.hasPermission("storage.transfer.log")) {
+                commands.add("transfer");
+            }
             if (sender.hasPermission("storage.admin")) {
                 commands.add("add");
                 commands.add("remove");
                 commands.add("set");
                 commands.add("reload");
                 commands.add("max");
+                commands.add("autosave");
+                commands.add("save");
             } else {
                 if (sender.hasPermission("storage.admin.add")) commands.add("add");
                 if (sender.hasPermission("storage.admin.remove")) commands.add("remove");
                 if (sender.hasPermission("storage.admin.set")) commands.add("set");
-                if (sender.hasPermission("storage.admin.reload")) commands.add("reload");
+                if (sender.hasPermission("storage.admin.reload")) {
+                    commands.add("reload");
+                    commands.add("autosave");
+                    commands.add("save");
+                }
                 if (sender.hasPermission("storage.admin.max")) commands.add("max");
             }
 
             StringUtil.copyPartialMatches(args[0], commands, completions);
         }
         if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("transfer")) {
+                if (sender.hasPermission("storage.transfer.log")) {
+                    commands.add("log");
+                }
+                if (sender.hasPermission("storage.transfer.multi")) {
+                    commands.add("multi");
+                }
+                if (sender.hasPermission("storage.transfer.use")) {
+                    Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+                        if (!player.getName().equals(sender.getName())) {
+                            commands.add(player.getName());
+                        }
+                    });
+                }
+                StringUtil.copyPartialMatches(args[1], commands, completions);
+            }
             if (sender.hasPermission("storage.admin") || sender.hasPermission("storage.admin.add") || sender.hasPermission("storage.admin.remove") || sender.hasPermission("storage.admin.set")) {
                 if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (commands.addAll(MineManager.getPluginBlocks())) {
@@ -157,6 +320,31 @@ public class StorageCMD extends CMDBase {
             }
         }
         if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("transfer")) {
+                if (args[1].equalsIgnoreCase("log")) {
+                    if (sender.hasPermission("storage.transfer.log.others")) {
+                        // Add player names
+                        Bukkit.getServer().getOnlinePlayers().forEach(player -> commands.add(player.getName()));
+                    }
+                    // Add page numbers
+                    commands.add("1");
+                    commands.add("2");
+                    commands.add("3");
+                    StringUtil.copyPartialMatches(args[2], commands, completions);
+                } else if (args[1].equalsIgnoreCase("multi") && sender.hasPermission("storage.transfer.multi")) {
+                    Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+                        if (!player.getName().equals(sender.getName())) {
+                            commands.add(player.getName());
+                        }
+                    });
+                    StringUtil.copyPartialMatches(args[2], commands, completions);
+                } else if (sender.hasPermission("storage.transfer.use") && !args[1].equalsIgnoreCase("log") && !args[1].equalsIgnoreCase("multi")) {
+                    // For /storage transfer <player> <material>
+                    if (commands.addAll(MineManager.getPluginBlocks())) {
+                        StringUtil.copyPartialMatches(args[2], commands, completions);
+                    }
+                }
+            }
             if (sender.hasPermission("storage.admin") || sender.hasPermission("storage.admin.add") || sender.hasPermission("storage.admin.remove") || sender.hasPermission("storage.admin.set")) {
                 if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (MineManager.getPluginBlocks().contains(args[1])) {
@@ -172,6 +360,15 @@ public class StorageCMD extends CMDBase {
             }
         }
         if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("transfer")) {
+                if (args[1].equalsIgnoreCase("log") && sender.hasPermission("storage.transfer.log.others")) {
+                    // Add page numbers for /storage transfer log <player> <page>
+                    commands.add("1");
+                    commands.add("2");
+                    commands.add("3");
+                    StringUtil.copyPartialMatches(args[3], commands, completions);
+                }
+            }
             if (sender.hasPermission("storage.admin") || sender.hasPermission("storage.admin.add") || sender.hasPermission("storage.admin.remove") || sender.hasPermission("storage.admin.set")) {
                 if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (MineManager.getPluginBlocks().contains(args[1])) {

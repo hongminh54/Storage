@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -210,5 +211,59 @@ public class ItemManager {
             return itemStack;
         }
         return null;
+    }
+
+    public static ItemStack replaceLore(ItemStack item, List<String> loreTemplate, String... replacements) {
+        if (item == null || loreTemplate == null) return item;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+
+        List<String> newLore = loreTemplate.stream()
+                .map(line -> {
+                    String result = line;
+                    for (int i = 0; i < replacements.length - 1; i += 2) {
+                        result = result.replace(replacements[i], replacements[i + 1]);
+                    }
+                    return result;
+                })
+                .collect(Collectors.toList());
+
+        meta.setLore(Chat.colorizewp(newLore));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack replacePlaceholders(ItemStack item, String... replacements) {
+        if (item == null || replacements.length % 2 != 0) return item;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+
+        // Replace displayName placeholders
+        if (meta.getDisplayName() != null) {
+            String displayName = meta.getDisplayName();
+            for (int i = 0; i < replacements.length - 1; i += 2) {
+                displayName = displayName.replace(replacements[i], replacements[i + 1]);
+            }
+            meta.setDisplayName(displayName);
+        }
+
+        // Replace lore placeholders
+        if (meta.getLore() != null) {
+            List<String> newLore = meta.getLore().stream()
+                    .map(line -> {
+                        String result = line;
+                        for (int i = 0; i < replacements.length - 1; i += 2) {
+                            result = result.replace(replacements[i], replacements[i + 1]);
+                        }
+                        return result;
+                    })
+                    .collect(Collectors.toList());
+            meta.setLore(newLore);
+        }
+
+        item.setItemMeta(meta);
+        return item;
     }
 }

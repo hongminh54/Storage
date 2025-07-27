@@ -4,11 +4,12 @@ import net.danh.storage.Action.Deposit;
 import net.danh.storage.Action.Sell;
 import net.danh.storage.Action.Withdraw;
 import net.danh.storage.GUI.PersonalStorage;
+import net.danh.storage.GUI.TransferGUI;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
-import net.danh.storage.Manager.SoundManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -71,6 +72,26 @@ public class Chat implements Listener {
             }
             chat_sell.remove(p);
             chat_return_page.remove(p);
+            e.setCancelled(true);
+        }
+
+        // Handle transfer amount input
+        if (TransferGUI.isWaitingForInput(p)) {
+            if (Number.getInteger(message) > 0) {
+                TransferGUI activeGUI = TransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    int amount = Number.getInteger(message);
+                    activeGUI.setTransferAmount(amount);
+                    Bukkit.getScheduler().runTask(Storage.getStorage(), () -> {
+                        activeGUI.updateGUI();
+                        p.sendMessage(net.danh.storage.Utils.Chat.colorize("&aTransfer amount set to " + amount));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+            }
+            TransferGUI.setWaitingForInput(p, false);
             e.setCancelled(true);
         }
     }
