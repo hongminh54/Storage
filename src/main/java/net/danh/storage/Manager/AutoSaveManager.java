@@ -52,7 +52,7 @@ public class AutoSaveManager {
         if (logActivity) {
             String message = File.getMessage().getString("admin.autosave.started", "Auto-save started with interval: #minutes# minutes");
             Storage.getStorage().getLogger().log(Level.INFO,
-                message.replace("#minutes#", String.valueOf(intervalMinutes)));
+                    message.replace("#minutes#", String.valueOf(intervalMinutes)));
         }
     }
 
@@ -60,7 +60,7 @@ public class AutoSaveManager {
         if (autoSaveTask != null) {
             autoSaveTask.cancel();
             autoSaveTask = null;
-            
+
             if (logActivity) {
                 String message = File.getMessage().getString("admin.autosave.stopped", "Auto-save stopped");
                 Storage.getStorage().getLogger().log(Level.INFO, message);
@@ -97,12 +97,12 @@ public class AutoSaveManager {
             if (logActivity && playerCount > 0) {
                 String message = File.getMessage().getString("admin.autosave.completed", "Auto-save completed for #count# players");
                 Storage.getStorage().getLogger().log(Level.INFO,
-                    message.replace("#count#", String.valueOf(playerCount)));
+                        message.replace("#count#", String.valueOf(playerCount)));
             }
         } catch (Exception e) {
             String message = File.getMessage().getString("admin.autosave.error", "Error during auto-save: #error#");
             Storage.getStorage().getLogger().log(Level.SEVERE,
-                message.replace("#error#", e.getMessage()), e);
+                    message.replace("#error#", e.getMessage()), e);
         }
     }
 

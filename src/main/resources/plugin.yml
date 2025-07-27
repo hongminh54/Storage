@@ -1,7 +1,7 @@
 name: Storage
 version: '${project.version}'
 main: net.danh.storage.Storage
-author: VoChiDanh
+author: VoChiDanh, hongminh54
 description: "${project.description}"
 api-version: '1.13'
 softdepend:

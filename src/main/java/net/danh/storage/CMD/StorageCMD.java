@@ -73,15 +73,15 @@ public class StorageCMD extends CMDBase {
 
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.status_header")));
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.enabled")
-                        .replace("#status#", AutoSaveManager.isEnabled() ? statusOn : statusOff)));
+                            .replace("#status#", AutoSaveManager.isEnabled() ? statusOn : statusOff)));
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.running")
-                        .replace("#status#", AutoSaveManager.isRunning() ? statusOn : statusOff)));
+                            .replace("#status#", AutoSaveManager.isRunning() ? statusOn : statusOff)));
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.interval")
-                        .replace("#minutes#", String.valueOf(AutoSaveManager.getIntervalMinutes()))));
+                            .replace("#minutes#", String.valueOf(AutoSaveManager.getIntervalMinutes()))));
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.async")
-                        .replace("#status#", AutoSaveManager.isAsync() ? statusOn : statusOff)));
+                            .replace("#status#", AutoSaveManager.isAsync() ? statusOn : statusOff)));
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.log_activity")
-                        .replace("#status#", AutoSaveManager.isLogActivity() ? statusOn : statusOff)));
+                            .replace("#status#", AutoSaveManager.isLogActivity() ? statusOn : statusOff)));
                 }
                 if (args[0].equalsIgnoreCase("save")) {
                     AutoSaveManager.forceSave();
