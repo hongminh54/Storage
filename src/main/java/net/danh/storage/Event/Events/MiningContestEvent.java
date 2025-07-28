@@ -108,6 +108,8 @@ public class MiningContestEvent extends BaseEvent {
     }
 
     private void broadcastChatProgress() {
+        if (!eventData.isActive()) return;
+
         long remainingTime = (eventData.getEndTime() - System.currentTimeMillis()) / 1000;
         Map<String, Integer> topPlayers = getTopPlayers(3);
 
@@ -183,19 +185,17 @@ public class MiningContestEvent extends BaseEvent {
         List<Map.Entry<UUID, Integer>> sortedPlayers = eventData.getPlayerData().entrySet()
                 .stream()
                 .sorted(Map.Entry.<UUID, Integer>comparingByValue().reversed())
-                .limit(3)
                 .collect(Collectors.toList());
 
         if (sortedPlayers.isEmpty()) {
-            String noWinnersMessage = File.getMessage().getString("events.mining_contest.chat.no_winners");
-
+            String noWinnersMessage = File.getMessage().getString("events.mining_contest.chat.no_participants_detailed");
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.sendMessage(Chat.colorizewp(noWinnersMessage));
             }
             return;
         }
 
-        StringBuilder leaderboard = new StringBuilder();
+        // Show titles for top 3 winners
         String[] positions = {"first_place", "second_place", "third_place"};
         String[] positionNames = {"1st", "2nd", "3rd"};
 
@@ -218,24 +218,13 @@ public class MiningContestEvent extends BaseEvent {
                 for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                     onlinePlayer.sendTitle(Chat.colorizewp(winnerTitle), Chat.colorizewp(winnerSubtitle), 10, 70, 20);
                 }
-
-                String leaderboardEntry = File.getMessage().getString("events.mining_contest.chat.leaderboard");
-                leaderboardEntry = leaderboardEntry.replace("#position#", String.valueOf(i + 1))
-                        .replace("#player#", player.getName())
-                        .replace("#amount#", String.valueOf(entry.getValue()));
-
-                if (leaderboard.length() > 0) {
-                    leaderboard.append("\n");
-                }
-                leaderboard.append(leaderboardEntry);
             }
         }
 
-        if (leaderboard.length() > 0) {
-            String finalLeaderboard = Chat.colorizewp(leaderboard.toString());
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.sendMessage(finalLeaderboard);
-            }
+        // Display detailed leaderboard
+        String detailedLeaderboard = formatDetailedLeaderboard(sortedPlayers);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendMessage(detailedLeaderboard);
         }
     }
 
@@ -263,7 +252,8 @@ public class MiningContestEvent extends BaseEvent {
     }
 
     public Map<String, Integer> getTopPlayers(int limit) {
-        if (!eventData.isActive()) {
+        // Allow getting top players even when event is not active (for final leaderboard)
+        if (eventData.getPlayerData().isEmpty()) {
             return new HashMap<>();
         }
 
@@ -280,6 +270,70 @@ public class MiningContestEvent extends BaseEvent {
                         (e1, e2) -> e1,
                         LinkedHashMap::new
                 ));
+    }
+
+    private String formatDetailedLeaderboard(List<Map.Entry<UUID, Integer>> sortedPlayers) {
+        StringBuilder leaderboard = new StringBuilder();
+
+        // Header
+        String header = File.getMessage().getString("events.mining_contest.chat.leaderboard_header");
+        leaderboard.append(Chat.colorizewp(header)).append("\n");
+
+        // Separator
+        String separator = File.getMessage().getString("events.mining_contest.chat.leaderboard_separator");
+        leaderboard.append(Chat.colorizewp(separator)).append("\n");
+
+        // Get display count from config
+        int displayCount = File.getEventConfig().getInt("events.mining_contest.leaderboard.display_count", 10);
+        int maxDisplay = Math.min(displayCount, 15); // Hard limit to prevent spam
+
+        // Display players
+        for (int i = 0; i < Math.min(sortedPlayers.size(), maxDisplay); i++) {
+            Map.Entry<UUID, Integer> entry = sortedPlayers.get(i);
+            Player player = Bukkit.getPlayer(entry.getKey());
+
+            if (player != null) {
+                String entryMessage;
+                if (i < 3) {
+                    // Top 3 get special formatting
+                    entryMessage = File.getMessage().getString("events.mining_contest.chat.leaderboard_entry_winner");
+                } else {
+                    // Others get normal formatting
+                    entryMessage = File.getMessage().getString("events.mining_contest.chat.leaderboard_entry_normal");
+                }
+
+                entryMessage = entryMessage.replace("#position#", String.valueOf(i + 1))
+                        .replace("#player#", player.getName())
+                        .replace("#amount#", String.valueOf(entry.getValue()));
+
+                leaderboard.append(Chat.colorizewp(entryMessage)).append("\n");
+            }
+        }
+
+        // Show statistics if enabled
+        if (File.getEventConfig().getBoolean("events.mining_contest.leaderboard.show_statistics", true)) {
+            leaderboard.append(Chat.colorizewp(separator)).append("\n");
+            leaderboard.append(getEventStatistics()).append("\n");
+        }
+
+        // Footer
+        String footer = File.getMessage().getString("events.mining_contest.chat.leaderboard_footer");
+        leaderboard.append(Chat.colorizewp(footer));
+
+        return leaderboard.toString();
+    }
+
+    private String getEventStatistics() {
+        int totalParticipants = eventData.getParticipants().size();
+        int totalBlocks = eventData.getPlayerData().values().stream().mapToInt(Integer::intValue).sum();
+        long eventDuration = (eventData.getEndTime() - eventData.getStartTime()) / 1000;
+
+        String statistics = File.getMessage().getString("events.mining_contest.chat.event_summary");
+        statistics = statistics.replace("#participants#", String.valueOf(totalParticipants))
+                .replace("#total_blocks#", String.valueOf(totalBlocks))
+                .replace("#duration#", formatTime(eventDuration));
+
+        return Chat.colorizewp(statistics);
     }
 
     public int getPlayerRank(Player player) {

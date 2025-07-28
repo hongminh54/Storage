@@ -198,6 +198,13 @@ events:
       milestone_reached: "&7[&6Mining Contest&7] &eMilestone! &aYou've mined #amount# blocks! &7Rank: &e#rank#"
       rank_improved: "&7[&6Mining Contest&7] &aRank Up! &7You're now rank &e#rank# &7with &a#amount# blocks!"
       final_statistics: "&7[&6Mining Contest&7] &eTotal participants: &a#participants# &7| Winner: &e#winner# &7(&a#winning_amount# blocks&7)"
+      leaderboard_header: "&6&l=== &e&lMining Contest Results &6&l==="
+      leaderboard_footer: "&6&l================================"
+      leaderboard_separator: "&8&m                                    "
+      leaderboard_entry_winner: "&e#position#. &a&l#player# &7- &e#amount# blocks &6&l[WINNER]"
+      leaderboard_entry_normal: "&e#position#. &a#player# &7- &e#amount# blocks"
+      event_summary: "&7Total Participants: &e#participants# &7| Total Blocks Mined: &e#total_blocks# &7| Duration: &e#duration#"
+      no_participants_detailed: "&7&oNo one participated in this Mining Contest. Better luck next time!"
   double_drop:
     subtitle:
       started: "&7Multiplier: &e#multiplier#x &7| Duration: &e#duration#m"

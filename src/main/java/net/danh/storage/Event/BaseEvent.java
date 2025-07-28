@@ -1,6 +1,7 @@
 package net.danh.storage.Event;
 
 import net.danh.storage.Data.EventData;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
@@ -99,6 +100,7 @@ public abstract class BaseEvent {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            SoundManager.playEventStartSound(player);
         }
 
         broadcastEventStartChat();
@@ -122,6 +124,7 @@ public abstract class BaseEvent {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            SoundManager.playEventEndSound(player);
         }
 
         broadcastEventEndChat();
@@ -222,6 +225,8 @@ public abstract class BaseEvent {
             String message = File.getEventConfig().getString(basePath + ".broadcast_message");
             broadcastRewardMessage(player, message);
         }
+
+        SoundManager.playRewardSound(player);
     }
 
     protected void runMoneyCommand(Player player, double money) {

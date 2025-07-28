@@ -176,10 +176,15 @@ public class TransferManager {
         // Cancel any existing transfer for this player
         cancelTransfer(sender);
 
+        // Start processing animation
+        ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
+
         // Create and start the transfer task
         BukkitRunnable transferTask = new BukkitRunnable() {
             @Override
             public void run() {
+                // Stop processing animation
+                ParticleManager.stopTransferProcessingAnimation(sender);
                 completeTransfer(sender, receiver, material, amount);
                 activeTransfers.remove(sender.getName());
             }
@@ -220,10 +225,15 @@ public class TransferManager {
         // Cancel any existing transfer for this player
         cancelTransfer(sender);
 
+        // Start processing animation
+        ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
+
         // Create and start the multi transfer task
         BukkitRunnable transferTask = new BukkitRunnable() {
             @Override
             public void run() {
+                // Stop processing animation
+                ParticleManager.stopTransferProcessingAnimation(sender);
                 completeMultiTransfer(sender, receiver, materials);
                 activeTransfers.remove(sender.getName());
             }
@@ -402,6 +412,10 @@ public class TransferManager {
             }
         }
 
+        // Play beam effect from sender to receiver
+        ParticleManager.playTransferBeamEffect(sender, receiver);
+
+        // Play enhanced success and receive particles
         ParticleManager.playTransferSuccessParticle(sender);
         ParticleManager.playTransferReceiveParticle(receiver);
     }
@@ -416,6 +430,8 @@ public class TransferManager {
             task.cancel();
             player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.cancelled")));
         }
+        // Stop any processing animation
+        ParticleManager.stopTransferProcessingAnimation(player);
     }
 
     public static void cancelAllTransfers() {

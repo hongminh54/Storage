@@ -32,6 +32,12 @@ events:
       # interval: 7200
     # Event duration in seconds (30 minutes)
     duration: 1800
+    # Leaderboard display settings
+    leaderboard:
+      # Number of top players to display in final leaderboard (max: 15)
+      display_count: 10
+      # Show event statistics (participants, total blocks, duration)
+      show_statistics: true
     # Rewards for winners
     rewards:
       first_place:

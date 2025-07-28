@@ -189,6 +189,35 @@ public class SoundManager {
         playChatActionSound(player, "error");
     }
 
+    public static void playEventSound(Player player, String eventSoundType) {
+        if (player == null || !player.isOnline()) return;
+
+        FileConfiguration eventConfig = File.getEventConfig();
+        if (!eventConfig.getBoolean("notifications.sounds.enabled", true)) return;
+
+        String soundPath = "notifications.sounds." + eventSoundType;
+
+        String soundName = eventConfig.getString(soundPath + ".name");
+        if (soundName == null || soundName.equalsIgnoreCase("none")) return;
+
+        float volume = (float) eventConfig.getDouble(soundPath + ".volume", 1.0);
+        float pitch = (float) eventConfig.getDouble(soundPath + ".pitch", 1.0);
+
+        playSound(player, soundName, volume, pitch);
+    }
+
+    public static void playEventStartSound(Player player) {
+        playEventSound(player, "event_start");
+    }
+
+    public static void playEventEndSound(Player player) {
+        playEventSound(player, "event_end");
+    }
+
+    public static void playRewardSound(Player player) {
+        playEventSound(player, "reward_received");
+    }
+
     public enum SoundType {
         GUI_CLICK("gui.click"),
         GUI_OPEN("gui.open"),
