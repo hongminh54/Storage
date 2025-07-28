@@ -38,12 +38,16 @@ public class File {
         return getFileSetting().get("GUI/items.yml");
     }
 
+    public static FileConfiguration getEventConfig() {
+        return getFileSetting().get("events.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml");
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -55,7 +59,7 @@ public class File {
     }
 
     public static void saveFiles() {
-        getFileSetting().save("config.yml", "message.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
+        getFileSetting().save("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
     }
 
     public static void updateConfig() {

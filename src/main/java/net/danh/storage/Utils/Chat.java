@@ -65,7 +65,10 @@ public class Chat {
         while (matcher.find()) {
             String hexColor = matcher.group(1);
             String replacement = getHexColor(hexColor);
-            matcher.appendReplacement(buffer, replacement);
+            if (replacement.equals("&f")) {
+                replacement = matcher.group(0);
+            }
+            matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(buffer);
 
@@ -79,7 +82,7 @@ public class Chat {
             Object chatColor = ofMethod.invoke(null, "#" + hex);
             return chatColor.toString();
         } catch (Exception e) {
-            return "";
+            return "&f";
         }
     }
 }

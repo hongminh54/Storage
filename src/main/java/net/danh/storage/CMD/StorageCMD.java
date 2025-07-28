@@ -1,13 +1,11 @@
 package net.danh.storage.CMD;
 
 import net.danh.storage.API.CMDBase;
+import net.danh.storage.Event.EventType;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.GUI.TransferMultiGUI;
-import net.danh.storage.Manager.AutoSaveManager;
-import net.danh.storage.Manager.ItemManager;
-import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.TransferManager;
+import net.danh.storage.Manager.*;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
@@ -61,6 +59,7 @@ public class StorageCMD extends CMDBase {
                     File.reloadFiles();
                     MineManager.loadBlocks();
                     AutoSaveManager.restartAutoSave();
+                    EventManager.reloadEvents();
                     for (Player p : Storage.getStorage().getServer().getOnlinePlayers()) {
                         MineManager.convertOfflineData(p);
                         MineManager.loadPlayerData(p);
@@ -86,6 +85,82 @@ public class StorageCMD extends CMDBase {
                 if (args[0].equalsIgnoreCase("save")) {
                     AutoSaveManager.forceSave();
                     c.sendMessage(Chat.colorize(File.getMessage().getString("admin.autosave.force_save_completed")));
+                }
+                if (args[0].equalsIgnoreCase("event")) {
+                    c.sendMessage(Chat.colorizewp(File.getMessage().getString("events.status.header")));
+                    for (EventType eventType : EventType.values()) {
+                        String eventName = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".event_name", eventType.getDisplayName());
+                        String status = EventManager.getEventStatus(eventType);
+                        String statusMessage = File.getMessage().getString("events.status.line")
+                                .replace("#event#", eventName)
+                                .replace("#status#", status);
+                        c.sendMessage(Chat.colorizewp(statusMessage));
+                    }
+                    c.sendMessage(Chat.colorizewp(File.getMessage().getString("events.status.footer")));
+                }
+            }
+            if (args.length == 2) {
+                if (args[0].equalsIgnoreCase("event")) {
+                    if (args[1].equalsIgnoreCase("help")) {
+                        File.getMessage().getStringList("events.help").forEach(s -> c.sendMessage(Chat.colorizewp(s)));
+                    }
+                    if (args[1].equalsIgnoreCase("list")) {
+                        c.sendMessage(Chat.colorizewp(File.getMessage().getString("events.list.header")));
+                        boolean hasActiveEvents = false;
+                        for (EventType eventType : EventType.values()) {
+                            if (EventManager.isEventActive(eventType)) {
+                                String eventName = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".event_name", eventType.getDisplayName());
+                                String activeMessage = File.getMessage().getString("events.list.active")
+                                        .replace("#event#", eventName);
+                                c.sendMessage(Chat.colorizewp(activeMessage));
+                                hasActiveEvents = true;
+                            }
+                        }
+                        if (!hasActiveEvents) {
+                            c.sendMessage(Chat.colorizewp(File.getMessage().getString("events.list.no_active")));
+                        }
+                    }
+
+                }
+            }
+            if (args.length == 3) {
+                if (args[0].equalsIgnoreCase("event")) {
+                    EventType eventType = EventType.fromConfigKey(args[2]);
+                    if (eventType == null) {
+                        c.sendMessage(Chat.colorizewp(File.getMessage().getString("events.invalid_type")));
+                        return;
+                    }
+
+                    if (args[1].equalsIgnoreCase("start")) {
+                        String eventName = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".event_name", eventType.getDisplayName());
+                        if (EventManager.startEvent(eventType)) {
+                            String startMessage = File.getMessage().getString("events.start.success")
+                                    .replace("#event#", eventName);
+                            c.sendMessage(Chat.colorizewp(startMessage));
+                        } else {
+                            String failMessage = File.getMessage().getString("events.start.failed")
+                                    .replace("#event#", eventName);
+                            c.sendMessage(Chat.colorizewp(failMessage));
+                        }
+                    }
+                    if (args[1].equalsIgnoreCase("stop")) {
+                        String eventName = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".event_name", eventType.getDisplayName());
+                        if (EventManager.stopEvent(eventType, false)) {
+                            String stopMessage;
+                            if (eventType == EventType.MINING_CONTEST) {
+                                stopMessage = File.getMessage().getString("events.stop.success_mining_contest")
+                                        .replace("#event#", eventName);
+                            } else {
+                                stopMessage = File.getMessage().getString("events.stop.success")
+                                        .replace("#event#", eventName);
+                            }
+                            c.sendMessage(Chat.colorizewp(stopMessage));
+                        } else {
+                            String failMessage = File.getMessage().getString("events.stop.failed")
+                                    .replace("#event#", eventName);
+                            c.sendMessage(Chat.colorizewp(failMessage));
+                        }
+                    }
                 }
             }
         }
@@ -274,6 +349,7 @@ public class StorageCMD extends CMDBase {
                 commands.add("max");
                 commands.add("autosave");
                 commands.add("save");
+                commands.add("event");
             } else {
                 if (sender.hasPermission("storage.admin.add")) commands.add("add");
                 if (sender.hasPermission("storage.admin.remove")) commands.add("remove");
@@ -282,6 +358,7 @@ public class StorageCMD extends CMDBase {
                     commands.add("reload");
                     commands.add("autosave");
                     commands.add("save");
+                    commands.add("event");
                 }
                 if (sender.hasPermission("storage.admin.max")) commands.add("max");
             }
@@ -305,6 +382,15 @@ public class StorageCMD extends CMDBase {
                 }
                 StringUtil.copyPartialMatches(args[1], commands, completions);
             }
+            if (args[0].equalsIgnoreCase("event")) {
+                if (sender.hasPermission("storage.admin") || sender.hasPermission("storage.admin.reload")) {
+                    commands.add("help");
+                    commands.add("list");
+                    commands.add("start");
+                    commands.add("stop");
+                    StringUtil.copyPartialMatches(args[1], commands, completions);
+                }
+            }
             if (sender.hasPermission("storage.admin") || sender.hasPermission("storage.admin.add") || sender.hasPermission("storage.admin.remove") || sender.hasPermission("storage.admin.set")) {
                 if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("set")) {
                     if (commands.addAll(MineManager.getPluginBlocks())) {
@@ -320,6 +406,15 @@ public class StorageCMD extends CMDBase {
             }
         }
         if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("event")) {
+                if ((args[1].equalsIgnoreCase("start") || args[1].equalsIgnoreCase("stop")) &&
+                        (sender.hasPermission("storage.admin") || sender.hasPermission("storage.admin.reload"))) {
+                    commands.add("mining_contest");
+                    commands.add("double_drop");
+                    commands.add("community_event");
+                    StringUtil.copyPartialMatches(args[2], commands, completions);
+                }
+            }
             if (args[0].equalsIgnoreCase("transfer")) {
                 if (args[1].equalsIgnoreCase("log")) {
                     if (sender.hasPermission("storage.transfer.log.others")) {

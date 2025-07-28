@@ -3,6 +3,7 @@ package net.danh.storage.Listeners;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
+import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
@@ -75,15 +76,22 @@ public class BlockBreak implements Listener {
                         amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(fortune) + 2);
                     } else amount = getDropAmount(block);
                 }
-                if (MineManager.addBlockAmount(p, drop, amount)) {
+
+                int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
+                int totalAmount = amount + bonusAmount;
+
+                if (MineManager.addBlockAmount(p, drop, totalAmount)) {
+                    EventManager.onPlayerMine(p, drop, amount);
                     if (File.getConfig().getBoolean("mine.actionbar.enable")) {
                         String name = File.getConfig().getString("items." + drop);
-                        ActionBar.sendActionBar(Storage.getStorage(), p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.actionbar.action")).replace("#item#", name != null ? name : drop.replace("_", " ")).replace("#amount#", String.valueOf(amount)).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
+                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
+                        ActionBar.sendActionBar(Storage.getStorage(), p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.actionbar.action")).replace("#item#", name != null ? name : drop.replace("_", " ")).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
                     }
                     if (File.getConfig().getBoolean("mine.title.enable")) {
                         String name = File.getConfig().getString("items." + drop);
                         String replacement = name != null ? name : drop.replace("_", " ");
-                        Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", String.valueOf(amount)).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", String.valueOf(amount)).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
+                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
+                        Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
                     }
                     if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
                         e.setDropItems(false);

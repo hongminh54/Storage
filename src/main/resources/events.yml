@@ -1,0 +1,148 @@
+# Event System Configuration
+# Do not touch this
+config_version: 1
+
+# Global event settings
+global:
+  # Enable/disable the entire event system
+  enabled: true
+  # Broadcast event notifications to all players
+  broadcast_notifications: true
+  # Use title/subtitle for event notifications (recommended)
+  use_titles: true
+  # Use action bar for progress updates
+  use_action_bar: true
+
+# Event configurations
+events:
+  # Mining Contest Event - Competition to mine the most blocks
+  mining_contest:
+    # Event display name for messages
+    event_name: "&eMining Contest"
+    # Enable/disable this event
+    enabled: true
+    # Timing configuration
+    timing:
+      # Type: "interval" for regular intervals, "schedule" for specific times
+      type: "schedule"
+      # For schedule type: "DAY:HH:MM" format, multiple times separated by commas
+      # Supported days: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY, DAILY
+      schedule: "MONDAY:06:30,FRIDAY:18:00"
+      # For interval type: time in seconds between events
+      # interval: 7200
+    # Event duration in seconds (30 minutes)
+    duration: 1800
+    # Rewards for winners
+    rewards:
+      first_place:
+        money: 5000
+        commands:
+          - "give #player# diamond 10"
+        broadcast_message: "&e#player# &6won 1st place in the Mining Contest!"
+      second_place:
+        money: 3000
+        commands:
+          - "give #player# diamond 5"
+        broadcast_message: "&e#player# &7won 2nd place in the Mining Contest!"
+      third_place:
+        money: 1000
+        commands:
+          - "give #player# diamond 2"
+        broadcast_message: "&e#player# &cwon 3rd place in the Mining Contest!"
+
+  # Double Drop Event - Doubles the quantity of resources when mining
+  double_drop:
+    # Event display name for messages
+    event_name: "&eDouble Drop"
+    enabled: true
+    timing:
+      type: "interval"
+      # Every 2 hours
+      interval: 7200
+    # Event duration in seconds (15 minutes)
+    duration: 900
+    # Multiplier for drops (2.0 = double, 3.0 = triple, etc.)
+    multiplier: 2.0
+
+  # Community Event - Server-wide collaborative mining goal
+  community_event:
+    # Event display name for messages
+    event_name: "&eCommunity Event"
+    enabled: true
+    timing:
+      type: "schedule"
+      # Every Saturday at noon
+      schedule: "SATURDAY:12:00"
+    # Event duration in seconds (1 hour)
+    duration: 3600
+    # Total blocks that need to be mined by all players combined
+    goal: 10000
+    # Rewards for all participants when goal is reached
+    rewards:
+      money: 2000
+      commands:
+        - "give #player# emerald 5"
+      broadcast_message: "&6Community Goal Achieved! Everyone gets rewards!"
+
+# Event notification settings
+notifications:
+  # Sound settings for events
+  sounds:
+    enabled: true
+    event_start:
+      name: "ENTITY_PLAYER_LEVELUP"
+      volume: 1.0
+      pitch: 1.0
+    event_end:
+      name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.8
+      pitch: 1.2
+    reward_received:
+      name: "ENTITY_PLAYER_LEVELUP"
+      volume: 1.0
+      pitch: 1.5
+
+  # Title/subtitle display settings (in ticks: 20 ticks = 1 second)
+  titles:
+    # Fade in duration
+    fade_in: 10
+    # Stay duration
+    stay: 70
+    # Fade out duration
+    fade_out: 20
+
+  # Action bar update frequency for progress (in ticks)
+  action_bar_update_interval: 200
+
+  # Chat progress notifications
+  chat_progress:
+    enabled: true
+    # Interval for chat progress updates (in seconds)
+    interval: 300
+    # Only show to participants
+    participants_only: true
+
+  # Chat messages for events (start, end, milestones, etc.)
+  chat_messages:
+    enabled: true
+    # Show milestone messages for individual achievements
+    milestones: true
+    # Show first participation messages
+    first_participation: true
+
+  # Time reminders
+  reminders:
+    enabled: true
+    # Remind when event is about to start (in seconds before start)
+    before_start: [300, 60, 10]
+    # Remind when event is about to end (in seconds before end)
+    before_end: [300, 60, 10]
+
+# Performance settings
+performance:
+  # Maximum number of concurrent events
+  max_concurrent_events: 3
+  # Event data cleanup interval (in seconds)
+  cleanup_interval: 300
+  # Enable detailed event logging
+  detailed_logging: false

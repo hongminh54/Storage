@@ -9,6 +9,7 @@ import net.danh.storage.Listeners.BlockPlace;
 import net.danh.storage.Listeners.Chat;
 import net.danh.storage.Listeners.JoinQuit;
 import net.danh.storage.Manager.AutoSaveManager;
+import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.TransferManager;
 import net.danh.storage.NMS.NMSAssistant;
@@ -68,6 +69,7 @@ public final class Storage extends JavaPlugin {
         TransferManager.initialize();
         MineManager.loadBlocks();
         AutoSaveManager.initialize();
+        EventManager.initialize();
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
             getLogger().log(Level.WARNING, "If material doesn't work, you should go to discord and report to author!");
@@ -76,6 +78,7 @@ public final class Storage extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        EventManager.shutdown();
         AutoSaveManager.stopAutoSave();
         for (Player p : getServer().getOnlinePlayers()) {
             MineManager.savePlayerData(p);

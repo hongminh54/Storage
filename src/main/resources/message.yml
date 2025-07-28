@@ -129,3 +129,98 @@ transfer:
     active: "&a"
     disabled: "&7"
     spacing: "&8"
+events:
+  status:
+    header: "&6=== Event System Status ==="
+    line: "#event#: &f#status#"
+    footer: "&7Use '/storage event help' for more commands"
+    unknown: "Unknown"
+    active: "Active"
+    active_with_time: "Active (#time#)"
+    scheduled: "Scheduled"
+    enabled: "Enabled"
+    disabled: "Disabled"
+  list:
+    header: "&6=== Active Events ==="
+    active: "#event# &7(Active)"
+    no_active: "&7No events are currently active"
+  invalid_type: "&cInvalid event type! Valid types: mining_contest, double_drop, community_event"
+  start:
+    success: "&aStarted #event# event"
+    failed: "&cFailed to start #event# event (already active or error)"
+  stop:
+    success: "&aStopped #event# event"
+    success_mining_contest: "&aEnding #event# event gracefully - finalizing results and distributing rewards..."
+    failed: "&cFailed to stop #event# event (not active or error)"
+    method:
+      graceful: "Will conclude with winner announcements and reward distribution"
+      immediate: "Will stop immediately"
+  help:
+    - "&6=== Event Commands ==="
+    - "&f/storage event &7- Show event status"
+    - "&f/storage event list &7- List all events"
+    - "&f/storage event start <type> &7- Start an event"
+    - "&f/storage event stop <type> &7- Stop an event"
+    - "&7Event types: mining_contest, double_drop, community_event"
+    - "&7Note: Mining Contest stops gracefully with winner announcements"
+    - "&7Note: Use '/storage reload' to reload event configs"
+  common:
+    title:
+      started: '#event# &aStarted!'
+      ended: '#event# &cEnded!'
+    subtitle:
+      started: "&7Duration: &e#duration# minutes"
+      ended: "&7Thank you for participating!"
+    chat:
+      reward_received: "&aYou received event rewards!"
+      reminder_start: "#event# &6will start in &e#time#!"
+      reminder_end: "#event# &6will end in &e#time#!"
+      event_started: "&7[&6Event&7] #event# &7has started! Duration: &a#duration# minutes"
+      event_ended: "&7[&6Event&7] #event# &7has ended! Thanks for participating!"
+      first_participation: "&7[&6Event&7] &aWelcome to #event#! &7Start mining to participate!"
+      statistics: "&7[&6Event&7] &eEvent Statistics: &a#participants# participants &7| Duration: &e#duration#"
+  mining_contest:
+    title:
+      manual_stop: "&6Mining Contest manually ended!"
+      winner: "&a#player# won #position# place with #amount# blocks mined!"
+    subtitle:
+      manual_stop: "&7Finalizing leaderboard and distributing rewards"
+      winner: "&7Congratulations on your achievement!"
+    action_bar:
+      progress: "&eYour Progress: &a#amount# blocks &7| Rank: &e#rank# &7| Time: &e#time#"
+    chat:
+      manual_stop_complete: "&aMining Contest concluded successfully!"
+      leaderboard: "&e#position#. #player# - #amount# blocks"
+      no_winners: "&6Mining Contest ended with no participants!"
+      progress_summary: "&6Mining Contest Progress: &eTop 3: &a#top3# &7| Time: &e#time#"
+      event_started: "&7[&6Mining Contest&7] &eCompete to mine the most blocks! &7Duration: &a#duration# minutes"
+      first_mine: "&7[&6Mining Contest&7] &aYou joined the competition! &7Keep mining to climb the leaderboard!"
+      milestone_reached: "&7[&6Mining Contest&7] &eMilestone! &aYou've mined #amount# blocks! &7Rank: &e#rank#"
+      rank_improved: "&7[&6Mining Contest&7] &aRank Up! &7You're now rank &e#rank# &7with &a#amount# blocks!"
+      final_statistics: "&7[&6Mining Contest&7] &eTotal participants: &a#participants# &7| Winner: &e#winner# &7(&a#winning_amount# blocks&7)"
+  double_drop:
+    subtitle:
+      started: "&7Multiplier: &e#multiplier#x &7| Duration: &e#duration#m"
+      ended: "&7Thanks for participating in Double Drop!"
+    action_bar:
+      active: "&6Double Drop Active! &e+#bonus# bonus &7| &eTime: #time#"
+    chat:
+      event_started: "&7[&6Double Drop&7] &eGet &a#multiplier#x &7bonus items when mining! &7Duration: &a#duration# minutes"
+      event_ended: "&7[&6Double Drop&7] &eEvent ended! &7Total bonus items distributed: &a#total_bonus#"
+      first_bonus: "&7[&6Double Drop&7] &aFirst bonus! &7You received &e+#bonus# &7extra items!"
+      bonus_summary: "&7[&6Double Drop&7] &eYour session: &a#total_bonus# bonus items &7from &e#mining_sessions# mining sessions"
+  community_event:
+    title:
+      completed: "&aCommunity Goal Achieved!"
+      failed: "&cCommunity Goal not reached!"
+    subtitle:
+      completed: "&7Everyone gets rewards!"
+      failed: "&7Better luck next time! (#current#/#goal#)"
+    action_bar:
+      progress: "&eCommunity: #current#/#goal# (#percentage#%) &7| Players: #participants# &7| Time: #time#"
+    chat:
+      progress_summary: "&6Community Event: &e#current#/#goal# blocks &7(#percentage#%) | &a#participants# players &7| Time: &e#time#"
+      event_started: "&7[&6Community Event&7] &eWork together to mine &a#goal# blocks! &7Duration: &a#duration# minutes"
+      first_contribution: "&7[&6Community Event&7] &aYou joined the community effort! &7Every block counts!"
+      milestone_reached: "&7[&6Community Event&7] &eMilestone! &a#percentage#% complete &7(&e#current#/#goal# blocks&7)"
+      final_statistics: "&7[&6Community Event&7] &eFinal: &a#current#/#goal# blocks &7(&e#percentage#%&7) | &a#participants# contributors"

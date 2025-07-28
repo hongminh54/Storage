@@ -30,6 +30,11 @@ permissions:
   storage.transfer.use:
     description: Use transfer feature
     default: true
+  storage.event.admin:
+    description: Admin event management permission
+  storage.event.view:
+    description: View event status permission
+    default: true
   storage.transfer.multi:
     description: Use multi transfer feature
     default: true
