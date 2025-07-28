@@ -207,7 +207,6 @@ events:
     chat:
       event_started: "&7[&6Double Drop&7] &eGet &a#multiplier#x &7bonus items when mining! &7Duration: &a#duration# minutes"
       event_ended: "&7[&6Double Drop&7] &eEvent ended! &7Total bonus items distributed: &a#total_bonus#"
-      first_bonus: "&7[&6Double Drop&7] &aFirst bonus! &7You received &e+#bonus# &7extra items!"
       bonus_summary: "&7[&6Double Drop&7] &eYour session: &a#total_bonus# bonus items &7from &e#mining_sessions# mining sessions"
   community_event:
     title:
