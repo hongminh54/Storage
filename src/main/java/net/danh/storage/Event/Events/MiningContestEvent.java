@@ -385,7 +385,7 @@ public class MiningContestEvent extends BaseEvent {
 
     private void checkMilestones(Player player, int previousTotal, int currentTotal, int rank) {
         if (!File.getEventConfig().getBoolean("notifications.chat_messages.enabled", true) ||
-            !File.getEventConfig().getBoolean("notifications.chat_messages.milestones", true)) {
+                !File.getEventConfig().getBoolean("notifications.chat_messages.milestones", true)) {
             return;
         }
 
@@ -404,7 +404,7 @@ public class MiningContestEvent extends BaseEvent {
         if (message == null || message.isEmpty()) return;
 
         message = message.replace("#amount#", String.valueOf(amount))
-                        .replace("#rank#", rank > 0 ? String.valueOf(rank) : "N/A");
+                .replace("#rank#", rank > 0 ? String.valueOf(rank) : "N/A");
 
         player.sendMessage(Chat.colorizewp(message));
     }
@@ -414,7 +414,7 @@ public class MiningContestEvent extends BaseEvent {
         if (message == null || message.isEmpty()) return;
 
         message = message.replace("#rank#", String.valueOf(rank))
-                        .replace("#amount#", String.valueOf(amount));
+                .replace("#amount#", String.valueOf(amount));
 
         player.sendMessage(Chat.colorizewp(message));
     }

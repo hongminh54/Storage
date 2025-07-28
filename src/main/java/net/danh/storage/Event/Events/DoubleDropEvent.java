@@ -88,8 +88,6 @@ public class DoubleDropEvent extends BaseEvent {
     }
 
 
-
-
     @Override
     protected String getEventEndSubtitle() {
         return File.getMessage().getString("events.double_drop.subtitle.ended");
@@ -108,7 +106,7 @@ public class DoubleDropEvent extends BaseEvent {
         double multiplier = File.getEventConfig().getDouble("events." + eventType.getConfigKey() + ".multiplier", 2.0);
 
         message = message.replace("#duration#", String.valueOf(duration / 60))
-                        .replace("#multiplier#", String.valueOf(multiplier));
+                .replace("#multiplier#", String.valueOf(multiplier));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(Chat.colorizewp(message));
@@ -144,7 +142,7 @@ public class DoubleDropEvent extends BaseEvent {
         double multiplier = File.getEventConfig().getDouble("events." + eventType.getConfigKey() + ".multiplier", 2.0);
 
         return subtitle.replace("#duration#", String.valueOf(duration / 60))
-                      .replace("#multiplier#", String.valueOf(multiplier));
+                .replace("#multiplier#", String.valueOf(multiplier));
     }
 
     public long getRemainingTime() {

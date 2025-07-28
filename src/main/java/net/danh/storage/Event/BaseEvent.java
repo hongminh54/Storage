@@ -167,7 +167,7 @@ public abstract class BaseEvent {
 
         int duration = File.getEventConfig().getInt("events." + eventType.getConfigKey() + ".duration", 1800);
         message = message.replace("#event#", getEventName())
-                        .replace("#duration#", String.valueOf(duration / 60));
+                .replace("#duration#", String.valueOf(duration / 60));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(Chat.colorizewp(message));
@@ -191,7 +191,7 @@ public abstract class BaseEvent {
 
     protected void sendFirstParticipationMessage(Player player) {
         if (!File.getEventConfig().getBoolean("notifications.chat_messages.enabled", true) ||
-            !File.getEventConfig().getBoolean("notifications.chat_messages.first_participation", true)) {
+                !File.getEventConfig().getBoolean("notifications.chat_messages.first_participation", true)) {
             return;
         }
 

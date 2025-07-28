@@ -268,7 +268,7 @@ public class CommunityEvent extends BaseEvent {
         int goal = File.getEventConfig().getInt("events." + eventType.getConfigKey() + ".goal", 10000);
 
         message = message.replace("#duration#", String.valueOf(duration / 60))
-                        .replace("#goal#", String.valueOf(goal));
+                .replace("#goal#", String.valueOf(goal));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(Chat.colorizewp(message));
@@ -288,7 +288,7 @@ public class CommunityEvent extends BaseEvent {
 
     private void checkMilestones(double previousPercentage, double currentPercentage) {
         if (!File.getEventConfig().getBoolean("notifications.chat_messages.enabled", true) ||
-            !File.getEventConfig().getBoolean("notifications.chat_messages.milestones", true)) {
+                !File.getEventConfig().getBoolean("notifications.chat_messages.milestones", true)) {
             return;
         }
 
@@ -307,8 +307,8 @@ public class CommunityEvent extends BaseEvent {
         if (message == null || message.isEmpty()) return;
 
         message = message.replace("#percentage#", String.format("%.0f", percentage))
-                        .replace("#current#", String.valueOf(eventData.getCommunityProgress()))
-                        .replace("#goal#", String.valueOf(eventData.getCommunityGoal()));
+                .replace("#current#", String.valueOf(eventData.getCommunityProgress()))
+                .replace("#goal#", String.valueOf(eventData.getCommunityGoal()));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(Chat.colorizewp(message));

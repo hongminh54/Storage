@@ -1,17 +1,14 @@
-# Event System Configuration
-# Do not touch this
+# Event system configuration
+
+# Do not touch it
 config_version: 1
 
 # Global event settings
 global:
-  # Enable/disable the entire event system
-  enabled: true
-  # Broadcast event notifications to all players
-  broadcast_notifications: true
-  # Use title/subtitle for event notifications (recommended)
-  use_titles: true
-  # Use action bar for progress updates
-  use_action_bar: true
+  enabled: true # Enable/disable the event system
+  broadcast_notifications: true # Broadcast event notifications to all players
+  use_titles: true # Use titles for event notifications
+  use_action_bar: true # Use action bar for event progress
 
 # Event configurations
 events:
@@ -92,7 +89,6 @@ events:
 
 # Event notification settings
 notifications:
-  # Sound settings for events
   sounds:
     enabled: true
     event_start:
@@ -110,11 +106,8 @@ notifications:
 
   # Title/subtitle display settings (in ticks: 20 ticks = 1 second)
   titles:
-    # Fade in duration
     fade_in: 10
-    # Stay duration
     stay: 70
-    # Fade out duration
     fade_out: 20
 
   # Action bar update frequency for progress (in ticks)
@@ -139,9 +132,7 @@ notifications:
   # Time reminders
   reminders:
     enabled: true
-    # Remind when event is about to start (in seconds before start)
     before_start: [300, 60, 10]
-    # Remind when event is about to end (in seconds before end)
     before_end: [300, 60, 10]
 
 # Performance settings

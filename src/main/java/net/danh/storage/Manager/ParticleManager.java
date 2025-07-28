@@ -1,6 +1,7 @@
 package net.danh.storage.Manager;
 
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Particles.ParticleAnimation;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Location;
@@ -201,7 +202,7 @@ public class ParticleManager {
 
         String configPath = particleType.getConfigPath();
         ParticleAnimation animation = ParticleAnimation.fromString(
-            config.getString(configPath + ".animation", "none"));
+                config.getString(configPath + ".animation", "none"));
 
         if (animation == ParticleAnimation.NONE) {
             playParticle(player, particleType);
@@ -212,8 +213,8 @@ public class ParticleManager {
         stopAnimation(animationKey);
 
         BukkitTask task = new BukkitRunnable() {
-            private int ticks = 0;
             private final int maxTicks = 20;
+            private int ticks = 0;
 
             @Override
             public void run() {
@@ -239,13 +240,13 @@ public class ParticleManager {
         if (!config.getBoolean("transfer.particles.enabled", true)) return;
 
         ParticleAnimation animation = ParticleAnimation.fromString(
-            config.getString("transfer.particles.processing.animation", "circle"));
+                config.getString("transfer.particles.processing.animation", "circle"));
 
         if (animation == ParticleAnimation.NONE) return;
 
         BukkitTask task = new BukkitRunnable() {
-            private int ticks = 0;
             private final int maxTicks = durationSeconds * 20;
+            private int ticks = 0;
 
             @Override
             public void run() {
@@ -273,8 +274,8 @@ public class ParticleManager {
         stopAnimation(animationKey);
 
         BukkitTask task = new BukkitRunnable() {
-            private int ticks = 0;
             private final int maxTicks = config.getInt("transfer.particles.beam.duration", 20);
+            private int ticks = 0;
 
             @Override
             public void run() {
@@ -285,8 +286,8 @@ public class ParticleManager {
                 }
 
                 playBeamAnimation(sender.getLocation().add(0, 1, 0),
-                                receiver.getLocation().add(0, 1, 0),
-                                ticks, maxTicks, "transfer.particles.beam");
+                        receiver.getLocation().add(0, 1, 0),
+                        ticks, maxTicks, "transfer.particles.beam");
                 ticks++;
             }
         }.runTaskTimer(Storage.getStorage(), 0L, 2L);
@@ -395,7 +396,7 @@ public class ParticleManager {
             double distance = Math.random() * 2.0;
             double x = center.getX() + distance * Math.cos(angle);
             double z = center.getZ() + distance * Math.sin(angle);
-            double y = center.getY() + (Math.random() - 0.5) * 1.0;
+            double y = center.getY() + (Math.random() - 0.5);
             Location particleLocation = new Location(center.getWorld(), x, y, z);
 
             spawnParticleForNearbyPlayers(particleLocation, particleName, 1, speed * 2);

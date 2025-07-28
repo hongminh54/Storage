@@ -58,6 +58,7 @@ public final class Storage extends JavaPlugin {
         File.loadGUI();
         File.updateConfig();
         File.updateMessage();
+        File.updateEventConfig();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
         }

@@ -125,4 +125,24 @@ public class File {
             getFileSetting().reload("message.yml");
         }
     }
+
+    public static void updateEventConfig() {
+        getFileSetting().save("events.yml");
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "events.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("events.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_configVersion = defaultConfig.getInt("config_version");
+        int current_configVersion = currentConfig.contains("config_version") ? currentConfig.getInt("config_version") : 0;
+        if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your events config is updating...");
+            try {
+                ConfigUpdater.update(Storage.getStorage(), "events.yml", configFile);
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your events config have been updated successful");
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update events config by it self, please backup and rename your events config then restart to get newest config!!");
+                e.printStackTrace();
+            }
+            getFileSetting().reload("events.yml");
+        }
+    }
 }

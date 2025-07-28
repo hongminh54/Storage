@@ -1,4 +1,4 @@
-package net.danh.storage.Manager;
+package net.danh.storage.Particles;
 
 public enum ParticleAnimation {
     NONE("none"),
@@ -15,18 +15,18 @@ public enum ParticleAnimation {
         this.configName = configName;
     }
 
-    public String getConfigName() {
-        return configName;
-    }
-
     public static ParticleAnimation fromString(String name) {
         if (name == null) return NONE;
-        
+
         for (ParticleAnimation animation : values()) {
             if (animation.configName.equalsIgnoreCase(name)) {
                 return animation;
             }
         }
         return NONE;
+    }
+
+    public String getConfigName() {
+        return configName;
     }
 }
