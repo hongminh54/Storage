@@ -29,62 +29,115 @@ public class GUIClickListener implements Listener {
         Player player = (Player) e.getWhoClicked();
 
         boolean isGUIInv = e.getClickedInventory() != null && e.getClickedInventory().getHolder() != null && e.getClickedInventory().getHolder() instanceof IGUI;
-        boolean isInteractiveItem = e.getCurrentItem() != null && e.getCurrentItem().getType() != Material.AIR && new NBTItem(e.getCurrentItem()).hasTag("storage:id");
+
+        ItemStack currentItem = e.getCurrentItem();
+        boolean isInteractiveItem = false;
+
+        if (currentItem != null && currentItem.getType() != Material.AIR && currentItem.getAmount() > 0) {
+            try {
+                NBTItem nbtItem = new NBTItem(currentItem);
+                isInteractiveItem = nbtItem.hasTag("storage:id");
+            } catch (Exception ex) {
+                isInteractiveItem = false;
+            }
+        }
 
         if (isGUIInv || isInteractiveItem) {
             e.setCancelled(true);
             player.updateInventory();
 
-            UUID uuid = new NBTItem(e.getCurrentItem()).getUUID("storage:id");
-
-            if (GUI.getItemMapper().containsKey(uuid))
-                GUI.getItemMapper().get(uuid).handleClick(player, e.getClick());
+            if (currentItem != null && currentItem.getType() != Material.AIR && currentItem.getAmount() > 0) {
+                try {
+                    NBTItem nbtItem = new NBTItem(currentItem);
+                    if (nbtItem.hasTag("storage:id")) {
+                        UUID uuid = nbtItem.getUUID("storage:id");
+                        if (GUI.getItemMapper().containsKey(uuid))
+                            GUI.getItemMapper().get(uuid).handleClick(player, e.getClick());
+                    }
+                } catch (Exception ex) {
+                    // Silent fail to prevent console spam
+                }
+            }
         }
     }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
-        if (e.getItem() == null || e.getItem().getType() == Material.AIR || !new NBTItem(e.getItem()).hasTag("storage:id"))
+        ItemStack item = e.getItem();
+        if (item == null || item.getType() == Material.AIR || item.getAmount() <= 0)
             return;
 
-        UUID uuid = new NBTItem(e.getItem()).getUUID("storage:id");
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            if (!nbtItem.hasTag("storage:id"))
+                return;
 
-        if (GUI.getItemMapper().containsKey(uuid) && System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)) {
-            GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), e.getAction());
+            UUID uuid = nbtItem.getUUID("storage:id");
 
-            interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L); // Timeout prevents the GUI opening twice
+            if (GUI.getItemMapper().containsKey(uuid) && System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)) {
+                GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), e.getAction());
+
+                interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L);
+            }
+
+            e.setCancelled(true);
+        } catch (Exception ex) {
+            // Silent fail to prevent console spam
         }
-
-        e.setCancelled(true);
     }
 
     @EventHandler
-    public void onAnimation(PlayerAnimationEvent e) { // This compensates for the fact that PlayerInteractEvent is not called when the player is in Adventure mode
+    public void onAnimation(PlayerAnimationEvent e) {
         if (e.getAnimationType() != PlayerAnimationType.ARM_SWING || e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
             return;
 
         ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR || !new NBTItem(item).hasTag("storage:id")) return;
+        if (item.getType() == Material.AIR || item.getAmount() <= 0) return;
 
-        UUID uuid = new NBTItem(item).getUUID("storage:id");
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            if (!nbtItem.hasTag("storage:id")) return;
 
-        if (System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L) && GUI.getItemMapper().containsKey(uuid)) {
-            GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), Action.RIGHT_CLICK_BLOCK);
+            UUID uuid = nbtItem.getUUID("storage:id");
 
-            interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L); // Timeout prevents the GUI opening twice
+            if (System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L) && GUI.getItemMapper().containsKey(uuid)) {
+                GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), Action.RIGHT_CLICK_BLOCK);
+
+                interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L);
+            }
+
+            e.setCancelled(true);
+        } catch (Exception ex) {
+            // Silent fail to prevent console spam
         }
-
-        e.setCancelled(true);
     }
 
     @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
-        if (e.getItemDrop().getItemStack().getType() != Material.AIR && new NBTItem(e.getItemDrop().getItemStack()).hasTag("storage:id"))
-            e.setCancelled(true);
+        ItemStack item = e.getItemDrop().getItemStack();
+        if (item.getType() != Material.AIR && item.getAmount() > 0) {
+            try {
+                NBTItem nbtItem = new NBTItem(item);
+                if (nbtItem.hasTag("storage:id"))
+                    e.setCancelled(true);
+            } catch (Exception ex) {
+                // Silent fail to prevent console spam
+            }
+        }
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
-        e.getDrops().removeIf(item -> item.getType() != Material.AIR && new NBTItem(item).hasTag("storage:id"));
+        e.getDrops().removeIf(item -> {
+            if (item.getType() != Material.AIR && item.getAmount() > 0) {
+                try {
+                    NBTItem nbtItem = new NBTItem(item);
+                    return nbtItem.hasTag("storage:id");
+                } catch (Exception ex) {
+                    return false;
+                }
+            }
+            return false;
+        });
     }
 }

@@ -122,7 +122,24 @@ public class TransferManager {
             return false;
         }
 
+        int maxTransferable = MineManager.getMaxTransferableAmount(sender, receiver, material);
+        if (maxTransferable <= 0) {
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
+                    .replace("#player#", receiverName)));
+            return false;
+        }
+
         return true;
+    }
+
+    public static int getOptimalTransferAmount(Player sender, String receiverName, String material, int requestedAmount) {
+        Player receiver = Bukkit.getPlayer(receiverName);
+        if (receiver == null) {
+            return 0;
+        }
+
+        int maxTransferable = MineManager.getMaxTransferableAmount(sender, receiver, material);
+        return Math.min(requestedAmount, maxTransferable);
     }
 
     public static boolean executeTransfer(Player sender, String receiverName, String material, int amount) {
@@ -145,20 +162,30 @@ public class TransferManager {
             return false;
         }
 
-        // Validate all transfers first
-        for (Map.Entry<String, Integer> entry : materials.entrySet()) {
-            if (!canTransferForMulti(sender, receiverName, entry.getKey(), entry.getValue())) {
-                return false;
-            }
-        }
-
         Player receiver = Bukkit.getPlayer(receiverName);
         if (receiver == null) {
             return false;
         }
 
-        // Start multi transfer process
-        startMultiTransferProcess(sender, receiver, materials);
+        // Optimize transfer amounts based on receiver capacity
+        Map<String, Integer> optimizedMaterials = MineManager.calculateOptimalMultiTransfer(sender, receiver, materials);
+
+        if (optimizedMaterials.isEmpty()) {
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
+                    .replace("#player#", receiverName)));
+            return false;
+        }
+
+        // Validate optimized transfers
+        for (Map.Entry<String, Integer> entry : optimizedMaterials.entrySet()) {
+            if (!canTransferForMulti(sender, receiverName, entry.getKey(), entry.getValue())) {
+                return false;
+            }
+        }
+
+
+        // Start multi transfer process with optimized amounts
+        startMultiTransferProcess(sender, receiver, optimizedMaterials);
         return true;
     }
 

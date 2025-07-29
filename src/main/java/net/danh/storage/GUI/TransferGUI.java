@@ -290,7 +290,9 @@ public class TransferGUI implements IGUI {
 
     private void increaseAmount() {
         int currentAmount = MineManager.getPlayerBlock(player, material);
-        if (transferAmount < currentAmount) {
+        int optimalAmount = TransferManager.getOptimalTransferAmount(player, targetPlayer, material, currentAmount);
+
+        if (transferAmount < optimalAmount) {
             transferAmount++;
             updateGUI();
         }
@@ -304,7 +306,8 @@ public class TransferGUI implements IGUI {
 
     private void setMaxAmount() {
         int currentAmount = MineManager.getPlayerBlock(player, material);
-        transferAmount = currentAmount;
+        int optimalAmount = TransferManager.getOptimalTransferAmount(player, targetPlayer, material, currentAmount);
+        transferAmount = optimalAmount;
         updateGUI();
     }
 

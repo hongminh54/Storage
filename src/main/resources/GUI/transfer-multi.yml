@@ -29,6 +29,7 @@ items:
       - "&7 "
       - "&fYou have: &a#current_amount#"
       - "&fSelected: &e#selected_amount#"
+      - "&fMax transferable: &b#max_transferable#"
       - "&7 "
       - "&aLeft click: +1"
       - "&bRight click: +10"

@@ -186,6 +186,38 @@ public class MineManager {
         Storage.db.updateTable(playerData);
     }
 
+    public static int getMaxTransferableAmount(@NotNull Player sender, @NotNull Player receiver, @NotNull String material) {
+        int senderAmount = getPlayerBlock(sender, material);
+        if (senderAmount <= 0) {
+            return 0;
+        }
+
+        int receiverMaxStorage = getMaxBlock(receiver);
+        int receiverCurrentAmount = getPlayerBlock(receiver, material);
+
+        int maxCanReceive = receiverMaxStorage - receiverCurrentAmount;
+
+        return Math.min(senderAmount, Math.max(0, maxCanReceive));
+    }
+
+    public static @NotNull Map<String, Integer> calculateOptimalMultiTransfer(@NotNull Player sender, @NotNull Player receiver, @NotNull Map<String, Integer> requestedAmounts) {
+        Map<String, Integer> optimizedAmounts = new HashMap<>();
+
+        for (Map.Entry<String, Integer> entry : requestedAmounts.entrySet()) {
+            String material = entry.getKey();
+            int requestedAmount = entry.getValue();
+
+            int maxTransferable = getMaxTransferableAmount(sender, receiver, material);
+
+            if (maxTransferable > 0) {
+                int optimalAmount = Math.min(requestedAmount, maxTransferable);
+                optimizedAmounts.put(material, optimalAmount);
+            }
+        }
+
+        return optimizedAmounts;
+    }
+
     public static String getDrop(@NotNull Block block) {
         return blocksdrop.get(block.getType() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
     }

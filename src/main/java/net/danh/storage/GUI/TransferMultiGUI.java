@@ -18,9 +18,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TransferMultiGUI implements IGUI {
     private static final Map<Player, TransferMultiGUI> activeGUIs = new HashMap<>();
@@ -30,12 +28,14 @@ public class TransferMultiGUI implements IGUI {
     private final Inventory inventory;
     private final int itemsPerPage = 21;
     private int currentPage;
+    private final Set<Integer> reservedSlots;
 
     public TransferMultiGUI(Player player, String targetPlayer) {
         this.player = player;
         this.targetPlayer = targetPlayer;
         this.selectedAmounts = new HashMap<>();
         this.currentPage = 0;
+        this.reservedSlots = new HashSet<>();
 
         FileConfiguration guiConfig = getTransferMultiConfig();
         String title = Chat.colorizewp(guiConfig.getString("title", "&0Multi Transfer to #player#")
@@ -43,6 +43,7 @@ public class TransferMultiGUI implements IGUI {
         int size = guiConfig.getInt("size", 6) * 9;
 
         this.inventory = Bukkit.createInventory(this, size, title);
+        initializeReservedSlots();
         activeGUIs.put(player, this);
     }
 
@@ -87,6 +88,63 @@ public class TransferMultiGUI implements IGUI {
         updateNavigationItems();
     }
 
+    private void initializeReservedSlots() {
+        reservedSlots.clear();
+        FileConfiguration guiConfig = getTransferMultiConfig();
+        ConfigurationSection itemsSection = guiConfig.getConfigurationSection("items");
+
+        if (itemsSection != null) {
+            for (String itemKey : itemsSection.getKeys(false)) {
+                if (!itemKey.equals("material_slots") && !itemKey.equals("decorates")) {
+                    ConfigurationSection itemSection = itemsSection.getConfigurationSection(itemKey);
+                    if (itemSection != null && itemSection.contains("slot")) {
+                        String slotString = itemSection.getString("slot", "");
+                        if (!slotString.isEmpty()) {
+                            try {
+                                if (slotString.contains(",")) {
+                                    for (String slot : slotString.split(",")) {
+                                        reservedSlots.add(Integer.parseInt(slot.trim()));
+                                    }
+                                } else {
+                                    reservedSlots.add(Integer.parseInt(slotString.trim()));
+                                }
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private Set<Integer> getAvailableMaterialSlots() {
+        Set<Integer> availableSlots = new HashSet<>();
+        FileConfiguration guiConfig = getTransferMultiConfig();
+        ConfigurationSection materialSection = guiConfig.getConfigurationSection("items.material_slots");
+
+        if (materialSection != null && materialSection.contains("slot")) {
+            String slotString = materialSection.getString("slot", "");
+            if (!slotString.isEmpty()) {
+                try {
+                    for (String slot : slotString.split(",")) {
+                        int slotNum = Integer.parseInt(slot.trim());
+                        if (!reservedSlots.contains(slotNum)) {
+                            availableSlots.add(slotNum);
+                        }
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return availableSlots;
+    }
+
+    private boolean hasMultiplePages() {
+        List<String> playerMaterials = getPlayerMaterials();
+        int totalPages = (int) Math.ceil((double) playerMaterials.size() / itemsPerPage);
+        return totalPages > 1;
+    }
+
     private void setupStaticItem(String itemKey, ConfigurationSection section) {
         String slotString = section.getString("slot");
         if (slotString == null) return;
@@ -115,37 +173,41 @@ public class TransferMultiGUI implements IGUI {
             case "clear_selection":
                 return createClearSelectionItem(section, slot);
             case "previous_page":
-                return createPreviousPageItem(section, slot);
             case "next_page":
-                return createNextPageItem(section, slot);
+                return null;
             default:
                 return createDecorativeItem(section, slot);
         }
     }
 
     private void setupMaterialSlots() {
+        List<String> playerMaterials = getPlayerMaterials();
+        Set<Integer> availableSlots = getAvailableMaterialSlots();
+
+        if (availableSlots.isEmpty()) {
+            return;
+        }
+
         FileConfiguration guiConfig = getTransferMultiConfig();
         ConfigurationSection materialSection = guiConfig.getConfigurationSection("items.material_slots");
-        if (materialSection == null) return;
+        if (materialSection == null) {
+            return;
+        }
 
-        String slotString = materialSection.getString("slot");
-        if (slotString == null) return;
-
-        String[] slots = slotString.split(",");
-        List<String> playerMaterials = getPlayerMaterials();
-
+        Integer[] slotsArray = availableSlots.toArray(new Integer[0]);
         int startIndex = currentPage * itemsPerPage;
         int endIndex = Math.min(startIndex + itemsPerPage, playerMaterials.size());
+        int maxSlots = Math.min(slotsArray.length, itemsPerPage);
 
-        for (int i = 0; i < slots.length && (startIndex + i) < endIndex; i++) {
-            try {
-                int slot = Integer.parseInt(slots[i].trim());
-                String material = playerMaterials.get(startIndex + i);
-                InteractiveItem item = createMaterialItem(material, materialSection, slot);
-                if (item != null) {
-                    inventory.setItem(slot, item);
+        for (int i = startIndex; i < endIndex; i++) {
+            int slotIndex = i - startIndex;
+            if (slotIndex < maxSlots) {
+                int slot = slotsArray[slotIndex];
+                String material = playerMaterials.get(i);
+                InteractiveItem materialItem = createMaterialItem(material, materialSection, slot);
+                if (materialItem != null) {
+                    inventory.setItem(slot, materialItem);
                 }
-            } catch (NumberFormatException ignored) {
             }
         }
     }
@@ -159,13 +221,14 @@ public class TransferMultiGUI implements IGUI {
     private InteractiveItem createMaterialItem(String material, ConfigurationSection section, int slot) {
         int currentAmount = MineManager.getPlayerBlock(player, material);
         int selectedAmount = selectedAmounts.getOrDefault(material, 0);
+        int maxTransferable = TransferManager.getOptimalTransferAmount(player, targetPlayer, material, currentAmount);
         String materialName = getMaterialDisplayName(material);
 
         try {
-            ItemStack baseItem = ItemManager.getItemConfig(player, material, materialName, section);
-            baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
+            ItemStack baseItem = ItemManager.getItemConfigWithPlaceholders(player, material, materialName, section,
                     "#current_amount#", String.valueOf(currentAmount),
-                    "#selected_amount#", String.valueOf(selectedAmount));
+                    "#selected_amount#", String.valueOf(selectedAmount),
+                    "#max_transferable#", String.valueOf(maxTransferable));
 
             InteractiveItem item = new InteractiveItem(baseItem, slot);
             item.onClick((p, clickType) -> {
@@ -174,11 +237,10 @@ public class TransferMultiGUI implements IGUI {
             });
             return item;
         } catch (Exception e) {
-            // Fallback to basic item if material creation fails
-            ItemStack fallbackItem = ItemManager.getItemConfig(player, section);
-            fallbackItem = ItemManager.replaceLore(fallbackItem, section.getStringList("lore"),
+            ItemStack fallbackItem = ItemManager.getItemConfigWithPlaceholders(player, section,
                     "#current_amount#", String.valueOf(currentAmount),
-                    "#selected_amount#", String.valueOf(selectedAmount));
+                    "#selected_amount#", String.valueOf(selectedAmount),
+                    "#max_transferable#", String.valueOf(maxTransferable));
 
             InteractiveItem item = new InteractiveItem(fallbackItem, slot);
             item.onClick((p, clickType) -> {
@@ -190,21 +252,15 @@ public class TransferMultiGUI implements IGUI {
     }
 
     private InteractiveItem createPlayerInfoItem(ConfigurationSection section, int slot) {
-        ItemStack baseItem = ItemManager.getItemConfig(player, section);
-        baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
+        ItemStack baseItem = ItemManager.getItemConfigWithPlaceholders(player, section,
                 "#player#", targetPlayer);
-        baseItem = ItemManager.replacePlaceholders(baseItem, "#player#", targetPlayer);
 
         return new InteractiveItem(baseItem, slot);
     }
 
     private InteractiveItem createConfirmItem(ConfigurationSection section, int slot) {
         int selectedCount = selectedAmounts.values().stream().mapToInt(Integer::intValue).sum();
-        ItemStack baseItem = ItemManager.getItemConfig(player, section);
-        baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
-                "#player#", targetPlayer,
-                "#selected_count#", String.valueOf(selectedCount));
-        baseItem = ItemManager.replacePlaceholders(baseItem,
+        ItemStack baseItem = ItemManager.getItemConfigWithPlaceholders(player, section,
                 "#player#", targetPlayer,
                 "#selected_count#", String.valueOf(selectedCount));
 
@@ -236,39 +292,6 @@ public class TransferMultiGUI implements IGUI {
         return item;
     }
 
-    private InteractiveItem createPreviousPageItem(ConfigurationSection section, int slot) {
-        List<String> playerMaterials = getPlayerMaterials();
-        int totalPages = (int) Math.ceil((double) playerMaterials.size() / itemsPerPage);
-
-        ItemStack baseItem = ItemManager.getItemConfig(player, section);
-        baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
-                "#current_page#", String.valueOf(currentPage + 1),
-                "#total_pages#", String.valueOf(totalPages));
-
-        InteractiveItem item = new InteractiveItem(baseItem, slot);
-        item.onLeftClick(p -> {
-            SoundManager.playItemSound(p, getTransferMultiConfig(), "items.previous_page", SoundContext.INITIAL_OPEN);
-            handleClick("previous_page", null, ClickType.LEFT);
-        });
-        return item;
-    }
-
-    private InteractiveItem createNextPageItem(ConfigurationSection section, int slot) {
-        List<String> playerMaterials = getPlayerMaterials();
-        int totalPages = (int) Math.ceil((double) playerMaterials.size() / itemsPerPage);
-
-        ItemStack baseItem = ItemManager.getItemConfig(player, section);
-        baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
-                "#current_page#", String.valueOf(currentPage + 1),
-                "#total_pages#", String.valueOf(totalPages));
-
-        InteractiveItem item = new InteractiveItem(baseItem, slot);
-        item.onLeftClick(p -> {
-            SoundManager.playItemSound(p, getTransferMultiConfig(), "items.next_page", SoundContext.INITIAL_OPEN);
-            handleClick("next_page", null, ClickType.LEFT);
-        });
-        return item;
-    }
 
     private InteractiveItem createDecorativeItem(ConfigurationSection section, int slot) {
         ItemStack baseItem = ItemManager.getItemConfig(player, section);
@@ -276,26 +299,61 @@ public class TransferMultiGUI implements IGUI {
     }
 
     private void updateNavigationItems() {
+        if (!hasMultiplePages()) {
+            return;
+        }
+
         List<String> playerMaterials = getPlayerMaterials();
         int totalPages = (int) Math.ceil((double) playerMaterials.size() / itemsPerPage);
-
         FileConfiguration guiConfig = getTransferMultiConfig();
 
         if (currentPage > 0) {
             ConfigurationSection prevSection = guiConfig.getConfigurationSection("items.previous_page");
             if (prevSection != null) {
-                InteractiveItem prevItem = createPreviousPageItem(prevSection, 48);
-                inventory.setItem(48, prevItem);
+                String slotString = prevSection.getString("slot", "48");
+                try {
+                    int slot = Integer.parseInt(slotString.trim());
+                    ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
+                    if (prevPageItem != null) {
+                        InteractiveItem prevItem = new InteractiveItem(prevPageItem, slot).onClick((p, clickType) -> {
+                            SoundManager.playItemSound(p, guiConfig, "items.previous_page", SoundContext.INITIAL_OPEN);
+                            previousPage();
+                        });
+                        inventory.setItem(slot, prevItem);
+                    }
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
 
         if (currentPage < totalPages - 1) {
             ConfigurationSection nextSection = guiConfig.getConfigurationSection("items.next_page");
             if (nextSection != null) {
-                InteractiveItem nextItem = createNextPageItem(nextSection, 50);
-                inventory.setItem(50, nextItem);
+                String slotString = nextSection.getString("slot", "50");
+                try {
+                    int slot = Integer.parseInt(slotString.trim());
+                    ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
+                    if (nextPageItem != null) {
+                        InteractiveItem nextItem = new InteractiveItem(nextPageItem, slot).onClick((p, clickType) -> {
+                            SoundManager.playItemSound(p, guiConfig, "items.next_page", SoundContext.INITIAL_OPEN);
+                            nextPage();
+                        });
+                        inventory.setItem(slot, nextItem);
+                    }
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
+    }
+
+    private ItemStack getNavigationItem(String itemTag, int currentPage, int totalPages) {
+        FileConfiguration guiConfig = getTransferMultiConfig();
+        ConfigurationSection section = guiConfig.getConfigurationSection("items." + itemTag);
+        if (section == null) return null;
+
+        return ItemManager.getItemConfigWithPlaceholders(player, section,
+                "#current_page#", String.valueOf(currentPage + 1),
+                "#total_pages#", String.valueOf(totalPages));
     }
 
     public void handleClick(String itemKey, String material, ClickType clickType) {
@@ -332,16 +390,17 @@ public class TransferMultiGUI implements IGUI {
         }
 
         int selectedAmount = selectedAmounts.getOrDefault(material, 0);
+        int optimalAmount = TransferManager.getOptimalTransferAmount(player, targetPlayer, material, currentAmount);
         int newSelectedAmount = selectedAmount;
 
         switch (clickType) {
             case LEFT:
-                if (selectedAmount < currentAmount) {
+                if (selectedAmount < optimalAmount) {
                     newSelectedAmount = selectedAmount + 1;
                 }
                 break;
             case RIGHT:
-                newSelectedAmount = Math.min(selectedAmount + 10, currentAmount);
+                newSelectedAmount = Math.min(selectedAmount + 10, optimalAmount);
                 break;
             case SHIFT_LEFT:
                 if (selectedAmount > 0) {
@@ -352,7 +411,7 @@ public class TransferMultiGUI implements IGUI {
                 newSelectedAmount = Math.max(selectedAmount - 10, 0);
                 break;
             case DROP:
-                newSelectedAmount = currentAmount;
+                newSelectedAmount = optimalAmount;
                 break;
         }
 

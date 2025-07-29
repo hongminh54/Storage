@@ -15,11 +15,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class PersonalStorage implements IGUI {
 
@@ -170,21 +168,8 @@ public class PersonalStorage implements IGUI {
         ConfigurationSection section = config.getConfigurationSection("items." + itemTag);
         if (section == null) return null;
 
-        ItemStack itemStack = ItemManager.getItemConfig(section);
-        ItemMeta meta = itemStack.getItemMeta();
-        if (meta == null) return itemStack;
-
-        if (section.getString("name") != null) {
-            String displayName = Chat.colorizewp(Objects.requireNonNull(section.getString("name")).replace("#current_page#", String.valueOf(currentPage + 1)).replace("#total_pages#", String.valueOf(totalPages)));
-            meta.setDisplayName(displayName);
-        }
-
-        if (section.getStringList("lore") != null && !section.getStringList("lore").isEmpty()) {
-            List<String> lore = Chat.colorizewp(section.getStringList("lore").stream().map(s -> s.replace("#current_page#", String.valueOf(currentPage + 1)).replace("#total_pages#", String.valueOf(totalPages))).collect(Collectors.toList()));
-            meta.setLore(lore);
-        }
-
-        itemStack.setItemMeta(meta);
-        return itemStack;
+        return ItemManager.getItemConfigWithPlaceholders(p, section,
+                "#current_page#", String.valueOf(currentPage + 1),
+                "#total_pages#", String.valueOf(totalPages));
     }
 }

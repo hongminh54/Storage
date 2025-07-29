@@ -42,10 +42,12 @@ public class Withdraw {
 
     public static void addItemToInventory(Player player, ItemStack itemStack, int amount) {
         PlayerInventory inventory = player.getInventory();
-        itemStack.setAmount(amount);
+        ItemStack templateItem = itemStack.clone();
+        templateItem.setAmount(1);
         int remainingAmount = amount;
+
         for (ItemStack item : inventory.getContents()) {
-            if (item != null && item.getType() == itemStack.getType() && item.isSimilar(itemStack)) {
+            if (item != null && item.getType() == templateItem.getType() && item.isSimilar(templateItem)) {
                 int spaceLeft = item.getMaxStackSize() - item.getAmount();
                 if (spaceLeft > 0) {
                     int toAdd = Math.min(spaceLeft, remainingAmount);
@@ -58,10 +60,31 @@ public class Withdraw {
                 }
             }
         }
-        if (remainingAmount > 0) {
-            itemStack.setAmount(remainingAmount);
-            inventory.addItem(itemStack);
+
+        while (remainingAmount > 0) {
+            ItemStack newItem = templateItem.clone();
+            int stackSize = Math.min(remainingAmount, newItem.getMaxStackSize());
+            newItem.setAmount(stackSize);
+            inventory.addItem(newItem);
+            remainingAmount -= stackSize;
         }
+    }
+
+    private int calculateFreeSlots(Player player, ItemStack itemStack) {
+        int free_slot = 0;
+        ItemStack templateItem = itemStack.clone();
+        templateItem.setAmount(1);
+
+        for (int i = 0; i < player.getInventory().getStorageContents().length; i++) {
+            ItemStack istack = player.getInventory().getItem(i);
+            if (istack == null || istack.getType().equals(Material.AIR)) {
+                free_slot += templateItem.getMaxStackSize();
+            } else if (istack.isSimilar(templateItem)) {
+                int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
+                if (spaceLeft > 0) free_slot += spaceLeft;
+            }
+        }
+        return free_slot;
     }
 
     public void doAction() {
@@ -72,17 +95,7 @@ public class Withdraw {
                 int amount = MineManager.getPlayerBlock(p, getMaterialData());
                 if (getAmount() > 0) {
                     if (amount >= getAmount()) {
-                        int free_slot = 0;
-                        for (int i = 0; i < p.getInventory().getStorageContents().length; i++) {
-                            ItemStack istack = p.getInventory().getItem(i);
-                            if (istack == null || istack.getType().equals(Material.AIR)) {
-                                free_slot += itemStack.getMaxStackSize();
-                            } else if (istack.isSimilar(itemStack)) {
-                                int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
-                                if (spaceLeft > 0) free_slot += spaceLeft;
-                            }
-                        }
-                        int free_items = free_slot;
+                        int free_items = calculateFreeSlots(p, itemStack);
                         if (free_items >= getAmount()) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), getAmount())) {
                                 addItemToInventory(p, itemStack, getAmount());
@@ -95,17 +108,7 @@ public class Withdraw {
                         p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.not_enough_in_storage")).replace("#amount#", String.valueOf(amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + getMaterialData())))));
                     }
                 } else {
-                    int free_slot = 0;
-                    for (int i = 0; i < p.getInventory().getStorageContents().length; i++) {
-                        ItemStack istack = p.getInventory().getItem(i);
-                        if (istack == null || istack.getType().equals(Material.AIR)) {
-                            free_slot += itemStack.getMaxStackSize();
-                        } else if (istack.isSimilar(itemStack)) {
-                            int spaceLeft = istack.getMaxStackSize() - istack.getAmount();
-                            if (spaceLeft > 0) free_slot += spaceLeft;
-                        }
-                    }
-                    int free_items = free_slot;
+                    int free_items = calculateFreeSlots(p, itemStack);
                     if (amount <= free_items) {
                         if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                             addItemToInventory(p, itemStack, amount);

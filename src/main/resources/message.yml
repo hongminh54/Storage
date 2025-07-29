@@ -28,11 +28,12 @@ admin:
     - "&f/Storage set <material;data> <player> <amount> - Set item to player (data for 1.12.2 and below, if you use 1.13+ use <material>;0"
     - "&f/Storage autosave - Show auto-save status"
     - "&f/Storage save - Force save all player data"
+    - "&f/Storage event <start|stop|list> - Manage events"
   transfer_commands:
     only_players: "&cOnly players can use transfer commands"
     invalid_page_number: "&cInvalid page number! Page must be greater than 0."
     invalid_page_format: "&cInvalid page number! Please enter a valid number."
-    error_opening_gui: "&cError opening transfer GUI"
+    error_opening_gui: "&cError opening transfer GUI, please specify a valid player and material (if transfer is multi specify player only)."
 user:
   full_storage: "&cStorage has been full, please take some out to mine more"
   add_material_amount: "&a+ #amount# #material# &7[From #player#]"
