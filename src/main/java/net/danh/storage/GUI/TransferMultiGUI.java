@@ -27,8 +27,8 @@ public class TransferMultiGUI implements IGUI {
     private final Map<String, Integer> selectedAmounts;
     private final Inventory inventory;
     private final int itemsPerPage = 21;
-    private int currentPage;
     private final Set<Integer> reservedSlots;
+    private int currentPage;
 
     public TransferMultiGUI(Player player, String targetPlayer) {
         this.player = player;
