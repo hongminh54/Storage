@@ -18,7 +18,7 @@ public class Chat {
     private static final NMSAssistant nms = new NMSAssistant();
 
     public static @NotNull String colorize(String message) {
-        return translateColors(File.getConfig().getString("prefix") + " " + message);
+        return translateColors(replacePlaceholders(message));
     }
 
     public static @NotNull String colorizewp(String message) {
@@ -35,6 +35,15 @@ public class Chat {
 
     public static List<String> colorizewp(@NotNull List<String> message) {
         return message.stream().map(Chat::colorizewp).collect(Collectors.toList());
+    }
+
+    private static @NotNull String replacePlaceholders(String message) {
+        if (message == null) return "";
+
+        String result = message;
+        result = result.replace("#prefix#", File.getConfig().getString("prefix", ""));
+
+        return result;
     }
 
     private static @NotNull String translateColors(String message) {
