@@ -117,8 +117,8 @@ public class TransferMultiGUI implements IGUI {
         }
     }
 
-    private Set<Integer> getAvailableMaterialSlots() {
-        Set<Integer> availableSlots = new HashSet<>();
+    private List<Integer> getAvailableMaterialSlots() {
+        List<Integer> availableSlots = new ArrayList<>();
         FileConfiguration guiConfig = getTransferMultiConfig();
         ConfigurationSection materialSection = guiConfig.getConfigurationSection("items.material_slots");
 
@@ -182,7 +182,7 @@ public class TransferMultiGUI implements IGUI {
 
     private void setupMaterialSlots() {
         List<String> playerMaterials = getPlayerMaterials();
-        Set<Integer> availableSlots = getAvailableMaterialSlots();
+        List<Integer> availableSlots = getAvailableMaterialSlots();
 
         if (availableSlots.isEmpty()) {
             return;
@@ -194,15 +194,14 @@ public class TransferMultiGUI implements IGUI {
             return;
         }
 
-        Integer[] slotsArray = availableSlots.toArray(new Integer[0]);
         int startIndex = currentPage * itemsPerPage;
         int endIndex = Math.min(startIndex + itemsPerPage, playerMaterials.size());
-        int maxSlots = Math.min(slotsArray.length, itemsPerPage);
+        int maxSlots = Math.min(availableSlots.size(), itemsPerPage);
 
         for (int i = startIndex; i < endIndex; i++) {
             int slotIndex = i - startIndex;
             if (slotIndex < maxSlots) {
-                int slot = slotsArray[slotIndex];
+                int slot = availableSlots.get(slotIndex);
                 String material = playerMaterials.get(i);
                 InteractiveItem materialItem = createMaterialItem(material, materialSection, slot);
                 if (materialItem != null) {
@@ -213,7 +212,7 @@ public class TransferMultiGUI implements IGUI {
     }
 
     private List<String> getPlayerMaterials() {
-        return MineManager.getPluginBlocks().stream()
+        return MineManager.getOrderedPluginBlocks().stream()
                 .filter(material -> MineManager.getPlayerBlock(player, material) > 0)
                 .collect(java.util.stream.Collectors.toList());
     }

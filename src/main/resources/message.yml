@@ -110,7 +110,7 @@ transfer:
   log_total_count: "&7Total transfers: &e#total#"
   log_footer_info: "&7Total: &e#total# &7| Page &e#current#&7/&e#total_pages#"
   log_nav_previous: "◀ Previous" # Text only don't use color codes here
-  log_nav_hover: "&aClick to go to page &e#page#"
+  log_nav_hover: "Click to go to page &e#page#"
   log_nav_previous_disabled: "◀ Previous" # Text only don't use color codes here
   log_nav_next: "Next ▶" # Text only don't use color codes here
   log_nav_next_disabled: "Next ▶" # Text only don't use color codes here
