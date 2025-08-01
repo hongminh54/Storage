@@ -16,6 +16,12 @@ settings:
   default_max_storage: 100000
   #Default auto pickup on first join
   default_auto_pickup: false
+  #Storage full notification settings
+  storage_full_notification:
+    #Enable storage full notification when mining
+    enabled: true
+    #Cooldown in seconds between notifications (minimum: 1 second)
+    cooldown_seconds: 10
 
 #Auto save player data settings
 auto_save:

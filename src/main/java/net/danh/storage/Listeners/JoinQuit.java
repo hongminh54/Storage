@@ -3,6 +3,7 @@ package net.danh.storage.Listeners;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.StorageFullNotificationManager;
 import net.danh.storage.Manager.TransferManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,5 +30,8 @@ public class JoinQuit implements Listener {
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);
         TransferManager.cancelTransfer(p);
+
+        // Cleanup storage full notification data
+        StorageFullNotificationManager.removePlayer(p);
     }
 }

@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.StorageFullNotificationManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
@@ -97,10 +98,9 @@ public class BlockBreak implements Listener {
                         e.setDropItems(false);
                     }
                     e.getBlock().getDrops().clear();
+                } else {
+                    StorageFullNotificationManager.sendStorageFullNotification(p);
                 }
-//                else {
-//                    p.sendMessage(Chat.colorize(File.getMessage().getString("user.full_storage")));
-//                }
             }
         }
     }
