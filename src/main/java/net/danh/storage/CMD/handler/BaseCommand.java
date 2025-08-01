@@ -109,6 +109,14 @@ public abstract class BaseCommand implements CommandHandler {
         return sender instanceof Player;
     }
 
+    protected boolean requirePlayer(CommandSender sender) {
+        if (!isPlayer(sender)) {
+            sendMessage(sender, "admin.only_players");
+            return false;
+        }
+        return true;
+    }
+
     protected String getStatusMessage(boolean status) {
         return status ?
                 Objects.requireNonNull(File.getMessage().getString("user.status.status_on")) :

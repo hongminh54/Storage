@@ -43,7 +43,7 @@ permissions:
     default: true
   storage.transfer.log.others:
     description: View other players transfer logs
-    default: op
+    default: true
   storage.transfer.admin:
     description: Bypass transfer cooldown and limitations
     default: op

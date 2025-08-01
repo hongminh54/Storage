@@ -10,6 +10,10 @@ public class HelpCommand extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        if (!requirePlayer(sender)) {
+            return;
+        }
+
         if (sender.hasPermission("storage.admin")) {
             sendMessageList(sender, "admin.help");
         }

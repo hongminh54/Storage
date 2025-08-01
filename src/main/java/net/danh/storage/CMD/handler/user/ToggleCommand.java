@@ -13,7 +13,7 @@ public class ToggleCommand extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!isPlayer(sender)) {
+        if (!requirePlayer(sender)) {
             return;
         }
 

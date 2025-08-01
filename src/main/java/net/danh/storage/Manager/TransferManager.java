@@ -38,7 +38,7 @@ public class TransferManager {
         }
 
         if (!sender.hasPermission("storage.transfer.use")) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_permission")));
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.no_permission")));
             return false;
         }
 
@@ -89,7 +89,7 @@ public class TransferManager {
         }
 
         if (!sender.hasPermission("storage.transfer.multi")) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_permission_multi")));
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.no_permission")));
             return false;
         }
 
@@ -476,12 +476,12 @@ public class TransferManager {
         String playerToCheck = targetPlayerName != null ? targetPlayerName : player.getName();
 
         if (!player.getName().equalsIgnoreCase(playerToCheck) && !player.hasPermission("storage.transfer.log.others")) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("transfer.failed_permission_log_others")));
+            player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
         if (!player.hasPermission("storage.transfer.log")) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("transfer.failed_permission_log")));
+            player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
@@ -508,7 +508,7 @@ public class TransferManager {
         }
 
         // Send header with page info
-        String headerMessage = File.getMessage().getString("transfer.log_header_paginated", "&6=== Transfer History for #player# (Page #current_page#/#total_pages#) ===")
+        String headerMessage = File.getMessage().getString("transfer.log_header_paginated")
                 .replace("#player#", playerToCheck)
                 .replace("#current_page#", String.valueOf(page))
                 .replace("#total_pages#", String.valueOf(totalPages));
@@ -541,11 +541,11 @@ public class TransferManager {
 
         // Add empty line and separator
         player.sendMessage("");
-        String separator = messageConfig.getString("transfer.log_nav_separator", "&7─────────────────────────────────────────────");
+        String separator = messageConfig.getString("transfer.log_nav_separator");
         player.sendMessage(Chat.colorizewp(separator));
 
         // Show total count and page info on same line
-        String footerInfo = messageConfig.getString("transfer.log_footer_info", "&7Total: &e#total# &7| Page &e#current#&7/&e#total_pages#")
+        String footerInfo = messageConfig.getString("transfer.log_footer_info")
                 .replace("#total#", String.valueOf(totalTransfers))
                 .replace("#current#", String.valueOf(currentPage))
                 .replace("#total_pages#", String.valueOf(totalPages));
@@ -589,22 +589,22 @@ public class TransferManager {
             FileConfiguration messageConfig = File.getMessage();
 
             // Get configurable texts and colors - strip color codes for JSON
-            String prevText = stripColorCodes(messageConfig.getString("transfer.log_nav_previous", "◀ Previous"));
-            String prevDisabledText = stripColorCodes(messageConfig.getString("transfer.log_nav_previous_disabled", "◀ Previous"));
-            String prevHover = stripColorCodes(messageConfig.getString("transfer.log_nav_previous_hover", "Click to go to page #page#")
+            String prevText = stripColorCodes(messageConfig.getString("transfer.log_nav_previous"));
+            String prevDisabledText = stripColorCodes(messageConfig.getString("transfer.log_nav_previous_disabled"));
+            String prevHover = stripColorCodes(messageConfig.getString("transfer.log_nav_hover")
                     .replace("#page#", String.valueOf(prevPage)));
 
-            String nextText = stripColorCodes(messageConfig.getString("transfer.log_nav_next", "Next ▶"));
-            String nextDisabledText = stripColorCodes(messageConfig.getString("transfer.log_nav_next_disabled", "Next ▶"));
-            String nextHover = stripColorCodes(messageConfig.getString("transfer.log_nav_next_hover", "Click to go to page #page#")
+            String nextText = stripColorCodes(messageConfig.getString("transfer.log_nav_next"));
+            String nextDisabledText = stripColorCodes(messageConfig.getString("transfer.log_nav_next_disabled"));
+            String nextHover = stripColorCodes(messageConfig.getString("transfer.log_nav_hover")
                     .replace("#page#", String.valueOf(nextPage)));
 
-            String spacing = stripColorCodes(messageConfig.getString("transfer.log_nav_spacing", "     "));
+            String spacing = stripColorCodes(messageConfig.getString("transfer.log_nav_spacing"));
 
             // Convert colors to JSON format (support both named colors and hex)
-            String activeColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.active", "green"));
-            String disabledColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.disabled", "dark_gray"));
-            String spacingColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.spacing", "gray"));
+            String activeColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.active"));
+            String disabledColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.disabled"));
+            String spacingColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.spacing"));
 
             // Build JSON for tellraw command
             StringBuilder json = new StringBuilder();
@@ -647,16 +647,16 @@ public class TransferManager {
         FileConfiguration messageConfig = File.getMessage();
 
         // Get colors from config and convert to Minecraft format
-        String activeColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.active", "green"));
-        String disabledColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.disabled", "dark_gray"));
-        String spacingColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.spacing", "gray"));
+        String activeColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.active"));
+        String disabledColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.disabled"));
+        String spacingColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.spacing"));
 
         // Get clean text without color codes
-        String prevText = messageConfig.getString("transfer.log_nav_previous", "◀ Previous");
-        String prevDisabledText = messageConfig.getString("transfer.log_nav_previous_disabled", "◀ Previous");
-        String nextText = messageConfig.getString("transfer.log_nav_next", "Next ▶");
-        String nextDisabledText = messageConfig.getString("transfer.log_nav_next_disabled", "Next ▶");
-        String spacing = messageConfig.getString("transfer.log_nav_spacing", "     ");
+        String prevText = messageConfig.getString("transfer.log_nav_previous");
+        String prevDisabledText = messageConfig.getString("transfer.log_nav_previous_disabled");
+        String nextText = messageConfig.getString("transfer.log_nav_next");
+        String nextDisabledText = messageConfig.getString("transfer.log_nav_next_disabled");
+        String spacing = messageConfig.getString("transfer.log_nav_spacing");
 
         StringBuilder fallback = new StringBuilder();
 
@@ -677,7 +677,7 @@ public class TransferManager {
         player.sendMessage(Chat.colorizewp(fallback.toString()));
 
         // Show help message and manual commands since clickable navigation failed
-        String helpMessage = messageConfig.getString("transfer.log_nav_help", "&7Use &e/storage transfer log [player] [page]&7 to navigate");
+        String helpMessage = messageConfig.getString("transfer.log_nav_help");
         player.sendMessage(Chat.colorizewp(helpMessage));
 
         // Show available commands for manual navigation

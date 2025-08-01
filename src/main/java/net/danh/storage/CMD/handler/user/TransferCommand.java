@@ -17,8 +17,7 @@ public class TransferCommand extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!isPlayer(sender)) {
-            sendMessage(sender, "admin.transfer_commands.only_players");
+        if (!requirePlayer(sender)) {
             return;
         }
 

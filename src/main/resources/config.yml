@@ -9,7 +9,7 @@ blacklist_world:
 check_update: true
 
 #Prefix for every message from plugin
-prefix: "&7[&fStorage&7]"
+prefix: "&7[&6Storage&7]"
 
 settings:
   #Default max storage for all item
