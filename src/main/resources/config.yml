@@ -22,6 +22,10 @@ settings:
     enabled: true
     #Cooldown in seconds between notifications (minimum: 1 second)
     cooldown_seconds: 10
+  #Reset command notification settings
+  reset_notification:
+    #Send notification to target player when their storage is reset by admin
+    notify_target_player: true
 
 #Auto save player data settings
 auto_save:
