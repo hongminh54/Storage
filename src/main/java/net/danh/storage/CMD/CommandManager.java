@@ -2,6 +2,7 @@ package net.danh.storage.CMD;
 
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.admin.*;
+import net.danh.storage.CMD.handler.user.ConvertOreCommand;
 import net.danh.storage.CMD.handler.user.HelpCommand;
 import net.danh.storage.CMD.handler.user.ToggleCommand;
 import net.danh.storage.CMD.handler.user.TransferCommand;
@@ -23,6 +24,7 @@ public class CommandManager {
         registerCommand("help", new HelpCommand());
         registerCommand("toggle", new ToggleCommand());
         registerCommand("transfer", new TransferCommand());
+        registerCommand("convert", new ConvertOreCommand());
 
         registerCommand("reload", new ReloadCommand());
         registerCommand("autosave", new AutoSaveCommand());

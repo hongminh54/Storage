@@ -9,6 +9,7 @@ import net.danh.storage.Listeners.BlockPlace;
 import net.danh.storage.Listeners.Chat;
 import net.danh.storage.Listeners.JoinQuit;
 import net.danh.storage.Manager.AutoSaveManager;
+import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.TransferManager;
@@ -70,6 +71,7 @@ public final class Storage extends JavaPlugin {
         db.load();
         TransferManager.initialize();
         MineManager.loadBlocks();
+        ConvertOreManager.loadConvertOptions();
         AutoSaveManager.initialize();
         EventManager.initialize();
         getLogger().log(Level.INFO, "Loading completed. Have fun!");

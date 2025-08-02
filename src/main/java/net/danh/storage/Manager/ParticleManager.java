@@ -299,6 +299,49 @@ public class ParticleManager {
         stopAnimation("processing_" + player.getName());
     }
 
+    public static void playConvertParticle(Player player) {
+        if (player == null || !player.isOnline()) return;
+
+        FileConfiguration config = File.getConfig();
+        if (!config.getBoolean("convert.particles.enabled", true)) return;
+
+        String animationKey = "convert_" + player.getName();
+        stopAnimation(animationKey);
+
+        ParticleAnimation animation = ParticleAnimation.fromString(
+                config.getString("convert.particles.animation", "helix"));
+
+        if (animation == ParticleAnimation.NONE) {
+            String particleName = config.getString("convert.particles.type", "ENCHANTMENT_TABLE");
+            int count = config.getInt("convert.particles.count", 12);
+            double speed = config.getDouble("convert.particles.speed", 0.1);
+
+            Location location = player.getLocation().add(0, 1, 0);
+            playParticleEffect(player, location, particleName, count, speed);
+            return;
+        }
+
+        int duration = config.getInt("convert.particles.duration", 2);
+        BukkitTask task = new BukkitRunnable() {
+            private final int maxTicks = duration * 20;
+            private int ticks = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || ticks >= maxTicks) {
+                    cancel();
+                    activeAnimations.remove(animationKey);
+                    return;
+                }
+
+                playAnimationFrame(player, animation, ticks, "convert.particles");
+                ticks++;
+            }
+        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+
+        activeAnimations.put(animationKey, task);
+    }
+
     private static void stopAnimation(String animationKey) {
         BukkitTask task = activeAnimations.remove(animationKey);
         if (task != null && !task.isCancelled()) {

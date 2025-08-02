@@ -1,8 +1,10 @@
 package net.danh.storage.Listeners;
 
+import net.danh.storage.Action.ConvertOre;
 import net.danh.storage.Action.Deposit;
 import net.danh.storage.Action.Sell;
 import net.danh.storage.Action.Withdraw;
+import net.danh.storage.GUI.ConvertOptionGUI;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.Manager.SoundManager;
@@ -26,6 +28,8 @@ public class Chat implements Listener {
     public static HashMap<Player, String> chat_deposit = new HashMap<>();
     public static HashMap<Player, String> chat_withdraw = new HashMap<>();
     public static HashMap<Player, String> chat_sell = new HashMap<>();
+    public static HashMap<Player, String> chat_convert_from = new HashMap<>();
+    public static HashMap<Player, String> chat_convert_to = new HashMap<>();
     public static HashMap<Player, Integer> chat_return_page = new HashMap<>();
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -71,6 +75,27 @@ public class Chat implements Listener {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_sell.remove(p);
+            chat_return_page.remove(p);
+            e.setCancelled(true);
+        }
+
+        // Handle convert amount input
+        if (chat_convert_from.containsKey(p) && chat_convert_from.get(p) != null) {
+            if (Number.getInteger(message) > 0) {
+                String fromMaterial = chat_convert_from.get(p);
+                String toMaterial = chat_convert_to.get(p);
+                int amount = Number.getInteger(message);
+                int returnPage = chat_return_page.getOrDefault(p, 0);
+
+                new ConvertOre(p, fromMaterial, toMaterial, amount).doAction();
+                SoundManager.playItemSound(p, net.danh.storage.Utils.File.getConvertOreConfig(), "option_items.convert_option", SoundContext.INITIAL_OPEN);
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT)));
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+            }
+            chat_convert_from.remove(p);
+            chat_convert_to.remove(p);
             chat_return_page.remove(p);
             e.setCancelled(true);
         }

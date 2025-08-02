@@ -1,14 +1,15 @@
-# Storage v2.3.1 [1.8.x - 1.21.x]
+# Storage [1.8.x - 1.21.x]
 
-A comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined blocks, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
+> A comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined blocks, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
 
 ##  Features
 
 - **Virtual Storage System** - Automatically store mined blocks in a virtual inventory
+- **Convert System** - Convert materials between different forms (ingots ↔ blocks) with configurable ratios
 - **Transfer System** - Send items to other players with single or multi-item transfers
 - **Event System** - Participate in server-wide mining contests and special events
 - **Auto-Save System** - Automatic data saving with configurable intervals
-- **Advanced GUI** - Paginated inventory system with sound effects
+- **Advanced GUI** - Paginated inventory system with sound effects and improved UX
 - **Database Integration** - SQLite database for reliable data storage
 - **Multi-Version Support** - Compatible with Minecraft 1.8.x to 1.21.x
 - **WorldGuard Integration** - Respect region protections
@@ -27,6 +28,7 @@ A comprehensive virtual storage system for Minecraft servers that allows players
 | `/storage` or `/kho` | Open the main storage GUI | - |
 | `/storage help` | Show help information | - |
 | `/storage toggle` | Toggle auto-pickup on/off | `storage.toggle` |
+| `/storage convert` | Open material conversion GUI | `storage.convert` |
 | `/storage transfer <player> <material>` | Transfer specific material to player | `storage.transfer.use` |
 | `/storage transfer multi <player>` | Open multi-transfer GUI | `storage.transfer.multi` |
 | `/storage transfer log [player] [page]` | View transfer history | `storage.transfer.log` |
@@ -59,6 +61,7 @@ A comprehensive virtual storage system for Minecraft servers that allows players
 | Permission | Description | Default |
 |------------|-------------|---------|
 | `storage.toggle` | Toggle auto-pickup | `true` |
+| `storage.convert` | Use material conversion feature | `true` |
 | `storage.transfer.use` | Use basic transfer feature | `true` |
 | `storage.transfer.multi` | Use multi-transfer feature | `true` |
 | `storage.transfer.log` | View own transfer logs | `true` |

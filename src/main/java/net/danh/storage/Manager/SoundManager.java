@@ -218,6 +218,21 @@ public class SoundManager {
         playEventSound(player, "reward_received");
     }
 
+    public static void playConvertSound(Player player) {
+        if (player == null || !player.isOnline()) return;
+
+        FileConfiguration config = File.getConfig();
+        if (!config.getBoolean("convert.sounds.enabled", true)) return;
+
+        String soundName = config.getString("convert.sounds.name");
+        if (soundName == null || soundName.equalsIgnoreCase("none")) return;
+
+        float volume = (float) config.getDouble("convert.sounds.volume", 1.0);
+        float pitch = (float) config.getDouble("convert.sounds.pitch", 1.0);
+
+        playSound(player, soundName, volume, pitch);
+    }
+
     public enum SoundType {
         GUI_CLICK("gui.click"),
         GUI_OPEN("gui.open"),

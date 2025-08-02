@@ -47,3 +47,6 @@ permissions:
   storage.transfer.admin:
     description: Bypass transfer cooldown and limitations
     default: op
+  storage.convert:
+    description: Use convert materials feature
+    default: op

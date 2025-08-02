@@ -82,6 +82,7 @@ user:
     - "&6=== &eStorage &7v2.3.1 &6==="
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
+    - "&e/Storage convert &f- &7Open convert materials GUI (require permission)"
     - "&e/Storage transfer &a<player> &b<material> &f- &7Transfer material to player"
     - "&e/Storage transfer multi &a<player> &f- &7Transfer multiple materials to player"
     - "&e/Storage transfer log &a<player> &d<page> &f- &7View transfer history"
@@ -131,6 +132,16 @@ transfer:
     active: "&a"
     disabled: "&7"
     spacing: "&8"
+convert:
+  invalid_material: "#prefix# &cThis material cannot be converted!"
+  invalid_conversion: "#prefix# &cInvalid conversion option!"
+  insufficient_materials: "#prefix# &cYou need at least &e#required# #material#&c! You only have &e#current#&c."
+  storage_full: "#prefix# &cYour storage for &e#material# &cis full!"
+  success: "#prefix# &aSuccessfully converted &e#from_amount# #from_material# &ato &e#to_amount# #to_material#&a!"
+  failed: "#prefix# &cConversion failed! Please try again."
+  reload_success: "#prefix# &aConvert configurations reloaded successfully!"
+  ratio_info: "#prefix# &eConversion ratios loaded: &a#count# &ematerial pairs"
+  chat_amount: "#prefix# &eEnter the amount you want to convert in chat:"
 events:
   status:
     header: "&6=== &eEvent System Status &6==="

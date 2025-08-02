@@ -57,6 +57,9 @@ whitelist_fortune:
   - LAPIS_ORE
   - DIAMOND_ORE
   - EMERALD_ORE
+#  - NETHER_QUARTZ_ORE
+#  - ANCIENT_DEBRIS
+#  - COPPER_ORE
 
 #Worth of per item
 worth:
@@ -75,6 +78,13 @@ worth:
   DIAMOND_BLOCK;0: 43
   EMERALD;0: 8
   EMERALD_BLOCK;0: 72
+#  QUARTZ;0: 6
+#  QUARTZ_BLOCK;0: 54
+#  NETHERITE_INGOT;0: 50
+#  NETHERITE_BLOCK;0: 450
+#  NETHERITE_SCRAP;0: 12
+#  COPPER_INGOT;0: 3
+#  COPPER_BLOCK;0: 27
 
 #Player can storage list blocks below here
 blocks:
@@ -117,6 +127,18 @@ blocks:
     drop: EMERALD;0
   EMERALD_BLOCK;0:
     drop: EMERALD_BLOCK;0
+#  NETHER_QUARTZ_ORE;0:
+#    drop: QUARTZ;0
+#  QUARTZ_BLOCK;0:
+#    drop: QUARTZ_BLOCK;0
+#  ANCIENT_DEBRIS;0:
+#    drop: NETHERITE_SCRAP;0
+#  NETHERITE_BLOCK;0:
+#    drop: NETHERITE_BLOCK;0
+#  COPPER_ORE;0:
+#    drop: COPPER_INGOT;0
+#  COPPER_BLOCK;0:
+#    drop: COPPER_BLOCK;0
 
 items:
   COBBLESTONE;0: "&7Cobblestone"
@@ -134,6 +156,13 @@ items:
   DIAMOND_BLOCK;0: "&bDiamond Block"
   EMERALD;0: "&aEmerald"
   EMERALD_BLOCK;0: "&aEmerald Block"
+#  QUARTZ;0: "&fNether Quartz"
+#  QUARTZ_BLOCK;0: "&fQuartz Block"
+#  NETHERITE_INGOT;0: "&4Netherite Ingot"
+#  NETHERITE_BLOCK;0: "&4Netherite Block"
+#  NETHERITE_SCRAP;0: "&4Netherite Scrap"
+#  COPPER_INGOT;0: "&6Copper Ingot"
+#  COPPER_BLOCK;0: "&6Copper Block"
 
 mine:
   title:
@@ -196,6 +225,44 @@ transfer:
       name: "VILLAGER_NO"
       volume: 0.8
       pitch: 0.8
+
+# Convert materials settings
+convert:
+  enabled: true
+  # Default conversion ratios
+  default_ratios:
+    # Ingot to Block ratio (how many ingots needed for 1 block)
+    ingot_to_block: 9
+    # Block to Ingot ratio (how many ingots you get from 1 block)
+    block_to_ingot: 9
+  # Custom conversion mappings (optional - if not specified, auto-detection will be used)
+  # Format: "ingot_material": "block_material"
+  custom_mappings:
+    # Example: "CUSTOM_INGOT;0": "CUSTOM_BLOCK;0"
+  # Custom ratios for specific materials (optional)
+  # Format: "ingot_material_block_material": { ingot_to_block: X, block_to_ingot: Y }
+  custom_ratios:
+#    # Quartz uses 4:1 ratio instead of default 9:1
+#    "QUARTZ;0_QUARTZ_BLOCK;0":
+#      ingot_to_block: 4
+#      block_to_ingot: 4
+#    # Netherite is more expensive - 36:1 ratio
+#    "NETHERITE_SCRAP;0_NETHERITE_BLOCK;0":
+#      ingot_to_block: 36
+#      block_to_ingot: 36
+  particles:
+    enabled: true
+    animation: "helix"
+    type: "ENCHANTMENT_TABLE"
+    count: 12
+    speed: 0.1
+    radius: 1.8
+    duration: 2
+  sounds:
+    enabled: true
+    name: "BLOCK_ANVIL_USE"
+    volume: 1.0
+    pitch: 1.2
 
 sounds:
   enabled: true

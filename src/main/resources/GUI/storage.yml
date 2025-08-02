@@ -75,7 +75,7 @@ items:
   # This item setting for toggle item | Name can't be change
   toggle_item:
     # Slot of item
-    slot: 40
+    slot: 42
     # Display name of item
     name: "&7Storage Toggle"
     material: CHEST
@@ -101,6 +101,31 @@ items:
     sound:
       enabled: true
       name: "UI_BUTTON_CLICK"
+      volume: 0.8
+      pitch: 1.0
+  # Convert materials button
+  convert_button:
+    slot: 39
+    name: "&6Convert Materials"
+    material: ANVIL
+    lore:
+      - "&7 "
+      - "&fConvert between ingots and blocks"
+      - "&7• &a9 Ingots → 1 Block"
+      - "&7• &a1 Block → 9 Ingots"
+      - "&7 "
+      - "&eClick to open convert menu"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "BLOCK_ANVIL_USE"
       volume: 0.8
       pitch: 1.0
   # Previous page

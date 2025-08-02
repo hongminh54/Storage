@@ -38,6 +38,10 @@ public class File {
         return getFileSetting().get("GUI/items.yml");
     }
 
+    public static FileConfiguration getConvertOreConfig() {
+        return getFileSetting().get("GUI/convert-ore.yml");
+    }
+
     public static FileConfiguration getEventConfig() {
         return getFileSetting().get("events.yml");
     }
@@ -47,19 +51,20 @@ public class File {
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
         }
+        net.danh.storage.Manager.ConvertOreManager.loadConvertOptions();
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
     }
 
     public static void saveFiles() {
-        getFileSetting().save("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml");
+        getFileSetting().save("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
     }
 
     public static void updateConfig() {

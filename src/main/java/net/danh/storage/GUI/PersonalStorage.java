@@ -108,6 +108,22 @@ public class PersonalStorage implements IGUI {
                     });
                     inventory.setItem(item.getSlot(), item);
                 }
+            } else if (item_tag.equalsIgnoreCase("convert_button")) {
+                if (slot.contains(",")) {
+                    for (String slot_string : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
+                            player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
+                        SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
+                        player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
+                    });
+                    inventory.setItem(item.getSlot(), item);
+                }
             } else if (item_tag.equalsIgnoreCase("previous_page")) {
                 if (hasMultiplePages && currentPage > 0) {
                     ItemStack prevPageItem = getNavigationItem(item_tag, currentPage, totalPages);
