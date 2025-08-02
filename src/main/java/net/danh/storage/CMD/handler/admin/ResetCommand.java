@@ -24,7 +24,7 @@ public class ResetCommand extends BaseCommand {
 
         if (args.length == 1) {
             String material = args[0];
-            
+
             if (material.equalsIgnoreCase("all")) {
                 if (!requirePlayer(sender)) return;
                 Player player = (Player) sender;
@@ -48,7 +48,7 @@ public class ResetCommand extends BaseCommand {
         if (args.length == 2) {
             String material = args[0];
             String targetName = args[1];
-            
+
             Player target = getPlayer(targetName);
             if (target == null) {
                 sendMessage(sender, "admin.reset_player_not_found", "#player#", targetName);

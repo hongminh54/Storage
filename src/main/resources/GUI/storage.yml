@@ -113,6 +113,7 @@ items:
       - "&fConvert between ingots and blocks"
       - "&7• &a9 Ingots → 1 Block"
       - "&7• &a1 Block → 9 Ingots"
+      - "&7&oOnly work for Block Ore, Ore Ingot"
       - "&7 "
       - "&eClick to open convert menu"
     amount: 1

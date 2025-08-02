@@ -38,21 +38,21 @@ public class ConvertOre {
 
         int playerAmount = MineManager.getPlayerBlock(player, fromMaterial);
         if (playerAmount < option.getFromAmount()) {
-            sendMessage("convert.insufficient_materials", 
-                "#required#", String.valueOf(option.getFromAmount()),
-                "#current#", String.valueOf(playerAmount),
-                "#material#", getMaterialName(fromMaterial));
+            sendMessage("convert.insufficient_materials",
+                    "#required#", String.valueOf(option.getFromAmount()),
+                    "#current#", String.valueOf(playerAmount),
+                    "#material#", getMaterialName(fromMaterial));
             return;
         }
 
         int maxConversions = option.calculateMaxConversions(playerAmount);
         int actualConversions = Math.min(maxConversions, amount > 0 ? amount : maxConversions);
-        
+
         if (actualConversions <= 0) {
             sendMessage("convert.insufficient_materials",
-                "#required#", String.valueOf(option.getFromAmount()),
-                "#current#", String.valueOf(playerAmount),
-                "#material#", getMaterialName(fromMaterial));
+                    "#required#", String.valueOf(option.getFromAmount()),
+                    "#current#", String.valueOf(playerAmount),
+                    "#material#", getMaterialName(fromMaterial));
             return;
         }
 
@@ -61,16 +61,16 @@ public class ConvertOre {
 
         int currentToAmount = MineManager.getPlayerBlock(player, toMaterial);
         int maxStorage = MineManager.getMaxBlock(player);
-        
+
         if (currentToAmount + resultAmount > maxStorage) {
             int availableSpace = maxStorage - currentToAmount;
             int maxPossibleConversions = availableSpace / option.getToAmount();
-            
+
             if (maxPossibleConversions <= 0) {
                 sendMessage("convert.storage_full", "#material#", getMaterialName(toMaterial));
                 return;
             }
-            
+
             actualConversions = maxPossibleConversions;
             requiredAmount = actualConversions * option.getFromAmount();
             resultAmount = option.calculateResultAmount(actualConversions);
@@ -80,10 +80,10 @@ public class ConvertOre {
             if (MineManager.addBlockAmount(player, toMaterial, resultAmount)) {
                 playEffects();
                 sendMessage("convert.success",
-                    "#from_amount#", String.valueOf(requiredAmount),
-                    "#from_material#", getMaterialName(fromMaterial),
-                    "#to_amount#", String.valueOf(resultAmount),
-                    "#to_material#", getMaterialName(toMaterial));
+                        "#from_amount#", String.valueOf(requiredAmount),
+                        "#from_material#", getMaterialName(fromMaterial),
+                        "#to_amount#", String.valueOf(resultAmount),
+                        "#to_material#", getMaterialName(toMaterial));
             } else {
                 MineManager.addBlockAmount(player, fromMaterial, requiredAmount);
                 sendMessage("convert.failed");
@@ -97,7 +97,7 @@ public class ConvertOre {
         if (File.getConfig().getBoolean("convert.sounds.enabled", true)) {
             SoundManager.playConvertSound(player);
         }
-        
+
         if (File.getConfig().getBoolean("convert.particles.enabled", true)) {
             ParticleManager.playConvertParticle(player);
         }

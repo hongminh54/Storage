@@ -50,14 +50,13 @@ public class ConvertOreManager {
             ConversionRatio ratio = getConversionRatio(ingotMaterial, blockMaterial);
 
             convertOptions.put(ingotMaterial + "_to_block",
-                new ConvertOption(ingotMaterial, blockMaterial, ratio.ingotToBlock, 1, "ingot_to_block"));
+                    new ConvertOption(ingotMaterial, blockMaterial, ratio.ingotToBlock, 1, "ingot_to_block"));
             convertOptions.put(blockMaterial + "_to_ingot",
-                new ConvertOption(blockMaterial, ingotMaterial, 1, ratio.blockToIngot, "block_to_ingot"));
+                    new ConvertOption(blockMaterial, ingotMaterial, 1, ratio.blockToIngot, "block_to_ingot"));
         }
 
 
     }
-
 
 
     public static List<String> getConvertibleMaterials() {
@@ -124,13 +123,13 @@ public class ConvertOreManager {
 
     private static boolean isIngotMaterial(String materialName) {
         return materialName.contains("INGOT") ||
-               materialName.equals("COAL") ||
-               materialName.equals("REDSTONE") ||
-               materialName.equals("LAPIS_LAZULI") ||
-               materialName.equals("DIAMOND") ||
-               materialName.equals("EMERALD") ||
-               materialName.equals("QUARTZ") ||
-               materialName.equals("NETHERITE_SCRAP");
+                materialName.equals("COAL") ||
+                materialName.equals("REDSTONE") ||
+                materialName.equals("LAPIS_LAZULI") ||
+                materialName.equals("DIAMOND") ||
+                materialName.equals("EMERALD") ||
+                materialName.equals("QUARTZ") ||
+                materialName.equals("NETHERITE_SCRAP");
     }
 
     private static String getCorrespondingBlock(String ingotMaterial, ConfigurationSection itemsSection) {
@@ -205,11 +204,25 @@ public class ConvertOreManager {
             this.convertType = convertType;
         }
 
-        public String getFromMaterial() { return fromMaterial; }
-        public String getToMaterial() { return toMaterial; }
-        public int getFromAmount() { return fromAmount; }
-        public int getToAmount() { return toAmount; }
-        public String getConvertType() { return convertType; }
+        public String getFromMaterial() {
+            return fromMaterial;
+        }
+
+        public String getToMaterial() {
+            return toMaterial;
+        }
+
+        public int getFromAmount() {
+            return fromAmount;
+        }
+
+        public int getToAmount() {
+            return toAmount;
+        }
+
+        public String getConvertType() {
+            return convertType;
+        }
 
         public String getDisplayName() {
             String fromName = File.getConfig().getString("items." + fromMaterial, fromMaterial.split(";")[0]);

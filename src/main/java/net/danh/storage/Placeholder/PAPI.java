@@ -91,8 +91,8 @@ public class PAPI extends PlaceholderExpansion {
 
         if (placeholder.equals("active")) {
             return hasAnyActiveEvent() ?
-                File.getMessage().getString("events.status.active") :
-                File.getMessage().getString("events.status.disabled");
+                    File.getMessage().getString("events.status.active") :
+                    File.getMessage().getString("events.status.disabled");
         }
 
         if (placeholder.startsWith("active_")) {
@@ -101,8 +101,8 @@ public class PAPI extends PlaceholderExpansion {
             if (eventType != null) {
                 BaseEvent event = EventManager.getAllEvents().get(eventType);
                 return (event != null && event.isActive()) ?
-                    File.getMessage().getString("events.status.active") :
-                    File.getMessage().getString("events.status.disabled");
+                        File.getMessage().getString("events.status.active") :
+                        File.getMessage().getString("events.status.disabled");
             }
             return File.getMessage().getString("events.status.disabled");
         }
@@ -169,7 +169,8 @@ public class PAPI extends PlaceholderExpansion {
                             return String.valueOf(entry.getValue());
                         }
                     }
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
 

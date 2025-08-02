@@ -1,6 +1,5 @@
 package net.danh.storage.GUI;
 
-import net.danh.storage.Action.ConvertOre;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ConvertOreManager;
@@ -53,9 +52,9 @@ public class ConvertOreGUI implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
-        
+
         String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
-            .replace("#player#", player.getName()));
+                .replace("#player#", player.getName()));
         Inventory inventory = Bukkit.createInventory(player, config.getInt("size") * 9, title);
 
         List<String> materialList = ConvertOreManager.getConvertibleMaterials();
@@ -87,24 +86,24 @@ public class ConvertOreGUI implements IGUI {
             List<String> slotList = new ArrayList<>(Arrays.asList(slot.split(",")));
             int startIndex = currentPage * itemsPerPage;
             int endIndex = Math.min(startIndex + itemsPerPage, materialList.size());
-            
+
             for (int i = startIndex; i < endIndex; i++) {
                 int slotIndex = i - startIndex;
                 if (slotIndex < slotList.size()) {
                     String material = materialList.get(i);
                     String materialName = File.getConfig().getString("items." + material, material.split(";")[0]);
                     int playerAmount = MineManager.getPlayerBlock(player, material);
-                    
+
                     ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(player, material, materialName,
-                        config.getConfigurationSection("items.material_item"),
-                        "#material#", materialName,
-                        "#amount#", String.valueOf(playerAmount));
-                    
+                            config.getConfigurationSection("items.material_item"),
+                            "#material#", materialName,
+                            "#amount#", String.valueOf(playerAmount));
+
                     InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slotList.get(slotIndex)))
-                        .onClick((clickPlayer, clickType) -> {
-                            SoundManager.playItemSound(clickPlayer, config, "items.material_item", SoundContext.INITIAL_OPEN);
-                            clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, currentPage).getInventory(SoundContext.SILENT));
-                        });
+                            .onClick((clickPlayer, clickType) -> {
+                                SoundManager.playItemSound(clickPlayer, config, "items.material_item", SoundContext.INITIAL_OPEN);
+                                clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, currentPage).getInventory(SoundContext.SILENT));
+                            });
                     inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                 }
             }
@@ -115,15 +114,15 @@ public class ConvertOreGUI implements IGUI {
         ConfigurationSection section = config.getConfigurationSection("items." + itemTag);
         if (section != null) {
             ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(player, section,
-                "#current_page#", String.valueOf(currentPageDisplay),
-                "#total_pages#", String.valueOf(totalPages));
-            
+                    "#current_page#", String.valueOf(currentPageDisplay),
+                    "#total_pages#", String.valueOf(totalPages));
+
             InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot))
-                .onClick((clickPlayer, clickType) -> {
-                    SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                    int newPage = isPrevious ? currentPage - 1 : currentPage + 1;
-                    clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, newPage).getInventory(SoundContext.SILENT));
-                });
+                    .onClick((clickPlayer, clickType) -> {
+                        SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                        int newPage = isPrevious ? currentPage - 1 : currentPage + 1;
+                        clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, newPage).getInventory(SoundContext.SILENT));
+                    });
             inventory.setItem(interactiveItem.getSlot(), interactiveItem);
         }
     }
@@ -152,12 +151,12 @@ public class ConvertOreGUI implements IGUI {
             ItemStack itemStack = ItemManager.getItemConfig(player, section);
 
             InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot))
-                .onClick((clickPlayer, clickType) -> {
-                    if (itemTag.equalsIgnoreCase("back")) {
-                        SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                        clickPlayer.openInventory(new PersonalStorage(clickPlayer, PersonalStorage.getPlayerCurrentPage(clickPlayer)).getInventory(SoundContext.SILENT));
-                    }
-                });
+                    .onClick((clickPlayer, clickType) -> {
+                        if (itemTag.equalsIgnoreCase("back")) {
+                            SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                            clickPlayer.openInventory(new PersonalStorage(clickPlayer, PersonalStorage.getPlayerCurrentPage(clickPlayer)).getInventory(SoundContext.SILENT));
+                        }
+                    });
             inventory.setItem(interactiveItem.getSlot(), interactiveItem);
         }
     }

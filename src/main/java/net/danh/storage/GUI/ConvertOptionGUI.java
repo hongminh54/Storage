@@ -9,7 +9,6 @@ import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
-import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -47,12 +46,12 @@ public class ConvertOptionGUI implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
-        
+
         String materialName = File.getConfig().getString("items." + material, material.split(";")[0]);
         String title = Chat.colorizewp(Objects.requireNonNull(config.getString("option_title"))
-            .replace("#player#", player.getName())
-            .replace("#material#", materialName));
-        
+                .replace("#player#", player.getName())
+                .replace("#material#", materialName));
+
         Inventory inventory = Bukkit.createInventory(player, config.getInt("option_size") * 9, title);
 
         List<ConvertOreManager.ConvertOption> options = ConvertOreManager.getConvertOptions(material);
@@ -113,12 +112,12 @@ public class ConvertOptionGUI implements IGUI {
 
         ConfigurationSection section = config.getConfigurationSection("option_items.convert_option");
         ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(player, section,
-            "#from_amount#", String.valueOf(option.getFromAmount()),
-            "#from_material#", fromMaterialName,
-            "#to_amount#", String.valueOf(option.getToAmount()),
-            "#to_material#", toMaterialName,
-            "#max_conversions#", String.valueOf(maxConversions),
-            "#result_amount#", String.valueOf(resultAmount));
+                "#from_amount#", String.valueOf(option.getFromAmount()),
+                "#from_material#", fromMaterialName,
+                "#to_amount#", String.valueOf(option.getToAmount()),
+                "#to_material#", toMaterialName,
+                "#max_conversions#", String.valueOf(maxConversions),
+                "#result_amount#", String.valueOf(resultAmount));
 
         if (itemStack != null) {
             try {
@@ -129,8 +128,8 @@ public class ConvertOptionGUI implements IGUI {
         }
 
         InteractiveItem interactiveItem = new InteractiveItem(itemStack, slot)
-            .onLeftClick((clickPlayer) -> handleConvertClick(clickPlayer, option, maxConversions, true))
-            .onRightClick((clickPlayer) -> handleConvertClick(clickPlayer, option, maxConversions, false));
+                .onLeftClick((clickPlayer) -> handleConvertClick(clickPlayer, option, maxConversions, true))
+                .onRightClick((clickPlayer) -> handleConvertClick(clickPlayer, option, maxConversions, false));
 
         inventory.setItem(slot, interactiveItem);
     }
@@ -177,9 +176,9 @@ public class ConvertOptionGUI implements IGUI {
         if (slots.isEmpty()) return;
 
         ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(player, section,
-            "#material#", materialName,
-            "#amount#", String.valueOf(playerAmount),
-            "#max_storage#", String.valueOf(MineManager.getMaxBlock(player)));
+                "#material#", materialName,
+                "#amount#", String.valueOf(playerAmount),
+                "#max_storage#", String.valueOf(MineManager.getMaxBlock(player)));
 
         if (itemStack != null) {
             try {
@@ -211,7 +210,7 @@ public class ConvertOptionGUI implements IGUI {
 
         for (int slot : slots) {
             InteractiveItem interactiveItem = new InteractiveItem(baseItem.clone(), slot)
-                .onClick((clickPlayer, clickType) -> handleStaticItemClick(clickPlayer, itemTag));
+                    .onClick((clickPlayer, clickType) -> handleStaticItemClick(clickPlayer, itemTag));
             inventory.setItem(slot, interactiveItem);
         }
     }
