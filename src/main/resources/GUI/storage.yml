@@ -75,7 +75,7 @@ items:
   # This item setting for toggle item | Name can't be change
   toggle_item:
     # Slot of item
-    slot: 42
+    slot: 41
     # Display name of item
     name: "&7Storage Toggle"
     material: CHEST
