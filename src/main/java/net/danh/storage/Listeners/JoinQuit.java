@@ -1,5 +1,6 @@
 package net.danh.storage.Listeners;
 
+import net.danh.storage.Enchant.TNTEnchant;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.Manager.MineManager;
@@ -33,5 +34,8 @@ public class JoinQuit implements Listener {
 
         // Cleanup storage full notification data
         StorageFullNotificationManager.removePlayer(p);
+
+        // Cleanup enchant cooldown data
+        TNTEnchant.clearPlayerCooldown(p);
     }
 }

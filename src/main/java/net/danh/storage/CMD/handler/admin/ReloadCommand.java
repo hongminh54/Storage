@@ -2,6 +2,7 @@ package net.danh.storage.CMD.handler.admin;
 
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.Manager.AutoSaveManager;
+import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Storage;
@@ -20,6 +21,7 @@ public class ReloadCommand extends BaseCommand {
         MineManager.loadBlocks();
         AutoSaveManager.restartAutoSave();
         EventManager.reloadEvents();
+        EnchantManager.loadEnchants();
 
         for (Player player : Storage.getStorage().getServer().getOnlinePlayers()) {
             MineManager.convertOfflineData(player);

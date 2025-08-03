@@ -35,6 +35,7 @@ public class CommandManager {
         registerCommand("remove", new RemoveCommand());
         registerCommand("set", new SetCommand());
         registerCommand("reset", new ResetCommand());
+        registerCommand("enchant", new EnchantCommand());
     }
 
     private void registerCommand(String name, CommandHandler handler) {

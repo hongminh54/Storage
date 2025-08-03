@@ -46,12 +46,16 @@ public class File {
         return getFileSetting().get("events.yml");
     }
 
+    public static FileConfiguration getEnchantsConfig() {
+        return getFileSetting().get("enchants.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml");
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -148,6 +152,26 @@ public class File {
                 e.printStackTrace();
             }
             getFileSetting().reload("events.yml");
+        }
+    }
+
+    public static void updateEnchantConfig() {
+        getFileSetting().save("enchants.yml");
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "enchants.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("enchants.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_enchantVersion = defaultConfig.getInt("enchant_version");
+        int current_enchantVersion = currentConfig.contains("enchant_version") ? currentConfig.getInt("enchant_version") : 0;
+        if (default_enchantVersion > current_enchantVersion || default_enchantVersion < current_enchantVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config is updating...");
+            try {
+                ConfigUpdater.update(Storage.getStorage(), "enchants.yml", configFile);
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config have been updated successful");
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update enchants config by it self, please backup and rename your enchants config then restart to get newest config!!");
+                e.printStackTrace();
+            }
+            getFileSetting().reload("enchants.yml");
         }
     }
 }

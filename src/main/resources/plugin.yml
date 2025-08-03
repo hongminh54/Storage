@@ -30,6 +30,9 @@ permissions:
   storage.transfer.use:
     description: Use transfer feature
     default: true
+  storage.enchant.use:
+    description: Use enchant items
+    default: true
   storage.event.admin:
     description: Admin event management permission
   storage.event.view:

@@ -46,6 +46,7 @@ admin:
     - "&e/Storage autosave &f- &7Show auto-save status"
     - "&e/Storage save &f- &7Force save all player data"
     - "&e/Storage event &b<start|stop|list> &f- &7Manage events"
+    - "&e/Storage enchant &b<give|remove|list|info> &f- &7Manage custom enchantments"
   transfer_commands:
     error_opening_gui: "#prefix# &cError opening transfer GUI, please specify a valid player and material (if transfer is multi, specify player only)."
 user:
@@ -55,6 +56,7 @@ user:
   set_material_amount: "#prefix# &c[~] #amount# #material# &7[From #player#]"
   not_enough_items: "#prefix# &cYou haven't enough item, you only have <amount>"
   not_enough_slot: "#prefix# &cYou don't have enough slots to withdraw items, you can only hold <slots> items"
+  unknown_number: "#prefix# &c'<number>' is not a valid number!"
   action:
     deposit:
       full_storage: "#prefix# &cStorage has been full &8(#item_amount#/#max_storage#)&c, you can't deposit #amount# #material#!"
@@ -109,6 +111,7 @@ transfer:
   failed_unknown: "#prefix# &cTransfer failed due to an unknown error"
   failed_same_player: "#prefix# &cYou cannot transfer to yourself"
   cancelled: "#prefix# &cTransfer cancelled"
+  gui_enter_amount: "#prefix# &eEnter the amount you want to transfer in chat:"
   log_header: "&6=== Transfer History for #player# ==="
   log_header_paginated: "&6=== Transfer History for &a#player# &7(&6Page &a#current_page#&7/&a#total_pages#&7) &6==="
   log_entry_sent: "&7[#time#] &aSent &f#amount# #material# &ato #receiver#"
@@ -224,6 +227,7 @@ events:
       event_started: "&7[&6Double Drop&7] &eGet &a#multiplier#x &7bonus items when mining! &7Duration: &a#duration# minutes"
       event_ended: "&7[&6Double Drop&7] &eEvent ended! &7Total bonus items distributed: &a#total_bonus#"
       bonus_summary: "&7[&6Double Drop&7] &eYour session: &a#total_bonus# bonus items &7from &e#mining_sessions# mining sessions"
+      first_bonus: "&7[&6Double Drop&7] &aFirst bonus! &7You received &e#bonus# &7extra items!"
   community_event:
     title:
       completed: "&aCommunity Goal Achieved!"
@@ -239,3 +243,22 @@ events:
       first_contribution: "&7[&6Community Event&7] &aYou joined the community effort! &7Every block counts!"
       milestone_reached: "&7[&6Community Event&7] &eMilestone! &a#percentage#% complete &7(&e#current#/#goal# blocks&7)"
       final_statistics: "&7[&6Community Event&7] &eFinal: &a#current#/#goal# blocks &7(&e#percentage#%&7) | &a#participants# contributors"
+enchant:
+  invalid_enchant: "#prefix# &cInvalid enchant '&e#enchant#&c'! Available enchants: &7tnt"
+  invalid_level: "#prefix# &cInvalid level '&e#level#&c'! Max level for this enchant is &e#max#"
+  no_item_in_hand: "#prefix# &cYou must hold an item in your main hand!"
+  not_applicable_item: "#prefix# &cThis enchant cannot be applied to this item!"
+  not_enchanted: "#prefix# &cThis item doesn't have the &e#enchant# &cenchant!"
+  give_success: "#prefix# &aSuccessfully gave &e#enchant# &7Level &e#level# &ato &6#player#"
+  receive_enchant: "#prefix# &aYou received &e#enchant# &7Level &e#level# &aenchant!"
+  remove_success: "#prefix# &aSuccessfully removed &e#enchant# &afrom &6#player#'s item"
+  enchant_removed: "#prefix# &cYour &e#enchant# &cenchant has been removed!"
+  available_enchants_header: "&6=== &eAvailable Enchants &6==="
+  available_enchant_entry: "&e#enchant# &7(&6#name#&7) - Max Level: &a#max_level#"
+  item_enchants_header: "&6=== &eEnchants on &a#player#'s &eItem &6==="
+  item_enchant_entry: "&e#enchant# &7Level &a#level#"
+  no_enchants_on_item: "&7This item has no custom enchants"
+  info_header: "&6=== &eEnchant Info: &a#enchant# &6==="
+  info_description: "&7Description: &f#description#"
+  info_max_level: "&7Max Level: &e#max_level#"
+  info_applicable_items: "&7Applicable Items: &f#items#"

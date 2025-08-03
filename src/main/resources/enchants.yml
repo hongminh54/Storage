@@ -1,0 +1,108 @@
+enchant_version: 1
+
+# Available particles: EXPLOSION_LARGE, EXPLOSION_HUGE, SMOKE_NORMAL, FLAME, CRIT, HEART, VILLAGER_HAPPY, etc.
+# Available sounds: ENTITY_GENERIC_EXPLODE, ENTITY_TNT_PRIMED, BLOCK_ANVIL_LAND, ENTITY_LIGHTNING_BOLT_THUNDER, etc.
+# For full list, check: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+# For sounds: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+
+enchants:
+  tnt:
+    name: "TNT"
+    description: "Creates explosion when mining"
+    max_level: 5
+    applicable_items:
+      - "DIAMOND_PICKAXE"
+      - "IRON_PICKAXE"
+      - "STONE_PICKAXE"
+      - "WOODEN_PICKAXE"
+      - "GOLDEN_PICKAXE"
+      - "NETHERITE_PICKAXE"
+    levels:
+      1:
+        explosion_power: 2.0
+        cooldown_ticks: 60
+        radius: 3
+      2:
+        explosion_power: 2.5
+        cooldown_ticks: 50
+        radius: 4
+      3:
+        explosion_power: 3.0
+        cooldown_ticks: 40
+        radius: 5
+      4:
+        explosion_power: 3.5
+        cooldown_ticks: 30
+        radius: 6
+      5:
+        explosion_power: 4.0
+        cooldown_ticks: 20
+        radius: 7
+    settings:
+      break_blocks: true
+      damage_entities: false
+      create_fire: false
+      storage_integration: true
+      glow_effect: true
+      show_in_lore: true
+      lore_format: "&6TNT &7Level %level%"
+    particles:
+      enabled: true
+      type: "EXPLOSION_LARGE"
+      count: 10
+      offset_x: 1.0
+      offset_y: 1.0
+      offset_z: 1.0
+      extra: 0.1
+      delay_ticks: 0
+    sounds:
+      enabled: true
+      explosion_sound: "ENTITY_GENERIC_EXPLODE"
+      volume: 1.0
+      pitch: 1.0
+      delay_ticks: 0
+
+  # Example of another enchant with different effects
+  # lightning:
+  #   name: "Lightning"
+  #   description: "Strikes lightning when mining"
+  #   max_level: 3
+  #   applicable_items:
+  #     - "DIAMOND_PICKAXE"
+  #     - "NETHERITE_PICKAXE"
+  #   levels:
+  #     1:
+  #       explosion_power: 1.0
+  #       cooldown_ticks: 100
+  #       radius: 2
+  #     2:
+  #       explosion_power: 1.5
+  #       cooldown_ticks: 80
+  #       radius: 3
+  #     3:
+  #       explosion_power: 2.0
+  #       cooldown_ticks: 60
+  #       radius: 4
+  #   settings:
+  #     break_blocks: true
+  #     damage_entities: false
+  #     create_fire: false
+  #     storage_integration: true
+  #     glow_effect: true
+  #     show_in_lore: true
+  #     lore_format: "&e⚡ Lightning &7Level %level%"
+  #   particles:
+  #     enabled: true
+  #     type: "CRIT"
+  #     count: 20
+  #     offset_x: 2.0
+  #     offset_y: 3.0
+  #     offset_z: 2.0
+  #     extra: 0.5
+  #     delay_ticks: 5
+  #   sounds:
+  #     enabled: true
+  #     explosion_sound: "ENTITY_LIGHTNING_BOLT_THUNDER"
+  #     volume: 0.8
+  #     pitch: 1.2
+  #     delay_ticks: 10

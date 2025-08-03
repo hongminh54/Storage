@@ -3,6 +3,8 @@ package net.danh.storage.Listeners;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
+import net.danh.storage.Enchant.TNTEnchant;
+import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.StorageFullNotificationManager;
@@ -70,7 +72,7 @@ public class BlockBreak implements Listener {
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
                 Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() : Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
-                if (!hand.containsEnchantment(fortune)) {
+                if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || !hand.containsEnchantment(fortune)) {
                     amount = getDropAmount(block);
                 } else {
                     if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
@@ -93,6 +95,11 @@ public class BlockBreak implements Listener {
                         String replacement = name != null ? name : drop.replace("_", " ");
                         String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
                         Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
+                    }
+
+                    if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "tnt")) {
+                        int enchantLevel = EnchantManager.getEnchantLevel(hand, "tnt");
+                        TNTEnchant.triggerExplosion(p, block.getLocation(), enchantLevel);
                     }
                     if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
                         e.setDropItems(false);
