@@ -128,7 +128,7 @@ public class Withdraw {
                 p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.cannot_create_item"))));
             }
         } else {
-            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.withdraw.invalid_material"))));
+            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.invalid_material")).replace("#material#", material).replace("#materials#", "Please check available materials")));
         }
     }
 

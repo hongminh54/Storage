@@ -12,11 +12,16 @@ admin:
   reset_target_material: "#prefix# &bReset #material# &bfor &e#player#"
   reset_target_all_notify: "#prefix# &cYour storage has been reset by &e#player#"
   reset_target_material_notify: "#prefix# &cYour #material# &cstorage has been reset by &e#player#"
-  reset_invalid_material: "#prefix# &cInvalid material! This material doesn't exist"
-  reset_player_not_found: "#prefix# &cPlayer &e#player# &cnot found or not online"
   not_enough_slot: "#prefix# &cYou need to add more slot in GUI/storage.yml -> storage_item to open this gui. Slot isn't enough for item you had been config"
   only_players: "&cOnly players can use this command"
   no_permission: "#prefix# &cYou don't have permission to use this command"
+  unknown_command: "#prefix# &cUnknown command '&e#command#&c'. Type &e/storage help &cfor available commands."
+  invalid_usage: "#prefix# &cInvalid usage! &eUsage: #usage#"
+  invalid_material: "#prefix# &cInvalid material '&e#material#&c'! Available materials: &7#materials#"
+  invalid_player: "#prefix# &cPlayer '&e#player#&c' not found or not online!"
+  invalid_number: "#prefix# &c'&e#number#&c' is not a valid number!"
+  number_too_low: "#prefix# &cNumber must be greater than 0!"
+  available_commands: "#prefix# &eAvailable commands: &7#commands#"
   autosave:
     status_header: "&6=== Auto-Save Status ==="
     enabled: "&7Enabled: #status#"
@@ -42,17 +47,13 @@ admin:
     - "&e/Storage save &f- &7Force save all player data"
     - "&e/Storage event &b<start|stop|list> &f- &7Manage events"
   transfer_commands:
-    invalid_page_number: "#prefix# &cInvalid page number! Page must be greater than 0."
-    invalid_page_format: "#prefix#  &cInvalid page number! Please enter a valid number."
     error_opening_gui: "#prefix# &cError opening transfer GUI, please specify a valid player and material (if transfer is multi, specify player only)."
 user:
   full_storage: "#prefix# &cStorage has been full, please take some out to mine more"
   add_material_amount: "#prefix# &a+ #amount# #material# &7[From #player#]"
   remove_material_amount: "#prefix# &c- #amount# #material# &7[From #player#]"
   set_material_amount: "#prefix# &c[~] #amount# #material# &7[From #player#]"
-  number_so_low: "#prefix# &cYou need a number higher than 0"
   not_enough_items: "#prefix# &cYou haven't enough item, you only have <amount>"
-  unknown_number: "#prefix# &c<number> isn't number"
   not_enough_slot: "#prefix# &cYou don't have enough slots to withdraw items, you can only hold <slots> items"
   action:
     deposit:
@@ -63,7 +64,6 @@ user:
     withdraw:
       chat_number: "#prefix# &aHow many item you want to withdraw?"
       withdraw_item: "#prefix# &aYou withdrew #amount# #material# | #item_amount#/#max_storage# Items"
-      invalid_material: "#prefix# &cInvalid material! This material doesn't exist."
       cannot_create_item: "#prefix# &cCannot create item! Please contact administrator."
       not_enough_in_storage: "#prefix# &cYou don't have enough #material# in storage! You only have #amount# items."
       inventory_full: "#prefix# &cYour inventory is full! Please make some space to withdraw items."
@@ -107,8 +107,6 @@ transfer:
   failed_receiver_full: "#prefix# &cTransfer failed: Player &e#player# &ccannot receive more items"
   failed_multi_all: "#prefix# &cAll transfers failed! Please check your materials and try again."
   failed_unknown: "#prefix# &cTransfer failed due to an unknown error"
-  failed_invalid_amount: "#prefix# &cInvalid amount! Please enter a number greater than 0"
-  failed_invalid_material: "#prefix# &cInvalid material! This material doesn't exist in your storage"
   failed_same_player: "#prefix# &cYou cannot transfer to yourself"
   cancelled: "#prefix# &cTransfer cancelled"
   log_header: "&6=== Transfer History for #player# ==="

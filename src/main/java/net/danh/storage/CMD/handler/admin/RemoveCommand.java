@@ -16,21 +16,29 @@ public class RemoveCommand extends BaseCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length != 3) {
+            sendUsage(sender);
             return;
         }
 
         String material = args[0];
         if (!MineManager.getPluginBlocks().contains(material)) {
+            sendInvalidMaterial(sender, material, new ArrayList<>(MineManager.getPluginBlocks()));
             return;
         }
 
         Player target = getPlayer(args[1]);
         if (target == null) {
+            sendInvalidPlayer(sender, args[1]);
             return;
         }
 
         int amount = Number.getInteger(args[2]);
         if (amount < 0) {
+            if (Number.getInteger(args[2]) == -1) {
+                sendInvalidNumber(sender, args[2]);
+            } else {
+                sendNumberTooLow(sender);
+            }
             return;
         }
 

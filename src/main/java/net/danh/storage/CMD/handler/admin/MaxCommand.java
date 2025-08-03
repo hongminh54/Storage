@@ -16,16 +16,23 @@ public class MaxCommand extends BaseCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length != 2) {
+            sendUsage(sender);
             return;
         }
 
         Player target = getPlayer(args[0]);
         if (target == null) {
+            sendInvalidPlayer(sender, args[0]);
             return;
         }
 
         int amount = Number.getInteger(args[1]);
         if (amount <= 0) {
+            if (Number.getInteger(args[1]) == -1) {
+                sendInvalidNumber(sender, args[1]);
+            } else {
+                sendNumberTooLow(sender);
+            }
             return;
         }
 

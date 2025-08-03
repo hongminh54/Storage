@@ -122,4 +122,35 @@ public abstract class BaseCommand implements CommandHandler {
                 Objects.requireNonNull(File.getMessage().getString("user.status.status_on")) :
                 Objects.requireNonNull(File.getMessage().getString("user.status.status_off"));
     }
+
+    protected void sendUsage(CommandSender sender) {
+        sendMessage(sender, "admin.invalid_usage", "#usage#", getUsage());
+    }
+
+    protected void sendInvalidArguments(CommandSender sender) {
+        sendMessage(sender, "admin.invalid_usage", "#usage#", getUsage());
+    }
+
+    protected void sendInvalidMaterial(CommandSender sender, String material, List<String> availableMaterials) {
+        String materialsStr = String.join(", ", availableMaterials.size() > 10 ?
+                availableMaterials.subList(0, 10) : availableMaterials);
+        if (availableMaterials.size() > 10) {
+            materialsStr += "...";
+        }
+        String[] placeholders = {"#material#", "#materials#"};
+        String[] replacements = {material, materialsStr};
+        sendMessage(sender, "admin.invalid_material", placeholders, replacements);
+    }
+
+    protected void sendInvalidPlayer(CommandSender sender, String playerName) {
+        sendMessage(sender, "admin.invalid_player", "#player#", playerName);
+    }
+
+    protected void sendInvalidNumber(CommandSender sender, String number) {
+        sendMessage(sender, "admin.invalid_number", "#number#", number);
+    }
+
+    protected void sendNumberTooLow(CommandSender sender) {
+        sendMessage(sender, "admin.number_too_low");
+    }
 }

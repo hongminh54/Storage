@@ -11,10 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TransferManager {
 
@@ -54,12 +51,18 @@ public class TransferManager {
         }
 
         if (amount <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_invalid_amount")));
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.number_too_low")));
             return false;
         }
 
         if (!MineManager.getPluginBlocks().contains(material)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_invalid_material")));
+            String materialsStr = String.join(", ", MineManager.getPluginBlocks().size() > 10 ?
+                    new ArrayList<>(MineManager.getPluginBlocks()).subList(0, 10) : MineManager.getPluginBlocks());
+            if (MineManager.getPluginBlocks().size() > 10) {
+                materialsStr += "...";
+            }
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.invalid_material")
+                    .replace("#material#", material).replace("#materials#", materialsStr)));
             return false;
         }
 
@@ -105,12 +108,18 @@ public class TransferManager {
         }
 
         if (amount <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_invalid_amount")));
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.number_too_low")));
             return false;
         }
 
         if (!MineManager.getPluginBlocks().contains(material)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_invalid_material")));
+            String materialsStr = String.join(", ", MineManager.getPluginBlocks().size() > 10 ?
+                    new ArrayList<>(MineManager.getPluginBlocks()).subList(0, 10) : MineManager.getPluginBlocks());
+            if (MineManager.getPluginBlocks().size() > 10) {
+                materialsStr += "...";
+            }
+            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.invalid_material")
+                    .replace("#material#", material).replace("#materials#", materialsStr)));
             return false;
         }
 

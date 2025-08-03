@@ -55,7 +55,11 @@ public class CommandManager {
             if (permission == null || sender.hasPermission(permission) || hasAnyTransferPermission(sender, commandName)) {
                 String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
                 handler.execute(sender, commandArgs);
+            } else {
+                sendNoPermissionMessage(sender);
             }
+        } else {
+            sendUnknownCommandMessage(sender, commandName);
         }
     }
 
@@ -119,5 +123,44 @@ public class CommandManager {
         return sender.hasPermission("storage.transfer.use") ||
                 sender.hasPermission("storage.transfer.multi") ||
                 sender.hasPermission("storage.transfer.log");
+    }
+
+    private void sendUnknownCommandMessage(CommandSender sender, String commandName) {
+        String message = net.danh.storage.Utils.File.getMessage().getString("admin.unknown_command");
+        if (message != null) {
+            message = message.replace("#command#", commandName);
+            sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+        }
+
+        List<String> availableCommands = getAvailableCommands(sender);
+        if (!availableCommands.isEmpty()) {
+            String commandsStr = String.join(", ", availableCommands);
+            String availableMessage = net.danh.storage.Utils.File.getMessage().getString("admin.available_commands");
+            if (availableMessage != null) {
+                availableMessage = availableMessage.replace("#commands#", commandsStr);
+                sender.sendMessage(net.danh.storage.Utils.Chat.colorize(availableMessage));
+            }
+        }
+    }
+
+    private void sendNoPermissionMessage(CommandSender sender) {
+        String message = net.danh.storage.Utils.File.getMessage().getString("admin.no_permission");
+        if (message != null) {
+            sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+        }
+    }
+
+    private List<String> getAvailableCommands(CommandSender sender) {
+        List<String> availableCommands = new ArrayList<>();
+        for (Map.Entry<String, CommandHandler> entry : commands.entrySet()) {
+            String commandName = entry.getKey();
+            CommandHandler handler = entry.getValue();
+            String permission = handler.getPermission();
+
+            if (permission == null || sender.hasPermission(permission) || hasAnyTransferPermission(sender, commandName)) {
+                availableCommands.add(commandName);
+            }
+        }
+        return availableCommands;
     }
 }

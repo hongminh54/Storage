@@ -50,7 +50,7 @@ items:
     # Name of item
     name: "&aDeposit Item"
     # Material of item
-    material: GREEN_STAINED_GLASS_PANE
+    material: CHEST
     # Lore of item
     lore:
       - "&7 "
@@ -101,7 +101,7 @@ items:
   withdraw:
     slot: 16
     name: "&aWithdraw Item"
-    material: RED_STAINED_GLASS_PANE
+    material: HOPPER
     lore:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"
@@ -138,7 +138,7 @@ items:
   sell:
     slot: 13
     name: "&aSell Item"
-    material: YELLOW_STAINED_GLASS_PANE
+    material: PAPER
     lore:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"

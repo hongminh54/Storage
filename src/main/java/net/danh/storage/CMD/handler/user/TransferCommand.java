@@ -24,6 +24,7 @@ public class TransferCommand extends BaseCommand {
         Player player = (Player) sender;
 
         if (args.length == 0) {
+            sendUsage(sender);
             return;
         }
 
@@ -58,10 +59,10 @@ public class TransferCommand extends BaseCommand {
                         if (page > 0) {
                             TransferManager.displayTransferHistory(player, null, page);
                         } else {
-                            sendMessage(sender, "admin.transfer_commands.invalid_page_number");
+                            sendNumberTooLow(sender);
                         }
                     } else {
-                        sendMessage(sender, "admin.transfer_commands.invalid_page_format");
+                        sendInvalidNumber(sender, args[1]);
                     }
                 }
                 return;
@@ -105,10 +106,10 @@ public class TransferCommand extends BaseCommand {
                         if (page > 0) {
                             TransferManager.displayTransferHistory(player, targetName, page);
                         } else {
-                            sendMessage(sender, "admin.transfer_commands.invalid_page_number");
+                            sendNumberTooLow(sender);
                         }
                     } else {
-                        sendMessage(sender, "admin.transfer_commands.invalid_page_format");
+                        sendInvalidNumber(sender, args[2]);
                     }
                 }
             }

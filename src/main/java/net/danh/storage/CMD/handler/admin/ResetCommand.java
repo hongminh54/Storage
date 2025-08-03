@@ -34,7 +34,7 @@ public class ResetCommand extends BaseCommand {
             }
 
             if (!MineManager.getPluginBlocks().contains(material)) {
-                sendMessage(sender, "admin.reset_invalid_material");
+                sendInvalidMaterial(sender, material, new ArrayList<>(MineManager.getPluginBlocks()));
                 return;
             }
 
@@ -51,7 +51,7 @@ public class ResetCommand extends BaseCommand {
 
             Player target = getPlayer(targetName);
             if (target == null) {
-                sendMessage(sender, "admin.reset_player_not_found", "#player#", targetName);
+                sendInvalidPlayer(sender, targetName);
                 return;
             }
 
@@ -68,7 +68,7 @@ public class ResetCommand extends BaseCommand {
             }
 
             if (!MineManager.getPluginBlocks().contains(material)) {
-                sendMessage(sender, "admin.reset_invalid_material");
+                sendInvalidMaterial(sender, material, new ArrayList<>(MineManager.getPluginBlocks()));
                 return;
             }
 
