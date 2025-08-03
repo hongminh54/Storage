@@ -57,6 +57,7 @@ whitelist_fortune:
   - LAPIS_ORE
   - DIAMOND_ORE
   - EMERALD_ORE
+ # For higher version
 #  - NETHER_QUARTZ_ORE
 #  - ANCIENT_DEBRIS
 #  - COPPER_ORE
@@ -78,6 +79,7 @@ worth:
   DIAMOND_BLOCK;0: 43
   EMERALD;0: 8
   EMERALD_BLOCK;0: 72
+ # For higher version
 #  QUARTZ;0: 6
 #  QUARTZ_BLOCK;0: 54
 #  NETHERITE_INGOT;0: 50
@@ -127,6 +129,7 @@ blocks:
     drop: EMERALD;0
   EMERALD_BLOCK;0:
     drop: EMERALD_BLOCK;0
+  # For higher version
 #  NETHER_QUARTZ_ORE;0:
 #    drop: QUARTZ;0
 #  QUARTZ_BLOCK;0:
@@ -156,6 +159,7 @@ items:
   DIAMOND_BLOCK;0: "&bDiamond Block"
   EMERALD;0: "&aEmerald"
   EMERALD_BLOCK;0: "&aEmerald Block"
+ # For higher version
 #  QUARTZ;0: "&fNether Quartz"
 #  QUARTZ_BLOCK;0: "&fQuartz Block"
 #  NETHERITE_INGOT;0: "&4Netherite Ingot"
