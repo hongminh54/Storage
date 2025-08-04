@@ -22,7 +22,7 @@ public class Chat {
     }
 
     public static @NotNull String colorizewp(String message) {
-        return translateColors(message);
+        return translateColors(replacePlaceholders(message));
     }
 
     public static List<String> colorize(String... message) {
