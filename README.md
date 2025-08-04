@@ -15,6 +15,7 @@
 - **WorldGuard Integration** - Respect region protections
 - **PlaceholderAPI Support** - Rich placeholder system for other plugins
 - **Sound System** - Comprehensive sound effects for better user experience
+- **Custom Enchant System** - Custom enchantments for tools with configurable effects, particles, and sounds
 
 > **Note**: This is a complete rework from v1. Please reset all configuration files when updating from v1 to v2.
 >
@@ -53,6 +54,16 @@
 
 **Available Events**: `mining_contest`, `double_drop`, `community_event`
 
+### Enchant Commands
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/storage enchant give <player> <enchant> <level>` | Give custom enchant to player's held item | `storage.admin` |
+| `/storage enchant remove <player> <enchant>` | Remove custom enchant from player's held item | `storage.admin` |
+| `/storage enchant list [player]` | List available enchants or player's item enchants | `storage.admin` |
+| `/storage enchant info <enchant>` | Show detailed enchant information | `storage.admin` |
+
+**Available Enchants**: `tnt`
+
 **Material Format**: For 1.12.2 and below use `MATERIAL;DATA` (e.g., `COAL;0`). For 1.13+ use `MATERIAL;0`.
 
 ## Permissions
@@ -67,6 +78,7 @@
 | `storage.transfer.log` | View own transfer logs | `true` |
 | `storage.transfer.log.others` | View other players' transfer logs | `true` |
 | `storage.event.view` | View event status | `true` |
+| `storage.enchant.use` | Use enchanted items | `true` |
 
 ### Admin Permissions
 | Permission | Description | Default |
