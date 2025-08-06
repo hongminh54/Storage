@@ -39,6 +39,9 @@ public class EnchantCommand extends BaseCommand {
             case "info":
                 handleInfo(sender, args);
                 break;
+            case "setmaxlevel":
+                handleSetMaxLevel(sender, args);
+                break;
             default:
                 sendUsage(sender);
                 break;
@@ -195,23 +198,61 @@ public class EnchantCommand extends BaseCommand {
         sendMessage(sender, "enchant.info_applicable_items", "#items#", String.join(", ", data.applicableItems));
     }
 
+    private void handleSetMaxLevel(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sendMessage(sender, "admin.invalid_usage", "#usage#", "/storage enchant setmaxlevel <enchant> <level>");
+            return;
+        }
+
+        String enchantName = args[1];
+        String levelStr = args[2];
+
+        if (!EnchantManager.isValidEnchant(enchantName)) {
+            sendMessage(sender, "enchant.invalid_enchant", "#enchant#", enchantName);
+            return;
+        }
+
+        if (!isValidNumber(levelStr)) {
+            sendInvalidNumber(sender, levelStr);
+            return;
+        }
+
+        int newMaxLevel = Integer.parseInt(levelStr);
+        if (newMaxLevel < 1 || newMaxLevel > EnchantManager.getMaxAllowedLevel()) {
+            sendMessage(sender, "enchant.invalid_max_level", new String[]{"#level#", "#max#"},
+                    new String[]{String.valueOf(newMaxLevel), String.valueOf(EnchantManager.getMaxAllowedLevel())});
+            return;
+        }
+
+        if (EnchantManager.updateEnchantMaxLevel(enchantName, newMaxLevel)) {
+            sendMessage(sender, "enchant.setmaxlevel_success", new String[]{"#enchant#", "#level#"},
+                    new String[]{enchantName, String.valueOf(newMaxLevel)});
+        } else {
+            sendMessage(sender, "enchant.setmaxlevel_failed", "#enchant#", enchantName);
+        }
+    }
+
     @Override
     public List<String> getTabCompletions(CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("give", "remove", "list", "info"));
+            completions.addAll(Arrays.asList("give", "remove", "list", "info", "setmaxlevel"));
         } else if (args.length == 2) {
             String subCommand = args[0].toLowerCase();
             if (subCommand.equals("give") || subCommand.equals("remove") || subCommand.equals("list")) {
                 completions.addAll(getOnlinePlayerNames());
-            } else if (subCommand.equals("info")) {
+            } else if (subCommand.equals("info") || subCommand.equals("setmaxlevel")) {
                 completions.addAll(EnchantManager.getAvailableEnchants());
             }
         } else if (args.length == 3) {
             String subCommand = args[0].toLowerCase();
             if (subCommand.equals("give") || subCommand.equals("remove")) {
                 completions.addAll(EnchantManager.getAvailableEnchants());
+            } else if (subCommand.equals("setmaxlevel")) {
+                for (int i = 1; i <= EnchantManager.getMaxAllowedLevel(); i++) {
+                    completions.add(String.valueOf(i));
+                }
             }
         } else if (args.length == 4) {
             String subCommand = args[0].toLowerCase();
@@ -236,7 +277,7 @@ public class EnchantCommand extends BaseCommand {
 
     @Override
     public String getUsage() {
-        return "/storage enchant <give|remove|list|info> [args...]";
+        return "/storage enchant <give|remove|list|info|setmaxlevel> [args...]";
     }
 
     @Override

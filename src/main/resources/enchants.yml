@@ -62,46 +62,144 @@ enchants:
       pitch: 1.0
       delay_ticks: 0
 
-  # Example of another enchant with different effects
-  # lightning:
-  #   name: "Lightning"
-  #   description: "Strikes lightning when mining"
-  #   max_level: 3
-  #   applicable_items:
-  #     - "DIAMOND_PICKAXE"
-  #     - "NETHERITE_PICKAXE"
-  #   levels:
-  #     1:
-  #       explosion_power: 1.0
-  #       cooldown_ticks: 100
-  #       radius: 2
-  #     2:
-  #       explosion_power: 1.5
-  #       cooldown_ticks: 80
-  #       radius: 3
-  #     3:
-  #       explosion_power: 2.0
-  #       cooldown_ticks: 60
-  #       radius: 4
-  #   settings:
-  #     break_blocks: true
-  #     damage_entities: false
-  #     create_fire: false
-  #     storage_integration: true
-  #     glow_effect: true
-  #     show_in_lore: true
-  #     lore_format: "&e⚡ Lightning &7Level %level%"
-  #   particles:
-  #     enabled: true
-  #     type: "CRIT"
-  #     count: 20
-  #     offset_x: 2.0
-  #     offset_y: 3.0
-  #     offset_z: 2.0
-  #     extra: 0.5
-  #     delay_ticks: 5
-  #   sounds:
-  #     enabled: true
+  haste:
+    name: "Haste"
+    description: "Gives mining speed boost when holding pickaxe"
+    max_level: 5
+    applicable_items:
+      - "DIAMOND_PICKAXE"
+      - "IRON_PICKAXE"
+      - "STONE_PICKAXE"
+      - "WOODEN_PICKAXE"
+      - "GOLDEN_PICKAXE"
+      - "NETHERITE_PICKAXE"
+    levels:
+      1:
+        haste_level: 1.0
+        haste_duration: 600
+        cooldown_ticks: 0
+      2:
+        haste_level: 2.0
+        haste_duration: 900
+        cooldown_ticks: 0
+      3:
+        haste_level: 3.0
+        haste_duration: 1200
+        cooldown_ticks: 0
+      4:
+        haste_level: 4.0
+        haste_duration: 1500
+        cooldown_ticks: 0
+      5:
+        haste_level: 5.0
+        haste_duration: 1800
+        cooldown_ticks: 0
+    settings:
+      storage_integration: true
+      glow_effect: true
+      show_in_lore: true
+      lore_format: "&b⚡ Haste &7Level %level%"
+    particles:
+      enabled: false
+      type: "ENCHANTMENT_TABLE"
+      count: 5
+      offset_x: 0.5
+      offset_y: 0.5
+      offset_z: 0.5
+    sounds:
+      enabled: false
+      explosion_sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.5
+      pitch: 1.5
+      delay_ticks: 0
+
+  multiplier:
+    name: "Multiplier"
+    description: "Multiplies drop amount from mining"
+    max_level: 3
+    applicable_items:
+      - "DIAMOND_PICKAXE"
+      - "IRON_PICKAXE"
+      - "STONE_PICKAXE"
+      - "WOODEN_PICKAXE"
+      - "GOLDEN_PICKAXE"
+      - "NETHERITE_PICKAXE"
+    levels:
+      1:
+        multiplier_value: 2.0
+        cooldown_ticks: 0
+      2:
+        multiplier_value: 3.0
+        cooldown_ticks: 0
+      3:
+        multiplier_value: 4.0
+        cooldown_ticks: 0
+    settings:
+      storage_integration: true
+      glow_effect: true
+      show_in_lore: true
+      lore_format: "&6✦ Multiplier &7Level %level%"
+    particles:
+      enabled: false
+      type: "VILLAGER_HAPPY"
+      count: 8
+      offset_x: 1.0
+      offset_y: 1.0
+      offset_z: 1.0
+    sounds:
+      enabled: false
+      explosion_sound: "ENTITY_PLAYER_LEVELUP"
+      volume: 0.3
+      pitch: 2.0
+      delay_ticks: 0
+
+  veinminer:
+    name: "Vein Miner"
+    description: "Mines connected blocks of the same type"
+    max_level: 3
+    applicable_items:
+      - "DIAMOND_PICKAXE"
+      - "IRON_PICKAXE"
+      - "STONE_PICKAXE"
+      - "WOODEN_PICKAXE"
+      - "GOLDEN_PICKAXE"
+      - "NETHERITE_PICKAXE"
+    levels:
+      1:
+        max_blocks: 8.0
+        cooldown_ticks: 40
+      2:
+        max_blocks: 16.0
+        cooldown_ticks: 30
+      3:
+        max_blocks: 32.0
+        cooldown_ticks: 20
+    settings:
+      break_blocks: true
+      storage_integration: true
+      glow_effect: true
+      show_in_lore: true
+      lore_format: "&a⛏ Vein Miner &7Level %level%"
+    particles:
+      enabled: true
+      type: "CRIT"
+      count: 15
+      offset_x: 1.5
+      offset_y: 1.5
+      offset_z: 1.5
+      #     type: "CRIT"
+      #     count: 20
+      #     offset_x: 2.0
+      #     offset_y: 3.0
+      #     offset_z: 2.0
+      #     extra: 0.5
+      #     delay_ticks: 5
+    sounds:
+      enabled: true
+      explosion_sound: "BLOCK_STONE_BREAK"
+      volume: 0.8
+      pitch: 0.8
+      delay_ticks: 5
   #     explosion_sound: "ENTITY_LIGHTNING_BOLT_THUNDER"
   #     volume: 0.8
   #     pitch: 1.2

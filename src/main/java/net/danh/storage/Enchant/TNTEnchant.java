@@ -3,6 +3,7 @@ package net.danh.storage.Enchant;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
+import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
@@ -171,7 +172,7 @@ public class TNTEnchant {
     }
 
     private static void processBlocksWithStorage(Player player, List<Block> blocks, EnchantManager.EnchantData enchantData) {
-        if (!MineManager.toggle.get(player)) return;
+        if (!player.isOnline()) return;
 
         ItemStack hand = player.getInventory().getItemInMainHand();
         Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() :
@@ -185,14 +186,23 @@ public class TNTEnchant {
 
                 String drop = MineManager.getDrop(block);
                 if (drop != null) {
-                    int amount = calculateDropAmount(block, hand, fortune);
+                    int amount = calculateDropAmount(player, block, hand, fortune);
                     int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
                     int totalAmount = amount + bonusAmount;
 
                     if (totalAmount > 0) {
-                        if (MineManager.addBlockAmount(player, drop, totalAmount)) {
+                        // Check storage integration setting
+                        if (enchantData.storageIntegration && MineManager.toggle.get(player)) {
+                            // Add to storage if autopickup is enabled and storage integration is true
+                            if (MineManager.addBlockAmount(player, drop, totalAmount)) {
+                                EventManager.onPlayerMine(player, drop, amount);
+                                block.setType(XMaterial.AIR.parseMaterial());
+                            }
+                        } else {
+                            // Drop items vanilla style when storage integration is false or autopickup is disabled
                             EventManager.onPlayerMine(player, drop, amount);
                             block.setType(XMaterial.AIR.parseMaterial());
+                            dropItemsVanilla(block.getLocation(), drop, totalAmount);
                         }
                     }
                 }
@@ -200,14 +210,21 @@ public class TNTEnchant {
         }
     }
 
-    private static int calculateDropAmount(Block block, ItemStack hand, Enchantment fortune) {
+    private static int calculateDropAmount(Player player, Block block, ItemStack hand, Enchantment fortune) {
         int baseAmount = getBlockDropAmount(block);
 
+        // Apply Fortune enchant
         if (fortune != null && hand != null && hand.containsEnchantment(fortune)) {
             if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
                 int fortuneLevel = hand.getEnchantmentLevel(fortune);
-                return Number.getRandomInteger(baseAmount, baseAmount + fortuneLevel + 2);
+                baseAmount = Number.getRandomInteger(baseAmount, baseAmount + fortuneLevel + 2);
             }
+        }
+
+        // Apply Multiplier enchant if present
+        if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "multiplier")) {
+            int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
+            baseAmount = MultiplierEnchant.calculateMultipliedAmount(player, baseAmount, multiplierLevel);
         }
 
         return baseAmount;
@@ -263,6 +280,36 @@ public class TNTEnchant {
         long remaining = cooldownMs - (currentTime - lastExplosion);
 
         return Math.max(0, remaining);
+    }
+
+    private static void dropItemsVanilla(Location location, String drop, int amount) {
+        if (location.getWorld() == null || amount <= 0) return;
+
+        try {
+            String[] dropData = drop.split(";");
+            String materialName = dropData[0];
+
+            Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+            if (xMaterial.isPresent()) {
+                ItemStack itemStack = xMaterial.get().parseItem();
+                if (itemStack != null) {
+                    itemStack.setAmount(Math.min(amount, itemStack.getMaxStackSize()));
+
+                    // Drop items in stacks if amount exceeds max stack size
+                    int remaining = amount;
+                    while (remaining > 0) {
+                        int dropAmount = Math.min(remaining, itemStack.getMaxStackSize());
+                        ItemStack dropItem = itemStack.clone();
+                        dropItem.setAmount(dropAmount);
+                        location.getWorld().dropItemNaturally(location, dropItem);
+                        remaining -= dropAmount;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Fallback: drop as generic item if parsing fails
+            Storage.getStorage().getLogger().warning("Failed to drop items for: " + drop);
+        }
     }
 
     private static boolean isPlacedBlock(Block block) {

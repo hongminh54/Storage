@@ -4,6 +4,9 @@ import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Enchant.TNTEnchant;
+import net.danh.storage.Enchant.HasteEnchant;
+import net.danh.storage.Enchant.MultiplierEnchant;
+import net.danh.storage.Enchant.VeinMinerEnchant;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
@@ -47,6 +50,7 @@ public class BlockBreak implements Listener {
         if (File.getConfig().contains("blacklist_world")) {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
+        // Handle autopickup functionality
         if (MineManager.toggle.get(p)) {
             if (inv_full) {
                 int old_data = MineManager.getPlayerBlock(p, MineManager.getDrop(block));
@@ -80,6 +84,12 @@ public class BlockBreak implements Listener {
                     } else amount = getDropAmount(block);
                 }
 
+                // Apply multiplier enchant if present
+                if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "multiplier")) {
+                    int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
+                    amount = MultiplierEnchant.calculateMultipliedAmount(p, amount, multiplierLevel);
+                }
+
                 int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
                 int totalAmount = amount + bonusAmount;
 
@@ -97,16 +107,33 @@ public class BlockBreak implements Listener {
                         Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
                     }
 
-                    if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "tnt")) {
-                        int enchantLevel = EnchantManager.getEnchantLevel(hand, "tnt");
-                        TNTEnchant.triggerExplosion(p, block.getLocation(), enchantLevel);
-                    }
                     if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
                         e.setDropItems(false);
                     }
                     e.getBlock().getDrops().clear();
                 } else {
                     StorageFullNotificationManager.sendStorageFullNotification(p);
+                }
+            }
+        }
+
+        // Trigger enchants regardless of autopickup status
+        if (MineManager.checkBreak(block)) {
+            ItemStack hand = p.getInventory().getItemInMainHand();
+            if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0) {
+                if (EnchantManager.hasEnchant(hand, "tnt")) {
+                    int enchantLevel = EnchantManager.getEnchantLevel(hand, "tnt");
+                    TNTEnchant.triggerExplosion(p, block.getLocation(), enchantLevel);
+                }
+
+                if (EnchantManager.hasEnchant(hand, "haste")) {
+                    int enchantLevel = EnchantManager.getEnchantLevel(hand, "haste");
+                    HasteEnchant.triggerHaste(p, enchantLevel);
+                }
+
+                if (EnchantManager.hasEnchant(hand, "veinminer")) {
+                    int enchantLevel = EnchantManager.getEnchantLevel(hand, "veinminer");
+                    VeinMinerEnchant.triggerVeinMiner(p, block.getLocation(), enchantLevel);
                 }
             }
         }

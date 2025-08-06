@@ -10,6 +10,7 @@ import java.util.*;
 public class EnchantManager {
 
     private static final Map<String, EnchantData> enchants = new HashMap<>();
+    private static final int MAX_ALLOWED_LEVEL = 10;
 
     public static void loadEnchants() {
         enchants.clear();
@@ -25,7 +26,7 @@ public class EnchantManager {
             enchantData.key = enchantKey;
             enchantData.name = enchantSection.getString("name", enchantKey);
             enchantData.description = enchantSection.getString("description", "");
-            enchantData.maxLevel = enchantSection.getInt("max_level", 1);
+            enchantData.maxLevel = Math.min(enchantSection.getInt("max_level", 1), MAX_ALLOWED_LEVEL);
             enchantData.applicableItems = enchantSection.getStringList("applicable_items");
 
             ConfigurationSection levelsSection = enchantSection.getConfigurationSection("levels");
@@ -37,7 +38,14 @@ public class EnchantManager {
                         EnchantLevelData levelData = new EnchantLevelData();
                         levelData.explosionPower = levelSection.getDouble("explosion_power", 2.0);
                         levelData.cooldownTicks = levelSection.getInt("cooldown_ticks", 60);
-                        levelData.radius = levelSection.getInt("radius", 3);
+                        levelData.radius = levelSection.getInt("radius", 3); // Only used by TNT enchant
+
+                        // Load specific enchant fields
+                        levelData.hasteLevel = levelSection.getDouble("haste_level", levelData.hasteLevel);
+                        levelData.hasteDuration = levelSection.getInt("haste_duration", levelData.hasteDuration);
+                        levelData.multiplierValue = levelSection.getDouble("multiplier_value", levelData.multiplierValue);
+                        levelData.maxBlocks = levelSection.getDouble("max_blocks", levelData.maxBlocks);
+
                         enchantData.levels.put(level, levelData);
                     }
                 }
@@ -74,6 +82,9 @@ public class EnchantManager {
                 enchantData.soundPitch = (float) soundsSection.getDouble("pitch", 1.0);
                 enchantData.soundDelayTicks = soundsSection.getInt("delay_ticks", 0);
             }
+
+            // Generate missing levels if needed
+            generateMissingLevels(enchantData);
 
             enchants.put(enchantKey, enchantData);
         }
@@ -140,6 +151,134 @@ public class EnchantManager {
                 .replace("%level%", String.valueOf(level));
     }
 
+    public static boolean updateEnchantMaxLevel(String enchantName, int newMaxLevel) {
+        if (!isValidEnchant(enchantName) || newMaxLevel < 1 || newMaxLevel > MAX_ALLOWED_LEVEL) {
+            return false;
+        }
+
+        EnchantData enchantData = enchants.get(enchantName);
+        enchantData.maxLevel = newMaxLevel;
+
+        // Regenerate levels
+        generateMissingLevels(enchantData);
+
+        // Update config file
+        ConfigurationSection enchantSection = File.getEnchantsConfig().getConfigurationSection("enchants." + enchantName);
+        if (enchantSection != null) {
+            enchantSection.set("max_level", newMaxLevel);
+
+            // Update levels section in config
+            ConfigurationSection levelsSection = enchantSection.getConfigurationSection("levels");
+            if (levelsSection != null) {
+                // Clear existing levels and regenerate
+                for (String key : levelsSection.getKeys(false)) {
+                    levelsSection.set(key, null);
+                }
+
+                // Add new levels to config
+                for (int level = 1; level <= newMaxLevel; level++) {
+                    EnchantLevelData levelData = enchantData.levels.get(level);
+                    if (levelData != null) {
+                        ConfigurationSection levelSection = levelsSection.createSection(String.valueOf(level));
+                        saveLevelDataToConfig(levelSection, enchantName, levelData);
+                    }
+                }
+            }
+
+            File.updateEnchantConfig();
+        }
+
+        return true;
+    }
+
+    private static void generateMissingLevels(EnchantData enchantData) {
+        for (int level = 1; level <= enchantData.maxLevel; level++) {
+            if (!enchantData.levels.containsKey(level)) {
+                EnchantLevelData levelData = generateLevelData(enchantData.key, level);
+                enchantData.levels.put(level, levelData);
+            }
+        }
+    }
+
+    private static EnchantLevelData generateLevelData(String enchantType, int level) {
+        EnchantLevelData levelData = new EnchantLevelData();
+
+        switch (enchantType.toLowerCase()) {
+            case "tnt":
+                levelData.explosionPower = 2.0 + (level - 1) * 0.5;
+                levelData.cooldownTicks = Math.max(10, 60 - (level - 1) * 10);
+                levelData.radius = 3 + (level - 1);
+                break;
+
+            case "haste":
+                // Improved scaling: Level 1-2 = Haste I, Level 3-4 = Haste II, Level 5 = Haste III
+                levelData.hasteLevel = Math.min(3, (level + 1) / 2);
+                // Duration scaling: 30 seconds base + 15 seconds per level
+                levelData.hasteDuration = 600 + (level - 1) * 300; // 30s + 15s per level
+                levelData.cooldownTicks = 0;
+                break;
+
+            case "multiplier":
+                levelData.multiplierValue = 2.0 + (level - 1);
+                levelData.cooldownTicks = 0;
+                break;
+
+            case "veinminer":
+                levelData.maxBlocks = Math.min(64.0, 8.0 * Math.pow(2, level - 1));
+                levelData.cooldownTicks = Math.max(10, 40 - (level - 1) * 10);
+                break;
+
+            case "test_enchant":
+                levelData.cooldownTicks = Math.max(10, 30 - (level - 1) * 10);
+                break;
+
+            default:
+                // Default scaling for unknown enchants
+                levelData.cooldownTicks = Math.max(10, 60 - (level - 1) * 5);
+                break;
+        }
+
+        return levelData;
+    }
+
+    private static void saveLevelDataToConfig(ConfigurationSection levelSection, String enchantType, EnchantLevelData levelData) {
+        switch (enchantType.toLowerCase()) {
+            case "tnt":
+                levelSection.set("explosion_power", levelData.explosionPower);
+                levelSection.set("cooldown_ticks", levelData.cooldownTicks);
+                levelSection.set("radius", levelData.radius);
+                break;
+
+            case "haste":
+                levelSection.set("haste_level", levelData.hasteLevel);
+                levelSection.set("haste_duration", levelData.hasteDuration);
+                levelSection.set("cooldown_ticks", levelData.cooldownTicks);
+                break;
+
+            case "multiplier":
+                levelSection.set("multiplier_value", levelData.multiplierValue);
+                levelSection.set("cooldown_ticks", levelData.cooldownTicks);
+                break;
+
+            case "veinminer":
+                levelSection.set("max_blocks", levelData.maxBlocks);
+                levelSection.set("cooldown_ticks", levelData.cooldownTicks);
+                break;
+
+            case "test_enchant":
+                levelSection.set("cooldown_ticks", levelData.cooldownTicks);
+                break;
+
+            default:
+                levelSection.set("cooldown_ticks", levelData.cooldownTicks);
+                break;
+        }
+    }
+
+    public static int getMaxAllowedLevel() {
+        return MAX_ALLOWED_LEVEL;
+    }
+
     public static class EnchantData {
         public String key;
         public String name;
@@ -172,8 +311,15 @@ public class EnchantManager {
     }
 
     public static class EnchantLevelData {
-        public double explosionPower = 2.0;
-        public int cooldownTicks = 60;
-        public int radius = 3;
+        // Common fields
+        public double explosionPower = 2.0; // Used by TNT enchant
+        public int cooldownTicks = 60; // Used by all enchants
+        public int radius = 3; // Used by TNT enchant only
+
+        // Specific fields for different enchants
+        public double hasteLevel = 1.0; // Used by Haste enchant
+        public int hasteDuration = 600; // Used by Haste enchant - duration in ticks
+        public double multiplierValue = 2.0; // Used by Multiplier enchant
+        public double maxBlocks = 8.0; // Used by Vein Miner enchant
     }
 }

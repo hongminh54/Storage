@@ -46,7 +46,7 @@ admin:
     - "&e/Storage autosave &f- &7Show auto-save status"
     - "&e/Storage save &f- &7Force save all player data"
     - "&e/Storage event &b<start|stop|list> &f- &7Manage events"
-    - "&e/Storage enchant &b<give|remove|list|info> &f- &7Manage custom enchantments"
+    - "&e/Storage enchant &b<give|remove|list|info|setmaxlevel> &f- &7Manage custom enchantments"
   transfer_commands:
     error_opening_gui: "#prefix# &cError opening transfer GUI, please specify a valid player and material (if transfer is multi, specify player only)."
 user:
@@ -244,7 +244,7 @@ events:
       milestone_reached: "&7[&6Community Event&7] &eMilestone! &a#percentage#% complete &7(&e#current#/#goal# blocks&7)"
       final_statistics: "&7[&6Community Event&7] &eFinal: &a#current#/#goal# blocks &7(&e#percentage#%&7) | &a#participants# contributors"
 enchant:
-  invalid_enchant: "#prefix# &cInvalid enchant '&e#enchant#&c'! Available enchants: &7tnt"
+  invalid_enchant: "#prefix# &cInvalid enchant '&e#enchant#&c'! Available enchants: &7tnt, haste, multiplier, veinminer, test_enchant"
   invalid_level: "#prefix# &cInvalid level '&e#level#&c'! Max level for this enchant is &e#max#"
   no_item_in_hand: "#prefix# &cYou must hold an item in your main hand!"
   not_applicable_item: "#prefix# &cThis enchant cannot be applied to this item!"
@@ -262,3 +262,6 @@ enchant:
   info_description: "&7Description: &f#description#"
   info_max_level: "&7Max Level: &e#max_level#"
   info_applicable_items: "&7Applicable Items: &f#items#"
+  invalid_max_level: "#prefix# &cInvalid max level '&e#level#&c'! Must be between 1 and &e#max#"
+  setmaxlevel_success: "#prefix# &aSuccessfully set max level for &e#enchant# &ato &6#level#&a! Levels have been auto-generated."
+  setmaxlevel_failed: "#prefix# &cFailed to update max level for enchant '&e#enchant#&c'!"
