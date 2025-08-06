@@ -3,6 +3,7 @@ package net.danh.storage.GUI.listeners;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.GUI.manager.IGUI;
+import net.danh.storage.Manager.SoundManager;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -11,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -139,5 +141,21 @@ public class GUIClickListener implements Listener {
             }
             return false;
         });
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent e) {
+        Player player = (Player) e.getPlayer();
+
+        // Check if the closed inventory is a GUI
+        if (e.getInventory().getHolder() instanceof IGUI) {
+            // Check if we should play close sound
+            if (SoundManager.getShouldPlayCloseSound(player)) {
+                SoundManager.playCloseSound(player);
+            }
+
+            // Reset the flag for next time
+            SoundManager.setShouldPlayCloseSound(player, true);
+        }
     }
 }

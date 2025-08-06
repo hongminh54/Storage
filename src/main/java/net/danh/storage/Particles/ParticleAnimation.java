@@ -7,7 +7,13 @@ public enum ParticleAnimation {
     LINE("line"),
     BURST("burst"),
     HELIX("helix"),
-    WAVE("wave");
+    WAVE("wave"),
+    // Advanced Geometric Patterns
+    DNA_HELIX("dna_helix"),
+    GALAXY("galaxy"),
+    TORNADO("tornado"),
+    LIGHTNING("lightning"),
+    GEOMETRIC_STAR("geometric_star");
 
     private final String configName;
 

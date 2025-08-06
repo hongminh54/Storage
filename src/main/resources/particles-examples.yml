@@ -1,0 +1,1086 @@
+# ========================================
+# COMPLETE PARTICLES SYSTEM EXAMPLES CONFIG
+# ========================================
+# This is a COMPREHENSIVE SAMPLE configuration file showing ALL particle features
+# DO NOT modify this file - it's for reference only!
+# Copy the sections you want to your main config.yml file
+#
+# ALL ANIMATIONS AVAILABLE:
+# BASIC ANIMATIONS:
+# - none: No animation (simple particle spawn)
+# - circle: Particles in circular pattern
+# - spiral: Ascending spiral effect
+# - line: Linear particle beam
+# - burst: Random explosion pattern
+# - helix: Single helix spiral
+# - wave: Wave-like motion
+#
+# ADVANCED GEOMETRIC PATTERNS (NEW):
+# - dna_helix: Double helix spiral with cross-links (like DNA structure)
+# - galaxy: Multi-arm spiral galaxy effect
+# - tornado: Vortex effect that narrows toward the top
+# - lightning: Zigzag lightning bolt strikes
+# - geometric_star: 5-pointed star with connecting lines
+#
+# SUPPORTED PARTICLE TYPES:
+# - ENCHANTMENT_TABLE, PORTAL, WITCH (magical)
+# - VILLAGER_HAPPY, HEART, WATER_SPLASH (nature)
+# - FLAME, FIREWORKS_SPARK, REDSTONE (energy)
+# - SMOKE_NORMAL, SMOKE_LARGE, ASH (atmospheric)
+# - CRIT, EXPLOSION_NORMAL, EXPLOSION_LARGE (combat)
+# ========================================
+
+# ========================================
+# BASIC ANIMATIONS EXAMPLES
+# ========================================
+
+# Example 1: Simple Circle Animation (Classic)
+basic_circle:
+  particles:
+    success:
+      animation: "circle"
+      type: "VILLAGER_HAPPY"
+      count: 12
+      speed: 0.1
+      radius: 1.5
+
+# Example 2: Spiral Animation (Elegant)
+basic_spiral:
+  particles:
+    processing:
+      animation: "spiral"
+      type: "ENCHANTMENT_TABLE"
+      count: 15
+      speed: 0.1
+      radius: 1.8
+      duration: 3
+
+# Example 3: Helix Animation (Single Strand)
+basic_helix:
+  particles:
+    success:
+      animation: "helix"
+      type: "HEART"
+      count: 10
+      speed: 0.1
+      radius: 1.6
+
+# Example 4: Wave Animation (Flowing)
+basic_wave:
+  particles:
+    receive:
+      animation: "wave"
+      type: "WATER_SPLASH"
+      count: 14
+      speed: 0.12
+      radius: 2.0
+
+# Example 5: Burst Animation (Explosive)
+basic_burst:
+  particles:
+    failed:
+      animation: "burst"
+      type: "SMOKE_NORMAL"
+      count: 20
+      speed: 0.15
+      radius: 2.2
+
+# Example 6: Line/Beam Animation (Direct)
+basic_line:
+  particles:
+    beam:
+      animation: "line"
+      type: "FIREWORKS_SPARK"
+      count: 8
+      speed: 0.2
+      duration: 2
+
+# ========================================
+# ADVANCED GEOMETRIC PATTERNS EXAMPLES
+# ========================================
+
+# Example 7: DNA Helix for Transfer Success (Impressive!)
+advanced_dna_helix:
+  particles:
+    success:
+      animation: "dna_helix"
+      type: "ENCHANTMENT_TABLE"
+      count: 20
+      speed: 0.1
+      radius: 1.8
+
+# Example 8: Galaxy for Transfer Processing (Smooth & Beautiful)
+advanced_galaxy:
+  particles:
+    processing:
+      animation: "galaxy"
+      type: "FIREWORKS_SPARK"
+      count: 24
+      speed: 0.05
+      radius: 2.2
+      duration: 4
+
+# Example 9: Lightning for Transfer Failed (Dramatic!)
+advanced_lightning:
+  particles:
+    failed:
+      animation: "lightning"
+      type: "REDSTONE"
+      count: 16
+      speed: 0.4
+      radius: 2.5
+
+# Example 10: Tornado for Transfer Receive (Eye-catching!)
+advanced_tornado:
+  particles:
+    receive:
+      animation: "tornado"
+      type: "HEART"
+      count: 30
+      speed: 0.15
+      radius: 1.6
+
+# Example 11: Geometric Star for Transfer Beam (Unique!)
+advanced_geometric_star:
+  particles:
+    beam:
+      animation: "geometric_star"
+      type: "VILLAGER_HAPPY"
+      count: 18
+      speed: 0.12
+      radius: 2.0
+      duration: 3
+
+# ========================================
+# COMPLETE TRANSFER SYSTEM EXAMPLES
+# ========================================
+
+# Complete Transfer Configuration with All Particle Types
+complete_transfer_system:
+  transfer:
+    enabled: true
+    delay: 3
+    particles:
+      enabled: true
+      # Processing animation while transfer is happening
+      processing:
+        animation: "galaxy"
+        type: "ENCHANTMENT_TABLE"
+        count: 18
+        speed: 0.05
+        radius: 2.0
+        duration: 3
+      # Beam animation between sender and receiver
+      beam:
+        animation: "line"
+        type: "FIREWORKS_SPARK"
+        count: 5
+        speed: 0.2
+        duration: 3
+      # Success animation when transfer completes
+      success:
+        animation: "dna_helix"
+        type: "VILLAGER_HAPPY"
+        count: 20
+        speed: 0.1
+        radius: 2.2
+      # Receive animation for the receiver
+      receive:
+        animation: "geometric_star"
+        type: "HEART"
+        count: 15
+        speed: 0.12
+        radius: 1.8
+      # Failed animation when transfer fails
+      failed:
+        animation: "lightning"
+        type: "SMOKE_NORMAL"
+        count: 12
+        speed: 0.3
+        radius: 2.5
+
+# ========================================
+# COMPLETE CONVERT SYSTEM EXAMPLES
+# ========================================
+
+# Complete Convert Configuration
+complete_convert_system:
+  convert:
+    enabled: true
+    particles:
+      enabled: true
+      animation: "tornado"
+      type: "ENCHANTMENT_TABLE"
+      count: 25
+      speed: 0.15
+      radius: 2.0
+      duration: 3
+
+# Convert Examples with Different Animations
+convert_basic_helix:
+  convert:
+    particles:
+      animation: "helix"
+      type: "VILLAGER_HAPPY"
+      count: 12
+      speed: 0.1
+      radius: 1.5
+      duration: 2
+
+convert_advanced_dna:
+  convert:
+    particles:
+      animation: "dna_helix"
+      type: "ENCHANTMENT_TABLE"
+      count: 16
+      speed: 0.08
+      radius: 1.8
+      duration: 3
+
+convert_galaxy_magic:
+  convert:
+    particles:
+      animation: "galaxy"
+      type: "PORTAL"
+      count: 25
+      speed: 0.06
+      radius: 2.8
+      duration: 4
+
+convert_tornado_power:
+  convert:
+    particles:
+      animation: "tornado"
+      type: "SMOKE_NORMAL"
+      count: 35
+      speed: 0.2
+      radius: 2.0
+      duration: 2
+
+# ========================================
+# ALL PARTICLE TYPES SHOWCASE
+# ========================================
+
+# Magical Particles
+magical_particles_showcase:
+  transfer:
+    particles:
+      success:
+        animation: "galaxy"
+        type: "ENCHANTMENT_TABLE"  # Purple magical sparkles
+        count: 20
+        speed: 0.1
+        radius: 2.0
+      processing:
+        animation: "circle"
+        type: "PORTAL"             # Purple portal particles
+        count: 15
+        speed: 0.08
+        radius: 1.8
+      failed:
+        animation: "burst"
+        type: "WITCH"              # Dark magic particles
+        count: 18
+        speed: 0.15
+        radius: 2.2
+
+# Nature Particles
+nature_particles_showcase:
+  transfer:
+    particles:
+      success:
+        animation: "wave"
+        type: "VILLAGER_HAPPY"     # Green sparkles
+        count: 16
+        speed: 0.1
+        radius: 2.0
+      receive:
+        animation: "helix"
+        type: "HEART"              # Red hearts
+        count: 12
+        speed: 0.12
+        radius: 1.6
+      processing:
+        animation: "spiral"
+        type: "WATER_SPLASH"       # Blue water drops
+        count: 14
+        speed: 0.1
+        radius: 1.8
+
+# Energy/Fire Particles
+energy_particles_showcase:
+  transfer:
+    particles:
+      success:
+        animation: "lightning"
+        type: "FIREWORKS_SPARK"    # Bright sparks
+        count: 15
+        speed: 0.3
+        radius: 2.5
+      processing:
+        animation: "tornado"
+        type: "FLAME"              # Fire particles
+        count: 20
+        speed: 0.2
+        radius: 1.8
+      failed:
+        animation: "burst"
+        type: "REDSTONE"           # Red electric particles
+        count: 18
+        speed: 0.25
+        radius: 2.0
+
+# Atmospheric Particles
+atmospheric_particles_showcase:
+  transfer:
+    particles:
+      processing:
+        animation: "circle"
+        type: "SMOKE_NORMAL"       # Light gray smoke
+        count: 12
+        speed: 0.1
+        radius: 1.5
+      failed:
+        animation: "tornado"
+        type: "SMOKE_LARGE"        # Heavy dark smoke
+        count: 25
+        speed: 0.2
+        radius: 2.2
+      success:
+        animation: "wave"
+        type: "ASH"                # Ash particles (1.16+)
+        count: 16
+        speed: 0.12
+        radius: 1.8
+
+# Combat Particles
+combat_particles_showcase:
+  transfer:
+    particles:
+      success:
+        animation: "geometric_star"
+        type: "CRIT"               # Yellow critical hit stars
+        count: 18
+        speed: 0.15
+        radius: 2.0
+      failed:
+        animation: "burst"
+        type: "EXPLOSION_NORMAL"   # Small explosion particles
+        count: 20
+        speed: 0.3
+        radius: 2.5
+
+# ========================================
+# COMPLETE CONFIGURATION REFERENCE
+# ========================================
+
+# Master Configuration Template (All possible settings)
+master_particle_config:
+  transfer:
+    enabled: true
+    delay: 3                      # Transfer delay in seconds
+    max_history_display: 10       # Max transfer history to show
+    particles:
+      enabled: true               # Enable/disable all transfer particles
+      processing:
+        animation: "galaxy"       # Animation type
+        type: "ENCHANTMENT_TABLE" # Particle type
+        count: 18                 # Number of particles
+        speed: 0.05               # Animation speed
+        radius: 2.0               # Effect radius
+        duration: 3               # Duration in seconds
+      beam:
+        animation: "line"
+        type: "FIREWORKS_SPARK"
+        count: 5
+        speed: 0.2
+        duration: 3
+      success:
+        animation: "dna_helix"
+        type: "VILLAGER_HAPPY"
+        count: 20
+        speed: 0.1
+        radius: 2.2
+      receive:
+        animation: "geometric_star"
+        type: "HEART"
+        count: 15
+        speed: 0.12
+        radius: 1.8
+      failed:
+        animation: "lightning"
+        type: "SMOKE_NORMAL"
+        count: 12
+        speed: 0.3
+        radius: 2.5
+    sounds:
+      enabled: true               # Enable/disable transfer sounds
+      success:
+        name: "ORB_PICKUP"
+        volume: 1.0
+        pitch: 1.0
+      failed:
+        name: "VILLAGER_NO"
+        volume: 0.8
+        pitch: 0.8
+      processing:
+        name: "BLOCK_PORTAL_AMBIENT"
+        volume: 0.6
+        pitch: 1.2
+
+  convert:
+    enabled: true
+    particles:
+      enabled: true
+      animation: "tornado"
+      type: "ENCHANTMENT_TABLE"
+      count: 25
+      speed: 0.15
+      radius: 2.0
+      duration: 3
+    sounds:
+      enabled: true
+      name: "BLOCK_ANVIL_USE"
+      volume: 1.0
+      pitch: 1.0
+
+# ========================================
+# ANIMATION BEHAVIOR GUIDE
+# ========================================
+
+# Each animation has unique characteristics:
+animation_behavior_guide:
+  # BASIC ANIMATIONS
+  none_example:
+    # Simple particle spawn at player location
+    particles:
+      success:
+        animation: "none"
+        type: "VILLAGER_HAPPY"
+        count: 10
+        speed: 0.1
+        # radius ignored for 'none'
+
+  circle_example:
+    # Particles arranged in rotating circle
+    particles:
+      success:
+        animation: "circle"
+        type: "HEART"
+        count: 12              # Particles distributed around circle
+        speed: 0.1             # Rotation speed
+        radius: 1.5            # Circle radius
+
+  spiral_example:
+    # Ascending spiral with pulsing radius
+    particles:
+      success:
+        animation: "spiral"
+        type: "ENCHANTMENT_TABLE"
+        count: 15              # Particles in spiral
+        speed: 0.1             # Spiral speed
+        radius: 1.8            # Max spiral radius
+
+  helix_example:
+    # Single helix strand
+    particles:
+      success:
+        animation: "helix"
+        type: "FIREWORKS_SPARK"
+        count: 10              # Particles per strand
+        speed: 0.1             # Helix rotation speed
+        radius: 1.6            # Helix radius
+
+  wave_example:
+    # Wave-like motion with varying radius
+    particles:
+      success:
+        animation: "wave"
+        type: "WATER_SPLASH"
+        count: 14              # Particles in wave
+        speed: 0.12            # Wave frequency
+        radius: 2.0            # Wave amplitude
+
+  burst_example:
+    # Random explosion pattern (triggers every 10 ticks)
+    particles:
+      success:
+        animation: "burst"
+        type: "SMOKE_NORMAL"
+        count: 20              # Particles in burst
+        speed: 0.15            # Particle speed
+        radius: 2.2            # Burst radius
+
+  line_example:
+    # Linear beam between two points
+    particles:
+      beam:
+        animation: "line"
+        type: "FIREWORKS_SPARK"
+        count: 5               # Particles along line
+        speed: 0.2             # Beam speed
+        duration: 3            # Beam duration
+
+  # ADVANCED GEOMETRIC PATTERNS
+  dna_helix_example:
+    # Double helix with cross-links
+    particles:
+      success:
+        animation: "dna_helix"
+        type: "ENCHANTMENT_TABLE"
+        count: 20              # Particles per strand
+        speed: 0.1             # Helix rotation speed
+        radius: 1.8            # Helix radius
+        # Cross-links appear every 8 ticks
+
+  galaxy_example:
+    # 4-arm spiral galaxy
+    particles:
+      success:
+        animation: "galaxy"
+        type: "PORTAL"
+        count: 24              # Total particles (6 per arm)
+        speed: 0.05            # Galaxy rotation speed
+        radius: 2.5            # Galaxy size
+
+  tornado_example:
+    # Vortex effect, narrow at top
+    particles:
+      success:
+        animation: "tornado"
+        type: "SMOKE_NORMAL"
+        count: 30              # Particles in vortex
+        speed: 0.2             # Rotation speed
+        radius: 2.0            # Base radius (top is 30% smaller)
+
+  lightning_example:
+    # Zigzag lightning (triggers every 15 ticks)
+    particles:
+      success:
+        animation: "lightning"
+        type: "REDSTONE"
+        count: 12              # Particles per segment
+        speed: 0.3             # Lightning intensity
+        radius: 2.5            # Lightning spread
+
+  geometric_star_example:
+    # 5-pointed star with connecting lines
+    particles:
+      success:
+        animation: "geometric_star"
+        type: "FIREWORKS_SPARK"
+        count: 15              # Particles for star points
+        speed: 0.1             # Star rotation speed
+        radius: 2.2            # Star size
+
+# ========================================
+# CREATIVE COMBINATIONS
+# ========================================
+
+# Example 9: Multi-Stage Effect (Processing -> Success)
+multi_stage_effect:
+  particles:
+    processing:
+      animation: "tornado"
+      type: "SMOKE_NORMAL"
+      count: 20
+      speed: 0.3
+      radius: 1.5
+      duration: 3
+    success:
+      animation: "dna_helix"
+      type: "VILLAGER_HAPPY"
+      count: 25
+      speed: 0.1
+      radius: 2.0
+
+# Example 10: Seasonal Themes
+christmas_theme:
+  particles:
+    success:
+      animation: "geometric_star"
+      type: "FIREWORKS_SPARK"
+      count: 20
+      speed: 0.1
+      radius: 2.5
+
+halloween_theme:
+  particles:
+    failed:
+      animation: "lightning"
+      type: "SMOKE_LARGE"
+      count: 15
+      speed: 0.5
+      radius: 3.0
+
+# ========================================
+# PERFORMANCE RECOMMENDATIONS
+# ========================================
+
+# LOW PERFORMANCE IMPACT (Recommended for busy servers)
+low_performance:
+  particles:
+    success:
+      animation: "lightning"      # Only shows every 15 ticks
+      type: "VILLAGER_HAPPY"
+      count: 8
+      speed: 0.2
+      radius: 1.5
+    processing:
+      animation: "galaxy"         # Smooth, low particle count
+      type: "ENCHANTMENT_TABLE"
+      count: 12
+      speed: 0.05
+      radius: 1.8
+
+# MEDIUM PERFORMANCE IMPACT (Balanced)
+medium_performance:
+  particles:
+    success:
+      animation: "dna_helix"
+      type: "HEART"
+      count: 16
+      speed: 0.1
+      radius: 2.0
+    processing:
+      animation: "geometric_star"
+      type: "FIREWORKS_SPARK"
+      count: 18
+      speed: 0.12
+      radius: 2.2
+
+# HIGH PERFORMANCE IMPACT (Showcase servers only)
+high_performance:
+  particles:
+    success:
+      animation: "tornado"
+      type: "ENCHANTMENT_TABLE"
+      count: 40
+      speed: 0.1
+      radius: 3.0
+    processing:
+      animation: "galaxy"
+      type: "FIREWORKS_SPARK"
+      count: 35
+      speed: 0.03
+      radius: 3.5
+
+# ========================================
+# PARTICLE TYPE RECOMMENDATIONS
+# ========================================
+
+# MAGICAL EFFECTS
+magical_effects:
+  - type: "ENCHANTMENT_TABLE"  # Best for magical themes
+  - type: "PORTAL"             # Mystical purple particles
+  - type: "WITCH"              # Dark magic feel
+
+# NATURE EFFECTS  
+nature_effects:
+  - type: "VILLAGER_HAPPY"     # Green sparkles
+  - type: "HEART"              # Love/life theme
+  - type: "WATER_SPLASH"       # Water theme
+
+# FIRE/ENERGY EFFECTS
+energy_effects:
+  - type: "FLAME"              # Fire theme
+  - type: "FIREWORKS_SPARK"    # Energy bursts
+  - type: "REDSTONE"           # Electric/tech theme
+
+# SMOKE/DARK EFFECTS
+dark_effects:
+  - type: "SMOKE_NORMAL"       # Light smoke
+  - type: "SMOKE_LARGE"        # Heavy smoke
+  - type: "ASH"                # Ash particles (1.16+)
+
+# ========================================
+# ANIMATION CHARACTERISTICS
+# ========================================
+
+# DNA_HELIX:
+# - Creates realistic double helix structure
+# - Cross-links appear every 8 ticks
+# - Height: 4 blocks, smooth rotation
+# - Best for: Scientific/medical themes, success effects
+
+# GALAXY:
+# - 4 spiral arms rotating slowly
+# - Particles follow curved paths
+# - Slight vertical wave motion
+# - Best for: Magical themes, processing effects
+
+# TORNADO:
+# - Starts wide at bottom, narrows at top
+# - Height: 4 blocks, fast rotation
+# - Creates realistic vortex effect
+# - Best for: Power themes, dramatic effects
+
+# LIGHTNING:
+# - Zigzag pattern with random offsets
+# - Only triggers every 15 ticks (performance)
+# - 8 segments, 3 blocks height
+# - Best for: Failure effects, dramatic moments
+
+# GEOMETRIC_STAR:
+# - 5-pointed star with connecting lines
+# - Rotates slowly around center
+# - Flat pattern (no height variation)
+# - Best for: Achievement effects, decorative
+
+# ========================================
+# USAGE TIPS
+# ========================================
+
+# 1. Start with low particle counts and increase gradually
+# 2. Test on your server during peak hours to check performance
+# 3. Lightning animation has built-in performance optimization
+# 4. Radius 1.5-2.5 works best for most animations
+# 5. Speed 0.05-0.3 provides good visual without being too fast
+# 6. Duration 2-4 seconds is optimal for most effects
+# 7. Combine different animations for multi-stage effects
+# 8. Consider your server theme when choosing particle types
+
+# ========================================
+# SPECIAL EVENT CONFIGURATIONS
+# ========================================
+
+# New Year Celebration
+new_year_celebration:
+  particles:
+    success:
+      animation: "geometric_star"
+      type: "FIREWORKS_SPARK"
+      count: 30
+      speed: 0.15
+      radius: 3.0
+
+# Valentine's Day
+valentines_day:
+  particles:
+    success:
+      animation: "dna_helix"
+      type: "HEART"
+      count: 20
+      speed: 0.08
+      radius: 2.0
+
+# Halloween Spooky
+halloween_spooky:
+  particles:
+    failed:
+      animation: "tornado"
+      type: "SMOKE_LARGE"
+      count: 25
+      speed: 0.25
+      radius: 2.5
+
+# Christmas Magic
+christmas_magic:
+  particles:
+    processing:
+      animation: "galaxy"
+      type: "ENCHANTMENT_TABLE"
+      count: 22
+      speed: 0.04
+      radius: 2.8
+
+# ========================================
+# PROFESSIONAL SERVER SETUPS
+# ========================================
+
+# Mining Server Theme
+mining_server:
+  transfer:
+    particles:
+      success:
+        animation: "tornado"
+        type: "SMOKE_NORMAL"
+        count: 18
+        speed: 0.2
+        radius: 1.8
+      processing:
+        animation: "galaxy"
+        type: "REDSTONE"
+        count: 16
+        speed: 0.06
+        radius: 2.0
+  convert:
+    particles:
+      animation: "lightning"
+      type: "FIREWORKS_SPARK"
+      count: 12
+      speed: 0.3
+      radius: 2.2
+
+# Magic/Fantasy Server Theme
+fantasy_server:
+  transfer:
+    particles:
+      success:
+        animation: "dna_helix"
+        type: "ENCHANTMENT_TABLE"
+        count: 24
+        speed: 0.1
+        radius: 2.2
+      processing:
+        animation: "galaxy"
+        type: "PORTAL"
+        count: 20
+        speed: 0.05
+        radius: 2.5
+  convert:
+    particles:
+      animation: "geometric_star"
+      type: "WITCH"
+      count: 18
+      speed: 0.12
+      radius: 2.0
+
+# Tech/Futuristic Server Theme
+tech_server:
+  transfer:
+    particles:
+      success:
+        animation: "lightning"
+        type: "REDSTONE"
+        count: 15
+        speed: 0.4
+        radius: 2.5
+      processing:
+        animation: "tornado"
+        type: "FIREWORKS_SPARK"
+        count: 22
+        speed: 0.18
+        radius: 1.9
+  convert:
+    particles:
+      animation: "dna_helix"
+      type: "ENCHANTMENT_TABLE"
+      count: 20
+      speed: 0.15
+      radius: 1.8
+
+# ========================================
+# ADVANCED COMBINATIONS
+# ========================================
+
+# Progressive Animation (starts simple, gets complex)
+progressive_animation:
+  transfer:
+    particles:
+      processing:
+        animation: "circle"          # Simple start
+        type: "VILLAGER_HAPPY"
+        count: 8
+        speed: 0.1
+        radius: 1.2
+      success:
+        animation: "dna_helix"       # Complex finish
+        type: "FIREWORKS_SPARK"
+        count: 25
+        speed: 0.1
+        radius: 2.5
+
+# Contrasting Effects (opposite themes for success/failure)
+contrasting_effects:
+  transfer:
+    particles:
+      success:
+        animation: "galaxy"          # Smooth, beautiful
+        type: "HEART"
+        count: 20
+        speed: 0.05
+        radius: 2.3
+      failed:
+        animation: "lightning"       # Sharp, dramatic
+        type: "SMOKE_LARGE"
+        count: 12
+        speed: 0.5
+        radius: 2.8
+
+# Synchronized Multi-Animation
+synchronized_multi:
+  transfer:
+    particles:
+      processing:
+        animation: "tornado"
+        type: "SMOKE_NORMAL"
+        count: 15
+        speed: 0.3
+        radius: 1.5
+        duration: 3
+      beam:
+        animation: "geometric_star"
+        type: "FIREWORKS_SPARK"
+        count: 12
+        speed: 0.15
+        radius: 1.8
+        duration: 3
+      success:
+        animation: "dna_helix"
+        type: "VILLAGER_HAPPY"
+        count: 20
+        speed: 0.1
+        radius: 2.0
+
+# ========================================
+# PARTICLE DENSITY EXAMPLES
+# ========================================
+
+# Ultra Light (for very busy servers)
+ultra_light:
+  particles:
+    success:
+      animation: "lightning"
+      type: "VILLAGER_HAPPY"
+      count: 6
+      speed: 0.3
+      radius: 1.5
+
+# Light
+light:
+  particles:
+    success:
+      animation: "galaxy"
+      type: "HEART"
+      count: 10
+      speed: 0.08
+      radius: 1.8
+
+# Medium
+medium:
+  particles:
+    success:
+      animation: "dna_helix"
+      type: "ENCHANTMENT_TABLE"
+      count: 16
+      speed: 0.1
+      radius: 2.0
+
+# Heavy
+heavy:
+  particles:
+    success:
+      animation: "tornado"
+      type: "FIREWORKS_SPARK"
+      count: 25
+      speed: 0.15
+      radius: 2.5
+
+# Ultra Heavy (showcase only)
+ultra_heavy:
+  particles:
+    success:
+      animation: "geometric_star"
+      type: "PORTAL"
+      count: 40
+      speed: 0.08
+      radius: 3.0
+
+# ========================================
+# QUICK COPY-PASTE CONFIGS
+# ========================================
+
+# Just copy one of these complete sections to your config.yml:
+
+# OPTION 1: Magical Theme
+magical_complete:
+  transfer:
+    particles:
+      enabled: true
+      processing:
+        animation: "galaxy"
+        type: "ENCHANTMENT_TABLE"
+        count: 18
+        speed: 0.05
+        radius: 2.2
+        duration: 3
+      success:
+        animation: "dna_helix"
+        type: "VILLAGER_HAPPY"
+        count: 20
+        speed: 0.1
+        radius: 2.0
+      failed:
+        animation: "lightning"
+        type: "SMOKE_NORMAL"
+        count: 12
+        speed: 0.4
+        radius: 2.5
+  convert:
+    particles:
+      enabled: true
+      animation: "geometric_star"
+      type: "PORTAL"
+      count: 16
+      speed: 0.12
+      radius: 2.0
+      duration: 3
+
+# OPTION 2: Tech Theme
+tech_complete:
+  transfer:
+    particles:
+      enabled: true
+      processing:
+        animation: "tornado"
+        type: "REDSTONE"
+        count: 20
+        speed: 0.2
+        radius: 1.8
+        duration: 3
+      success:
+        animation: "lightning"
+        type: "FIREWORKS_SPARK"
+        count: 15
+        speed: 0.3
+        radius: 2.2
+      failed:
+        animation: "tornado"
+        type: "SMOKE_LARGE"
+        count: 18
+        speed: 0.25
+        radius: 2.0
+  convert:
+    particles:
+      enabled: true
+      animation: "dna_helix"
+      type: "REDSTONE"
+      count: 18
+      speed: 0.15
+      radius: 1.9
+      duration: 2
+
+# OPTION 3: Nature Theme
+nature_complete:
+  transfer:
+    particles:
+      enabled: true
+      processing:
+        animation: "galaxy"
+        type: "VILLAGER_HAPPY"
+        count: 16
+        speed: 0.06
+        radius: 2.0
+        duration: 4
+      success:
+        animation: "geometric_star"
+        type: "HEART"
+        count: 18
+        speed: 0.1
+        radius: 2.3
+      failed:
+        animation: "tornado"
+        type: "SMOKE_NORMAL"
+        count: 14
+        speed: 0.2
+        radius: 1.8
+  convert:
+    particles:
+      enabled: true
+      animation: "dna_helix"
+      type: "VILLAGER_HAPPY"
+      count: 20
+      speed: 0.08
+      radius: 2.1
+      duration: 3

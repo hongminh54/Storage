@@ -52,6 +52,7 @@ public class File {
 
     public static void loadFiles() {
         getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml");
+        copyExampleFiles();
     }
 
     public static void reloadFiles() {
@@ -172,6 +173,20 @@ public class File {
                 e.printStackTrace();
             }
             getFileSetting().reload("enchants.yml");
+        }
+    }
+
+    private static void copyExampleFiles() {
+        java.io.File exampleFile = new java.io.File(Storage.getStorage().getDataFolder(), "particles-examples.yml");
+
+        // Only copy if file doesn't exist to avoid overwriting user modifications
+        if (!exampleFile.exists()) {
+            try {
+                Storage.getStorage().saveResource("particles-examples.yml", false);
+                Storage.getStorage().getLogger().log(Level.INFO, "Created particles-examples.yml - Check this file for Advanced Geometric Patterns examples!");
+            } catch (Exception e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Could not create particles-examples.yml: " + e.getMessage());
+            }
         }
     }
 }

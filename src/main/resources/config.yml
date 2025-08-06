@@ -177,7 +177,7 @@ mine:
     enable: true
     action: "&6+#amount# #item# [#storage#/#max#]"
 
-# Animation for particles: none, circle, spiral, line, burst, helix, wave
+# Animation for particles: none, circle, spiral, line, burst, helix, wave, dna_helix, galaxy, tornado, lightning, geometric_star
 transfer:
   enabled: true
   delay: 3

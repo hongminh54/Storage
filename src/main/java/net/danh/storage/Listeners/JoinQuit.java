@@ -4,6 +4,7 @@ import net.danh.storage.Enchant.TNTEnchant;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.StorageFullNotificationManager;
 import net.danh.storage.Manager.TransferManager;
 import org.bukkit.entity.Player;
@@ -37,5 +38,8 @@ public class JoinQuit implements Listener {
 
         // Cleanup enchant cooldown data
         TNTEnchant.clearPlayerCooldown(p);
+
+        // Cleanup sound tracking data
+        SoundManager.cleanupPlayer(p);
     }
 }

@@ -376,6 +376,21 @@ public class ParticleManager {
                     playBurstAnimation(center, particleName, count * 2, speed);
                 }
                 break;
+            case DNA_HELIX:
+                playDNAHelixAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case GALAXY:
+                playGalaxyAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case TORNADO:
+                playTornadoAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case LIGHTNING:
+                playLightningAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case GEOMETRIC_STAR:
+                playGeometricStarAnimation(center, tick, radius, particleName, count, speed);
+                break;
         }
     }
 
@@ -474,6 +489,126 @@ public class ParticleManager {
         for (Player player : location.getWorld().getPlayers()) {
             if (player.getLocation().distance(location) <= MAX_PARTICLE_DISTANCE) {
                 playParticleEffect(player, location, particleName, count, speed);
+            }
+        }
+    }
+
+    // Advanced Geometric Pattern Animations
+    private static void playDNAHelixAnimation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double angle = (tick * 0.3) % (2 * Math.PI);
+        double height = (tick * 0.08) % 4.0;
+
+        // Create double helix strands
+        for (int strand = 0; strand < 2; strand++) {
+            double strandAngle = angle + (strand * Math.PI);
+            double x = center.getX() + radius * Math.cos(strandAngle);
+            double z = center.getZ() + radius * Math.sin(strandAngle);
+            double y = center.getY() + height - 2.0;
+
+            Location particleLocation = new Location(center.getWorld(), x, y, z);
+            spawnParticleForNearbyPlayers(particleLocation, particleName, count / 4, speed);
+
+            // Cross-links between strands
+            if (tick % 8 == 0) {
+                double oppositeX = center.getX() + radius * Math.cos(strandAngle + Math.PI);
+                double oppositeZ = center.getZ() + radius * Math.sin(strandAngle + Math.PI);
+                Location crossLink = new Location(center.getWorld(),
+                    (x + oppositeX) / 2, y, (z + oppositeZ) / 2);
+                spawnParticleForNearbyPlayers(crossLink, particleName, 1, speed);
+            }
+        }
+    }
+
+    private static void playGalaxyAnimation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double baseAngle = tick * 0.05;
+        int spiralArms = 4;
+
+        for (int arm = 0; arm < spiralArms; arm++) {
+            double armAngle = (2 * Math.PI * arm / spiralArms) + baseAngle;
+
+            for (int i = 0; i < count / spiralArms; i++) {
+                double distance = (radius * i) / (count / spiralArms);
+                double spiralAngle = armAngle + (distance * 2);
+
+                double x = center.getX() + distance * Math.cos(spiralAngle);
+                double z = center.getZ() + distance * Math.sin(spiralAngle);
+                double y = center.getY() + Math.sin(distance + tick * 0.1) * 0.3;
+
+                Location particleLocation = new Location(center.getWorld(), x, y, z);
+                spawnParticleForNearbyPlayers(particleLocation, particleName, 1, speed);
+            }
+        }
+    }
+
+    private static void playTornadoAnimation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double height = 4.0;
+        double rotationSpeed = 0.4;
+
+        for (int i = 0; i < count; i++) {
+            double heightRatio = (double) i / count;
+            double currentRadius = radius * (1.0 - heightRatio * 0.7); // Narrower at top
+            double angle = (tick * rotationSpeed + i * 0.5) % (2 * Math.PI);
+
+            double x = center.getX() + currentRadius * Math.cos(angle);
+            double z = center.getZ() + currentRadius * Math.sin(angle);
+            double y = center.getY() + (heightRatio * height);
+
+            Location particleLocation = new Location(center.getWorld(), x, y, z);
+            spawnParticleForNearbyPlayers(particleLocation, particleName, 1, speed);
+        }
+    }
+
+    private static void playLightningAnimation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        if (tick % 15 != 0) return; // Lightning strikes every 15 ticks
+
+        double height = 3.0;
+        int segments = 8;
+        double lastX = center.getX();
+        double lastZ = center.getZ();
+
+        for (int i = 0; i <= segments; i++) {
+            double heightRatio = (double) i / segments;
+            double randomOffset = (Math.random() - 0.5) * radius * 0.8;
+
+            double x = lastX + randomOffset;
+            double z = lastZ + randomOffset;
+            double y = center.getY() + (height * heightRatio);
+
+            Location particleLocation = new Location(center.getWorld(), x, y, z);
+            spawnParticleForNearbyPlayers(particleLocation, particleName, count / 4, speed * 2);
+
+            lastX = x;
+            lastZ = z;
+        }
+    }
+
+    private static void playGeometricStarAnimation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double angle = (tick * 0.1) % (2 * Math.PI);
+        int starPoints = 5;
+
+        for (int point = 0; point < starPoints * 2; point++) {
+            double pointAngle = (2 * Math.PI * point / (starPoints * 2)) + angle;
+            double currentRadius = (point % 2 == 0) ? radius : radius * 0.5; // Alternating inner/outer points
+
+            double x = center.getX() + currentRadius * Math.cos(pointAngle);
+            double z = center.getZ() + currentRadius * Math.sin(pointAngle);
+
+            Location particleLocation = new Location(center.getWorld(), x, center.getY(), z);
+            spawnParticleForNearbyPlayers(particleLocation, particleName, count / 10, speed);
+
+            // Connect lines between points
+            if (point < starPoints * 2 - 1) {
+                double nextPointAngle = (2 * Math.PI * (point + 1) / (starPoints * 2)) + angle;
+                double nextRadius = ((point + 1) % 2 == 0) ? radius : radius * 0.5;
+
+                for (int line = 1; line < 5; line++) {
+                    double lineRatio = (double) line / 5;
+                    double lineX = x + (center.getX() + nextRadius * Math.cos(nextPointAngle) - x) * lineRatio;
+                    double lineZ = z + (center.getZ() + nextRadius * Math.sin(nextPointAngle) - z) * lineRatio;
+
+                    Location lineLocation = new Location(center.getWorld(), lineX, center.getY(), lineZ);
+                    spawnParticleForNearbyPlayers(lineLocation, particleName, 1, speed);
+                }
             }
         }
     }

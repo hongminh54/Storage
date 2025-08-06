@@ -430,6 +430,7 @@ public class TransferMultiGUI implements IGUI {
             return;
         }
 
+        SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
 
         // Use multi transfer method instead of individual transfers
@@ -443,6 +444,7 @@ public class TransferMultiGUI implements IGUI {
     }
 
     private void cancelTransfer() {
+        SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
         activeGUIs.remove(player);
         try {
@@ -476,6 +478,7 @@ public class TransferMultiGUI implements IGUI {
     }
 
     private void updateGUI() {
+        SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(getInventory(SoundContext.SILENT));
     }
 

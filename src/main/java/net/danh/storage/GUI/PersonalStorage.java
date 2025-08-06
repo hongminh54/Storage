@@ -51,7 +51,7 @@ public class PersonalStorage implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(p, config, "gui_open_sound", context);
-        Inventory inventory = Bukkit.createInventory(p, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
         List<String> item_list = new ArrayList<>(MineManager.getOrderedPluginBlocks());
         int itemsPerPage = Objects.requireNonNull(config.getString("items.storage_item.slot")).split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) item_list.size() / itemsPerPage));
@@ -82,6 +82,7 @@ public class PersonalStorage implements IGUI {
                             ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
                             InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(slotIndex))).onClick((player, clickType) -> {
                                 SoundManager.playItemSound(player, config, "items.storage_item", SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(player, false);
                                 player.openInventory(new ItemStorage(p, material, currentPage).getInventory(SoundContext.SILENT));
                             });
                             inventory.setItem(interactiveItem.getSlot(), interactiveItem);
@@ -95,6 +96,7 @@ public class PersonalStorage implements IGUI {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                             MineManager.toggle.replace(p, !MineManager.toggle.get(p));
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
+                            SoundManager.setShouldPlayCloseSound(p, false);
                             p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
                         });
                         inventory.setItem(item.getSlot(), item);
@@ -104,6 +106,7 @@ public class PersonalStorage implements IGUI {
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                         MineManager.toggle.replace(p, !MineManager.toggle.get(p));
                         p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
+                        SoundManager.setShouldPlayCloseSound(p, false);
                         p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
                     });
                     inventory.setItem(item.getSlot(), item);
@@ -113,6 +116,7 @@ public class PersonalStorage implements IGUI {
                     for (String slot_string : slot.split(",")) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
                             player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
                         });
                         inventory.setItem(item.getSlot(), item);
@@ -120,6 +124,7 @@ public class PersonalStorage implements IGUI {
                 } else {
                     InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
+                        SoundManager.setShouldPlayCloseSound(player, false);
                         player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
                     });
                     inventory.setItem(item.getSlot(), item);
@@ -130,6 +135,7 @@ public class PersonalStorage implements IGUI {
                     if (prevPageItem != null) {
                         InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
                             player.openInventory(new PersonalStorage(p, currentPage - 1).getInventory(SoundContext.SILENT));
                         });
                         inventory.setItem(item.getSlot(), item);
@@ -141,6 +147,7 @@ public class PersonalStorage implements IGUI {
                     if (nextPageItem != null) {
                         InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
                             player.openInventory(new PersonalStorage(p, currentPage + 1).getInventory(SoundContext.SILENT));
                         });
                         inventory.setItem(item.getSlot(), item);

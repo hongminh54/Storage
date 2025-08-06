@@ -55,7 +55,7 @@ public class ConvertOreGUI implements IGUI {
 
         String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
                 .replace("#player#", player.getName()));
-        Inventory inventory = Bukkit.createInventory(player, config.getInt("size") * 9, title);
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
         List<String> materialList = ConvertOreManager.getConvertibleMaterials();
         int itemsPerPage = Objects.requireNonNull(config.getString("items.material_item.slot")).split(",").length;
@@ -102,6 +102,7 @@ public class ConvertOreGUI implements IGUI {
                     InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slotList.get(slotIndex)))
                             .onClick((clickPlayer, clickType) -> {
                                 SoundManager.playItemSound(clickPlayer, config, "items.material_item", SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(clickPlayer, false);
                                 clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, currentPage).getInventory(SoundContext.SILENT));
                             });
                     inventory.setItem(interactiveItem.getSlot(), interactiveItem);
@@ -121,6 +122,7 @@ public class ConvertOreGUI implements IGUI {
                     .onClick((clickPlayer, clickType) -> {
                         SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
                         int newPage = isPrevious ? currentPage - 1 : currentPage + 1;
+                        SoundManager.setShouldPlayCloseSound(clickPlayer, false);
                         clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, newPage).getInventory(SoundContext.SILENT));
                     });
             inventory.setItem(interactiveItem.getSlot(), interactiveItem);
@@ -154,6 +156,7 @@ public class ConvertOreGUI implements IGUI {
                     .onClick((clickPlayer, clickType) -> {
                         if (itemTag.equalsIgnoreCase("back")) {
                             SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(clickPlayer, false);
                             clickPlayer.openInventory(new PersonalStorage(clickPlayer, PersonalStorage.getPlayerCurrentPage(clickPlayer)).getInventory(SoundContext.SILENT));
                         }
                     });

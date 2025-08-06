@@ -14,6 +14,7 @@ public class SoundManager {
 
     private static final Map<Player, Map<String, Long>> soundCooldowns = new HashMap<>();
     private static final long SOUND_COOLDOWN_MS = 100;
+    private static final Map<Player, Boolean> shouldPlayCloseSound = new HashMap<>();
 
     public static void playSound(Player player, SoundType soundType) {
         if (player == null || !player.isOnline()) return;
@@ -231,6 +232,24 @@ public class SoundManager {
         float pitch = (float) config.getDouble("convert.sounds.pitch", 1.0);
 
         playSound(player, soundName, volume, pitch);
+    }
+
+    // Close sound tracking methods
+    public static void setShouldPlayCloseSound(Player player, boolean shouldPlay) {
+        if (player != null) {
+            shouldPlayCloseSound.put(player, shouldPlay);
+        }
+    }
+
+    public static boolean getShouldPlayCloseSound(Player player) {
+        return shouldPlayCloseSound.getOrDefault(player, true);
+    }
+
+    public static void cleanupPlayer(Player player) {
+        if (player != null) {
+            soundCooldowns.remove(player);
+            shouldPlayCloseSound.remove(player);
+        }
     }
 
     public enum SoundType {

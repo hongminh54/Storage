@@ -312,12 +312,14 @@ public class TransferGUI implements IGUI {
     }
 
     private void confirmTransfer() {
+        SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
         TransferManager.executeTransfer(player, targetPlayer, material, transferAmount);
         activeGUIs.remove(player);
     }
 
     private void cancelTransfer() {
+        SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
         activeGUIs.remove(player);
         try {
@@ -329,6 +331,7 @@ public class TransferGUI implements IGUI {
     }
 
     public void updateGUI() {
+        SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(getInventory(SoundContext.SILENT));
     }
 

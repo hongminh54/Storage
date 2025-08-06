@@ -52,7 +52,7 @@ public class ConvertOptionGUI implements IGUI {
                 .replace("#player#", player.getName())
                 .replace("#material#", materialName));
 
-        Inventory inventory = Bukkit.createInventory(player, config.getInt("option_size") * 9, title);
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("option_size") * 9, title);
 
         List<ConvertOreManager.ConvertOption> options = ConvertOreManager.getConvertOptions(material);
         int playerAmount = MineManager.getPlayerBlock(player, material);
@@ -144,12 +144,14 @@ public class ConvertOptionGUI implements IGUI {
 
         if (isLeftClick) {
             new ConvertOre(clickPlayer, option.getFromMaterial(), option.getToMaterial(), maxConversions).doAction();
+            SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, returnPage).getInventory(SoundContext.SILENT));
         } else {
             net.danh.storage.Listeners.Chat.chat_convert_from.put(clickPlayer, option.getFromMaterial());
             net.danh.storage.Listeners.Chat.chat_convert_to.put(clickPlayer, option.getToMaterial());
             net.danh.storage.Listeners.Chat.chat_return_page.put(clickPlayer, returnPage);
             clickPlayer.sendMessage(Chat.colorize(File.getMessage().getString("convert.chat_amount")));
+            SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.closeInventory();
         }
     }
@@ -219,6 +221,7 @@ public class ConvertOptionGUI implements IGUI {
         switch (itemTag.toLowerCase()) {
             case "back":
                 playItemSound(clickPlayer, itemTag);
+                SoundManager.setShouldPlayCloseSound(clickPlayer, false);
                 clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, returnPage).getInventory(SoundContext.SILENT));
                 break;
             default:
