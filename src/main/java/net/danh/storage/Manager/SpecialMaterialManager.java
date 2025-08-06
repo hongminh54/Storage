@@ -270,11 +270,6 @@ public class SpecialMaterialManager {
                 material.getMaxAmount());
     }
 
-    // Reload method for admin commands
-    public static void reloadSpecialMaterials() {
-        loadSpecialMaterials();
-    }
-
     // Give special material to player
     public static boolean giveSpecialMaterial(Player player, String materialId, int amount) {
         if (player == null || !player.isOnline()) return false;
