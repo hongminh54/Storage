@@ -20,32 +20,32 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SpecialMaterialManager {
-    
+
     private static final Map<String, SpecialMaterial> specialMaterials = new HashMap<>();
     private static boolean systemEnabled = false;
-    
+
     public static void loadSpecialMaterials() {
         specialMaterials.clear();
-        
+
         FileConfiguration config = File.getSpecialMaterialConfig();
         if (config == null) {
             Storage.getStorage().getLogger().warning("Could not load special_material.yml!");
             return;
         }
-        
+
         systemEnabled = config.getBoolean("settings.enabled", true);
-        
+
         if (!systemEnabled) {
             Storage.getStorage().getLogger().info("Special Material system is disabled");
             return;
         }
-        
+
         ConfigurationSection materialsSection = config.getConfigurationSection("special_materials");
         if (materialsSection == null) {
             Storage.getStorage().getLogger().warning("No special materials configured!");
             return;
         }
-        
+
         int loadedCount = 0;
         for (String materialId : materialsSection.getKeys(false)) {
             try {
@@ -58,38 +58,38 @@ public class SpecialMaterialManager {
                 Storage.getStorage().getLogger().warning("Failed to load special material: " + materialId + " - " + e.getMessage());
             }
         }
-        
+
         Storage.getStorage().getLogger().info("Loaded " + loadedCount + " special materials");
     }
-    
+
     private static SpecialMaterial loadSpecialMaterial(String id, ConfigurationSection section) {
         if (section == null) return null;
-        
+
         // Load item configuration
         ConfigurationSection itemSection = section.getConfigurationSection("item");
         if (itemSection == null) return null;
-        
+
         String materialName = itemSection.getString("material");
         if (materialName == null) return null;
-        
+
         Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
         if (!xMaterial.isPresent()) {
             Storage.getStorage().getLogger().warning("Invalid material for special material " + id + ": " + materialName);
             return null;
         }
-        
+
         ItemStack item = xMaterial.get().parseItem();
         if (item == null) return null;
-        
+
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return null;
-        
+
         // Set display name
         String name = itemSection.getString("name");
         if (name != null) {
             meta.setDisplayName(Chat.colorizewp(name));
         }
-        
+
         // Set lore
         List<String> lore = itemSection.getStringList("lore");
         if (!lore.isEmpty()) {
@@ -99,7 +99,7 @@ public class SpecialMaterialManager {
             }
             meta.setLore(coloredLore);
         }
-        
+
         // Set custom model data
         if (itemSection.contains("custom_model_data")) {
             int customModelData = itemSection.getInt("custom_model_data");
@@ -107,7 +107,7 @@ public class SpecialMaterialManager {
                 meta.setCustomModelData(customModelData);
             }
         }
-        
+
         // Set item flags
         if (itemSection.contains("flags")) {
             ConfigurationSection flagsSection = itemSection.getConfigurationSection("flags");
@@ -117,8 +117,8 @@ public class SpecialMaterialManager {
                     if (flagName.equalsIgnoreCase("ALL")) {
                         if (apply) {
                             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES,
-                                            ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS,
-                                            ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_POTION_EFFECTS);
+                                    ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS,
+                                    ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_POTION_EFFECTS);
                             break;
                         }
                     } else {
@@ -134,32 +134,32 @@ public class SpecialMaterialManager {
                 }
             }
         }
-        
+
         // Set glow effect
         boolean glow = itemSection.getBoolean("glow", false);
         if (glow) {
             meta.addEnchant(Enchantment.DURABILITY, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
-        
+
         item.setItemMeta(meta);
-        
+
         // Load drop configuration
         double dropChance = section.getDouble("drop_chance", 0.0);
         List<String> sourceBlocks = section.getStringList("source_blocks");
         int minAmount = section.getInt("amount.min", 1);
         int maxAmount = section.getInt("amount.max", 1);
-        
+
         // Load effects configuration
         ConfigurationSection effectsSection = section.getConfigurationSection("effects");
         SpecialMaterialEffects effects = null;
         if (effectsSection != null) {
             effects = loadEffects(effectsSection);
         }
-        
+
         return new SpecialMaterial(id, item, dropChance, sourceBlocks, minAmount, maxAmount, effects);
     }
-    
+
     private static SpecialMaterialEffects loadEffects(ConfigurationSection section) {
         // Load sound effects
         ConfigurationSection soundSection = section.getConfigurationSection("sound");
@@ -170,7 +170,7 @@ public class SpecialMaterialManager {
             float pitch = (float) soundSection.getDouble("pitch", 1.0);
             sound = new SpecialMaterialSound(soundName, volume, pitch);
         }
-        
+
         // Load particle effects
         ConfigurationSection particleSection = section.getConfigurationSection("particles");
         SpecialMaterialParticle particle = null;
@@ -182,15 +182,15 @@ public class SpecialMaterialManager {
             double radius = particleSection.getDouble("radius", 1.5);
             particle = new SpecialMaterialParticle(type, count, speed, animation, radius);
         }
-        
+
         return new SpecialMaterialEffects(sound, particle);
     }
-    
+
     public static void checkSpecialMaterialDrop(Player player, Block block) {
         if (!systemEnabled || specialMaterials.isEmpty()) return;
-        
+
         String blockKey = getBlockKey(block);
-        
+
         for (SpecialMaterial material : specialMaterials.values()) {
             if (material.canDropFrom(blockKey)) {
                 if (ThreadLocalRandom.current().nextDouble(100.0) <= material.getDropChance()) {
@@ -199,26 +199,26 @@ public class SpecialMaterialManager {
             }
         }
     }
-    
+
     private static void dropSpecialMaterial(Player player, Location location, SpecialMaterial material) {
         int amount = ThreadLocalRandom.current().nextInt(material.getMinAmount(), material.getMaxAmount() + 1);
-        
+
         for (int i = 0; i < amount; i++) {
             ItemStack item = material.getItem().clone();
             location.getWorld().dropItemNaturally(location, item);
         }
-        
+
         // Play effects
         if (material.getEffects() != null) {
             playEffects(player, location, material.getEffects());
         }
-        
+
         // Send message
         String message = File.getMessage().getString("special_material.found", "#prefix# &aYou found a special material: &e#material#!");
         message = message.replace("#material#", material.getItem().getItemMeta().getDisplayName());
         player.sendMessage(Chat.colorizewp(message.replace("#prefix#", File.getConfig().getString("prefix", ""))));
     }
-    
+
     private static void playEffects(Player player, Location location, SpecialMaterialEffects effects) {
         // Play sound
         if (effects.getSound() != null) {
@@ -230,15 +230,15 @@ public class SpecialMaterialManager {
                 Storage.getStorage().getLogger().warning("Failed to play special material sound: " + sound.getName());
             }
         }
-        
+
         // Play particles
         if (effects.getParticle() != null) {
             SpecialMaterialParticle particle = effects.getParticle();
-            ParticleManager.playSpecialMaterialParticle(location, particle.getType(), particle.getCount(), 
+            ParticleManager.playSpecialMaterialParticle(location, particle.getType(), particle.getCount(),
                     particle.getSpeed(), particle.getAnimation(), particle.getRadius());
         }
     }
-    
+
     private static String getBlockKey(Block block) {
         NMSAssistant nms = new NMSAssistant();
         return block.getType().name() + ";" + (nms.isVersionLessThanOrEqualTo(12) ? block.getData() : "0");
@@ -292,7 +292,7 @@ public class SpecialMaterialManager {
             return false;
         }
     }
-    
+
     // Inner classes for data structure
     private static class SpecialMaterial {
         private final String id;
@@ -302,9 +302,9 @@ public class SpecialMaterialManager {
         private final int minAmount;
         private final int maxAmount;
         private final SpecialMaterialEffects effects;
-        
-        public SpecialMaterial(String id, ItemStack item, double dropChance, List<String> sourceBlocks, 
-                             int minAmount, int maxAmount, SpecialMaterialEffects effects) {
+
+        public SpecialMaterial(String id, ItemStack item, double dropChance, List<String> sourceBlocks,
+                               int minAmount, int maxAmount, SpecialMaterialEffects effects) {
             this.id = id;
             this.item = item;
             this.dropChance = dropChance;
@@ -313,57 +313,90 @@ public class SpecialMaterialManager {
             this.maxAmount = maxAmount;
             this.effects = effects;
         }
-        
+
         public boolean canDropFrom(String blockKey) {
             return sourceBlocks.contains(blockKey);
         }
-        
+
         // Getters
-        public String getId() { return id; }
-        public ItemStack getItem() { return item; }
-        public double getDropChance() { return dropChance; }
-        public List<String> getSourceBlocks() { return sourceBlocks; }
-        public int getMinAmount() { return minAmount; }
-        public int getMaxAmount() { return maxAmount; }
-        public SpecialMaterialEffects getEffects() { return effects; }
+        public String getId() {
+            return id;
+        }
+
+        public ItemStack getItem() {
+            return item;
+        }
+
+        public double getDropChance() {
+            return dropChance;
+        }
+
+        public List<String> getSourceBlocks() {
+            return sourceBlocks;
+        }
+
+        public int getMinAmount() {
+            return minAmount;
+        }
+
+        public int getMaxAmount() {
+            return maxAmount;
+        }
+
+        public SpecialMaterialEffects getEffects() {
+            return effects;
+        }
     }
-    
+
     private static class SpecialMaterialEffects {
         private final SpecialMaterialSound sound;
         private final SpecialMaterialParticle particle;
-        
+
         public SpecialMaterialEffects(SpecialMaterialSound sound, SpecialMaterialParticle particle) {
             this.sound = sound;
             this.particle = particle;
         }
-        
-        public SpecialMaterialSound getSound() { return sound; }
-        public SpecialMaterialParticle getParticle() { return particle; }
+
+        public SpecialMaterialSound getSound() {
+            return sound;
+        }
+
+        public SpecialMaterialParticle getParticle() {
+            return particle;
+        }
     }
-    
+
     private static class SpecialMaterialSound {
         private final String name;
         private final float volume;
         private final float pitch;
-        
+
         public SpecialMaterialSound(String name, float volume, float pitch) {
             this.name = name;
             this.volume = volume;
             this.pitch = pitch;
         }
-        
-        public String getName() { return name; }
-        public float getVolume() { return volume; }
-        public float getPitch() { return pitch; }
+
+        public String getName() {
+            return name;
+        }
+
+        public float getVolume() {
+            return volume;
+        }
+
+        public float getPitch() {
+            return pitch;
+        }
     }
-    
+
     private static class SpecialMaterialParticle {
         private final String type;
         private final int count;
         private final double speed;
         private final String animation;
         private final double radius;
-        
+
         public SpecialMaterialParticle(String type, int count, double speed, String animation, double radius) {
             this.type = type;
             this.count = count;
@@ -371,11 +404,25 @@ public class SpecialMaterialManager {
             this.animation = animation;
             this.radius = radius;
         }
-        
-        public String getType() { return type; }
-        public int getCount() { return count; }
-        public double getSpeed() { return speed; }
-        public String getAnimation() { return animation; }
-        public double getRadius() { return radius; }
+
+        public String getType() {
+            return type;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public double getSpeed() {
+            return speed;
+        }
+
+        public String getAnimation() {
+            return animation;
+        }
+
+        public double getRadius() {
+            return radius;
+        }
     }
 }

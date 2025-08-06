@@ -2,7 +2,6 @@ package net.danh.storage.Enchant;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
-import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
@@ -49,9 +48,9 @@ public class VeinMinerEnchant {
         playerCooldowns.put(playerId, currentTime);
     }
 
-    private static void mineVein(Player player, Location location, 
-                                EnchantManager.EnchantLevelData levelData,
-                                EnchantManager.EnchantData enchantData) {
+    private static void mineVein(Player player, Location location,
+                                 EnchantManager.EnchantLevelData levelData,
+                                 EnchantManager.EnchantData enchantData) {
 
         if (!player.isOnline()) return;
 
@@ -69,7 +68,7 @@ public class VeinMinerEnchant {
 
         Block centerBlock = location.getBlock();
         Material targetMaterial = centerBlock.getType();
-        
+
         // Only mine ores and stone-like blocks
         if (!isValidVeinBlock(targetMaterial)) {
             return;
@@ -87,44 +86,44 @@ public class VeinMinerEnchant {
 
     private static boolean isValidVeinBlock(Material material) {
         String materialName = material.name();
-        return materialName.contains("_ORE") || 
-               materialName.equals("COAL_BLOCK") ||
-               materialName.equals("IRON_BLOCK") ||
-               materialName.equals("GOLD_BLOCK") ||
-               materialName.equals("DIAMOND_BLOCK") ||
-               materialName.equals("EMERALD_BLOCK") ||
-               materialName.equals("REDSTONE_BLOCK") ||
-               materialName.equals("LAPIS_BLOCK") ||
-               materialName.equals("STONE") ||
-               materialName.equals("COBBLESTONE");
+        return materialName.contains("_ORE") ||
+                materialName.equals("COAL_BLOCK") ||
+                materialName.equals("IRON_BLOCK") ||
+                materialName.equals("GOLD_BLOCK") ||
+                materialName.equals("DIAMOND_BLOCK") ||
+                materialName.equals("EMERALD_BLOCK") ||
+                materialName.equals("REDSTONE_BLOCK") ||
+                materialName.equals("LAPIS_BLOCK") ||
+                materialName.equals("STONE") ||
+                materialName.equals("COBBLESTONE");
     }
 
     private static List<Block> findConnectedBlocks(Block startBlock, Material targetMaterial, int maxBlocks) {
         List<Block> result = new ArrayList<>();
         Set<Block> visited = new HashSet<>();
         Queue<Block> queue = new LinkedList<>();
-        
+
         queue.add(startBlock);
         visited.add(startBlock);
-        
+
         while (!queue.isEmpty() && result.size() < maxBlocks) {
             Block current = queue.poll();
             result.add(current);
-            
+
             // Check 6 adjacent blocks (up, down, north, south, east, west)
-            for (int[] offset : new int[][]{{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}}) {
+            for (int[] offset : new int[][]{{0, 1, 0}, {0, -1, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}}) {
                 Block adjacent = current.getRelative(offset[0], offset[1], offset[2]);
-                
-                if (!visited.contains(adjacent) && 
-                    adjacent.getType() == targetMaterial &&
-                    MineManager.checkBreak(adjacent)) {
-                    
+
+                if (!visited.contains(adjacent) &&
+                        adjacent.getType() == targetMaterial &&
+                        MineManager.checkBreak(adjacent)) {
+
                     visited.add(adjacent);
                     queue.add(adjacent);
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -200,7 +199,7 @@ public class VeinMinerEnchant {
         if (nms.isVersionLessThanOrEqualTo(12)) {
             return 1;
         }
-        
+
         Collection<ItemStack> drops = block.getDrops();
         return drops.isEmpty() ? 1 : drops.iterator().next().getAmount();
     }
@@ -228,9 +227,9 @@ public class VeinMinerEnchant {
 
                 if (enchantData.soundsEnabled && location.getWorld() != null) {
                     try {
-                        location.getWorld().playSound(location, 
+                        location.getWorld().playSound(location,
                                 org.bukkit.Sound.valueOf(enchantData.explosionSound),
-                                enchantData.soundVolume, 
+                                enchantData.soundVolume,
                                 enchantData.soundPitch);
                     } catch (Exception ignored) {
                         // Fallback for older versions

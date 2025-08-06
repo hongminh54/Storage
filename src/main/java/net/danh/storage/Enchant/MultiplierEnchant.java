@@ -58,9 +58,7 @@ public class MultiplierEnchant {
         }
 
         if (File.getConfig().contains("blacklist_world")) {
-            if (File.getConfig().getStringList("blacklist_world").contains(player.getWorld().getName())) {
-                return false;
-            }
+            return !File.getConfig().getStringList("blacklist_world").contains(player.getWorld().getName());
         }
 
         return true;
@@ -89,9 +87,9 @@ public class MultiplierEnchant {
 
                 if (enchantData.soundsEnabled && location.getWorld() != null) {
                     try {
-                        location.getWorld().playSound(location, 
+                        location.getWorld().playSound(location,
                                 org.bukkit.Sound.valueOf(enchantData.explosionSound),
-                                enchantData.soundVolume, 
+                                enchantData.soundVolume,
                                 enchantData.soundPitch);
                     } catch (Exception ignored) {
                         // Fallback for older versions

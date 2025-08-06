@@ -367,7 +367,7 @@ public class ParticleManager {
     }
 
     private static void playSpecialMaterialAnimationFrame(Location center, ParticleAnimation animation, int tick,
-                                                         String particleType, int count, double speed, double radius) {
+                                                          String particleType, int count, double speed, double radius) {
         switch (animation) {
             case CIRCLE:
                 playCircleAnimationAtLocation(center, tick, radius, particleType, count, speed);
@@ -618,7 +618,7 @@ public class ParticleManager {
                 double oppositeX = center.getX() + radius * Math.cos(strandAngle + Math.PI);
                 double oppositeZ = center.getZ() + radius * Math.sin(strandAngle + Math.PI);
                 Location crossLink = new Location(center.getWorld(),
-                    (x + oppositeX) / 2, y, (z + oppositeZ) / 2);
+                        (x + oppositeX) / 2, y, (z + oppositeZ) / 2);
                 spawnParticleForNearbyPlayers(crossLink, particleName, 1, speed);
             }
         }
@@ -718,24 +718,6 @@ public class ParticleManager {
         }
     }
 
-    public enum ParticleType {
-        TRANSFER_SUCCESS("transfer.particles.success"),
-        TRANSFER_RECEIVE("transfer.particles.receive"),
-        TRANSFER_FAILED("transfer.particles.failed"),
-        TRANSFER_PROCESSING("transfer.particles.processing"),
-        TRANSFER_BEAM("transfer.particles.beam");
-
-        private final String configPath;
-
-        ParticleType(String configPath) {
-            this.configPath = configPath;
-        }
-
-        public String getConfigPath() {
-            return configPath;
-        }
-    }
-
     // Location-based animation methods for special materials
     private static void playCircleAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
         double angle = (tick * 0.3) % (2 * Math.PI);
@@ -796,7 +778,7 @@ public class ParticleManager {
             double distance = 0.5 + Math.random() * 1.5;
             Location particleLocation = center.clone().add(
                     Math.cos(angle) * distance,
-                    Math.random() * 1.0 - 0.5,
+                    Math.random() - 0.5,
                     Math.sin(angle) * distance
             );
             playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
@@ -883,6 +865,24 @@ public class ParticleManager {
                     Math.sin(angle) * distance
             );
             playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
+        }
+    }
+
+    public enum ParticleType {
+        TRANSFER_SUCCESS("transfer.particles.success"),
+        TRANSFER_RECEIVE("transfer.particles.receive"),
+        TRANSFER_FAILED("transfer.particles.failed"),
+        TRANSFER_PROCESSING("transfer.particles.processing"),
+        TRANSFER_BEAM("transfer.particles.beam");
+
+        private final String configPath;
+
+        ParticleType(String configPath) {
+            this.configPath = configPath;
+        }
+
+        public String getConfigPath() {
+            return configPath;
         }
     }
 }

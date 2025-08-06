@@ -42,9 +42,9 @@ public class HasteEnchant {
         playerCooldowns.put(playerId, currentTime);
     }
 
-    private static void applyHasteEffect(Player player, EnchantManager.EnchantLevelData levelData, 
-                                        EnchantManager.EnchantData enchantData) {
-        
+    private static void applyHasteEffect(Player player, EnchantManager.EnchantLevelData levelData,
+                                         EnchantManager.EnchantData enchantData) {
+
         if (!player.isOnline()) return;
 
         if (Storage.isWorldGuardInstalled()) {
@@ -107,9 +107,9 @@ public class HasteEnchant {
 
                 if (enchantData.soundsEnabled && location.getWorld() != null) {
                     try {
-                        location.getWorld().playSound(location, 
+                        location.getWorld().playSound(location,
                                 org.bukkit.Sound.valueOf(enchantData.explosionSound),
-                                enchantData.soundVolume, 
+                                enchantData.soundVolume,
                                 enchantData.soundPitch);
                     } catch (Exception ignored) {
                         // Fallback for older versions
@@ -125,9 +125,9 @@ public class HasteEnchant {
         long cleanupThreshold = 300000; // 5 minutes
 
         playerCooldowns.entrySet().removeIf(entry ->
-            currentTime - entry.getValue() > cleanupThreshold);
+                currentTime - entry.getValue() > cleanupThreshold);
 
         playerLastHaste.entrySet().removeIf(entry ->
-            currentTime - entry.getValue() > cleanupThreshold);
+                currentTime - entry.getValue() > cleanupThreshold);
     }
 }
