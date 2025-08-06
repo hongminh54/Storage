@@ -27,6 +27,8 @@ permissions:
     description: Admin max permission command
   storage.admin.reload:
     description: Admin reload permission command
+  storage.admin.specialmaterial:
+    description: Admin special material permission command
   storage.transfer.use:
     description: Use transfer feature
     default: true

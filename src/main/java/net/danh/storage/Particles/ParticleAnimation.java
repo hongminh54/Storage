@@ -31,8 +31,4 @@ public enum ParticleAnimation {
         }
         return NONE;
     }
-
-    public String getConfigName() {
-        return configName;
-    }
 }

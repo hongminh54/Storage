@@ -10,6 +10,7 @@ import net.danh.storage.Enchant.VeinMinerEnchant;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.Manager.StorageFullNotificationManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
@@ -136,6 +137,11 @@ public class BlockBreak implements Listener {
                     VeinMinerEnchant.triggerVeinMiner(p, block.getLocation(), enchantLevel);
                 }
             }
+        }
+
+        // Check for special material drops
+        if (MineManager.checkBreak(block)) {
+            SpecialMaterialManager.checkSpecialMaterialDrop(p, block);
         }
     }
 

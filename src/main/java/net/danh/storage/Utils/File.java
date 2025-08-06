@@ -2,6 +2,7 @@ package net.danh.storage.Utils;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.Bukkit;
@@ -50,18 +51,23 @@ public class File {
         return getFileSetting().get("enchants.yml");
     }
 
+    public static FileConfiguration getSpecialMaterialConfig() {
+        return getFileSetting().get("special_material.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
         }
         net.danh.storage.Manager.ConvertOreManager.loadConvertOptions();
+        net.danh.storage.Manager.SpecialMaterialManager.loadSpecialMaterials();
     }
 
     public static void loadGUI() {
@@ -173,6 +179,27 @@ public class File {
                 e.printStackTrace();
             }
             getFileSetting().reload("enchants.yml");
+        }
+    }
+
+    public static void updateSpecialMaterialConfig() {
+        getFileSetting().save("special_material.yml");
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "special_material.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("special_material.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_specialMaterialVersion = defaultConfig.getInt("special_materials_version");
+        int current_specialMaterialVersion = currentConfig.contains("special_materials_version") ? currentConfig.getInt("special_materials_version") : 0;
+        if (default_specialMaterialVersion > current_specialMaterialVersion || default_specialMaterialVersion < current_specialMaterialVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config is updating...");
+            try {
+                ConfigUpdater.update(Storage.getStorage(), "special_material.yml", configFile);
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config have been updated successful");
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update special materials config by it self, please backup and rename your special materials config then restart to get newest config!!");
+                e.printStackTrace();
+            }
+            getFileSetting().reload("special_material.yml");
+            SpecialMaterialManager.loadSpecialMaterials();
         }
     }
 

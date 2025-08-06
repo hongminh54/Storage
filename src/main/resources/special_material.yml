@@ -1,0 +1,156 @@
+# Special Material Configuration
+# Do not touch it
+special_materials_version: 1
+
+# Global settings for special materials
+settings:
+  # Enable/disable special material system
+  enabled: true
+
+# Special materials configuration
+# Format: material_id:
+special_materials:
+  # Example special material
+  rare_gem:
+    # Item configuration
+    item:
+      # Base material (use XMaterial format)
+      material: "EMERALD"
+      # Display name (supports color codes)
+      name: "&a&lRare Gem"
+      # Lore (supports color codes)
+      lore:
+        - "&7A mysterious gem found"
+        - "&7deep in the mines"
+        - ""
+        - "&6&lRARE MATERIAL"
+      # Make item glow
+      glow: true
+      # Custom model data (for resource packs)
+      custom_model_data: 1001
+      # Item flags to hide | If you use ALL: true -> All flag will be applied to item
+      flags:
+        ALL: true
+        # Or use specific flags:
+        # HIDE_ENCHANTS: true
+        # HIDE_ATTRIBUTES: true
+        # HIDE_DESTROYS: true
+        # HIDE_PLACED_ON: true
+        # HIDE_UNBREAKABLE: true
+        # HIDE_POTION_EFFECTS: true
+    
+    # Drop configuration
+    drop_chance: 5.0  # 5% chance to drop
+    
+    # Which blocks can drop this special material
+    # Use same format as config.yml blocks section
+    source_blocks:
+      - "DIAMOND_ORE;0"
+      - "EMERALD_ORE;0"
+    
+    # Amount range when dropped
+    amount:
+      min: 1
+      max: 2
+
+    # Effects for this specific material
+    effects:
+      # Sound effects
+      sound:
+        enabled: true
+        name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+        volume: 1.0
+        pitch: 1.2
+
+      # Particle effects
+      particles:
+        enabled: true
+        type: "VILLAGER_HAPPY"
+        count: 15
+        speed: 0.1
+        animation: "burst"
+        radius: 1.5
+
+  # Another example
+  ancient_crystal:
+    item:
+      material: "DIAMOND"
+      name: "&b&lAncient Crystal"
+      lore:
+        - "&7An ancient crystal that"
+        - "&7radiates mysterious energy"
+        - ""
+        - "&b&lMYSTIC MATERIAL"
+      glow: true
+      custom_model_data: 1002
+      flags:
+        ALL: true
+    
+    drop_chance: 2.5  # 2.5% chance
+    
+    source_blocks:
+      - "COAL_ORE;0"
+      - "IRON_ORE;0"
+      - "GOLD_ORE;0"
+      - "REDSTONE_ORE;0"
+      - "LAPIS_ORE;0"
+    
+    amount:
+      min: 1
+      max: 1
+
+    # Different effects for this material
+    effects:
+      sound:
+        enabled: true
+        name: "BLOCK_AMETHYST_BLOCK_CHIME"
+        volume: 0.8
+        pitch: 1.5
+
+      particles:
+        enabled: true
+        type: "ENCHANTMENT_TABLE"
+        count: 20
+        speed: 0.05
+        animation: "spiral"
+        radius: 2.0
+
+  # Uncomment and configure more materials as needed
+  # mythic_shard:
+  #   item:
+  #     material: "QUARTZ"
+  #     name: "&d&lMythic Shard"
+  #     lore:
+  #       - "&7A shard of pure magic"
+  #       - "&7from the depths of the earth"
+  #       - ""
+  #       - "&d&lMYTHIC MATERIAL"
+  #     glow: true
+  #     custom_model_data: 1003
+  #     flags:
+  #       ALL: true
+  #   
+  #   drop_chance: 1.0  # 1% chance
+  #   
+  #   source_blocks:
+  #     - "DIAMOND_ORE;0"
+  #     - "EMERALD_ORE;0"
+  #   
+  #   amount:
+  #     min: 1
+  #     max: 1
+  #
+  #   effects:
+  #     sound:
+  #       enabled: true
+  #       name: "ENTITY_ENDER_DRAGON_AMBIENT"
+  #       volume: 0.5
+  #       pitch: 2.0
+  #
+  #     particles:
+  #       enabled: true
+  #       type: "PORTAL"
+  #       count: 25
+  #       speed: 0.2
+  #       animation: "helix"
+  #       radius: 1.8

@@ -36,6 +36,7 @@ public class CommandManager {
         registerCommand("set", new SetCommand());
         registerCommand("reset", new ResetCommand());
         registerCommand("enchant", new EnchantCommand());
+        registerCommand("specialmaterial", new SpecialMaterialCommand());
     }
 
     private void registerCommand(String name, CommandHandler handler) {

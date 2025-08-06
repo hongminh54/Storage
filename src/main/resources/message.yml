@@ -47,6 +47,7 @@ admin:
     - "&e/Storage save &f- &7Force save all player data"
     - "&e/Storage event &b<start|stop|list> &f- &7Manage events"
     - "&e/Storage enchant &b<give|remove|list|info|setmaxlevel> &f- &7Manage custom enchantments"
+    - "&e/Storage specialmaterial &b<list|info|give> &f- &7Manage special materials"
   transfer_commands:
     error_opening_gui: "#prefix# &cError opening transfer GUI, please specify a valid player and material (if transfer is multi, specify player only)."
 user:
@@ -265,3 +266,17 @@ enchant:
   invalid_max_level: "#prefix# &cInvalid max level '&e#level#&c'! Must be between 1 and &e#max#"
   setmaxlevel_success: "#prefix# &aSuccessfully set max level for &e#enchant# &ato &6#level#&a! Levels have been auto-generated."
   setmaxlevel_failed: "#prefix# &cFailed to update max level for enchant '&e#enchant#&c'!"
+special_material:
+  found: "#prefix# &6✦ &eYou found a special material: #material#&e!"
+  invalid_subcommand: "#prefix# &cInvalid subcommand '&e#subcommand#&c'! Use: list, info, give"
+  no_materials: "#prefix# &cNo special materials are configured!"
+  material_not_found: "#prefix# &cSpecial material '&e#material#&c' not found!"
+  give_success: "#prefix# &aGave &e#amount# #material# &ato &6#player#"
+  give_received: "#prefix# &aYou received &e#amount# #material# &afrom &6#player#"
+  give_failed: "#prefix# &cFailed to give special material!"
+  list:
+    header: "&6=== &eSpecial Materials &7(#count#) &6==="
+    entry: "&e• &7#info#"
+  info:
+    header: "&6=== &eSpecial Material: &a#material# &6==="
+    details: "&7#info#"

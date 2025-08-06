@@ -58,6 +58,7 @@ public final class Storage extends JavaPlugin {
         File.updateMessage();
         File.updateEventConfig();
         File.updateEnchantConfig();
+        File.updateSpecialMaterialConfig();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
         }
@@ -72,6 +73,7 @@ public final class Storage extends JavaPlugin {
         AutoSaveManager.initialize();
         EventManager.initialize();
         EnchantManager.loadEnchants();
+        SpecialMaterialManager.loadSpecialMaterials();
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");

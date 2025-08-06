@@ -299,6 +299,111 @@ public class ParticleManager {
         stopAnimation("processing_" + player.getName());
     }
 
+    public static void playSpecialMaterialParticle(Location location, String particleType, int count,
+                                                   double speed, String animation, double radius) {
+        if (location == null || location.getWorld() == null) return;
+
+        ParticleAnimation particleAnimation = ParticleAnimation.fromString(animation);
+
+        if (particleAnimation == ParticleAnimation.NONE) {
+            // Play simple particle effect
+            playSimpleParticleAtLocation(location, particleType, count, speed);
+            return;
+        }
+
+        // Play animated particle effect
+        String animationKey = "special_material_" + location.hashCode();
+        stopAnimation(animationKey);
+
+        BukkitTask task = new BukkitRunnable() {
+            private final int maxTicks = 20; // 1 second animation
+            private int ticks = 0;
+
+            @Override
+            public void run() {
+                if (ticks >= maxTicks) {
+                    cancel();
+                    activeAnimations.remove(animationKey);
+                    return;
+                }
+
+                playSpecialMaterialAnimationFrame(location, particleAnimation, ticks, particleType, count, speed, radius);
+                ticks++;
+            }
+        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+
+        activeAnimations.put(animationKey, task);
+    }
+
+    private static void playSimpleParticleAtLocation(Location location, String particleType, int count, double speed) {
+        try {
+            NMSAssistant nms = new NMSAssistant();
+
+            if (nms.isVersionGreaterThanOrEqualTo(13)) {
+                Particle particle = getModernParticle(particleType);
+                if (particle != null && location.getWorld() != null) {
+                    location.getWorld().spawnParticle(particle, location, count, 0.5, 0.5, 0.5, speed);
+                }
+            } else {
+                org.bukkit.Effect effect = getLegacyEffect(particleType);
+                if (effect != null && location.getWorld() != null) {
+                    location.getWorld().playEffect(location, effect, null);
+                }
+            }
+        } catch (Exception e) {
+            // Fallback - play simple effect
+            if (location.getWorld() != null) {
+                try {
+                    NMSAssistant nms = new NMSAssistant();
+                    if (nms.isVersionGreaterThanOrEqualTo(13)) {
+                        location.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, location, count, 0.5, 0.5, 0.5, speed);
+                    } else {
+                        location.getWorld().playEffect(location, org.bukkit.Effect.VILLAGER_PLANT_GROW, null);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    private static void playSpecialMaterialAnimationFrame(Location center, ParticleAnimation animation, int tick,
+                                                         String particleType, int count, double speed, double radius) {
+        switch (animation) {
+            case CIRCLE:
+                playCircleAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case SPIRAL:
+                playSpiralAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case HELIX:
+                playHelixAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case WAVE:
+                playWaveAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case BURST:
+                if (tick % 10 == 0) {
+                    playBurstAnimationAtLocation(center, particleType, count * 2, speed);
+                }
+                break;
+            case DNA_HELIX:
+                playDNAHelixAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case GALAXY:
+                playGalaxyAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case TORNADO:
+                playTornadoAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case LIGHTNING:
+                playLightningAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+            case GEOMETRIC_STAR:
+                playGeometricStarAnimationAtLocation(center, tick, radius, particleType, count, speed);
+                break;
+        }
+    }
+
     public static void playConvertParticle(Player player) {
         if (player == null || !player.isOnline()) return;
 
@@ -628,6 +733,156 @@ public class ParticleManager {
 
         public String getConfigPath() {
             return configPath;
+        }
+    }
+
+    // Location-based animation methods for special materials
+    private static void playCircleAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double angle = (tick * 0.3) % (2 * Math.PI);
+        Location particleLocation = center.clone().add(
+                Math.cos(angle) * radius,
+                0,
+                Math.sin(angle) * radius
+        );
+        playSimpleParticleAtLocation(particleLocation, particleName, count, speed);
+    }
+
+    private static void playSpiralAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double angle = tick * 0.3;
+        double currentRadius = (tick % 20) * radius / 20.0;
+        Location particleLocation = center.clone().add(
+                Math.cos(angle) * currentRadius,
+                (tick % 20) * 0.1,
+                Math.sin(angle) * currentRadius
+        );
+        playSimpleParticleAtLocation(particleLocation, particleName, count, speed);
+    }
+
+    private static void playHelixAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double angle = tick * 0.4;
+        double height = (tick % 40) * 0.05;
+
+        Location loc1 = center.clone().add(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+        );
+        Location loc2 = center.clone().add(
+                Math.cos(angle + Math.PI) * radius,
+                height,
+                Math.sin(angle + Math.PI) * radius
+        );
+
+        playSimpleParticleAtLocation(loc1, particleName, count / 2, speed);
+        playSimpleParticleAtLocation(loc2, particleName, count / 2, speed);
+    }
+
+    private static void playWaveAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        for (int i = 0; i < 8; i++) {
+            double angle = (i * Math.PI / 4) + (tick * 0.2);
+            double waveRadius = radius * (1 + 0.3 * Math.sin(tick * 0.5 + i));
+            Location particleLocation = center.clone().add(
+                    Math.cos(angle) * waveRadius,
+                    Math.sin(tick * 0.3 + i) * 0.5,
+                    Math.sin(angle) * waveRadius
+            );
+            playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
+        }
+    }
+
+    private static void playBurstAnimationAtLocation(Location center, String particleName, int count, double speed) {
+        for (int i = 0; i < count; i++) {
+            double angle = (2 * Math.PI * i) / count;
+            double distance = 0.5 + Math.random() * 1.5;
+            Location particleLocation = center.clone().add(
+                    Math.cos(angle) * distance,
+                    Math.random() * 1.0 - 0.5,
+                    Math.sin(angle) * distance
+            );
+            playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
+        }
+    }
+
+    private static void playDNAHelixAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        double angle1 = tick * 0.4;
+        double angle2 = angle1 + Math.PI;
+        double height = (tick % 40) * 0.05;
+
+        for (int i = 0; i < 3; i++) {
+            double offset = i * 0.3;
+            Location loc1 = center.clone().add(
+                    Math.cos(angle1) * radius,
+                    height + offset,
+                    Math.sin(angle1) * radius
+            );
+            Location loc2 = center.clone().add(
+                    Math.cos(angle2) * radius,
+                    height + offset,
+                    Math.sin(angle2) * radius
+            );
+
+            playSimpleParticleAtLocation(loc1, particleName, 1, speed);
+            playSimpleParticleAtLocation(loc2, particleName, 1, speed);
+        }
+    }
+
+    private static void playGalaxyAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        for (int arm = 0; arm < 3; arm++) {
+            double armAngle = (arm * 2 * Math.PI / 3) + (tick * 0.1);
+            for (int i = 0; i < 5; i++) {
+                double distance = (i + 1) * radius / 5;
+                double angle = armAngle + (i * 0.5);
+                Location particleLocation = center.clone().add(
+                        Math.cos(angle) * distance,
+                        Math.sin(tick * 0.2 + i) * 0.2,
+                        Math.sin(angle) * distance
+                );
+                playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
+            }
+        }
+    }
+
+    private static void playTornadoAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        for (int i = 0; i < count; i++) {
+            double height = (i * 2.0) / count;
+            double angle = (tick * 0.5) + (i * 0.3);
+            double currentRadius = radius * (1 - height / 2.0);
+
+            Location particleLocation = center.clone().add(
+                    Math.cos(angle) * currentRadius,
+                    height,
+                    Math.sin(angle) * currentRadius
+            );
+            playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
+        }
+    }
+
+    private static void playLightningAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        if (tick % 5 == 0) {
+            for (int i = 0; i < 3; i++) {
+                double angle = Math.random() * 2 * Math.PI;
+                double distance = Math.random() * radius;
+                Location particleLocation = center.clone().add(
+                        Math.cos(angle) * distance,
+                        Math.random() * 2.0 - 1.0,
+                        Math.sin(angle) * distance
+                );
+                playSimpleParticleAtLocation(particleLocation, particleName, count / 3, speed);
+            }
+        }
+    }
+
+    private static void playGeometricStarAnimationAtLocation(Location center, int tick, double radius, String particleName, int count, double speed) {
+        int points = 5;
+        for (int i = 0; i < points * 2; i++) {
+            double angle = (i * Math.PI / points) + (tick * 0.1);
+            double distance = (i % 2 == 0) ? radius : radius * 0.5;
+            Location particleLocation = center.clone().add(
+                    Math.cos(angle) * distance,
+                    Math.sin(tick * 0.3) * 0.3,
+                    Math.sin(angle) * distance
+            );
+            playSimpleParticleAtLocation(particleLocation, particleName, 1, speed);
         }
     }
 }
