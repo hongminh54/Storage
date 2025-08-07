@@ -3,17 +3,19 @@ package net.danh.storage.Enchant;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
-import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.particles.XParticle;
+import com.cryptomorin.xseries.particles.ParticleDisplay;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SpecialMaterialManager;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -123,21 +125,21 @@ public class TNTEnchant {
             XParticle particle = getXParticleFromString(enchantData.particleType);
             if (particle != null) {
                 ParticleDisplay.of(particle)
-                        .withLocation(location)
-                        .withCount(enchantData.particleCount)
-                        .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
-                        .withExtra(enchantData.particleExtra)
-                        .spawn();
+                    .withLocation(location)
+                    .withCount(enchantData.particleCount)
+                    .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                    .withExtra(enchantData.particleExtra)
+                    .spawn();
             } else {
                 // Fallback to explosion particle
                 XParticle fallback = XParticle.of("EXPLOSION_HUGE").orElse(XParticle.of("EXPLOSION_LARGE").orElse(null));
                 if (fallback != null) {
                     ParticleDisplay.of(fallback)
-                            .withLocation(location)
-                            .withCount(enchantData.particleCount)
-                            .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
-                            .withExtra(enchantData.particleExtra)
-                            .spawn();
+                        .withLocation(location)
+                        .withCount(enchantData.particleCount)
+                        .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                        .withExtra(enchantData.particleExtra)
+                        .spawn();
                 }
             }
         } catch (Exception e) {
