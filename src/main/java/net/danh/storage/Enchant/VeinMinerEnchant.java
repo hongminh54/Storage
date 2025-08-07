@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -162,6 +163,9 @@ public class VeinMinerEnchant {
                         }
                     }
                 }
+
+                // Check for special material drops with Vein Miner bonus
+                SpecialMaterialManager.checkSpecialMaterialDrop(player, block, "veinminer");
             }
         }
     }

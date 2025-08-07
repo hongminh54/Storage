@@ -6,6 +6,7 @@ import com.cryptomorin.xseries.XSound;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -205,6 +206,9 @@ public class TNTEnchant {
                         }
                     }
                 }
+
+                // Check for special material drops with TNT penalty
+                SpecialMaterialManager.checkSpecialMaterialDrop(player, block, "tnt");
             }
         }
     }

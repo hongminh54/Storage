@@ -1,13 +1,22 @@
-# Special Material Configuration
 # Do not touch it
 special_materials_version: 1
 
-# Global settings for special materials
 settings:
   # Enable/disable special material system
   enabled: true
 
-# Special materials configuration
+# Enchant bonuses for special materials
+enchant_bonuses:
+  # Vein Miner enchant bonus
+  veinminer:
+    enabled: true
+    bonus_drop_chance: 5.0  # +5% drop chance when using Vein Miner
+
+  # TNT enchant balance
+  tnt:
+    enabled: true
+    drop_chance_modifier: 0.7  # 70% of normal drop chance to balance AoE mining
+
 # Format: material_id:
 special_materials:
   # Example special material

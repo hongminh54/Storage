@@ -176,7 +176,6 @@ public class TransferManager {
             return false;
         }
 
-        // Optimize transfer amounts based on receiver capacity
         Map<String, Integer> optimizedMaterials = MineManager.calculateOptimalMultiTransfer(sender, receiver, materials);
 
         if (optimizedMaterials.isEmpty()) {
@@ -185,15 +184,12 @@ public class TransferManager {
             return false;
         }
 
-        // Validate optimized transfers
         for (Map.Entry<String, Integer> entry : optimizedMaterials.entrySet()) {
             if (!canTransferForMulti(sender, receiverName, entry.getKey(), entry.getValue())) {
                 return false;
             }
         }
 
-
-        // Start multi transfer process with optimized amounts
         startMultiTransferProcess(sender, receiver, optimizedMaterials);
         return true;
     }

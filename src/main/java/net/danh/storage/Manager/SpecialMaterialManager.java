@@ -2,6 +2,7 @@ package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
+import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
@@ -187,13 +188,22 @@ public class SpecialMaterialManager {
     }
 
     public static void checkSpecialMaterialDrop(Player player, Block block) {
+        checkSpecialMaterialDrop(player, block, null);
+    }
+
+    public static void checkSpecialMaterialDrop(Player player, Block block, String enchantType) {
         if (!systemEnabled || specialMaterials.isEmpty()) return;
 
         String blockKey = getBlockKey(block);
 
         for (SpecialMaterial material : specialMaterials.values()) {
             if (material.canDropFrom(blockKey)) {
-                if (ThreadLocalRandom.current().nextDouble(100.0) <= material.getDropChance()) {
+                double dropChance = material.getDropChance();
+
+                // Apply enchant bonuses/penalties
+                dropChance = applyEnchantModifier(dropChance, enchantType);
+
+                if (ThreadLocalRandom.current().nextDouble(100.0) <= dropChance) {
                     dropSpecialMaterial(player, block.getLocation(), material);
                 }
             }
@@ -202,6 +212,13 @@ public class SpecialMaterialManager {
 
     private static void dropSpecialMaterial(Player player, Location location, SpecialMaterial material) {
         int amount = ThreadLocalRandom.current().nextInt(material.getMinAmount(), material.getMaxAmount() + 1);
+
+        // Apply Multiplier enchant if present
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "multiplier")) {
+            int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
+            amount = MultiplierEnchant.calculateMultipliedAmount(player, amount, multiplierLevel);
+        }
 
         for (int i = 0; i < amount; i++) {
             ItemStack item = material.getItem().clone();
@@ -236,6 +253,31 @@ public class SpecialMaterialManager {
             SpecialMaterialParticle particle = effects.getParticle();
             ParticleManager.playSpecialMaterialParticle(location, particle.getType(), particle.getCount(),
                     particle.getSpeed(), particle.getAnimation(), particle.getRadius());
+        }
+    }
+
+    private static double applyEnchantModifier(double baseDropChance, String enchantType) {
+        if (enchantType == null) return baseDropChance;
+
+        FileConfiguration config = File.getSpecialMaterialConfig();
+        if (config == null) return baseDropChance;
+
+        ConfigurationSection bonusSection = config.getConfigurationSection("enchant_bonuses." + enchantType);
+        if (bonusSection == null || !bonusSection.getBoolean("enabled", false)) {
+            return baseDropChance;
+        }
+
+        switch (enchantType.toLowerCase()) {
+            case "veinminer":
+                double bonusChance = bonusSection.getDouble("bonus_drop_chance", 0.0);
+                return baseDropChance + bonusChance;
+
+            case "tnt":
+                double modifier = bonusSection.getDouble("drop_chance_modifier", 1.0);
+                return baseDropChance * modifier;
+
+            default:
+                return baseDropChance;
         }
     }
 

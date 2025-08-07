@@ -73,14 +73,12 @@ public class EventManager {
     private static boolean validateEventConfiguration(EventType eventType) {
         String basePath = "events." + eventType.getConfigKey();
 
-        // Validate duration
         int duration = File.getEventConfig().getInt(basePath + ".duration", 1800);
         if (duration < 60 || duration > 86400) { // 1 minute to 24 hours
             Storage.getStorage().getLogger().warning("Invalid duration for " + eventType.getDisplayName() + ": " + duration + " seconds. Using default.");
             return false;
         }
 
-        // Validate timing configuration
         String timingType = File.getEventConfig().getString(basePath + ".timing.type", "interval");
         if ("interval".equals(timingType)) {
             int interval = File.getEventConfig().getInt(basePath + ".timing.interval", 3600);
@@ -147,7 +145,6 @@ public class EventManager {
 
         try {
             if (forceStop) {
-                // Emergency stop - immediate termination
                 event.forceStop();
                 Storage.getStorage().getLogger().log(Level.INFO,
                         "Force stopped event: " + eventType.getDisplayName());

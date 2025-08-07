@@ -14,11 +14,9 @@ public class TextComponent {
             try {
                 sendSpigotTextComponent(player, message, hoverText, command);
             } catch (Exception e) {
-                // Fallback to regular message
                 player.sendMessage(Chat.colorizewp(message));
             }
         } else {
-            // For very old versions, just send regular message
             player.sendMessage(Chat.colorizewp(message));
         }
     }
@@ -62,7 +60,6 @@ public class TextComponent {
                 );
                 Object hoverAction = hoverEventClass.getDeclaredField("SHOW_TEXT").get(null);
                 Object hoverEvent = hoverConstructor.newInstance(hoverAction, content);
-
                 Method setHoverEvent = textComponentClass.getMethod("setHoverEvent", hoverEventClass);
                 setHoverEvent.invoke(textComponent, hoverEvent);
             } catch (Exception e) {
@@ -77,7 +74,6 @@ public class TextComponent {
                     );
                     Object hoverAction = hoverEventClass.getDeclaredField("SHOW_TEXT").get(null);
                     Object hoverEvent = hoverConstructor.newInstance(hoverAction, new Object[]{hoverTextComponent});
-
                     Method setHoverEvent = textComponentClass.getMethod("setHoverEvent", hoverEventClass);
                     setHoverEvent.invoke(textComponent, hoverEvent);
                 } catch (Exception ignored) {
@@ -94,7 +90,6 @@ public class TextComponent {
             );
             Object clickAction = clickEventClass.getDeclaredField("RUN_COMMAND").get(null);
             Object clickEvent = clickConstructor.newInstance(clickAction, command);
-
             Method setClickEvent = textComponentClass.getMethod("setClickEvent", clickEventClass);
             setClickEvent.invoke(textComponent, clickEvent);
         }
@@ -172,8 +167,6 @@ public class TextComponent {
         addExtra.invoke(mainComponent, prevComponent);
         addExtra.invoke(mainComponent, spacingComponent);
         addExtra.invoke(mainComponent, nextComponent);
-
-        // Send the combined component to player
         Method spigot = Player.class.getMethod("spigot");
         Object spigotPlayer = spigot.invoke(player);
         Method sendMessage = spigotPlayer.getClass().getMethod("sendMessage", baseComponentClass);
@@ -193,14 +186,12 @@ public class TextComponent {
                 Class<?> contentClass = Class.forName("net.md_5.bungee.api.chat.hover.content.Text");
                 Constructor<?> contentConstructor = contentClass.getConstructor(String.class);
                 Object content = contentConstructor.newInstance(hoverText);
-
                 Constructor<?> hoverConstructor = hoverEventClass.getConstructor(
                         Class.forName("net.md_5.bungee.api.chat.HoverEvent$Action"),
                         Class.forName("net.md_5.bungee.api.chat.hover.content.Content")
                 );
                 Object hoverAction = hoverEventClass.getDeclaredField("SHOW_TEXT").get(null);
                 Object hoverEvent = hoverConstructor.newInstance(hoverAction, content);
-
                 Method setHoverEvent = textComponentClass.getMethod("setHoverEvent", hoverEventClass);
                 setHoverEvent.invoke(component, hoverEvent);
             } catch (Exception e) {
@@ -208,14 +199,12 @@ public class TextComponent {
                 try {
                     Constructor<?> hoverTextConstructor = textComponentClass.getConstructor(String.class);
                     Object hoverTextComponent = hoverTextConstructor.newInstance(hoverText);
-
                     Constructor<?> hoverConstructor = hoverEventClass.getConstructor(
                             Class.forName("net.md_5.bungee.api.chat.HoverEvent$Action"),
                             baseComponentClass.arrayType()
                     );
                     Object hoverAction = hoverEventClass.getDeclaredField("SHOW_TEXT").get(null);
                     Object hoverEvent = hoverConstructor.newInstance(hoverAction, new Object[]{hoverTextComponent});
-
                     Method setHoverEvent = textComponentClass.getMethod("setHoverEvent", hoverEventClass);
                     setHoverEvent.invoke(component, hoverEvent);
                 } catch (Exception ignored) {
@@ -232,7 +221,6 @@ public class TextComponent {
             );
             Object clickAction = clickEventClass.getDeclaredField("RUN_COMMAND").get(null);
             Object clickEvent = clickConstructor.newInstance(clickAction, command);
-
             Method setClickEvent = textComponentClass.getMethod("setClickEvent", clickEventClass);
             setClickEvent.invoke(component, clickEvent);
         }

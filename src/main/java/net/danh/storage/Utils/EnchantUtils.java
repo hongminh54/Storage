@@ -151,7 +151,6 @@ public class EnchantUtils {
     private static void removeLoreEnchantFromList(List<String> lore, String enchantName) {
         String enchantDisplayName = EnchantManager.getEnchantDisplayName(enchantName);
         if (enchantDisplayName == null) return;
-
         lore.removeIf(line -> {
             String cleanLine = ChatColor.stripColor(line);
             return cleanLine.contains(enchantDisplayName);

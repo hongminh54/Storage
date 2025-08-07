@@ -109,6 +109,4 @@ public class Number {
             return String.format("%.2f%c", number / Math.pow(1000, exponent), "kMBTQ".charAt(exponent - 1));
         }
     }
-
-
 }
