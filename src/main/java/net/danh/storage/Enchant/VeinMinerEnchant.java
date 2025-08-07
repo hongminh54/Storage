@@ -2,6 +2,9 @@ package net.danh.storage.Enchant;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSound;
+import com.cryptomorin.xseries.particles.XParticle;
+import com.cryptomorin.xseries.particles.ParticleDisplay;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
@@ -216,27 +219,30 @@ public class VeinMinerEnchant {
             public void run() {
                 if (location.getWorld() == null) return;
 
-                try {
-                    location.getWorld().spawnParticle(
-                            org.bukkit.Particle.valueOf(enchantData.particleType),
-                            location.add(0, 1, 0),
-                            enchantData.particleCount,
-                            enchantData.particleOffsetX,
-                            enchantData.particleOffsetY,
-                            enchantData.particleOffsetZ
-                    );
-                } catch (Exception ignored) {
-                    // Fallback for older versions
+                // Spawn particles using XSeries
+                if (enchantData.particlesEnabled) {
+                    try {
+                        XParticle particle = XParticle.of(enchantData.particleType).orElse(null);
+                        if (particle != null) {
+                            ParticleDisplay.of(particle)
+                                .withLocation(location.add(0, 1, 0))
+                                .withCount(enchantData.particleCount)
+                                .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                                .withExtra(enchantData.particleExtra)
+                                .spawn();
+                        }
+                    } catch (Exception e) {
+                        Storage.getStorage().getLogger().warning("Failed to spawn VeinMiner enchant particles: " + e.getMessage());
+                    }
                 }
 
-                if (enchantData.soundsEnabled && location.getWorld() != null) {
+                // Play sounds using XSeries
+                if (enchantData.soundsEnabled) {
                     try {
-                        location.getWorld().playSound(location,
-                                org.bukkit.Sound.valueOf(enchantData.explosionSound),
-                                enchantData.soundVolume,
-                                enchantData.soundPitch);
-                    } catch (Exception ignored) {
-                        // Fallback for older versions
+                        XSound sound = XSound.matchXSound(enchantData.explosionSound).orElse(XSound.ENTITY_GENERIC_EXPLODE);
+                        sound.play(location, enchantData.soundVolume, enchantData.soundPitch);
+                    } catch (Exception e) {
+                        Storage.getStorage().getLogger().warning("Failed to play VeinMiner enchant sound: " + e.getMessage());
                     }
                 }
             }
