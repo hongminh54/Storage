@@ -96,7 +96,6 @@ public class ParticleManager {
         }
 
         try {
-            // Try direct match first using XParticle.of()
             XParticle particle = XParticle.of(particleName.toUpperCase()).orElse(null);
             if (particle != null) {
                 return particle;
@@ -105,10 +104,8 @@ public class ParticleManager {
             // Continue to mapping
         }
 
-        // Try alternative mappings for common particle names
         Map<String, String> particleMap = new HashMap<>();
 
-        // Common mappings for different versions
         particleMap.put("VILLAGER_HAPPY", "VILLAGER_HAPPY");
         particleMap.put("HAPPY_VILLAGER", "VILLAGER_HAPPY");
         particleMap.put("HEART", "HEART");
@@ -131,7 +128,6 @@ public class ParticleManager {
             }
         }
 
-        // If no mapping found, return fallback
         Storage.getStorage().getLogger().warning("Unknown particle type: " + particleName + ", using fallback");
         return getParticleByName("VILLAGER_HAPPY");
     }

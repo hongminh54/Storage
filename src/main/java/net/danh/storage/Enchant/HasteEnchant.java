@@ -95,7 +95,6 @@ public class HasteEnchant {
             public void run() {
                 if (location.getWorld() == null) return;
 
-                // Spawn particles using XSeries
                 if (enchantData.particlesEnabled) {
                     try {
                         XParticle particle = XParticle.of(enchantData.particleType).orElse(null);
@@ -112,7 +111,6 @@ public class HasteEnchant {
                     }
                 }
 
-                // Play sounds using XSeries
                 if (enchantData.soundsEnabled) {
                     try {
                         XSound sound = XSound.matchXSound(enchantData.explosionSound).orElse(XSound.ENTITY_GENERIC_EXPLODE);
