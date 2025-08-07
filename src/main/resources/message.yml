@@ -226,9 +226,8 @@ events:
       active: "&6Double Drop Active! &e+#bonus# bonus &7| &eTime: #time#"
     chat:
       event_started: "&7[&6Double Drop&7] &eGet &a#multiplier#x &7bonus items when mining! &7Duration: &a#duration# minutes"
-      event_ended: "&7[&6Double Drop&7] &eEvent ended! &7Total bonus items distributed: &a#total_bonus#"
-      bonus_summary: "&7[&6Double Drop&7] &eYour session: &a#total_bonus# bonus items &7from &e#mining_sessions# mining sessions"
-      first_bonus: "&7[&6Double Drop&7] &aFirst bonus! &7You received &e#bonus# &7extra items!"
+      event_ended: "&7[&6Double Drop&7] &eEvent ended! &7Thanks for participating!"
+      first_participation: "&7[&6Double Drop&7] &aJoined! &7Multiplier: &e#multiplier#x &7| Time: &e#time#"
   community_event:
     title:
       completed: "&aCommunity Goal Achieved!"
@@ -267,7 +266,7 @@ enchant:
   setmaxlevel_success: "#prefix# &aSuccessfully set max level for &e#enchant# &ato &6#level#&a! Levels have been auto-generated."
   setmaxlevel_failed: "#prefix# &cFailed to update max level for enchant '&e#enchant#&c'!"
 special_material:
-  found: "#prefix# &6✦ &eYou found a special material: #material#&e!"
+  found: "#prefix# &eYou found a special material: #material#&e!"
   invalid_subcommand: "#prefix# &cInvalid subcommand '&e#subcommand#&c'! Use: list, info, give"
   no_materials: "#prefix# &cNo special materials are configured!"
   material_not_found: "#prefix# &cSpecial material '&e#material#&c' not found!"

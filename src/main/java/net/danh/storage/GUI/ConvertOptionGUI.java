@@ -137,6 +137,11 @@ public class ConvertOptionGUI implements IGUI {
     private void handleConvertClick(Player clickPlayer, ConvertOreManager.ConvertOption option, int maxConversions, boolean isLeftClick) {
         if (maxConversions <= 0) {
             SoundManager.playErrorSound(clickPlayer);
+            int playerAmount = MineManager.getPlayerBlock(clickPlayer, option.getFromMaterial());
+            sendMessage(clickPlayer, "convert.insufficient_materials",
+                    "#required#", String.valueOf(option.getFromAmount()),
+                    "#current#", String.valueOf(playerAmount),
+                    "#material#", getMaterialName(option.getFromMaterial()));
             return;
         }
 
@@ -236,6 +241,20 @@ public class ConvertOptionGUI implements IGUI {
             float volume = (float) soundSection.getDouble("volume", 0.8);
             float pitch = (float) soundSection.getDouble("pitch", 1.0);
             SoundManager.playSound(player, soundName, volume, pitch);
+        }
+    }
+
+    private String getMaterialName(String material) {
+        return Objects.requireNonNull(File.getConfig().getString("items." + material, material.split(";")[0]));
+    }
+
+    private void sendMessage(Player player, String key, String... replacements) {
+        String message = File.getMessage().getString(key);
+        if (message != null) {
+            for (int i = 0; i < replacements.length - 1; i += 2) {
+                message = message.replace(replacements[i], replacements[i + 1]);
+            }
+            player.sendMessage(Chat.colorize(message));
         }
     }
 }
