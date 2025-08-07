@@ -95,7 +95,6 @@ public final class Storage extends JavaPlugin {
             MineManager.savePlayerData(p);
         }
         TransferManager.cancelAllTransfers();
-        File.saveFiles();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");
