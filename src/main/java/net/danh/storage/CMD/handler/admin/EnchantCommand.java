@@ -14,7 +14,7 @@ public class EnchantCommand extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!checkPermission(sender, "storage.admin")) {
+        if (!checkPermission(sender, "storage.admin.enchant")) {
             sendMessage(sender, "admin.no_permission");
             return;
         }

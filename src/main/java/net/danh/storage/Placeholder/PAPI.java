@@ -17,6 +17,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +111,24 @@ public class PAPI extends PlaceholderExpansion {
             return File.getMessage().getString("events.status.disabled");
         }
 
+        if (placeholder.startsWith("next_")) {
+            String nextPlaceholder = placeholder.substring(5);
+            return handleNextEventPlaceholders(nextPlaceholder);
+        }
+
+        // Handle general next event placeholders
+        if (placeholder.equals("next_time")) {
+            BaseEvent nextEvent = getNextScheduledEvent();
+            if (nextEvent == null) return "N/A";
+            return formatTime(getNextEventSeconds(nextEvent));
+        }
+
+        if (placeholder.equals("next_seconds")) {
+            BaseEvent nextEvent = getNextScheduledEvent();
+            if (nextEvent == null) return "0";
+            return String.valueOf(getNextEventSeconds(nextEvent));
+        }
+
         BaseEvent activeEvent = getFirstActiveEvent();
         if (activeEvent == null) return "N/A";
 
@@ -123,6 +145,12 @@ public class PAPI extends PlaceholderExpansion {
                 return String.valueOf(getEventDuration(activeEvent));
             case "start_time":
                 return String.valueOf(activeEvent.getEventData().getStartTime());
+            case "start_time_formatted":
+                return formatTimestamp(activeEvent.getEventData().getStartTime(), "HH:mm:ss");
+            case "start_date":
+                return formatTimestamp(activeEvent.getEventData().getStartTime(), "dd/MM/yyyy");
+            case "start_datetime":
+                return formatTimestamp(activeEvent.getEventData().getStartTime(), "dd/MM/yyyy HH:mm:ss");
         }
 
         return null;
@@ -211,8 +239,13 @@ public class PAPI extends PlaceholderExpansion {
             return getDefaultValue(placeholder);
         }
 
-        if (placeholder.equals("player_blocks")) {
-            return event.isActive() ? String.valueOf(event.getEventData().getPlayerData(p)) : "0";
+        DoubleDropEvent doubleDropEvent = (DoubleDropEvent) event;
+
+        switch (placeholder) {
+            case "player_blocks":
+                return event.isActive() ? String.valueOf(event.getEventData().getPlayerData(p)) : "0";
+            case "multiplier":
+                return String.valueOf(doubleDropEvent.getMultiplier());
         }
 
         return getDefaultValue(placeholder);
@@ -279,5 +312,67 @@ public class PAPI extends PlaceholderExpansion {
     private String getEventName(BaseEvent event) {
         EventType eventType = event.getEventType();
         return File.getEventConfig().getString("events." + eventType.getConfigKey() + ".event_name", eventType.getDisplayName());
+    }
+
+    private String handleNextEventPlaceholders(String placeholder) {
+        if (placeholder.endsWith("_time") || placeholder.endsWith("_seconds")) {
+            String[] parts = placeholder.split("_");
+            if (parts.length >= 2) {
+                boolean isTime = placeholder.endsWith("_time");
+                String eventTypeStr = placeholder.substring(0, placeholder.lastIndexOf(isTime ? "_time" : "_seconds"));
+
+                EventType eventType = EventType.fromConfigKey(eventTypeStr);
+                if (eventType != null) {
+                    BaseEvent event = EventManager.getAllEvents().get(eventType);
+                    if (event != null) {
+                        long nextSeconds = getNextEventSeconds(event);
+                        if (nextSeconds <= 0) return isTime ? "N/A" : "0";
+                        return isTime ? formatTime(nextSeconds) : String.valueOf(nextSeconds);
+                    }
+                }
+            }
+        }
+
+        return getDefaultValue(placeholder);
+    }
+
+    private BaseEvent getNextScheduledEvent() {
+        Map<EventType, BaseEvent> events = EventManager.getAllEvents();
+        BaseEvent nextEvent = null;
+        long earliestTime = Long.MAX_VALUE;
+
+        for (BaseEvent event : events.values()) {
+            if (!event.isActive()) {
+                long nextTime = event.getEventData().getNextScheduledTime();
+                if (nextTime > 0 && nextTime < earliestTime) {
+                    earliestTime = nextTime;
+                    nextEvent = event;
+                }
+            }
+        }
+
+        return nextEvent;
+    }
+
+    private long getNextEventSeconds(BaseEvent event) {
+        if (event.isActive()) return 0;
+        long nextTime = event.getEventData().getNextScheduledTime();
+        if (nextTime <= 0) return 0;
+        long currentTime = System.currentTimeMillis();
+        return Math.max(0, (nextTime - currentTime) / 1000);
+    }
+
+    private String formatTimestamp(long timestamp, String pattern) {
+        if (timestamp <= 0) return "N/A";
+        try {
+            LocalDateTime dateTime = LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(timestamp),
+                    ZoneId.systemDefault()
+            );
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+            return dateTime.format(formatter);
+        } catch (Exception e) {
+            return "N/A";
+        }
     }
 }

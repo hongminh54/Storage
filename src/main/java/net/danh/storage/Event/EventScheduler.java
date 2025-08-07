@@ -38,13 +38,15 @@ public class EventScheduler {
     private void scheduleIntervalEvent(EventType eventType, BaseEvent event) {
         int interval = File.getEventConfig().getInt("events." + eventType.getConfigKey() + ".timing.interval", 3600);
 
-        // Validate interval
         if (interval < 300) { // Minimum 5 minutes
             Storage.getStorage().getLogger().warning("Interval too short for " + eventType.getDisplayName() + ": " + interval + "s. Using minimum 300s.");
             interval = 300;
         }
 
-        long intervalTicks = interval * 20L;
+        final int finalInterval = interval; // Make it final for inner class
+        long intervalTicks = finalInterval * 20L;
+        long nextScheduledTime = System.currentTimeMillis() + (finalInterval * 1000L);
+        event.getEventData().setNextScheduledTime(nextScheduledTime);
 
         BukkitRunnable task = new BukkitRunnable() {
             @Override
@@ -53,6 +55,9 @@ public class EventScheduler {
                     if (File.getEventConfig().getBoolean("events." + eventType.getConfigKey() + ".enabled", true) &&
                             !event.isActive()) {
                         event.start();
+                        // Update next scheduled time after starting
+                        long nextTime = System.currentTimeMillis() + (finalInterval * 1000L);
+                        event.getEventData().setNextScheduledTime(nextTime);
                     }
                 } catch (Exception e) {
                     Storage.getStorage().getLogger().warning("Error starting scheduled event " + eventType.getDisplayName() + ": " + e.getMessage());
@@ -98,6 +103,9 @@ public class EventScheduler {
                     now.atZone(ZoneId.systemDefault()).toEpochSecond()) * 20L;
 
             if (delayTicks > 0) {
+                long nextScheduledTime = nextRun.atZone(ZoneId.systemDefault()).toEpochSecond() * 1000L;
+                event.getEventData().setNextScheduledTime(nextScheduledTime);
+
                 scheduleStartReminders(eventType, delayTicks);
 
                 BukkitRunnable task = new BukkitRunnable() {

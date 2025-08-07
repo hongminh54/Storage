@@ -4,6 +4,9 @@ main: net.danh.storage.Storage
 author: VoChiDanh, hongminh54
 description: "${project.description}"
 api-version: '1.13'
+load: STARTUP
+provides:
+  - StorageAPI
 softdepend:
   - WorldGuard
   - PlaceholderAPI
@@ -29,6 +32,10 @@ permissions:
     description: Admin reload permission command
   storage.admin.specialmaterial:
     description: Admin special material permission command
+  storage.admin.reset:
+    description: Admin reset permission command
+  storage.admin.enchant:
+    description: Admin enchant permission command
   storage.transfer.use:
     description: Use transfer feature
     default: true

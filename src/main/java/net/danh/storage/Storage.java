@@ -1,5 +1,6 @@
 package net.danh.storage;
 
+import net.danh.storage.API.StorageAPI;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.Database;
 import net.danh.storage.Database.SQLite;
@@ -40,6 +41,10 @@ public final class Storage extends JavaPlugin {
     @Override
     public void onLoad() {
         storage = this;
+
+        StorageAPI.initialize(this);
+        getLogger().log(Level.INFO, "Storage API initialized");
+
         if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
             WorldGuard = true;
             net.danh.storage.WorldGuard.WorldGuard.register(storage);
@@ -91,6 +96,10 @@ public final class Storage extends JavaPlugin {
         }
         TransferManager.cancelAllTransfers();
         File.saveFiles();
+
+        StorageAPI.shutdown();
+        getLogger().log(Level.INFO, "Storage API shutdown");
+
         getLogger().log(Level.INFO, "Shutting down completed. See you again!");
     }
 
