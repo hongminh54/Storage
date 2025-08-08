@@ -24,6 +24,7 @@ events:
       type: "schedule"
       # For schedule type: "DAY:HH:MM" format, multiple times separated by commas
       # Supported days: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY, DAILY
+      # Example: "MONDAY:06:30,FRIDAY:18:00" or "DAILY:12:00"
       schedule: "MONDAY:06:30,FRIDAY:18:00"
       # For interval type: time in seconds between events
       # interval: 7200
@@ -141,5 +142,5 @@ performance:
   max_concurrent_events: 3
   # Event data cleanup interval (in seconds)
   cleanup_interval: 300
-  # Enable detailed event logging
+  # Enable detailed event logging (useful for debugging schedule issues)
   detailed_logging: false

@@ -36,7 +36,7 @@ admin:
     error: "#prefix# &cError during &eauto-save: #error#"
     manual_executed: "#prefix# &7Manual save executed"
   help:
-    - "&6=== &eStorage &7v2.3.1 &6==="
+    - "&6=== &eStorage &7v2.3.2 &6==="
     - "&e/Storage reload &f- &7Reload Files"
     - "&e/Storage max &a<player> &6<amount> &f- &7Set max item player can storage"
     - "&e/Storage add &b<material;data> &a<player> &6<amount> &f- &7Add item to player (data for 1.12.2 and below, if you use 1.13+ use <material>;0"
@@ -82,7 +82,7 @@ user:
     status_off: "&cOff"
     toggle: "#prefix# &bYour storage has been toggled: #status#"
   help:
-    - "&6=== &eStorage &7v2.3.1 &6==="
+    - "&6=== &eStorage &7v2.3.2 &6==="
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
     - "&e/Storage convert &f- &7Open convert materials GUI (require permission)"
@@ -174,9 +174,21 @@ events:
     - "&6=== &eEvent Commands &6==="
     - "&e/storage event &f- &7Show event status"
     - "&e/storage event list &f- &7List all events"
+    - "&e/storage event debug &f- &7Show schedule debug info"
     - "&e/storage event start &b<type> &f- &7Start an event"
     - "&e/storage event stop &b<type> &f- &7Stop an event"
     - "&7Event types: mining_contest, double_drop, community_event"
+  debug:
+    header: "&6=== &eEvent Schedule Debug &6==="
+    footer: "&7Current Time: &f#current_time#"
+    event_info: "#event_name# &7(#event_key#):"
+    timing_type: "&7Type: &f#type#"
+    schedule_config: "&7Schedule: &f#schedule#"
+    next_run: "&7Next Run: &a#next_time#"
+    stored_time: "&7Stored Time: &a#stored_time#"
+    stored_time_not_set: "&7Stored Time: &cNot set"
+    cannot_calculate: "&7Next Run: &cCannot calculate"
+    error_occurred: "&7Error: &c#error#"
   common:
     title:
       started: '#event# &aStarted!'

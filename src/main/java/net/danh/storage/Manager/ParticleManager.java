@@ -1,8 +1,7 @@
 package net.danh.storage.Manager;
 
-import com.cryptomorin.xseries.particles.XParticle;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
-import net.danh.storage.NMS.NMSAssistant;
+import com.cryptomorin.xseries.particles.XParticle;
 import net.danh.storage.Particles.ParticleAnimation;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -76,11 +75,11 @@ public class ParticleManager {
             XParticle xParticle = getXParticle(particleName);
             if (xParticle != null) {
                 ParticleDisplay.of(xParticle)
-                    .withLocation(location)
-                    .withCount(count)
-                    .offset(0.5, 0.5, 0.5)
-                    .withExtra(speed)
-                    .spawn();
+                        .withLocation(location)
+                        .withCount(count)
+                        .offset(0.5, 0.5, 0.5)
+                        .withExtra(speed)
+                        .spawn();
             } else {
                 playFallbackParticle(player, location, count, speed);
             }
@@ -142,17 +141,16 @@ public class ParticleManager {
     }
 
 
-
     private static void playFallbackParticle(Player player, Location location, int count, double speed) {
         try {
             XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
             if (fallbackParticle != null) {
                 ParticleDisplay.of(fallbackParticle)
-                    .withLocation(location)
-                    .withCount(count)
-                    .offset(0.5, 0.5, 0.5)
-                    .withExtra(speed)
-                    .spawn();
+                        .withLocation(location)
+                        .withCount(count)
+                        .offset(0.5, 0.5, 0.5)
+                        .withExtra(speed)
+                        .spawn();
             }
         } catch (Exception e) {
             Storage.getStorage().getLogger().warning("Failed to spawn fallback particle at location: " + location + " - " + e.getMessage());
@@ -333,21 +331,21 @@ public class ParticleManager {
             XParticle xParticle = getXParticle(particleType);
             if (xParticle != null && location.getWorld() != null) {
                 ParticleDisplay.of(xParticle)
-                    .withLocation(location)
-                    .withCount(count)
-                    .offset(0.5, 0.5, 0.5)
-                    .withExtra(speed)
-                    .spawn();
-            } else {
-                // Fallback
-                XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
-                if (fallbackParticle != null) {
-                    ParticleDisplay.of(fallbackParticle)
                         .withLocation(location)
                         .withCount(count)
                         .offset(0.5, 0.5, 0.5)
                         .withExtra(speed)
                         .spawn();
+            } else {
+                // Fallback
+                XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
+                if (fallbackParticle != null) {
+                    ParticleDisplay.of(fallbackParticle)
+                            .withLocation(location)
+                            .withCount(count)
+                            .offset(0.5, 0.5, 0.5)
+                            .withExtra(speed)
+                            .spawn();
                 }
             }
         } catch (Exception e) {
@@ -357,11 +355,11 @@ public class ParticleManager {
                 XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
                 if (fallbackParticle != null) {
                     ParticleDisplay.of(fallbackParticle)
-                        .withLocation(location)
-                        .withCount(1)
-                        .offset(0.5, 0.5, 0.5)
-                        .withExtra(0.1)
-                        .spawn();
+                            .withLocation(location)
+                            .withCount(1)
+                            .offset(0.5, 0.5, 0.5)
+                            .withExtra(0.1)
+                            .spawn();
                 }
             } catch (Exception ignored) {
             }
@@ -607,11 +605,11 @@ public class ParticleManager {
 
                 if (hasNearbyPlayers) {
                     ParticleDisplay.of(xParticle)
-                        .withLocation(location)
-                        .withCount(count)
-                        .offset(0.5, 0.5, 0.5)
-                        .withExtra(speed)
-                        .spawn();
+                            .withLocation(location)
+                            .withCount(count)
+                            .offset(0.5, 0.5, 0.5)
+                            .withExtra(speed)
+                            .spawn();
                 }
             }
         } catch (Exception e) {

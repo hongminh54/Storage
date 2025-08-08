@@ -1,8 +1,8 @@
 package net.danh.storage.Enchant;
 
 import com.cryptomorin.xseries.XSound;
-import com.cryptomorin.xseries.particles.XParticle;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
+import com.cryptomorin.xseries.particles.XParticle;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -100,11 +100,11 @@ public class HasteEnchant {
                         XParticle particle = XParticle.of(enchantData.particleType).orElse(null);
                         if (particle != null) {
                             ParticleDisplay.of(particle)
-                                .withLocation(location.add(0, 1, 0))
-                                .withCount(enchantData.particleCount)
-                                .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
-                                .withExtra(enchantData.particleExtra)
-                                .spawn();
+                                    .withLocation(location.add(0, 1, 0))
+                                    .withCount(enchantData.particleCount)
+                                    .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                                    .withExtra(enchantData.particleExtra)
+                                    .spawn();
                         }
                     } catch (Exception e) {
                         Storage.getStorage().getLogger().warning("Failed to spawn Haste enchant particles: " + e.getMessage());
