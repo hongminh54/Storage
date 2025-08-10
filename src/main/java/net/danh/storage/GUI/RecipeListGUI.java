@@ -201,6 +201,7 @@ public class RecipeListGUI implements IGUI {
         if (recipe == null || !recipe.isEnabled()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.recipe_disabled")
                     .replace("#recipe#", recipe != null ? recipe.getName() : "Unknown")));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
@@ -208,6 +209,7 @@ public class RecipeListGUI implements IGUI {
         if (maxCraftable <= 0) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.insufficient_materials")
                     .replace("#recipe#", recipe.getName())));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
@@ -221,6 +223,7 @@ public class RecipeListGUI implements IGUI {
         if (recipe == null || !recipe.isEnabled()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.recipe_disabled")
                     .replace("#recipe#", recipe != null ? recipe.getName() : "Unknown")));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 

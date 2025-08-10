@@ -3,6 +3,7 @@ package net.danh.storage.Utils;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import de.tr7zw.changeme.nbtapi.NBTItem;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Recipe.Recipe;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -15,6 +16,22 @@ import java.util.Optional;
 /**
  * Utility class for importing ItemStack data into Recipe objects
  * Handles comprehensive item copying including NBT data from custom plugins
+ * 
+ * LEGACY SUPPORT:
+ * - For Minecraft versions <= 1.12.2: Preserves data values from item durability
+ * - For Minecraft versions >= 1.13: Uses 0 as data value (flattening update)
+ * - Avoids XMaterial conversion for legacy items with data != 0 to preserve original material names
+ * 
+ * EXAMPLES:
+ * - Legacy (1.12.2): Bone Meal (INK_SACK;15) -> "INK_SACK;15" (preserves original material name)
+ * - Legacy (1.12.2): Red Wool (WOOL;14) -> "WOOL;14" (preserves original material name)
+ * - Legacy (1.12.2): Blue Dye (INK_SACK;4) -> "INK_SACK;4" (preserves original material name)
+ * - Legacy (1.12.2): Stone (STONE;0) -> "STONE;0" (can use XMaterial safely)
+ * - Modern (1.13+): Bone Meal (BONE_MEAL) -> "BONE_MEAL;0"
+ * - Modern (1.13+): Red Wool (RED_WOOL) -> "RED_WOOL;0"
+ * 
+ * This fixes the issue where imported items would have incorrect materials
+ * (e.g., bone meal becoming ink sac, red wool becoming white wool) due to XMaterial conversion changing material names.
  */
 public class ItemImportUtil {
     
@@ -42,20 +59,68 @@ public class ItemImportUtil {
     }
     
     /**
-     * Imports material type and data value
+     * Imports material type and data value with proper legacy support
+     * Handles data values correctly for versions <= 1.12.2
      */
     private static void importMaterialData(ItemStack item, Recipe recipe) {
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(item.getType().name());
-        if (xMaterial.isPresent()) {
-            // Use XMaterial format for multi-version compatibility
-            recipe.setResultMaterial(xMaterial.get().name() + ";0");
-        } else {
-            // Fallback to direct material name
-            recipe.setResultMaterial(item.getType().name() + ";0");
-        }
-
-        // Set amount
+        String materialString = getMaterialString(item);
+        recipe.setResultMaterial(materialString);
         recipe.setResultAmount(item.getAmount());
+        
+        // Debug logging for troubleshooting
+        NMSAssistant nms = new NMSAssistant();
+        if (nms.isVersionLessThanOrEqualTo(12)) {
+            System.out.println("[ItemImport] Legacy version detected - Material: " + item.getType().name() + 
+                             ", Data: " + item.getDurability() + ", Result: " + materialString);
+        } else {
+            System.out.println("[ItemImport] Modern version detected - Material: " + item.getType().name() + 
+                             ", Result: " + materialString);
+        }
+        
+        // Additional debug for common legacy materials
+        if (nms.isVersionLessThanOrEqualTo(12) && item.getDurability() != 0) {
+            System.out.println("[ItemImport] Legacy material with data value detected - this will preserve original material name");
+        }
+    }
+    
+    /**
+     * Gets the correct material string with data value for cross-version compatibility
+     * Uses the same logic as the storage system for consistency
+     * 
+     * @param item The ItemStack to get material string from
+     * @return Material string in format "MATERIAL;dataValue"
+     */
+    public static String getMaterialString(ItemStack item) {
+        if (item == null) return "STONE;0";
+        
+        NMSAssistant nms = new NMSAssistant();
+        
+        // For legacy versions (<=1.12.2), preserve data value from durability
+        if (nms.isVersionLessThanOrEqualTo(12)) {
+            short dataValue = item.getDurability();
+            
+            // For legacy versions with data value != 0, use original material name
+            // to avoid XMaterial conversion issues (e.g., INK_SACK;15 -> INK_SAC;15)
+            if (dataValue != 0) {
+                return item.getType().name() + ";" + dataValue;
+            } else {
+                // Only use XMaterial for data value 0 items
+                Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(item.getType().name());
+                if (xMaterial.isPresent()) {
+                    return xMaterial.get().name() + ";" + dataValue;
+                } else {
+                    return item.getType().name() + ";" + dataValue;
+                }
+            }
+        } else {
+            // For modern versions (>=1.13), use XMaterial for better compatibility
+            Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(item.getType().name());
+            if (xMaterial.isPresent()) {
+                return xMaterial.get().name() + ";0";
+            } else {
+                return item.getType().name() + ";0";
+            }
+        }
     }
     
     /**

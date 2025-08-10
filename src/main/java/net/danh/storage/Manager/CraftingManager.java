@@ -2,10 +2,12 @@ package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -165,15 +167,18 @@ public class CraftingManager {
 
         String[] parts = materialData.split(";");
         String materialName = parts[0];
-
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-        if (!xMaterial.isPresent()) {
-            // Fallback to stone if material is invalid
-            xMaterial = XMaterial.matchXMaterial("STONE");
-            if (!xMaterial.isPresent()) return null;
+        short dataValue = 0;
+        
+        // Parse data value if present
+        if (parts.length > 1) {
+            try {
+                dataValue = Short.parseShort(parts[1]);
+            } catch (NumberFormatException e) {
+                dataValue = 0;
+            }
         }
 
-        ItemStack item = xMaterial.get().parseItem();
+        ItemStack item = createItemWithDataValue(materialName, dataValue);
         if (item == null) return null;
         
         item.setAmount(recipe.getResultAmount());
@@ -305,12 +310,14 @@ public class CraftingManager {
         if (recipe == null || !recipe.isEnabled()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.recipe_not_found")
                     .replace("#recipe#", recipeId)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
         if (!hasPermissions(player, recipe)) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.no_permission")
                     .replace("#recipe#", recipe.getName())));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
@@ -333,6 +340,7 @@ public class CraftingManager {
 
             if (amount <= 0 || amount > 999) {
                 player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_craft_amount")));
+                SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
                 return;
             }
 
@@ -340,6 +348,7 @@ public class CraftingManager {
             if (recipe == null) {
                 player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.recipe_not_found")
                         .replace("#recipe#", recipeId)));
+                SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
                 return;
             }
 
@@ -350,6 +359,7 @@ public class CraftingManager {
 
         } catch (NumberFormatException e) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_craft_amount")));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
         }
     }
     
@@ -364,5 +374,68 @@ public class CraftingManager {
         }
         
         return id;
+    }
+    
+    /**
+     * Creates an ItemStack with proper data value handling for cross-version compatibility
+     * This method handles the core issue where legacy items with data values were not created correctly
+     */
+    private static ItemStack createItemWithDataValue(String materialName, short dataValue) {
+        NMSAssistant nms = new NMSAssistant();
+        
+        try {
+            // For legacy versions (<=1.12.2), handle data values properly
+            if (nms.isVersionLessThanOrEqualTo(12)) {
+                // Try to get material by name first
+                Material material;
+                try {
+                    material = Material.valueOf(materialName);
+                } catch (IllegalArgumentException e) {
+                    // If material name doesn't exist, try XMaterial fallback
+                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+                    if (xMaterial.isPresent()) {
+                        ItemStack item = xMaterial.get().parseItem();
+                        if (item != null && dataValue != 0) {
+                            item.setDurability(dataValue);
+                        }
+                        return item;
+                    }
+                    return null;
+                }
+                
+                // Create ItemStack with material and set data value via durability
+                ItemStack item = new ItemStack(material, 1);
+                if (dataValue != 0) {
+                    item.setDurability(dataValue);
+                }
+                
+                System.out.println("[CraftingManager] Legacy item created - Material: " + materialName + 
+                                 ", Data: " + dataValue + ", Result: " + item.getType().name() + 
+                                 " with durability " + item.getDurability());
+                
+                return item;
+            } else {
+                // For modern versions (>=1.13), use XMaterial for better compatibility
+                Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+                if (xMaterial.isPresent()) {
+                    return xMaterial.get().parseItem();
+                } else {
+                    // Fallback to direct material creation
+                    try {
+                        Material material = Material.valueOf(materialName);
+                        return new ItemStack(material, 1);
+                    } catch (IllegalArgumentException e) {
+                        return null;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[CraftingManager] Error creating item with material: " + materialName + 
+                             ", data: " + dataValue + " - " + e.getMessage());
+            
+            // Final fallback to stone
+            Optional<XMaterial> stoneMaterial = XMaterial.matchXMaterial("STONE");
+            return stoneMaterial.map(XMaterial::parseItem).orElse(null);
+        }
     }
 }

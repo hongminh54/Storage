@@ -20,6 +20,7 @@ public class RecipeEditManager {
         if (recipe == null) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.recipe_not_found")
                     .replace("#recipe#", recipeId)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
@@ -57,6 +58,7 @@ public class RecipeEditManager {
                     break;
                 default:
                     player.sendMessage(Chat.colorize("&cUnknown edit type: " + editType));
+                    SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
                     return;
             }
 
@@ -67,6 +69,7 @@ public class RecipeEditManager {
 
         } catch (Exception e) {
             player.sendMessage(Chat.colorize("&cError processing input: " + e.getMessage()));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             SoundManager.setShouldPlayCloseSound(player, false);
             player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
         }
@@ -75,16 +78,19 @@ public class RecipeEditManager {
     private static void handleNameEdit(Player player, Recipe recipe, String input) {
         if (input.trim().isEmpty()) {
             player.sendMessage(Chat.colorize("&cName cannot be empty!"));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
         recipe.setResultName(Chat.colorizewp(input));
         player.sendMessage(Chat.colorize("&aResult item name updated to: " + input));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleLoreAdd(Player player, Recipe recipe, String input) {
         if (input.trim().isEmpty()) {
             player.sendMessage(Chat.colorize("&cLore line cannot be empty!"));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
@@ -92,6 +98,7 @@ public class RecipeEditManager {
         lore.add(input);
         recipe.setResultLore(lore);
         player.sendMessage(Chat.colorize("&aLore line added: " + input));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleAmountEdit(Player player, Recipe recipe, String input) {
@@ -99,11 +106,13 @@ public class RecipeEditManager {
         if (amount <= 0 || amount > 64) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_amount")
                     .replace("#amount#", input)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
         recipe.setResultAmount(amount);
         player.sendMessage(Chat.colorize("&aResult amount updated to: " + amount));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleMaterialEdit(Player player, Recipe recipe, String input) {
@@ -113,11 +122,13 @@ public class RecipeEditManager {
         if (!xMaterial.isPresent()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_material")
                     .replace("#material#", input)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
         recipe.setResultMaterial(materialName + ";0");
         player.sendMessage(Chat.colorize("&aResult material updated to: " + materialName));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleEnchantAdd(Player player, Recipe recipe, String enchantName, String input) {
@@ -125,6 +136,7 @@ public class RecipeEditManager {
         if (level <= 0) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_enchantment")
                     .replace("#enchantment#", enchantName)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
@@ -132,6 +144,7 @@ public class RecipeEditManager {
         if (!xEnchant.isPresent()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_enchantment")
                     .replace("#enchantment#", enchantName)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
@@ -139,6 +152,7 @@ public class RecipeEditManager {
         enchants.put(enchantName.toUpperCase(), level);
         recipe.setResultEnchantments(enchants);
         player.sendMessage(Chat.colorize("&aEnchantment added: " + enchantName + " " + level));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleRequirementAdd(Player player, Recipe recipe, String input) {
@@ -147,6 +161,7 @@ public class RecipeEditManager {
         // Check if material exists in storage system
         if (!MineManager.getPluginBlocks().contains(materialName + ";0")) {
             player.sendMessage(Chat.colorize("&cMaterial '" + materialName + "' is not available in storage system!"));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
@@ -154,6 +169,7 @@ public class RecipeEditManager {
         requirements.put(materialName + ";0", 1);
         recipe.setMaterialRequirements(requirements);
         player.sendMessage(Chat.colorize("&aRequirement added: " + materialName + " x1"));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleRequirementAmountEdit(Player player, Recipe recipe, String material, String input) {
@@ -161,6 +177,7 @@ public class RecipeEditManager {
         if (amount <= 0) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_amount")
                     .replace("#amount#", input)));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
@@ -169,34 +186,41 @@ public class RecipeEditManager {
             requirements.put(material, amount);
             recipe.setMaterialRequirements(requirements);
             player.sendMessage(Chat.colorize("&aRequirement amount updated: " + material + " x" + amount));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
         } else {
             player.sendMessage(Chat.colorize("&cRequirement not found: " + material));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
         }
     }
 
     private static void handleCategoryEdit(Player player, Recipe recipe, String input) {
         if (input.trim().isEmpty()) {
             player.sendMessage(Chat.colorize("&cCategory cannot be empty!"));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
         
         recipe.setCategory(input.toLowerCase().trim());
         player.sendMessage(Chat.colorize("&aCategory updated to: " + input));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handleRecipeNameEdit(Player player, Recipe recipe, String input) {
         if (input.trim().isEmpty()) {
             player.sendMessage(Chat.colorize("&cRecipe name cannot be empty!"));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
         recipe.setName(input);
         player.sendMessage(Chat.colorize("&aRecipe name updated to: " + input));
+        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
     }
 
     private static void handlePermissionAdd(Player player, Recipe recipe, String input) {
         if (input.trim().isEmpty()) {
             player.sendMessage(Chat.colorize("&cPermission cannot be empty!"));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
 
@@ -206,8 +230,10 @@ public class RecipeEditManager {
             permissions.add(permission);
             recipe.setPermissionRequirements(permissions);
             player.sendMessage(Chat.colorize("&aAdded permission requirement: " + permission));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
         } else {
             player.sendMessage(Chat.colorize("&cPermission already exists: " + permission));
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
         }
     }
 
