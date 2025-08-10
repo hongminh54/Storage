@@ -55,23 +55,32 @@ public class File {
         return getFileSetting().get("special_material.yml");
     }
 
+    public static FileConfiguration getCustomRecipesConfig() {
+        return getFileSetting().get("custom_recipes.yml");
+    }
+
+    public static void saveCustomRecipesConfig() {
+        getFileSetting().save("custom_recipes.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "custom_recipes.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "custom_recipes.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/recipe-list.yml", "GUI/recipe-editor-list.yml", "GUI/recipe-editor.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
         }
         net.danh.storage.Manager.ConvertOreManager.loadConvertOptions();
         net.danh.storage.Manager.SpecialMaterialManager.loadSpecialMaterials();
+        net.danh.storage.Manager.CraftingManager.loadRecipes();
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/recipe-list.yml", "GUI/recipe-editor-list.yml", "GUI/recipe-editor.yml");
     }
 
     public static void updateConfig() {
@@ -187,6 +196,26 @@ public class File {
             }
             getFileSetting().reload("special_material.yml");
             SpecialMaterialManager.loadSpecialMaterials();
+        }
+    }
+
+    public static void updateCustomRecipesConfig() {
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "custom_recipes.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("custom_recipes.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_customRecipesVersion = defaultConfig.getInt("custom_recipes_version");
+        int current_customRecipesVersion = currentConfig.contains("custom_recipes_version") ? currentConfig.getInt("custom_recipes_version") : 0;
+        if (default_customRecipesVersion > current_customRecipesVersion || default_customRecipesVersion < current_customRecipesVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your custom recipes config is updating...");
+            try {
+                ConfigUpdater.update(Storage.getStorage(), "custom_recipes.yml", configFile);
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your custom recipes config have been updated successful");
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update custom recipes config by it self, please backup and rename your custom recipes config then restart to get newest config!!");
+                e.printStackTrace();
+            }
+            getFileSetting().reload("custom_recipes.yml");
+            net.danh.storage.Manager.CraftingManager.loadRecipes();
         }
     }
 

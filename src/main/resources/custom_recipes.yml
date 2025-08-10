@@ -1,0 +1,195 @@
+# Custom Recipes Configuration
+# Do not touch it
+custom_recipes_version: 1
+
+# Recipe system settings
+settings:
+  # Enable/disable custom recipe system
+  enabled: true
+  # Auto-save recipes when modified through GUI
+  auto_save: true
+  # Backup recipes before major changes
+  backup_enabled: true
+
+# Recipe categories for organization
+categories:
+  tools:
+    name: "&6Tools & Weapons"
+    description: "&7Craft powerful tools and weapons"
+    icon: "DIAMOND_SWORD"
+  blocks:
+    name: "&aBlocks & Building"
+    description: "&7Create decorative and functional blocks"
+    icon: "STONE"
+  misc:
+    name: "&bMiscellaneous"
+    description: "&7Various useful items"
+    icon: "CHEST"
+  default:
+    name: "&7Default"
+    description: "&7Uncategorized recipes"
+    icon: "CRAFTING_TABLE"
+
+# Custom recipes
+recipes:
+  # Example recipe - Enhanced Diamond Sword
+  enhanced_diamond_sword:
+    name: "&b&lEnhanced Diamond Sword"
+    category: "tools"
+    enabled: true
+    
+    # Result item configuration
+    result:
+      material: "DIAMOND_SWORD"
+      name: "&b&lEnhanced Diamond Sword"
+      lore:
+        - "&7A powerful sword forged with"
+        - "&7rare materials from your storage"
+        - ""
+        - "&6&lLEGENDARY WEAPON"
+      amount: 1
+      custom_model_data: 0
+      unbreakable: true
+      enchantments:
+        DAMAGE_ALL: 5
+        DURABILITY: 3
+        FIRE_ASPECT: 2
+      flags:
+        - "HIDE_ENCHANTS"
+        - "HIDE_ATTRIBUTES"
+    
+    # Requirements from storage
+    requirements:
+      materials:
+        'DIAMOND;0': 10
+        'IRON_INGOT;0': 5
+        'GOLD_INGOT;0': 3
+      permissions:
+        - "storage.craft.enhanced"
+
+  # Example recipe - Super Block
+  super_block:
+    name: "&a&lSuper Block"
+    category: "blocks"
+    enabled: true
+    
+    result:
+      material: "EMERALD_BLOCK"
+      name: "&a&lSuper Block"
+      lore:
+        - "&7A compressed block made from"
+        - "&7multiple rare materials"
+        - ""
+        - "&a&lSPECIAL BLOCK"
+      amount: 1
+      custom_model_data: 1001
+      unbreakable: false
+      enchantments:
+        DURABILITY: 1
+      flags:
+        - "HIDE_ENCHANTS"
+    
+    requirements:
+      materials:
+        'EMERALD;0': 20
+        'DIAMOND;0': 10
+        'GOLD_INGOT;0': 15
+      permissions: []
+
+  # Example recipe - Magic Potion Materials
+  magic_essence:
+    name: "&d&lMagic Essence"
+    category: "misc"
+    enabled: true
+    
+    result:
+      material: "NETHER_STAR"
+      name: "&d&lMagic Essence"
+      lore:
+        - "&7A mystical essence created by"
+        - "&7combining various ores"
+        - ""
+        - "&7&oUsed in advanced crafting"
+        - ""
+        - "&d&lMYSTIC MATERIAL"
+      amount: 1
+      custom_model_data: 0
+      unbreakable: false
+      enchantments: {}
+      flags:
+        - "HIDE_ATTRIBUTES"
+    
+    requirements:
+      materials:
+        'COAL;0': 64
+        'IRON_INGOT;0': 32
+        'GOLD_INGOT;0': 16
+        'DIAMOND;0': 8
+        'EMERALD;0': 4
+      permissions:
+        - "storage.craft.magic"
+
+  # Example recipe - Compressed Cobblestone
+  compressed_cobblestone:
+    name: "&7Compressed Cobblestone"
+    category: "blocks"
+    enabled: true
+    
+    result:
+      material: "OBSIDIAN"
+      name: "&7&lCompressed Cobblestone"
+      lore:
+        - "&7Cobblestone compressed into"
+        - "&7a much denser form"
+        - ""
+        - "&7Equivalent to &e1000 &7cobblestone"
+      amount: 1
+      custom_model_data: 0
+      unbreakable: false
+      enchantments: {}
+      flags: []
+    
+    requirements:
+      materials:
+        'COBBLESTONE;0': 1000
+      permissions: []
+
+  # Example recipe - Ultimate Tool
+  ultimate_pickaxe:
+    name: "&6&lUltimate Pickaxe"
+    category: "tools"
+    enabled: false  # Disabled by default
+    
+    result:
+      material: "NETHERITE_PICKAXE"
+      name: "&6&lUltimate Pickaxe"
+      lore:
+        - "&7The most powerful pickaxe"
+        - "&7ever created"
+        - ""
+        - "&7&oBreaks any block instantly"
+        - ""
+        - "&6&lULTIMATE TOOL"
+      amount: 1
+      custom_model_data: 2001
+      unbreakable: true
+      enchantments:
+        DIG_SPEED: 10
+        DURABILITY: 5
+        LOOT_BONUS_BLOCKS: 5
+        SILK_TOUCH: 1
+      flags:
+        - "HIDE_ENCHANTS"
+        - "HIDE_ATTRIBUTES"
+        - "HIDE_UNBREAKABLE"
+    
+    requirements:
+      materials:
+        'DIAMOND;0': 100
+        'EMERALD;0': 50
+        'GOLD_INGOT;0': 200
+        'IRON_INGOT;0': 500
+        'NETHERITE_INGOT;0': 10
+      permissions:
+        - "storage.craft.ultimate"
+        - "storage.admin"

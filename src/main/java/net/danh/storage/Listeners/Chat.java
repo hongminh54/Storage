@@ -32,6 +32,14 @@ public class Chat implements Listener {
     public static HashMap<Player, String> chat_convert_to = new HashMap<>();
     public static HashMap<Player, Integer> chat_return_page = new HashMap<>();
 
+    // Recipe editing chat handlers
+    public static HashMap<Player, String> chat_recipe_edit_type = new HashMap<>();
+    public static HashMap<Player, String> chat_recipe_id = new HashMap<>();
+    public static HashMap<Player, String> chat_recipe_field = new HashMap<>();
+
+    // Recipe crafting chat handlers
+    public static HashMap<Player, String> chat_recipe_craft = new HashMap<>();
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onChat(@NotNull AsyncPlayerChatEvent e) {
         Player p = e.getPlayer();
@@ -117,6 +125,34 @@ public class Chat implements Listener {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             TransferGUI.setWaitingForInput(p, false);
+            e.setCancelled(true);
+        }
+
+        // Handle recipe editing input
+        if (chat_recipe_edit_type.containsKey(p) && chat_recipe_edit_type.get(p) != null) {
+            String editType = chat_recipe_edit_type.get(p);
+            String recipeId = chat_recipe_id.get(p);
+            String field = chat_recipe_field.get(p);
+
+            Bukkit.getScheduler().runTask(Storage.getStorage(), () -> {
+                net.danh.storage.Manager.RecipeEditManager.handleChatInput(p, editType, recipeId, field, message);
+            });
+
+            chat_recipe_edit_type.remove(p);
+            chat_recipe_id.remove(p);
+            chat_recipe_field.remove(p);
+            e.setCancelled(true);
+        }
+
+        // Handle recipe crafting amount input
+        if (chat_recipe_craft.containsKey(p) && chat_recipe_craft.get(p) != null) {
+            String recipeId = chat_recipe_craft.get(p);
+
+            Bukkit.getScheduler().runTask(Storage.getStorage(), () -> {
+                net.danh.storage.Manager.CraftingManager.handleCraftAmountInput(p, recipeId, message);
+            });
+
+            chat_recipe_craft.remove(p);
             e.setCancelled(true);
         }
     }

@@ -25,6 +25,7 @@ public class CommandManager {
         registerCommand("toggle", new ToggleCommand());
         registerCommand("transfer", new TransferCommand());
         registerCommand("convert", new ConvertOreCommand());
+        registerCommand("craft", new net.danh.storage.CMD.handler.user.CraftCommand());
 
         registerCommand("reload", new ReloadCommand());
         registerCommand("autosave", new AutoSaveCommand());
@@ -37,6 +38,7 @@ public class CommandManager {
         registerCommand("reset", new ResetCommand());
         registerCommand("enchant", new EnchantCommand());
         registerCommand("specialmaterial", new SpecialMaterialCommand());
+        registerCommand("crafteditor", new net.danh.storage.CMD.handler.admin.CraftEditorCommand());
     }
 
     private void registerCommand(String name, CommandHandler handler) {

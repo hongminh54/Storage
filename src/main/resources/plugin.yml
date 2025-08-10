@@ -62,3 +62,18 @@ permissions:
   storage.convert:
     description: Use convert materials feature
     default: op
+  storage.craft.use:
+    description: Use custom recipe crafting
+    default: true
+  storage.craft.admin:
+    description: Access recipe editor and management
+    default: op
+  storage.craft.enhanced:
+    description: Craft enhanced tier recipes
+    default: true
+  storage.craft.magic:
+    description: Craft magic tier recipes
+    default: true
+  storage.craft.ultimate:
+    description: Craft ultimate tier recipes
+    default: op
