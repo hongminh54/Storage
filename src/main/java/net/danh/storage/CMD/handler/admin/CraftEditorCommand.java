@@ -52,23 +52,96 @@ public class CraftEditorCommand extends BaseCommand {
             String recipeId = CraftingManager.generateUniqueId();
             Recipe recipe = new Recipe(recipeId);
 
-            // Import item data into recipe
+            // Import item data into recipe using improved method
             ItemImportUtil.importItemToRecipe(heldItem, recipe);
 
             // Add recipe to manager
             CraftingManager.addRecipe(recipe);
 
+            // Detect custom item plugins for detailed message
+            String customPlugin = detectCustomItemPlugin(heldItem);
+            if (customPlugin != null) {
+                sendMessage(player, "recipe.import_custom_item_detected", "#plugin#", customPlugin);
+            }
+
             // Open recipe editor with imported recipe
             SoundManager.setShouldPlayCloseSound(player, false);
             player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.INITIAL_OPEN));
 
-            // Send success message
-            sendMessage(player, "recipe.import_success", "#recipe#", recipe.getName());
+            // Send detailed success message
+            String itemName = getItemDisplayName(heldItem);
+            String materialString = ItemImportUtil.getMaterialString(heldItem);
+            
+            String[] placeholders = {"#recipe#", "#item_name#", "#material#"};
+            String[] replacements = {recipe.getName(), itemName, materialString};
+            sendMessage(player, "recipe.import_success_detailed", placeholders, replacements);
 
         } catch (Exception e) {
             sendMessage(player, "recipe.import_failed");
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * Detects if the item is from a custom item plugin
+     */
+    private String detectCustomItemPlugin(ItemStack item) {
+        try {
+            de.tr7zw.changeme.nbtapi.NBTItem nbtItem = new de.tr7zw.changeme.nbtapi.NBTItem(item);
+            
+            if (nbtItem.hasTag("MMOITEMS_TYPE") || nbtItem.hasTag("MMOITEMS_ID")) {
+                return "MMOItems";
+            }
+            if (nbtItem.hasTag("MyItems")) {
+                return "MyItems";
+            }
+            if (nbtItem.hasTag("itemsadder")) {
+                return "ItemsAdder";
+            }
+            if (nbtItem.hasTag("oraxen")) {
+                return "Oraxen";
+            }
+            if (nbtItem.hasTag("ExecutableItems")) {
+                return "ExecutableItems";
+            }
+            if (nbtItem.hasTag("MythicMobs")) {
+                return "MythicMobs";
+            }
+            if (nbtItem.hasTag("EliteMobs")) {
+                return "EliteMobs";
+            }
+            
+        } catch (Exception ignored) {
+            // NBT operations might fail, continue without detection
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Gets the display name of an item for user-friendly messages
+     */
+    private String getItemDisplayName(ItemStack item) {
+        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+            return item.getItemMeta().getDisplayName();
+        }
+        
+        // Generate friendly name from material
+        String materialName = item.getType().name().toLowerCase().replace("_", " ");
+        String[] words = materialName.split(" ");
+        StringBuilder result = new StringBuilder();
+        
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) result.append(" ");
+            if (!words[i].isEmpty()) {
+                result.append(Character.toUpperCase(words[i].charAt(0)));
+                if (words[i].length() > 1) {
+                    result.append(words[i].substring(1));
+                }
+            }
+        }
+        
+        return result.toString();
     }
 
     @Override

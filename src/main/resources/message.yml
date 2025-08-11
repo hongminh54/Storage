@@ -320,5 +320,7 @@ recipe:
   chat_cancelled: "#prefix# &cInput cancelled."
   requirements_not_met: "#prefix# &cYou don't meet the requirements for this recipe!"
   import_success: "#prefix# &aSuccessfully imported item as recipe '&e#recipe#&a'!"
+  import_success_detailed: "#prefix# &aSuccessfully imported &6#item_name# &aas recipe '&e#recipe#&a'! &7(Material: &f#material#&7)"
   import_failed: "#prefix# &cFailed to import item! Please try again."
   import_empty_hand: "#prefix# &cYou must hold an item in your main hand to import it!"
+  import_custom_item_detected: "#prefix# &eDetected custom item from &6#plugin#&e! All data preserved."

@@ -160,83 +160,27 @@ public class CraftingManager {
     public static ItemStack createResultItem(Recipe recipe) {
         if (recipe == null) return null;
 
-        String materialData = recipe.getResultMaterial();
-        if (materialData == null || materialData.isEmpty()) {
-            materialData = "STONE;0";
-        }
-
-        String[] parts = materialData.split(";");
-        String materialName = parts[0];
-        short dataValue = 0;
-        
-        // Parse data value if present
-        if (parts.length > 1) {
-            try {
-                dataValue = Short.parseShort(parts[1]);
-            } catch (NumberFormatException e) {
-                dataValue = 0;
-            }
-        }
-
-        ItemStack item = createItemWithDataValue(materialName, dataValue);
+        // Use the improved ItemImportUtil method for exact item creation
+        ItemStack item = net.danh.storage.Utils.ItemImportUtil.createExactItemFromRecipe(recipe);
         if (item == null) return null;
         
-        item.setAmount(recipe.getResultAmount());
-        
+        // Apply color codes to display name and lore
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
-        
-        // Set display name
-        if (recipe.getResultName() != null && !recipe.getResultName().isEmpty()) {
-            meta.setDisplayName(Chat.colorizewp(recipe.getResultName()));
-        }
-        
-        // Set lore
-        if (!recipe.getResultLore().isEmpty()) {
-            List<String> coloredLore = recipe.getResultLore().stream()
-                    .map(Chat::colorizewp)
-                    .collect(Collectors.toList());
-            meta.setLore(coloredLore);
-        }
-        
-        // Set unbreakable
-        meta.setUnbreakable(recipe.isResultUnbreakable());
-        
-        // Set custom model data
-        if (recipe.getResultCustomModelData() > 0) {
-            try {
-                meta.setCustomModelData(recipe.getResultCustomModelData());
-            } catch (NoSuchMethodError ignored) {
-                // For older versions that don't support custom model data
+        if (meta != null) {
+            // Colorize display name
+            if (meta.hasDisplayName()) {
+                meta.setDisplayName(Chat.colorizewp(meta.getDisplayName()));
             }
-        }
-        
-        // Add enchantments
-        for (Map.Entry<String, Integer> enchant : recipe.getResultEnchantments().entrySet()) {
-            Optional<XEnchantment> xEnchant = XEnchantment.matchXEnchantment(enchant.getKey());
-            if (xEnchant.isPresent() && xEnchant.get().getEnchant() != null) {
-                meta.addEnchant(xEnchant.get().getEnchant(), enchant.getValue(), true);
+            
+            // Colorize lore
+            if (meta.hasLore() && meta.getLore() != null) {
+                List<String> coloredLore = meta.getLore().stream()
+                        .map(Chat::colorizewp)
+                        .collect(Collectors.toList());
+                meta.setLore(coloredLore);
             }
-        }
-        
-        // Add item flags
-        for (ItemFlag flag : recipe.getResultFlags()) {
-            meta.addItemFlags(flag);
-        }
-        
-        item.setItemMeta(meta);
-
-        // Apply custom NBT data for plugin compatibility
-        if (!recipe.getCustomNBTData().isEmpty()) {
-            try {
-                de.tr7zw.changeme.nbtapi.NBTItem nbtItem = new de.tr7zw.changeme.nbtapi.NBTItem(item);
-                for (Map.Entry<String, String> entry : recipe.getCustomNBTData().entrySet()) {
-                    nbtItem.setString(entry.getKey(), entry.getValue());
-                }
-                item = nbtItem.getItem();
-            } catch (Exception e) {
-                // NBT operations might fail on some versions, continue without NBT data
-            }
+            
+            item.setItemMeta(meta);
         }
 
         return item;
