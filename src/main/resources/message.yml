@@ -141,8 +141,6 @@ convert:
   storage_full: "#prefix# &cYour storage for &e#material# &cis full!"
   success: "#prefix# &aSuccessfully converted &e#from_amount# #from_material# &ato &e#to_amount# #to_material#&a!"
   failed: "#prefix# &cConversion failed! Please try again."
-  reload_success: "#prefix# &aConvert configurations reloaded successfully!"
-  ratio_info: "#prefix# &eConversion ratios loaded: &a#count# &ematerial pairs"
   chat_amount: "#prefix# &eEnter the amount you want to convert in chat:"
 events:
   status:
