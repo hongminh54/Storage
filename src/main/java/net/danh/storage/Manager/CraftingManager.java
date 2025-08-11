@@ -1,6 +1,7 @@
 package net.danh.storage.Manager;
 
 import net.danh.storage.Recipe.Recipe;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.ItemImportUtil;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ public class CraftingManager {
     
     private static final Map<String, Recipe> recipes = new HashMap<>();
     private static final Map<String, List<Recipe>> recipesByCategory = new HashMap<>();
+    private static final Map<String, BukkitRunnable> activeCrafting = new HashMap<>();
     
     public static void loadRecipes() {
         recipes.clear();
@@ -111,6 +114,13 @@ public class CraftingManager {
             return false;
         }
 
+        // Check if player already has crafting in progress
+        if (isCraftingInProgress(player)) {
+            sendMessage(player, "recipe.craft_in_progress");
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
+            return false;
+        }
+
         int maxCraftable = getMaxCraftableAmount(player, recipe);
         if (maxCraftable <= 0) {
             sendMessage(player, "recipe.insufficient_materials", "#recipe#", recipe.getName());
@@ -138,19 +148,19 @@ public class CraftingManager {
             return false;
         }
 
-        // Remove materials from storage
-        if (!removeMaterials(player, recipe, actualAmount)) {
-            return false;
+        // Check if crafting delay is enabled
+        FileConfiguration config = File.getConfig();
+        if (config.getBoolean("crafting.enabled", true)) {
+            int craftingDelay = config.getInt("crafting.delay", 3);
+            if (craftingDelay > 0) {
+                // Start crafting process with delay
+                startCraftingProcess(player, recipe, actualAmount);
+                return true;
+            }
         }
 
-        // Give result items
-        giveResultItems(player, resultItem, recipe.getResultAmount() * actualAmount);
-        
-        sendMessage(player, "recipe.craft_success", 
-            new String[]{"#recipe#", "#amount#"}, 
-            new String[]{recipe.getName(), String.valueOf(actualAmount)});
-        SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
-        return true;
+        // Immediate crafting (no delay)
+        return completeCrafting(player, recipe, actualAmount);
     }
     
     /**
@@ -258,8 +268,12 @@ public class CraftingManager {
             }
 
             if (craftRecipe(player, recipeId, amount)) {
-                player.openInventory(new net.danh.storage.GUI.RecipeListGUI(player, 0, "all")
-                        .getInventory(SoundContext.SILENT));
+                // Only reopen GUI if crafting was completed immediately (no delay)
+                if (!isCraftingInProgress(player)) {
+                    player.openInventory(new net.danh.storage.GUI.RecipeListGUI(player, 0, "all")
+                            .getInventory(SoundContext.SILENT));
+                }
+                // If crafting is in progress, GUI will remain closed during delay
             }
 
         } catch (NumberFormatException e) {
@@ -281,6 +295,136 @@ public class CraftingManager {
         return id;
     }
     
+    // Crafting delay system methods
+    
+    public static boolean isCraftingInProgress(Player player) {
+        return activeCrafting.containsKey(player.getName());
+    }
+    
+    public static void cancelCrafting(Player player) {
+        BukkitRunnable task = activeCrafting.remove(player.getName());
+        if (task != null) {
+            task.cancel();
+            sendMessage(player, "recipe.craft_cancelled");
+        }
+        // Stop any processing animation
+        ParticleManager.stopCraftingProcessingAnimation(player);
+    }
+    
+    public static void cancelAllCrafting() {
+        for (BukkitRunnable task : activeCrafting.values()) {
+            task.cancel();
+        }
+        activeCrafting.clear();
+    }
+    
+    private static void startCraftingProcess(Player player, Recipe recipe, int amount) {
+        FileConfiguration config = File.getConfig();
+        int craftingDelay = config.getInt("crafting.delay", 3);
+        
+        // Notify player that crafting is starting
+        sendMessage(player, "recipe.processing", 
+            new String[]{"#amount#", "#recipe#", "#time#"}, 
+            new String[]{String.valueOf(amount), recipe.getName(), String.valueOf(craftingDelay)});
+        
+        // Cancel any existing crafting for this player
+        cancelCrafting(player);
+        
+        // Start processing animation
+        ParticleManager.playCraftingProcessingAnimation(player, craftingDelay);
+        
+        // Create and start the crafting task
+        BukkitRunnable craftingTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Stop processing animation
+                ParticleManager.stopCraftingProcessingAnimation(player);
+                
+                if (completeCrafting(player, recipe, amount)) {
+                    // Play success particles and sounds
+                    ParticleManager.playCraftingSuccessParticle(player);
+                    playCraftingSuccessSound(player);
+                } else {
+                    // Play failed particles and sounds
+                    ParticleManager.playCraftingFailedParticle(player);
+                    playCraftingFailedSound(player);
+                }
+                
+                activeCrafting.remove(player.getName());
+            }
+        };
+        
+        activeCrafting.put(player.getName(), craftingTask);
+        craftingTask.runTaskLater(Storage.getStorage(), craftingDelay * 20L); // Convert seconds to ticks
+    }
+    
+    private static boolean completeCrafting(Player player, Recipe recipe, int amount) {
+        // Double-check conditions before completing crafting
+        if (!player.isOnline()) {
+            return false;
+        }
+        
+        // Re-check materials (player might have used them during delay)
+        int maxCraftable = getMaxCraftableAmount(player, recipe);
+        if (maxCraftable < amount) {
+            sendMessage(player, "recipe.processing_failed", "#recipe#", recipe.getName());
+            return false;
+        }
+        
+        // Re-check inventory space
+        ItemStack resultItem = createResultItem(recipe);
+        if (resultItem == null) {
+            sendMessage(player, "recipe.craft_failed", "#recipe#", recipe.getName());
+            return false;
+        }
+        
+        int totalItemsNeeded = recipe.getResultAmount() * amount;
+        int availableSpace = calculateInventorySpace(player, resultItem);
+        
+        if (availableSpace < totalItemsNeeded) {
+            sendMessage(player, "recipe.inventory_full", "#recipe#", recipe.getName());
+            return false;
+        }
+        
+        // Remove materials from storage
+        if (!removeMaterials(player, recipe, amount)) {
+            return false;
+        }
+        
+        // Give result items
+        giveResultItems(player, resultItem, recipe.getResultAmount() * amount);
+        
+        sendMessage(player, "recipe.craft_success", 
+            new String[]{"#recipe#", "#amount#"}, 
+            new String[]{recipe.getName(), String.valueOf(amount)});
+        
+        return true;
+    }
+    
+    private static void playCraftingSuccessSound(Player player) {
+        FileConfiguration config = File.getConfig();
+        if (config.getBoolean("crafting.sounds.enabled", true)) {
+            String soundName = config.getString("crafting.sounds.success.name");
+            if (soundName != null && !soundName.equalsIgnoreCase("none")) {
+                float volume = (float) config.getDouble("crafting.sounds.success.volume", 0.7);
+                float pitch = (float) config.getDouble("crafting.sounds.success.pitch", 1.2);
+                SoundManager.playSound(player, soundName, volume, pitch);
+            }
+        }
+    }
+    
+    private static void playCraftingFailedSound(Player player) {
+        FileConfiguration config = File.getConfig();
+        if (config.getBoolean("crafting.sounds.enabled", true)) {
+            String soundName = config.getString("crafting.sounds.failed.name");
+            if (soundName != null && !soundName.equalsIgnoreCase("none")) {
+                float volume = (float) config.getDouble("crafting.sounds.failed.volume", 0.8);
+                float pitch = (float) config.getDouble("crafting.sounds.failed.pitch", 0.8);
+                SoundManager.playSound(player, soundName, volume, pitch);
+            }
+        }
+    }
+
     // Private helper methods
     
     private static void addRecipeToMaps(Recipe recipe) {

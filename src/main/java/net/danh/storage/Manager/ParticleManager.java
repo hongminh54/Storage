@@ -290,6 +290,51 @@ public class ParticleManager {
         stopAnimation("processing_" + player.getName());
     }
 
+    // Crafting particle methods
+    public static void playCraftingSuccessParticle(Player player) {
+        playEnhancedParticle(player, ParticleType.CRAFTING_SUCCESS);
+    }
+
+    public static void playCraftingFailedParticle(Player player) {
+        playEnhancedParticle(player, ParticleType.CRAFTING_FAILED);
+    }
+
+    public static void playCraftingProcessingAnimation(Player player, int durationSeconds) {
+        String animationKey = "crafting_processing_" + player.getName();
+        stopAnimation(animationKey);
+
+        FileConfiguration config = File.getConfig();
+        if (!config.getBoolean("crafting.particles.enabled", true)) return;
+
+        ParticleAnimation animation = ParticleAnimation.fromString(
+                config.getString("crafting.particles.processing.animation", "circle"));
+
+        if (animation == ParticleAnimation.NONE) return;
+
+        BukkitTask task = new BukkitRunnable() {
+            private final int maxTicks = durationSeconds * 20;
+            private int ticks = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || ticks >= maxTicks) {
+                    cancel();
+                    activeAnimations.remove(animationKey);
+                    return;
+                }
+
+                playAnimationFrame(player, animation, ticks, "crafting.particles.processing");
+                ticks++;
+            }
+        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+
+        activeAnimations.put(animationKey, task);
+    }
+
+    public static void stopCraftingProcessingAnimation(Player player) {
+        stopAnimation("crafting_processing_" + player.getName());
+    }
+
     public static void playSpecialMaterialParticle(Location location, String particleType, int count,
                                                    double speed, String animation, double radius) {
         if (location == null || location.getWorld() == null) return;
@@ -892,7 +937,10 @@ public class ParticleManager {
         TRANSFER_RECEIVE("transfer.particles.receive"),
         TRANSFER_FAILED("transfer.particles.failed"),
         TRANSFER_PROCESSING("transfer.particles.processing"),
-        TRANSFER_BEAM("transfer.particles.beam");
+        TRANSFER_BEAM("transfer.particles.beam"),
+        CRAFTING_SUCCESS("crafting.particles.success"),
+        CRAFTING_FAILED("crafting.particles.failed"),
+        CRAFTING_PROCESSING("crafting.particles.processing");
 
         private final String configPath;
 

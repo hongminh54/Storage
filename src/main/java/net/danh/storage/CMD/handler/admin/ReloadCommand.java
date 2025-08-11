@@ -26,6 +26,8 @@ public class ReloadCommand extends BaseCommand {
         for (Player player : Storage.getStorage().getServer().getOnlinePlayers()) {
             MineManager.convertOfflineData(player);
             MineManager.loadPlayerData(player);
+            // Refresh permissions after reload
+            net.danh.storage.Utils.PermissionStorageLimit.refreshPlayerStorageLimit(player);
         }
 
         sendMessage(sender, "admin.reload");

@@ -183,6 +183,19 @@ public class StorageAPI {
     }
 
     /**
+     * Refresh player's storage permissions and update their max storage limit
+     * This is useful when permissions change while the player is online
+     *
+     * @param player The player to refresh
+     */
+    public static void refreshStoragePermissions(@NotNull Player player) {
+        if (!isInitialized()) {
+            return;
+        }
+        net.danh.storage.Utils.PermissionStorageLimit.refreshPlayerStorageLimit(player);
+    }
+
+    /**
      * Check if player has storage enabled (auto-pickup)
      *
      * @param player The player

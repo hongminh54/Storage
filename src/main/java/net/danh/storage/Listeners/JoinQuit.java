@@ -3,6 +3,7 @@ package net.danh.storage.Listeners;
 import net.danh.storage.Enchant.TNTEnchant;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
+import net.danh.storage.Manager.CraftingManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.StorageFullNotificationManager;
@@ -28,10 +29,14 @@ public class JoinQuit implements Listener {
         MineManager.savePlayerData(p);
         PersonalStorage.playerCurrentPage.remove(p);
         Chat.chat_return_page.remove(p);
+        Chat.chat_recipe_craft.remove(p);
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);
         TransferManager.cancelTransfer(p);
+
+        // Cleanup crafting data
+        CraftingManager.cancelCrafting(p);
 
         // Cleanup storage full notification data
         StorageFullNotificationManager.removePlayer(p);

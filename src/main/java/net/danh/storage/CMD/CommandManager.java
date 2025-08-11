@@ -38,6 +38,7 @@ public class CommandManager {
         registerCommand("remove", new RemoveCommand());
         registerCommand("set", new SetCommand());
         registerCommand("reset", new ResetCommand());
+        registerCommand("refresh", new RefreshCommand());
         registerCommand("enchant", new EnchantCommand());
         registerCommand("specialmaterial", new SpecialMaterialCommand());
         registerCommand("crafteditor", new net.danh.storage.CMD.handler.admin.CraftEditorCommand());

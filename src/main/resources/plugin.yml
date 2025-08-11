@@ -30,6 +30,8 @@ permissions:
     description: Admin max permission command
   storage.admin.reload:
     description: Admin reload permission command
+  storage.admin.refresh:
+    description: Admin refresh permission command
   storage.admin.specialmaterial:
     description: Admin special material permission command
   storage.admin.reset:

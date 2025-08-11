@@ -29,15 +29,19 @@ settings:
 
 #Permission-based storage limits
 #Players with storage.storage.<permission_name> will get the configured max_storage
-#If a player has multiple storage permissions, the highest limit will be used
+#Priority system: Higher priority number = higher precedence (will override lower priority)
+#If a player has multiple storage permissions, the highest priority will be used
 #If no storage permissions are found, default_max_storage will be used
 storage_permissions:
   vip:
     max_storage: 10000
+    priority: 1
   premium:
     max_storage: 50000
+    priority: 2
   ultimate:
     max_storage: 200000
+    priority: 3
 
 #Auto save player data settings
 auto_save:
@@ -239,6 +243,42 @@ transfer:
       pitch: 1.0
     failed:
       name: "VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8
+
+# Crafting system settings
+crafting:
+  enabled: true
+  delay: 3
+  particles:
+    enabled: true
+    processing:
+      animation: "circle"
+      type: "ENCHANTMENT_TABLE"
+      count: 8
+      speed: 0.1
+      radius: 1.5
+      duration: 3
+    success:
+      animation: "burst"
+      type: "VILLAGER_HAPPY"
+      count: 15
+      speed: 0.1
+      radius: 2.0
+    failed:
+      animation: "burst"
+      type: "SMOKE_NORMAL"
+      count: 12
+      speed: 0.15
+      radius: 1.8
+  sounds:
+    enabled: true
+    success:
+      name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.7
+      pitch: 1.2
+    failed:
+      name: "ENTITY_VILLAGER_NO"
       volume: 0.8
       pitch: 0.8
 

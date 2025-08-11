@@ -219,8 +219,14 @@ public class RecipeListGUI implements IGUI {
         int safeCraftAmount = Math.min(maxCraftable, maxCraftableBySpace);
 
         if (CraftingManager.craftRecipe(player, recipe.getId(), safeCraftAmount)) {
-            SoundManager.setShouldPlayCloseSound(player, false);
-            player.openInventory(new RecipeListGUI(player, currentPage, currentCategory).getInventory(SoundContext.SILENT));
+            // Only reopen GUI if crafting was completed immediately (no delay)
+            if (!CraftingManager.isCraftingInProgress(player)) {
+                SoundManager.setShouldPlayCloseSound(player, false);
+                player.openInventory(new RecipeListGUI(player, currentPage, currentCategory).getInventory(SoundContext.SILENT));
+            } else {
+                // Close GUI during crafting delay
+                player.closeInventory();
+            }
         }
     }
 
