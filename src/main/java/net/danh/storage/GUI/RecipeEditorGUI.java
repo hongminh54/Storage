@@ -100,9 +100,9 @@ public class RecipeEditorGUI implements IGUI {
 
                 // Add preview information to lore
                 lore.add(Chat.colorizewp("&7"));
-                lore.add(Chat.colorizewp("&e&lPREVIEW ITEM"));
-                lore.add(Chat.colorizewp("&7Click to view details"));
-                lore.add(Chat.colorizewp("&c&oThis is a preview only"));
+                lore.add(Chat.colorizewp("&e&lVẬT PHẨM XEM TRƯỚC"));
+                lore.add(Chat.colorizewp("&7Nhấp để xem chi tiết"));
+                lore.add(Chat.colorizewp("&c&oĐây chỉ là xem trước"));
 
                 meta.setLore(lore);
                 previewItem.setItemMeta(meta);
@@ -182,8 +182,8 @@ public class RecipeEditorGUI implements IGUI {
             if (fallback != null) {
                 ItemMeta meta = fallback.getItemMeta();
                 if (meta != null) {
-                    meta.setDisplayName(Chat.colorizewp("&cConfig Error"));
-                    meta.setLore(Arrays.asList(Chat.colorizewp("&7Failed to load: " + configPath)));
+                    meta.setDisplayName(Chat.colorizewp("&cLỗi Cấu Hình"));
+                    meta.setLore(Arrays.asList(Chat.colorizewp("&7Không thể tải: " + configPath)));
                     fallback.setItemMeta(meta);
                 }
             }
@@ -359,32 +359,32 @@ public class RecipeEditorGUI implements IGUI {
         // Show detailed preview information instead of giving the item
         ItemStack previewItem = CraftingManager.createResultItem(recipe);
 
-        player.sendMessage(Chat.colorize("&e&l=== Recipe Result Preview ==="));
+        player.sendMessage(Chat.colorize("&e&l=== Xem Trước Kết Quả ==="));
         player.sendMessage(Chat.colorize("&7Material: &e" + recipe.getResultMaterial()));
-        player.sendMessage(Chat.colorize("&7Name: &e" + recipe.getResultName()));
-        player.sendMessage(Chat.colorize("&7Amount: &e" + recipe.getResultAmount()));
+        player.sendMessage(Chat.colorize("&7Tên: &e" + recipe.getResultName()));
+        player.sendMessage(Chat.colorize("&7Số lượng: &e" + recipe.getResultAmount()));
 
         if (!recipe.getResultLore().isEmpty()) {
-            player.sendMessage(Chat.colorize("&7Lore:"));
+            player.sendMessage(Chat.colorize("&7Mô tả:"));
             for (String loreLine : recipe.getResultLore()) {
                 player.sendMessage(Chat.colorize("  &7- &f" + loreLine));
             }
         }
 
         if (!recipe.getResultEnchantments().isEmpty()) {
-            player.sendMessage(Chat.colorize("&7Enchantments:"));
+            player.sendMessage(Chat.colorize("&7Phù phép:"));
             for (Map.Entry<String, Integer> enchant : recipe.getResultEnchantments().entrySet()) {
                 player.sendMessage(Chat.colorize("  &7- &b" + enchant.getKey() + " " + enchant.getValue()));
             }
         }
 
         if (!recipe.getResultFlags().isEmpty()) {
-            player.sendMessage(Chat.colorize("&7Item Flags: &d" + recipe.getResultFlags().size() + " flags"));
+            player.sendMessage(Chat.colorize("&7Flags: &d" + recipe.getResultFlags().size() + " cờ"));
         }
 
         player.sendMessage(Chat.colorize("&7"));
-        player.sendMessage(Chat.colorize("&eUse the individual buttons below to edit the result item properties."));
-        player.sendMessage(Chat.colorize("&7&oNote: This is a preview only - no items were added to your inventory."));
+        player.sendMessage(Chat.colorize("&eSử dụng các nút bên dưới để chỉnh sửa thuộc tính vật phẩm."));
+        player.sendMessage(Chat.colorize("&7&oLưu ý: Đây chỉ là xem trước - không có vật phẩm nào được thêm vào túi đồ của bạn."));
     }
 
     private void editMaterial(Player player) {
@@ -407,9 +407,9 @@ public class RecipeEditorGUI implements IGUI {
                 net.danh.storage.Manager.RecipeEditManager.removeLoreLine(recipe, lore.size() - 1);
                 CraftingManager.updateRecipe(recipe);
                 refreshGUI(player);
-                player.sendMessage(Chat.colorize("&aRemoved last lore line."));
+                player.sendMessage(Chat.colorize("&aĐã xóa dòng lore cuối cùng."));
             } else {
-                player.sendMessage(Chat.colorize("&cNo lore lines to remove!"));
+                player.sendMessage(Chat.colorize("&cKhông có dòng lore nào để xóa!"));
             }
         }
     }

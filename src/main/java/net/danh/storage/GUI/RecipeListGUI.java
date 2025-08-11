@@ -97,6 +97,20 @@ public class RecipeListGUI implements IGUI {
             return;
         }
 
+        // Check if player can craft any available recipes
+        boolean canCraftAny = availableRecipes.stream()
+                .anyMatch(recipe -> CraftingManager.getMaxCraftableAmount(player, recipe) > 0);
+        
+        if (!canCraftAny) {
+            // Show insufficient materials message
+            InteractiveItem insufficientMaterialsItem = new InteractiveItem(
+                    ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.insufficient_materials"))),
+                    22
+            );
+            inventory.setItem(insufficientMaterialsItem.getSlot(), insufficientMaterialsItem);
+            return;
+        }
+
         // Setup pagination
         String recipeSlots = config.getString("items.recipe_item.slot");
         if (recipeSlots == null) return;
@@ -159,7 +173,7 @@ public class RecipeListGUI implements IGUI {
                 // Replace requirements placeholder with actual requirement lines
                 List<String> requirementLines = createRequirementLines(recipe);
                 if (requirementLines.isEmpty()) {
-                    processedLore.add(Chat.colorizewp(line.replace("#requirements#", "&7None")));
+                    processedLore.add(Chat.colorizewp(line.replace("#requirements#", "&7Không có")));
                 } else {
                     // Add each requirement as a separate line
                     for (String reqLine : requirementLines) {

@@ -1,5 +1,5 @@
 # Title of gui
-title: "&0Item #material# | #player#"
+title: "&0Vật phẩm #material# | &a#player#"
 # Size of gui: 1,2,3,4,5,6
 size: 3
 # Sound when opening this GUI
@@ -48,7 +48,7 @@ items:
     # Don't recommend for multi slot for this item
     slot: 10
     # Name of item
-    name: "&aDeposit Item"
+    name: "&aGửi vật phẩm"
     # Material of item
     material: CHEST
     # Lore of item
@@ -56,8 +56,8 @@ items:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"
       - "&7 "
-      - "&eLeft Click - Deposit item with custom number"
-      - "&eRight Click - Deposit all item in inventory"
+      - "&eChuột trái - Gửi vật phẩm với số lượng cụ thể"
+      - "&eChuột phải - Gửi tất cả vật phẩm"
     # Amount of item
     amount: 1
     # for 1.13.2 and below
@@ -74,7 +74,7 @@ items:
       ALL: true
     # Action when click
     action:
-      # Left click
+      # Chuột trái
       left:
         # Type: chat, all
         type: chat
@@ -86,7 +86,7 @@ items:
           name: "ENTITY_ITEM_PICKUP"
           volume: 0.6
           pitch: 1.1
-      # Right click
+      # Chuột phải 
       right:
         # Type: chat, all
         type: all
@@ -100,14 +100,14 @@ items:
           pitch: 1.1
   withdraw:
     slot: 16
-    name: "&aWithdraw Item"
+    name: "&aRút vật phẩm"
     material: HOPPER
     lore:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"
       - "&7 "
-      - "&eLeft Click - Withdraw item with custom number"
-      - "&eRight Click - Withdraw all item to inventory"
+      - "&eChuột trái - Rút vật phẩm với số lượng cụ thể"
+      - "&eChuột phải  - Rút tất cả vật phẩm"
     amount: 1
     # for 1.13.2 and below
     damage: 0
@@ -137,14 +137,14 @@ items:
           pitch: 1.0
   sell:
     slot: 13
-    name: "&aSell Item"
+    name: "&aBán vật phẩm"
     material: PAPER
     lore:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"
       - "&7 "
-      - "&eLeft Click - Sell item with custom number"
-      - "&eRight Click - Sell all item from storage"
+      - "&eChuột trái - Bán vật phẩm với số lượng cụ thể"
+      - "&eChuột phải  - Bán tất cả vật phẩm"
     amount: 1
     # for 1.13.2 and below
     damage: 0
@@ -174,10 +174,9 @@ items:
           pitch: 1.5
   back:
     slot: 18
-    name: "&aBack"
+    name: "&aQuay lại"
     material: ARROW
-    lore:
-      - "&eClick to return storage menu"
+    lore: []
     amount: 1
     # for 1.13.2 and below
     damage: 0

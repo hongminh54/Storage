@@ -55,7 +55,7 @@ public class PermissionRequirementsGUI implements IGUI {
     @NotNull
     @Override
     public Inventory getInventory(SoundContext context) {
-        String title = Chat.colorizewp("&0Permission Requirements | " + recipe.getName());
+        String title = Chat.colorizewp("&0Yêu Cầu Quyền Hạn | " + recipe.getName());
         Inventory inventory = Bukkit.createInventory(this, 54, title);
 
         setupItems(inventory);
@@ -108,12 +108,12 @@ public class PermissionRequirementsGUI implements IGUI {
             ItemStack noPermsItem = new ItemStack(XMaterial.BARRIER.parseMaterial());
             ItemMeta meta = noPermsItem.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(Chat.colorizewp("&cNo Permission Requirements"));
+                meta.setDisplayName(Chat.colorizewp("&cKhông Có Yêu Cầu Quyền Hạn"));
                 meta.setLore(Arrays.asList(
-                    Chat.colorizewp("&7This recipe has no permission"),
-                    Chat.colorizewp("&7requirements. Anyone can craft it."),
+                    Chat.colorizewp("&7Công thức này không có yêu cầu"),
+                    Chat.colorizewp("&7quyền hạn. Ai cũng có thể chế tạo."),
                     Chat.colorizewp("&7"),
-                    Chat.colorizewp("&eAdd permissions below to restrict access")
+                    Chat.colorizewp("&eThêm quyền hạn bên dưới để hạn chế player")
                 ));
                 noPermsItem.setItemMeta(meta);
             }
@@ -145,13 +145,13 @@ public class PermissionRequirementsGUI implements IGUI {
             List<String> lore = new ArrayList<>();
             
             if (isRequired) {
-                lore.add(Chat.colorizewp("&7Status: &aRequired"));
+                lore.add(Chat.colorizewp("&7Trạng thái: &aBắt buộc"));
                 lore.add(Chat.colorizewp("&7"));
-                lore.add(Chat.colorizewp("&cRight-click to remove"));
+                lore.add(Chat.colorizewp("&cNhấp phải để xóa"));
             } else {
-                lore.add(Chat.colorizewp("&7Status: &7Suggested"));
+                lore.add(Chat.colorizewp("&7Trạng thái: &7Gợi ý"));
                 lore.add(Chat.colorizewp("&7"));
-                lore.add(Chat.colorizewp("&eLeft-click to add"));
+                lore.add(Chat.colorizewp("&eNhấp trái để thêm"));
             }
             
             meta.setLore(lore);
@@ -172,7 +172,7 @@ public class PermissionRequirementsGUI implements IGUI {
             permissions.add(permission);
             recipe.setPermissionRequirements(permissions);
             CraftingManager.updateRecipe(recipe);
-            player.sendMessage(Chat.colorize("&aAdded permission requirement: " + permission));
+            player.sendMessage(Chat.colorize("&aĐã thêm yêu cầu quyền hạn: " + permission));
             refreshGUI(player);
         }
     }
@@ -182,7 +182,7 @@ public class PermissionRequirementsGUI implements IGUI {
         if (permissions.remove(permission)) {
             recipe.setPermissionRequirements(permissions);
             CraftingManager.updateRecipe(recipe);
-            player.sendMessage(Chat.colorize("&cRemoved permission requirement: " + permission));
+            player.sendMessage(Chat.colorize("&cĐã xóa yêu cầu quyền hạn: " + permission));
             refreshGUI(player);
         }
     }
@@ -192,12 +192,12 @@ public class PermissionRequirementsGUI implements IGUI {
         ItemStack addCustomItem = new ItemStack(XMaterial.EMERALD.parseMaterial());
         ItemMeta meta = addCustomItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&a&lAdd Custom Permission"));
+            meta.setDisplayName(Chat.colorizewp("&a&lThêm Quyền Hạn Tùy Chỉnh"));
             meta.setLore(Arrays.asList(
-                Chat.colorizewp("&7Add a custom permission"),
-                Chat.colorizewp("&7requirement not in the list"),
+                Chat.colorizewp("&7Thêm một quyền hạn tùy chỉnh"),
+                Chat.colorizewp("&7không có trong danh sách"),
                 Chat.colorizewp("&7"),
-                Chat.colorizewp("&eClick to add custom permission")
+                Chat.colorizewp("&eNhấp để thêm quyền hạn tùy chỉnh")
             ));
             addCustomItem.setItemMeta(meta);
         }
@@ -209,12 +209,12 @@ public class PermissionRequirementsGUI implements IGUI {
         ItemStack clearAllItem = new ItemStack(XMaterial.REDSTONE_BLOCK.parseMaterial());
         meta = clearAllItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&c&lClear All Permissions"));
+            meta.setDisplayName(Chat.colorizewp("&c&lXóa Tất Cả Quyền Hạn"));
             meta.setLore(Arrays.asList(
-                Chat.colorizewp("&7Remove all permission"),
-                Chat.colorizewp("&7requirements from this recipe"),
+                Chat.colorizewp("&7Xóa tất cả yêu cầu"),
+                Chat.colorizewp("&7quyền hạn khỏi công thức này"),
                 Chat.colorizewp("&7"),
-                Chat.colorizewp("&cClick to clear all")
+                Chat.colorizewp("&cNhấp để xóa tất cả")
             ));
             clearAllItem.setItemMeta(meta);
         }
@@ -226,9 +226,9 @@ public class PermissionRequirementsGUI implements IGUI {
         ItemStack backItem = new ItemStack(XMaterial.BARRIER.parseMaterial());
         meta = backItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&cBack"));
+            meta.setDisplayName(Chat.colorizewp("&cQuay Lại"));
             meta.setLore(Arrays.asList(
-                Chat.colorizewp("&7Return to recipe editor")
+                Chat.colorizewp("&7Quay lại trình chỉnh sửa công thức")
             ));
             backItem.setItemMeta(meta);
         }
@@ -241,14 +241,14 @@ public class PermissionRequirementsGUI implements IGUI {
         net.danh.storage.Listeners.Chat.chat_recipe_edit_type.put(player, "permission_add");
         net.danh.storage.Listeners.Chat.chat_recipe_id.put(player, recipe.getId());
         player.closeInventory();
-        player.sendMessage(Chat.colorize("&eEnter the custom permission in chat:"));
-        player.sendMessage(Chat.colorize("&7Example: myplugin.special.permission"));
+        player.sendMessage(Chat.colorize("&eNhập quyền hạn tùy chỉnh trong chat:"));
+        player.sendMessage(Chat.colorize("&7Ví dụ: myplugin.special.permission"));
     }
 
     private void clearAllPermissions(Player player) {
         recipe.setPermissionRequirements(new ArrayList<>());
         CraftingManager.updateRecipe(recipe);
-        player.sendMessage(Chat.colorize("&aCleared all permission requirements"));
+        player.sendMessage(Chat.colorize("&aĐã xóa tất cả yêu cầu quyền hạn"));
         refreshGUI(player);
     }
 

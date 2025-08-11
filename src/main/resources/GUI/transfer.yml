@@ -1,4 +1,4 @@
-title: "&0Transfer to #player#"
+title: "&0Chuyển tài nguyên | &b#player#"
 size: 6
 gui_open_sound:
   enabled: true
@@ -28,10 +28,9 @@ items:
     name: "&e#material_name#"
     lore:
       - "&7 "
-      - "&fYou have: &a#current_amount#"
-      - "&fTransfer amount: &e#transfer_amount#"
+      - "&fBạn đang có: &a#current_amount#"
+      - "&fSố lượng cần chuyển: &e#transfer_amount#"
       - "&7 "
-      - "&7Click to change amount"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -48,11 +47,10 @@ items:
   
   amount_decrease:
     slot: 19
-    name: "&c- Decrease Amount"
+    name: "&c- Giảm"
     material: RED_CONCRETE
     lore:
-      - "&7Click to decrease transfer amount"
-      - "&7Current: &e#transfer_amount#"
+      - "&7Hiện tại: &e#transfer_amount#"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -69,11 +67,10 @@ items:
   
   amount_increase:
     slot: 25
-    name: "&a+ Increase Amount"
+    name: "&a+ Tăng"
     material: GREEN_CONCRETE
     lore:
-      - "&7Click to increase transfer amount"
-      - "&7Current: &e#transfer_amount#"
+      - "&7Hiện tại: &e#transfer_amount#"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -90,11 +87,10 @@ items:
   
   amount_input:
     slot: 21
-    name: "&eCustom Amount"
+    name: "&eSố lượng cụ thể"
     material: PAPER
     lore:
-      - "&7Click to enter custom amount"
-      - "&7Type amount in chat"
+      - "&7Click vào đây để nhập số lượng cụ thể"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -111,10 +107,10 @@ items:
   
   amount_max:
     slot: 23
-    name: "&6Max Amount"
+    name: "&6Tối đa"
     material: GOLD_INGOT
     lore:
-      - "&7Click to set max amount"
+      - "&7Click để set tối đa"
       - "&7Max: &a#current_amount#"
     amount: 1
     damage: 0
@@ -132,14 +128,14 @@ items:
   
   confirm_transfer:
     slot: 42
-    name: "&a✓ Confirm Transfer"
+    name: "&a✓ Xác nhận chuyển"
     material: GREEN_WOOL
     lore:
       - "&7 "
-      - "&fTransfer &e#transfer_amount# #material_name#"
-      - "&fto &b#player#"
+      - "&fChuyển &e#transfer_amount# #material_name#"
+      - "&fcho &b#player#"
       - "&7 "
-      - "&aClick to confirm"
+      - "&aClick để xác nhận"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -156,11 +152,11 @@ items:
   
   cancel_transfer:
     slot: 38
-    name: "&c✗ Cancel Transfer"
+    name: "&c✗ Hủy bỏ"
     material: RED_WOOL
     lore:
       - "&7 "
-      - "&cClick to cancel and go back"
+      - "&cClick để hủy bỏ quá trình"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -179,10 +175,7 @@ items:
     slot: 13
     name: "&b#player#"
     material: PLAYER_HEAD
-    lore:
-      - "&7 "
-      - "&fTransferring to this player"
-      - "&7 "
+    lore: []
     amount: 1
     damage: 0
     custom-model-data: 1

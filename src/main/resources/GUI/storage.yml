@@ -1,5 +1,5 @@
 # Title of gui
-title: "&0Storage | #player#"
+title: "&0Kho Khoáng Sản | &a#player#"
 # Size of gui: 1,2,3,4,5,6
 size: 6
 # Sound when opening this GUI
@@ -52,6 +52,7 @@ items:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"
       - "&7 "
+      - "&eClick để thao tác"
     # Amount of item
     amount: 1
     # for 1.13.2 and below
@@ -77,12 +78,12 @@ items:
     # Slot of item
     slot: 41
     # Display name of item
-    name: "&7Storage Toggle"
+    name: "&7Tùy chỉnh tự động nhặt"
     material: CHEST
     lore:
       - "&7 "
-      - "&fStorage: #status#"
-      - "&7&oClick to toggle use storage"
+      - "&fTrạng thái: #status#"
+      - "&7&oClick để chuyển đổi trạng thái"
     # Amount of item
     amount: 1
     # for 1.13.2 and below
@@ -106,16 +107,15 @@ items:
   # Convert materials button
   convert_button:
     slot: 39
-    name: "&6Convert Materials"
+    name: "&6Convert Tài Nguyên"
     material: ANVIL
     lore:
       - "&7 "
-      - "&fConvert between ingots and blocks"
-      - "&7• &a9 Ingots → 1 Block"
-      - "&7• &a1 Block → 9 Ingots"
-      - "&7&oOnly work for Block Ore, Ore Ingot"
+      - "&fConvert từ phôi thành block và ngược lại"
+      - "&7• &a9 Phôi → 1 Block"
+      - "&7• &a1 Block → 9 Phôi"
       - "&7 "
-      - "&eClick to open convert menu"
+      - "&eClick để mở menu"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -132,11 +132,9 @@ items:
   # Previous page
   previous_page:
     slot: 48
-    name: "&c◀ Previous Page"
+    name: "&c◀ Trang trước"
     material: ARROW
-    lore:
-      - "&7Click to go to previous page"
-      - "&7Current: Page &a#current_page#&7/&e#total_pages#"
+    lore: []
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -154,11 +152,9 @@ items:
   # Next page
   next_page:
     slot: 50
-    name: "&a▶ Next Page"
+    name: "&a▶ Trang sau"
     material: ARROW
     lore:
-      - "&7Click to go to next page"
-      - "&7Current: Page &a#current_page#&7/&e#total_pages#"
     amount: 1
     damage: 0
     custom-model-data: 1

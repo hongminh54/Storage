@@ -1,48 +1,45 @@
-# Special Material Configuration
-
-# Do not touch it
+# Không được chỉnh sửa
 special_materials_version: 1
 
 settings:
-  # Enable/disable special material system
-  enabled: true
+  enabled: false
 
-# Enchant bonuses for special materials
+# Phần thưởng phù phép cho vật liệu đặc biệt
 enchant_bonuses:
-  # Vein Miner enchant bonus
+  # Phần thưởng phù phép Đào Mạch
   veinminer:
     enabled: true
-    bonus_drop_chance: 5.0  # +5% drop chance when using Vein Miner
+    bonus_drop_chance: 5.0  # +5% tỷ lệ rơi khi sử dụng Đào Mạch
 
-  # TNT enchant balance
+  # Cân bằng phù phép TNT
   tnt:
     enabled: true
-    drop_chance_modifier: 0.7  # 70% of normal drop chance to balance AoE mining
+    drop_chance_modifier: 0.7  # 70% tỷ lệ rơi bình thường để cân bằng đào AoE
 
-# Format: material_id:
+# Định dạng: material_id:
 special_materials:
-  # Example special material
+  # Ví dụ vật liệu đặc biệt
   rare_gem:
-    # Item configuration
+    # Cấu hình vật phẩm
     item:
-      # Base material (use XMaterial format)
+      # Vật liệu cơ bản (sử dụng định dạng XMaterial)
       material: "EMERALD"
-      # Display name (supports color codes)
-      name: "&a&lRare Gem"
-      # Lore (supports color codes)
+      # Tên hiển thị (hỗ trợ mã màu)
+      name: "&a&lNgọc Quý Hiếm"
+      # Lore (hỗ trợ mã màu)
       lore:
-        - "&7A mysterious gem found"
-        - "&7deep in the mines"
+        - "&7Một viên ngọc bí ẩn được tìm thấy"
+        - "&7sâu trong các mỏ"
         - ""
-        - "&6&lRARE MATERIAL"
-      # Make item glow
+        - "&6&lVẬT LIỆU HIẾM"
+      # Làm vật phẩm phát sáng
       glow: true
-      # Custom model data (for resource packs)
+      # Dữ liệu model tùy chỉnh (cho resource pack)
       custom_model_data: 1001
-      # Item flags to hide | If you use ALL: true -> All flag will be applied to item
+      # Cờ vật phẩm để ẩn | Nếu bạn sử dụng ALL: true -> Tất cả cờ sẽ được áp dụng cho vật phẩm
       flags:
         ALL: true
-        # Or use specific flags:
+        # Hoặc sử dụng cờ cụ thể:
         # HIDE_ENCHANTS: true
         # HIDE_ATTRIBUTES: true
         # HIDE_DESTROYS: true
@@ -50,30 +47,30 @@ special_materials:
         # HIDE_UNBREAKABLE: true
         # HIDE_POTION_EFFECTS: true
     
-    # Drop configuration
-    drop_chance: 5.0  # 5% chance to drop
+    # Cấu hình rơi
+    drop_chance: 5.0  # 5% tỷ lệ rơi
     
-    # Which blocks can drop this special material
-    # Use same format as config.yml blocks section
+    # Những khối nào có thể rơi vật liệu đặc biệt này
+    # Sử dụng cùng định dạng như phần blocks trong config.yml
     source_blocks:
       - "DIAMOND_ORE;0"
       - "EMERALD_ORE;0"
     
-    # Amount range when dropped
+    # Phạm vi số lượng khi rơi
     amount:
       min: 1
       max: 2
 
-    # Effects for this specific material
+    # Hiệu ứng cho vật liệu cụ thể này
     effects:
-      # Sound effects
+      # Hiệu ứng âm thanh
       sound:
         enabled: true
         name: "ENTITY_EXPERIENCE_ORB_PICKUP"
         volume: 1.0
         pitch: 1.2
 
-      # Particle effects
+      # Hiệu ứng particle
       particles:
         enabled: true
         type: "VILLAGER_HAPPY"
@@ -82,22 +79,22 @@ special_materials:
         animation: "burst"
         radius: 1.5
 
-  # Another example
+  # Ví dụ khác
   ancient_crystal:
     item:
       material: "DIAMOND"
-      name: "&b&lAncient Crystal"
+      name: "&b&lTinh thể Cổ đại"
       lore:
-        - "&7An ancient crystal that"
-        - "&7radiates mysterious energy"
+        - "&7Một tinh thể cổ đại"
+        - "&7tỏa ra năng lượng bí ẩn"
         - ""
-        - "&b&lMYSTIC MATERIAL"
+        - "&b&lVẬT LIỆU HUYỀN BÍ"
       glow: true
       custom_model_data: 1002
       flags:
         ALL: true
     
-    drop_chance: 2.5  # 2.5% chance
+    drop_chance: 2.5  # 2.5% tỷ lệ
     
     source_blocks:
       - "COAL_ORE;0"
@@ -110,7 +107,7 @@ special_materials:
       min: 1
       max: 1
 
-    # Different effects for this material
+    # Hiệu ứng khác cho vật liệu này
     effects:
       sound:
         enabled: true
@@ -126,22 +123,22 @@ special_materials:
         animation: "spiral"
         radius: 2.0
 
-  # Uncomment and configure more materials as needed
+  # Bỏ comment và cấu hình thêm vật liệu khi cần
   # mythic_shard:
   #   item:
   #     material: "QUARTZ"
-  #     name: "&d&lMythic Shard"
+  #     name: "&d&lMảnh Thần thoại"
   #     lore:
-  #       - "&7A shard of pure magic"
-  #       - "&7from the depths of the earth"
+  #       - "&7Một mảnh ma thuật thuần khiết"
+  #       - "&7từ độ sâu của trái đất"
   #       - ""
-  #       - "&d&lMYTHIC MATERIAL"
+  #       - "&d&lVẬT LIỆU THẦN THOẠI"
   #     glow: true
   #     custom_model_data: 1003
   #     flags:
   #       ALL: true
   #   
-  #   drop_chance: 1.0  # 1% chance
+  #   drop_chance: 1.0  # 1% tỷ lệ
   #   
   #   source_blocks:
   #     - "DIAMOND_ORE;0"

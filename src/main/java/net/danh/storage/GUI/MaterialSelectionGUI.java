@@ -191,10 +191,10 @@ public class MaterialSelectionGUI implements IGUI {
         ItemStack prevItem = new ItemStack(XMaterial.ARROW.parseMaterial());
         ItemMeta meta = prevItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&aPrevious Page"));
+            meta.setDisplayName(Chat.colorizewp("&aTrang Trước"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Page " + (currentPage + 1) + " of " + totalPages),
-                Chat.colorizewp("&eClick to go to previous page")
+                Chat.colorizewp("&7Trang " + (currentPage + 1) + " / " + totalPages),
+                Chat.colorizewp("&eNhấp để đi đến trang trước")
             );
             meta.setLore(lore);
             prevItem.setItemMeta(meta);
@@ -212,10 +212,10 @@ public class MaterialSelectionGUI implements IGUI {
         ItemStack nextItem = new ItemStack(XMaterial.ARROW.parseMaterial());
         ItemMeta meta = nextItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&aNext Page"));
+            meta.setDisplayName(Chat.colorizewp("&aTrang sau"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Page " + (currentPage + 1) + " of " + totalPages),
-                Chat.colorizewp("&eClick to go to next page")
+                Chat.colorizewp("&7Trang " + (currentPage + 1) + " / " + totalPages),
+                Chat.colorizewp("&eNhấp để đi đến trang sau")
             );
             meta.setLore(lore);
             nextItem.setItemMeta(meta);
@@ -233,9 +233,9 @@ public class MaterialSelectionGUI implements IGUI {
         ItemStack backItem = new ItemStack(XMaterial.BARRIER.parseMaterial());
         ItemMeta meta = backItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&cBack"));
+            meta.setDisplayName(Chat.colorizewp("&cQuay Lại"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Return to recipe editor")
+                Chat.colorizewp("&7Quay lại trình chỉnh sửa công thức")
             );
             meta.setLore(lore);
             backItem.setItemMeta(meta);
@@ -250,10 +250,10 @@ public class MaterialSelectionGUI implements IGUI {
         ItemStack searchItem = new ItemStack(XMaterial.COMPASS.parseMaterial());
         ItemMeta meta = searchItem.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Chat.colorizewp("&6Search Material"));
+            meta.setDisplayName(Chat.colorizewp("&6Chọn Material"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Click to search for a"),
-                Chat.colorizewp("&7specific material by name")
+                Chat.colorizewp("&7Nhấp để lựa chọn"),
+                Chat.colorizewp("&7material cụ thể theo tên")
             );
             meta.setLore(lore);
             searchItem.setItemMeta(meta);
@@ -284,10 +284,10 @@ public class MaterialSelectionGUI implements IGUI {
             ItemStack prevCatItem = new ItemStack(XMaterial.ARROW.parseMaterial());
             ItemMeta meta = prevCatItem.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(Chat.colorizewp("&ePrevious Category"));
+                meta.setDisplayName(Chat.colorizewp("&eDanh mục trước"));
                 meta.setLore(Arrays.asList(
-                    Chat.colorizewp("&7Current: &e" + CATEGORY_NAMES[currentCategory]),
-                    Chat.colorizewp("&eClick to go to previous category")
+                    Chat.colorizewp("&7Hiện tại: &e" + CATEGORY_NAMES[currentCategory]),
+                    Chat.colorizewp("&eNhấp để đi đến danh mục trước")
                 ));
                 prevCatItem.setItemMeta(meta);
             }
@@ -304,10 +304,10 @@ public class MaterialSelectionGUI implements IGUI {
             ItemStack nextCatItem = new ItemStack(XMaterial.ARROW.parseMaterial());
             ItemMeta meta = nextCatItem.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(Chat.colorizewp("&eNext Category"));
+                meta.setDisplayName(Chat.colorizewp("&eDanh mục sau"));
                 meta.setLore(Arrays.asList(
-                    Chat.colorizewp("&7Current: &e" + CATEGORY_NAMES[currentCategory]),
-                    Chat.colorizewp("&eClick to go to next category")
+                    Chat.colorizewp("&7Hiện tại: &e" + CATEGORY_NAMES[currentCategory]),
+                    Chat.colorizewp("&eNhấp để đi đến danh mục sau")
                 ));
                 nextCatItem.setItemMeta(meta);
             }

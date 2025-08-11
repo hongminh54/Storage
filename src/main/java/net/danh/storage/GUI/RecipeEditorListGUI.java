@@ -214,7 +214,7 @@ public class RecipeEditorListGUI implements IGUI {
     private void createNewRecipe(Player player) {
         String newRecipeId = CraftingManager.generateUniqueId();
         Recipe newRecipe = new Recipe(newRecipeId);
-        newRecipe.setName("New Recipe");
+        newRecipe.setName("Công Thức Mới");
         
         CraftingManager.addRecipe(newRecipe);
         player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.editor_created")

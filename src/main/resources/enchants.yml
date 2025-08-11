@@ -1,14 +1,14 @@
 enchant_version: 1
 
-# Available particles: EXPLOSION_LARGE, EXPLOSION_HUGE, SMOKE_NORMAL, FLAME, CRIT, HEART, VILLAGER_HAPPY, etc.
-# Available sounds: ENTITY_GENERIC_EXPLODE, ENTITY_TNT_PRIMED, BLOCK_ANVIL_LAND, ENTITY_LIGHTNING_BOLT_THUNDER, etc.
-# For full list, check: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
-# For sounds: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+# Particles có sẵn: EXPLOSION_LARGE, EXPLOSION_HUGE, SMOKE_NORMAL, FLAME, CRIT, HEART, VILLAGER_HAPPY, v.v.
+# Âm thanh có sẵn: ENTITY_GENERIC_EXPLODE, ENTITY_TNT_PRIMED, BLOCK_ANVIL_LAND, ENTITY_LIGHTNING_BOLT_THUNDER, v.v.
+# Để xem danh sách đầy đủ, kiểm tra: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+# Cho âm thanh: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
 
 enchants:
   tnt:
     name: "TNT"
-    description: "Creates explosion when mining"
+    description: "Tạo ra vụ nổ khi đào"
     max_level: 5
     applicable_items:
       - "DIAMOND_PICKAXE"
@@ -45,7 +45,7 @@ enchants:
       storage_integration: true
       glow_effect: true
       show_in_lore: true
-      lore_format: "&6TNT &7Level %level%"
+      lore_format: "&6[&5&lPhù Phép&6] &cTNT &6%level%"
     particles:
       enabled: true
       type: "EXPLOSION_LARGE"
@@ -63,8 +63,8 @@ enchants:
       delay_ticks: 0
 
   haste:
-    name: "Haste"
-    description: "Gives mining speed boost when holding pickaxe"
+    name: "Tăng Tốc"
+    description: "Tăng tốc độ đào khi cầm cúp"
     max_level: 5
     applicable_items:
       - "DIAMOND_PICKAXE"
@@ -98,7 +98,7 @@ enchants:
       storage_integration: true
       glow_effect: true
       show_in_lore: true
-      lore_format: "&b⚡ Haste &7Level %level%"
+      lore_format: "&6[&5&lPhù Phép&6] &eĐào nhanh &6%level%"
     particles:
       enabled: false
       type: "ENCHANTMENT_TABLE"
@@ -114,8 +114,8 @@ enchants:
       delay_ticks: 0
 
   multiplier:
-    name: "Multiplier"
-    description: "Multiplies drop amount from mining"
+    name: "Nhân Bội"
+    description: "Nhân số lượng vật phẩm rơi khi đào"
     max_level: 3
     applicable_items:
       - "DIAMOND_PICKAXE"
@@ -138,7 +138,7 @@ enchants:
       storage_integration: true
       glow_effect: true
       show_in_lore: true
-      lore_format: "&6✦ Multiplier &7Level %level%"
+      lore_format: "&6[&5&lPhù Phép&6] &dNhân đôi &6%level%"
     particles:
       enabled: false
       type: "VILLAGER_HAPPY"
@@ -154,8 +154,8 @@ enchants:
       delay_ticks: 0
 
   veinminer:
-    name: "Vein Miner"
-    description: "Mines connected blocks of the same type"
+    name: "Đào Mạch"
+    description: "Đào các khối cùng loại liền kề nhau"
     max_level: 3
     applicable_items:
       - "DIAMOND_PICKAXE"
@@ -179,7 +179,7 @@ enchants:
       storage_integration: true
       glow_effect: true
       show_in_lore: true
-      lore_format: "&a⛏ Vein Miner &7Level %level%"
+      lore_format: "&6[&5&lPhù Phép&6] &3Đào Mạch &6%level%"
     particles:
       enabled: true
       type: "CRIT"

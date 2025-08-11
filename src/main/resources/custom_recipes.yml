@@ -1,83 +1,47 @@
-# Custom Recipes Configuration
-# Do not touch it
+# Cấu hình Công thức Tùy chỉnh
+# Không được chỉnh sửa
 custom_recipes_version: 1
 
-# Recipe system settings
+# Cài đặt hệ thống công thức
 settings:
-  # Enable/disable custom recipe system
+  # Bật/tắt hệ thống công thức tùy chỉnh
   enabled: true
-  # Auto-save recipes when modified through GUI
+  # Tự động lưu công thức khi chỉnh sửa qua GUI
   auto_save: true
-  # Backup recipes before major changes
+  # Sao lưu công thức trước khi thay đổi lớn
   backup_enabled: true
 
-# Recipe categories for organization
 categories:
   tools:
-    name: "&6Tools & Weapons"
-    description: "&7Craft powerful tools and weapons"
+    name: "&6Công cụ & Vũ khí"
+    description: "&7Chế tạo công cụ và vũ khí mạnh mẽ"
     icon: "DIAMOND_SWORD"
   blocks:
-    name: "&aBlocks & Building"
-    description: "&7Create decorative and functional blocks"
+    name: "&aKhối & Xây dựng"
+    description: "&7Tạo ra các khối trang trí và chức năng"
     icon: "STONE"
   misc:
-    name: "&bMiscellaneous"
-    description: "&7Various useful items"
+    name: "&bTạp hóa"
+    description: "&7Các vật phẩm hữu ích khác nhau"
     icon: "CHEST"
   default:
-    name: "&7Default"
-    description: "&7Uncategorized recipes"
+    name: "&7Mặc định"
+    description: "&7Công thức chưa phân loại"
     icon: "CRAFTING_TABLE"
 
-# Custom recipes
+# Công thức tùy chỉnh
 recipes:
-  test:
-    name: "&d&lUwU"
-    category: "tools"
-    enabled: true
-
-    # Result item configuration
-    result:
-      material: "BEDROCK"
-      name: "&d&lUwU"
-      lore:
-        - "&7Test Items"
-      amount: 1
-      custom_model_data: 0
-      unbreakable: true
-      enchantments:
-        DAMAGE_ALL: 5
-        DURABILITY: 3
-        FIRE_ASPECT: 2
-      flags:
-        - "HIDE_ENCHANTS"
-        - "HIDE_ATTRIBUTES"
-
-    # Requirements from storage
-    requirements:
-      materials:
-        'DIAMOND;0': 10
-        'IRON_INGOT;0': 5
-        'GOLD_INGOT;0': 3
-      permissions:
-        - "storage.craft.test"
-
-#  # Example recipe - Enhanced Diamond Sword
-#  enhanced_diamond_sword:
-#    name: "&b&lEnhanced Diamond Sword"
+#  test:
+#    name: "&d&lUwU"
 #    category: "tools"
 #    enabled: true
 #
-#    # Result item configuration
+#    # Cấu hình vật phẩm kết quả
 #    result:
-#      material: "DIAMOND_SWORD"
-#      name: "&b&lEnhanced Diamond Sword"
+#      material: "BEDROCK"
+#      name: "&d&lUwU"
 #      lore:
-#        - "&7A powerful sword forged with"
-#        - "&7rare materials from your storage"
-#        - ""
-#        - "&6&lLEGENDARY WEAPON"
+#        - "&7Vật phẩm Test"
 #      amount: 1
 #      custom_model_data: 0
 #      unbreakable: true
@@ -89,7 +53,42 @@ recipes:
 #        - "HIDE_ENCHANTS"
 #        - "HIDE_ATTRIBUTES"
 #
-#    # Requirements from storage
+#    # Yêu cầu từ kho lưu trữ
+#    requirements:
+#      materials:
+#        'DIAMOND;0': 10
+#        'IRON_INGOT;0': 5
+#        'GOLD_INGOT;0': 3
+#      permissions:
+#        - "storage.craft.test"
+
+#  # Ví dụ công thức - Kiếm Kim Cương Cường Hóa
+#  enhanced_diamond_sword:
+#    name: "&b&lKiếm Kim Cương Cường Hóa"
+#    category: "tools"
+#    enabled: true
+#
+#    # Cấu hình vật phẩm kết quả
+#    result:
+#      material: "DIAMOND_SWORD"
+#      name: "&b&lKiếm Kim Cương Cường Hóa"
+#      lore:
+#        - "&7Một thanh kiếm mạnh mẽ được rèn"
+#        - "&7từ vật liệu quý hiếm trong kho của bạn"
+#        - ""
+#        - "&6&lVŨ KHÍ HUYỀN THOẠI"
+#      amount: 1
+#      custom_model_data: 0
+#      unbreakable: true
+#      enchantments:
+#        DAMAGE_ALL: 5
+#        DURABILITY: 3
+#        FIRE_ASPECT: 2
+#      flags:
+#        - "HIDE_ENCHANTS"
+#        - "HIDE_ATTRIBUTES"
+#
+#    # Yêu cầu từ kho lưu trữ
 #    requirements:
 #      materials:
 #        'DIAMOND;0': 10
@@ -98,20 +97,20 @@ recipes:
 #      permissions:
 #        - "storage.craft.enhanced"
 #
-#  # Example recipe - Super Block
+#  # Ví dụ công thức - Siêu Khối
 #  super_block:
-#    name: "&a&lSuper Block"
+#    name: "&a&lSiêu Khối"
 #    category: "blocks"
 #    enabled: true
 #
 #    result:
 #      material: "EMERALD_BLOCK"
-#      name: "&a&lSuper Block"
+#      name: "&a&lSiêu Khối"
 #      lore:
-#        - "&7A compressed block made from"
-#        - "&7multiple rare materials"
+#        - "&7Một khối nén được tạo từ"
+#        - "&7nhiều vật liệu quý hiếm"
 #        - ""
-#        - "&a&lSPECIAL BLOCK"
+#        - "&a&lKHỐI ĐẶC BIỆT"
 #      amount: 1
 #      custom_model_data: 1001
 #      unbreakable: false
@@ -127,22 +126,22 @@ recipes:
 #        'GOLD_INGOT;0': 15
 #      permissions: []
 #
-#  # Example recipe - Magic Potion Materials
+#  # Ví dụ công thức - Vật liệu Thuốc Ma thuật
 #  magic_essence:
-#    name: "&d&lMagic Essence"
+#    name: "&d&lTinh chất Ma thuật"
 #    category: "misc"
 #    enabled: true
 #
 #    result:
 #      material: "NETHER_STAR"
-#      name: "&d&lMagic Essence"
+#      name: "&d&lTinh chất Ma thuật"
 #      lore:
-#        - "&7A mystical essence created by"
-#        - "&7combining various ores"
+#        - "&7Một tinh chất huyền bí được tạo ra bằng"
+#        - "&7cách kết hợp các loại quặng khác nhau"
 #        - ""
-#        - "&7&oUsed in advanced crafting"
+#        - "&7&oSử dụng trong chế tạo nâng cao"
 #        - ""
-#        - "&d&lMYSTIC MATERIAL"
+#        - "&d&lVẬT LIỆU HUYỀN BÍ"
 #      amount: 1
 #      custom_model_data: 0
 #      unbreakable: false
@@ -160,20 +159,20 @@ recipes:
 #      permissions:
 #        - "storage.craft.magic"
 #
-#  # Example recipe - Compressed Cobblestone
+#  # Ví dụ công thức - Đá Cuội Nén
 #  compressed_cobblestone:
-#    name: "&7Compressed Cobblestone"
+#    name: "&7Đá Cuội Nén"
 #    category: "blocks"
 #    enabled: true
 #
 #    result:
 #      material: "OBSIDIAN"
-#      name: "&7&lCompressed Cobblestone"
+#      name: "&7&lĐá Cuội Nén"
 #      lore:
-#        - "&7Cobblestone compressed into"
-#        - "&7a much denser form"
+#        - "&7Đá cuội được nén thành"
+#        - "&7dạng dày đặc hơn nhiều"
 #        - ""
-#        - "&7Equivalent to &e1000 &7cobblestone"
+#        - "&7Tương đương với &e1000 &7đá cuội"
 #      amount: 1
 #      custom_model_data: 0
 #      unbreakable: false
@@ -185,22 +184,22 @@ recipes:
 #        'COBBLESTONE;0': 1000
 #      permissions: []
 #
-#  # Example recipe - Ultimate Tool
+#  # Ví dụ công thức - Công cụ Tối thượng
 #  ultimate_pickaxe:
-#    name: "&6&lUltimate Pickaxe"
+#    name: "&6&lCúp Tối thượng"
 #    category: "tools"
-#    enabled: false  # Disabled by default
+#    enabled: false  # Tắt theo mặc định
 #
 #    result:
 #      material: "NETHERITE_PICKAXE"
-#      name: "&6&lUltimate Pickaxe"
+#      name: "&6&lCúp Tối thượng"
 #      lore:
-#        - "&7The most powerful pickaxe"
-#        - "&7ever created"
+#        - "&7Chiếc cúp mạnh mẽ nhất"
+#        - "&7từng được tạo ra"
 #        - ""
-#        - "&7&oBreaks any block instantly"
+#        - "&7&oPhá vỡ mọi khối ngay lập tức"
 #        - ""
-#        - "&6&lULTIMATE TOOL"
+#        - "&6&lCÔNG CỤ TỐI THƯỢNG"
 #      amount: 1
 #      custom_model_data: 2001
 #      unbreakable: true

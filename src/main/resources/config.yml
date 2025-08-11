@@ -1,37 +1,38 @@
-#Do not touch it
+# Không được chỉnh sửa
 config_version: 2
 
+# Danh sách thế giới bị cấm sử dụng plugin
 blacklist_world:
   - defaultworld
   - exampleworld
 
-#Send a notification to console when a new version is available
+# Gửi thông báo đến console khi có phiên bản mới
 check_update: true
 
-#Prefix for every message from plugin
+# Tiền tố cho mọi tin nhắn từ plugin
 prefix: "&7[&6Storage&7]"
 
 settings:
-  #Default max storage for all item
+  # Dung lượng kho lưu trữ mặc định cho tất cả vật phẩm
   default_max_storage: 100000
-  #Default auto pickup on first join
+  # Tự động nhặt mặc định khi tham gia lần đầu
   default_auto_pickup: false
-  #Storage full notification settings
+  # Cài đặt thông báo kho đầy
   storage_full_notification:
-    #Enable storage full notification when mining
+    # Bật thông báo kho đầy khi đào
     enabled: true
-    #Cooldown in seconds between notifications (minimum: 1 second)
+    # Thời gian chờ giữa các thông báo tính bằng giây (tối thiểu: 1 giây)
     cooldown_seconds: 10
-  #Reset command notification settings
+  # Cài đặt thông báo lệnh reset
   reset_notification:
-    #Send notification to target player when their storage is reset by admin
+    # Gửi thông báo đến người chơi mục tiêu khi kho của họ bị admin reset
     notify_target_player: true
 
-#Permission-based storage limits
-#Players with storage.storage.<permission_name> will get the configured max_storage
-#Priority system: Higher priority number = higher precedence (will override lower priority)
-#If a player has multiple storage permissions, the highest priority will be used
-#If no storage permissions are found, default_max_storage will be used
+# Giới hạn kho lưu trữ dựa trên quyền
+# Người chơi có quyền storage.storage.<tên_quyền> sẽ nhận được max_storage đã cấu hình
+# Hệ thống ưu tiên: Số ưu tiên cao hơn = ưu tiên cao hơn (sẽ ghi đè ưu tiên thấp hơn)
+# Nếu người chơi có nhiều quyền kho lưu trữ, ưu tiên cao nhất sẽ được sử dụng
+# Nếu không tìm thấy quyền kho lưu trữ nào, default_max_storage sẽ được sử dụng
 storage_permissions:
   vip:
     max_storage: 10000
@@ -43,28 +44,28 @@ storage_permissions:
     max_storage: 200000
     priority: 3
 
-#Auto save player data settings
+# Cài đặt tự động lưu dữ liệu người chơi
 auto_save:
-  #Enable auto save feature
+  # Bật tính năng tự động lưu
   enabled: true
-  #Auto save interval in minutes (minimum: 1 minute)
+  # Khoảng thời gian tự động lưu tính bằng phút (tối thiểu: 1 phút)
   interval_minutes: 5
-  #Save data asynchronously to prevent lag
+  # Lưu dữ liệu bất đồng bộ để tránh lag
   async: true
-  #Log auto save activity to console
+  # Ghi nhật ký hoạt động tự động lưu vào console
   log_activity: false
 
-#Sell command | I don't want to require Vault as an economy so use command to give balance when sell
+# Lệnh bán hàng | Tôi không muốn yêu cầu Vault làm hệ thống kinh tế nên sử dụng lệnh để cấp tiền khi bán
 sell:
   - "eco give #player# #money#"
 
-#Number format of worth
+# Định dạng số của giá trị
 number_format: "#.##"
 
-#Prevent re-place and re-break block to get more item
+# Ngăn chặn đặt lại và phá lại khối để nhận thêm vật phẩm
 prevent_rebreak: false
 
-#Fortune enchantment can apply for list block(s) below here
+# Phù phép Fortune có thể áp dụng cho danh sách khối dưới đây
 whitelist_fortune:
   - COAL_ORE
   - IRON_ORE
@@ -73,12 +74,12 @@ whitelist_fortune:
   - LAPIS_ORE
   - DIAMOND_ORE
   - EMERALD_ORE
- # For higher version
+  # Cho phiên bản cao hơn
 #  - NETHER_QUARTZ_ORE
 #  - ANCIENT_DEBRIS
 #  - COPPER_ORE
 
-#Worth of per item
+# Giá trị của mỗi vật phẩm
 worth:
   COBBLESTONE;0: 1
   COAL;0: 2
@@ -95,7 +96,7 @@ worth:
   DIAMOND_BLOCK;0: 43
   EMERALD;0: 8
   EMERALD_BLOCK;0: 72
- # For higher version
+  # Cho phiên bản cao hơn
 #  QUARTZ;0: 6
 #  QUARTZ_BLOCK;0: 54
 #  NETHERITE_INGOT;0: 50
@@ -104,15 +105,15 @@ worth:
 #  COPPER_INGOT;0: 3
 #  COPPER_BLOCK;0: 27
 
-#Player can storage list blocks below here
+# Người chơi có thể lưu trữ danh sách khối dưới đây
 blocks:
-  #MUST REMEMBER: DON'T CONFIG 2 SAME MATERIAL_1 BELOW THIS!
-  #MATERIAL_1;DATA_NUMBER:
-  # drop: MATERIAL_2;DATA_NUMBER
-  #For 1.12.2 and below, MATERIAL;0 | 0 -> item data
-  #For example, If you want LAPIS_LAZULI for 1.12.2 and below -> INK_SACK;4
-  #If you want diamond for all versions -> DIAMOND;0
-  #Don't remove ;0 if you don't want to make a new issue!
+  # PHẢI NHỚ: KHÔNG CẤU HÌNH 2 MATERIAL_1 GIỐNG NHAU Ở DƯỚI ĐÂY!
+  # MATERIAL_1;SỐ_DỮ_LIỆU:
+  #   drop: MATERIAL_2;SỐ_DỮ_LIỆU
+  # Đối với 1.12.2 trở xuống, MATERIAL;0 | 0 -> dữ liệu vật phẩm
+  # Ví dụ, nếu bạn muốn LAPIS_LAZULI cho 1.12.2 trở xuống -> INK_SACK;4
+  # Nếu bạn muốn kim cương cho tất cả phiên bản -> DIAMOND;0
+  # Đừng xóa ;0 nếu bạn không muốn tạo ra vấn đề mới!
   COBBLESTONE;0:
     drop: COBBLESTONE;0
   STONE;0:
@@ -145,7 +146,7 @@ blocks:
     drop: EMERALD;0
   EMERALD_BLOCK;0:
     drop: EMERALD_BLOCK;0
-  # For higher version
+  # Cho phiên bản cao hơn
 #  NETHER_QUARTZ_ORE;0:
 #    drop: QUARTZ;0
 #  QUARTZ_BLOCK;0:
@@ -159,31 +160,33 @@ blocks:
 #  COPPER_BLOCK;0:
 #    drop: COPPER_BLOCK;0
 
+# Tên hiển thị của các vật phẩm
 items:
-  COBBLESTONE;0: "&7Cobblestone"
-  COAL;0: "&8Coal"
-  COAL_BLOCK;0: "&8Coal Block"
-  IRON_INGOT;0: "&fIron Ingot"
-  IRON_BLOCK;0: "&fIron Block"
-  GOLD_INGOT;0: "&eGolden Ingot"
-  GOLD_BLOCK;0: "&eGold Block"
-  REDSTONE;0: "&cRedstone"
-  REDSTONE_BLOCK;0: "&cRedstone Block"
-  LAPIS_LAZULI;0: "&1Lapis Lazuli"
-  LAPIS_BLOCK;0: "&1Lapis Block"
-  DIAMOND;0: "&bDiamond"
-  DIAMOND_BLOCK;0: "&bDiamond Block"
-  EMERALD;0: "&aEmerald"
-  EMERALD_BLOCK;0: "&aEmerald Block"
- # For higher version
-#  QUARTZ;0: "&fNether Quartz"
-#  QUARTZ_BLOCK;0: "&fQuartz Block"
-#  NETHERITE_INGOT;0: "&4Netherite Ingot"
-#  NETHERITE_BLOCK;0: "&4Netherite Block"
-#  NETHERITE_SCRAP;0: "&4Netherite Scrap"
-#  COPPER_INGOT;0: "&6Copper Ingot"
-#  COPPER_BLOCK;0: "&6Copper Block"
+  COBBLESTONE;0: "&7Đá Cuội"
+  COAL;0: "&8Than"
+  COAL_BLOCK;0: "&8Khối Than"
+  IRON_INGOT;0: "&fPhôi Sắt"
+  IRON_BLOCK;0: "&fKhối Sắt"
+  GOLD_INGOT;0: "&ePhôi Vàng"
+  GOLD_BLOCK;0: "&eKhối Vàng"
+  REDSTONE;0: "&cĐá Đỏ"
+  REDSTONE_BLOCK;0: "&cKhối Đá Đỏ"
+  LAPIS_LAZULI;0: "&1Lưu Ly"
+  LAPIS_BLOCK;0: "&1Khối Lưu Ly"
+  DIAMOND;0: "&bKim Cương"
+  DIAMOND_BLOCK;0: "&bKhối Kim Cương"
+  EMERALD;0: "&aNgọc Lục Bảo"
+  EMERALD_BLOCK;0: "&aKhối Ngọc Lục Bảo"
+  # Cho phiên bản cao hơn
+#  QUARTZ;0: "&fThạch Anh"
+#  QUARTZ_BLOCK;0: "&fKhối Thạch Anh"
+#  NETHERITE_INGOT;0: "&4Phôi Netherite"
+#  NETHERITE_BLOCK;0: "&4Khối Netherite"
+#  NETHERITE_SCRAP;0: "&4Mảnh Netherite"
+#  COPPER_INGOT;0: "&6Phôi Đồng"
+#  COPPER_BLOCK;0: "&6Khối Đồng"
 
+# Cài đặt hiển thị khi đào
 mine:
   title:
     enable: true
@@ -193,7 +196,7 @@ mine:
     enable: true
     action: "&6+#amount# #item# [#storage#/#max#]"
 
-# Animation for particles: none, circle, spiral, line, burst, helix, wave, dna_helix, galaxy, tornado, lightning, geometric_star
+# Hiệu ứng cho particles: none, circle, spiral, line, burst, helix, wave, dna_helix, galaxy, tornado, lightning, geometric_star
 transfer:
   enabled: true
   delay: 3
@@ -246,7 +249,7 @@ transfer:
       volume: 0.8
       pitch: 0.8
 
-# Crafting system settings
+# Cài đặt hệ thống chế tạo
 crafting:
   enabled: true
   delay: 3
@@ -282,30 +285,30 @@ crafting:
       volume: 0.8
       pitch: 0.8
 
-# Convert materials settings
+# Cài đặt chuyển đổi vật liệu
 convert:
   enabled: true
-  # Default conversion ratios
+  # Tỷ lệ chuyển đổi mặc định
   default_ratios:
-    # Ingot to Block ratio (how many ingots needed for 1 block)
+    # Tỷ lệ Thỏi sang Khối (cần bao nhiêu thỏi để tạo 1 khối)
     ingot_to_block: 9
-    # Block to Ingot ratio (how many ingots you get from 1 block)
+    # Tỷ lệ Khối sang Thỏi (nhận được bao nhiêu thỏi từ 1 khối)
     block_to_ingot: 9
-  # Custom conversion mappings (optional - if not specified, auto-detection will be used)
-  # Format: "ingot_material": "block_material"
+  # Ánh xạ chuyển đổi tùy chỉnh (tùy chọn - nếu không chỉ định, sẽ sử dụng tự động phát hiện)
+  # Định dạng: "vật_liệu_thỏi": "vật_liệu_khối"
   custom_mappings:
-    # Example: "CUSTOM_INGOT;0": "CUSTOM_BLOCK;0"
-  # Custom ratios for specific materials (optional)
-  # Format: "ingot_material_block_material": { ingot_to_block: X, block_to_ingot: Y }
+  # Ví dụ: "CUSTOM_INGOT;0": "CUSTOM_BLOCK;0"
+  # Tỷ lệ tùy chỉnh cho vật liệu cụ thể (tùy chọn)
+  # Định dạng: "vật_liệu_thỏi_vật_liệu_khối": { ingot_to_block: X, block_to_ingot: Y }
   custom_ratios:
-#    # Quartz uses 4:1 ratio instead of default 9:1
-#    "QUARTZ;0_QUARTZ_BLOCK;0":
-#      ingot_to_block: 4
-#      block_to_ingot: 4
-#    # Netherite is more expensive - 36:1 ratio
-#    "NETHERITE_SCRAP;0_NETHERITE_BLOCK;0":
-#      ingot_to_block: 36
-#      block_to_ingot: 36
+  #    # Quartz sử dụng tỷ lệ 4:1 thay vì mặc định 9:1
+  #    "QUARTZ;0_QUARTZ_BLOCK;0":
+  #      ingot_to_block: 4
+  #      block_to_ingot: 4
+  #    # Netherite đắt hơn - tỷ lệ 36:1
+  #    "NETHERITE_SCRAP;0_NETHERITE_BLOCK;0":
+  #      ingot_to_block: 36
+  #      block_to_ingot: 36
   particles:
     enabled: true
     animation: "helix"
@@ -320,6 +323,7 @@ convert:
     volume: 1.0
     pitch: 1.2
 
+# Cài đặt âm thanh
 sounds:
   enabled: true
   gui:

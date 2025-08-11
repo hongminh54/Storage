@@ -1,5 +1,5 @@
 # Recipe Editor List GUI Configuration
-title: "&0Recipe Editor | #player#"
+title: "&0Chỉnh Sửa Chế Tạo | &0#player#"
 size: 6
 
 # Sound when opening this GUI
@@ -29,13 +29,11 @@ items:
   # Create new recipe button
   create_recipe:
     slot: 4
-    name: "&a&lCreate New Recipe"
+    name: "&a&lTạo vật phẩm mới"
     material: EMERALD
     lore:
-      - "&7Click to create a new"
-      - "&7custom recipe"
-      - "&7 "
-      - "&eLeft-click to create"
+      - "&eNote: bạn cũng có thể sử dụng /kho crafteditor import"
+      - "&eđể thêm vật phẩm ở trên tay của bạn"
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -57,15 +55,15 @@ items:
     material: "#recipe_material#"
     lore:
       - "&7ID: &e#recipe_id#"
-      - "&7Category: &e#category#"
-      - "&7Status: #status#"
+      - "&7Danh mục: &e#category#"
+      - "&7Trạng thái: #status#"
       - "&7 "
-      - "&fRequirements: &e#requirement_count#"
-      - "&fResult: &a#result_amount#x #result_name#"
+      - "&7Số Yêu Cầu: &e#requirement_count#"
+      - "&fThành quả: &a#result_amount#x #result_name#"
       - "&7 "
-      - "&eLeft-click to edit"
-      - "&cRight-click to delete"
-      - "&6Shift-click to toggle enabled"
+      - "&eChuột-trái để chỉnh sửa"
+      - "&cChuột-phải để xóa"
+      - "&6Shift-click để &abật&6/&ctắt"
     amount: "#recipe_amount#"
     damage: 0
     custom-model-data: 1
@@ -81,12 +79,9 @@ items:
   # Previous page
   previous_page:
     slot: 45
-    name: "&aPrevious Page"
+    name: "&a◀ Trang trước"
     material: ARROW
-    lore:
-      - "&7Page &e#current_page# &7of &e#total_pages#"
-      - "&7 "
-      - "&eClick to go to previous page"
+    lore: []
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -104,12 +99,9 @@ items:
   # Next page
   next_page:
     slot: 53
-    name: "&aNext Page"
+    name: "&a▶ Trang sau"
     material: ARROW
-    lore:
-      - "&7Page &e#current_page# &7of &e#total_pages#"
-      - "&7 "
-      - "&eClick to go to next page"
+    lore: []
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -127,11 +119,9 @@ items:
   # Close/Back button
   close:
     slot: 49
-    name: "&cClose"
+    name: "&cThoát"
     material: BARRIER
-    lore:
-      - "&7 "
-      - "&eClick to close menu"
+    lore: []
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -149,14 +139,12 @@ items:
   # No recipes message
   no_recipes:
     slot: 22
-    name: "&eNo Recipes Created"
+    name: "&eKhông có vật phẩm nào cả"
     material: BOOK
     lore:
-      - "&7No custom recipes have"
-      - "&7been created yet"
-      - "&7 "
-      - "&7Click the &aCreate New Recipe"
-      - "&7button to get started"
+      - "&7Không có vật phẩm nào được"
+      - "&7tạo cả"
+      - " "
     amount: 1
     damage: 0
     custom-model-data: 1
@@ -165,27 +153,3 @@ items:
       DURABILITY: 1
     flags:
       ALL: true
-
-  # Reload recipes button
-  reload_recipes:
-    slot: 49
-    name: "&6Reload Recipes"
-    material: REDSTONE
-    lore:
-      - "&7Reload all recipes from"
-      - "&7the configuration file"
-      - "&7 "
-      - "&eClick to reload"
-    amount: 1
-    damage: 0
-    custom-model-data: 1
-    unbreakable: true
-    enchants:
-      DURABILITY: 1
-    flags:
-      ALL: true
-    sound:
-      enabled: true
-      name: "BLOCK_PISTON_EXTEND"
-      volume: 0.8
-      pitch: 1.0

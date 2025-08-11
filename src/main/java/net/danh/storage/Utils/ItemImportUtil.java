@@ -167,7 +167,7 @@ public class ItemImportUtil {
             itemName = itemName.substring(2);
         }
         
-        recipe.setName("&a" + itemName + " Recipe");
+        recipe.setName("&a" + itemName);
         recipe.setCategory(determineCategory(item));
         recipe.setEnabled(true);
         

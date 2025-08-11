@@ -42,6 +42,7 @@ public class CommandManager {
         registerCommand("enchant", new EnchantCommand());
         registerCommand("specialmaterial", new SpecialMaterialCommand());
         registerCommand("crafteditor", new net.danh.storage.CMD.handler.admin.CraftEditorCommand());
+        registerCommand("convertsql", new ConvertSQLCommand());
     }
 
     private void registerCommand(String name, CommandHandler handler) {
