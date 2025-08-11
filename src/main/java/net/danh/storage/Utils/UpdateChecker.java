@@ -18,7 +18,7 @@ import java.util.Arrays;
 
 public class UpdateChecker implements Listener {
 
-    private final int RESOURCE_ID = 100516;
+    private final int RESOURCE_ID = 127776;
     private final Storage plugin;
     private final String pluginVersion;
     private String spigotVersion;

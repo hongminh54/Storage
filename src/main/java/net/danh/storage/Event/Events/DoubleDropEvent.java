@@ -28,20 +28,16 @@ public class DoubleDropEvent extends BaseEvent {
     @Override
     public void onPlayerMine(Player player, String material, int amount) {
         if (!eventData.isActive()) return;
-
-        // Check if this is player's first participation
         int previousTotal = eventData.getPlayerData(player);
         boolean isFirstTime = (previousTotal == 0);
 
-        int bonusAmount = calculateBonusAmount(amount, isFirstTime);
+        int bonusAmount = calculateBonusAmount(amount);
         long remainingTime = getRemainingTime();
 
-        // Track player participation (total blocks mined, not bonus)
         eventData.addPlayerData(player, amount);
 
-        // First bonus message
         if (isFirstTime) {
-            sendFirstBonusMessage(player, bonusAmount);
+            sendFirstParticipationMessage(player);
         }
 
         String actionBarMessage = File.getMessage().getString("events.double_drop.action_bar.active");
@@ -73,16 +69,11 @@ public class DoubleDropEvent extends BaseEvent {
     }
 
     public int calculateBonusAmount(int originalAmount) {
-        return calculateBonusAmount(originalAmount, false);
-    }
-
-    public int calculateBonusAmount(int originalAmount, boolean isFirstTime) {
         if (!eventData.isActive()) {
             return 0;
         }
 
-        double baseMultiplier = getMultiplier();
-        double multiplier = isFirstTime ? (baseMultiplier + 1.0) : baseMultiplier;
+        double multiplier = getMultiplier();
         int totalAmount = (int) (originalAmount * multiplier);
         return totalAmount - originalAmount;
     }
@@ -122,14 +113,6 @@ public class DoubleDropEvent extends BaseEvent {
         String message = File.getMessage().getString("events.double_drop.chat.event_ended");
         if (message == null || message.isEmpty()) return;
 
-        // Calculate total bonus from total blocks mined
-        int totalBonus = 0;
-        for (int blocksMined : eventData.getPlayerData().values()) {
-            totalBonus += calculateBonusAmount(blocksMined, false); // Use normal multiplier for total
-        }
-
-        message = message.replace("#total_bonus#", String.valueOf(totalBonus));
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(Chat.colorizewp(message));
         }
@@ -160,15 +143,20 @@ public class DoubleDropEvent extends BaseEvent {
         return formatTime(getRemainingTime());
     }
 
-    private void sendFirstBonusMessage(Player player, int bonusAmount) {
+    @Override
+    protected void sendFirstParticipationMessage(Player player) {
         if (!File.getEventConfig().getBoolean("notifications.chat_messages.enabled", true)) {
             return;
         }
 
-        String message = File.getMessage().getString("events.double_drop.chat.first_bonus");
+        String message = File.getMessage().getString("events.double_drop.chat.first_participation");
         if (message == null || message.isEmpty()) return;
 
-        message = message.replace("#bonus#", String.valueOf(bonusAmount));
+        double multiplier = getMultiplier();
+        String timeLeft = getFormattedRemainingTime();
+
+        message = message.replace("#multiplier#", String.valueOf(multiplier))
+                .replace("#time#", timeLeft);
         player.sendMessage(Chat.colorizewp(message));
     }
 }

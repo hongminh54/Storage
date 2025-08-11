@@ -1,11 +1,11 @@
 package net.danh.storage.Manager;
 
-import net.danh.storage.NMS.NMSAssistant;
+import com.cryptomorin.xseries.particles.ParticleDisplay;
+import com.cryptomorin.xseries.particles.XParticle;
 import net.danh.storage.Particles.ParticleAnimation;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -71,98 +71,89 @@ public class ParticleManager {
     }
 
     private static void playParticleEffect(Player player, Location location, String particleName, int count, double speed) {
-        NMSAssistant nms = new NMSAssistant();
-
         try {
-            if (nms.isVersionGreaterThanOrEqualTo(13)) {
-                Particle particle = getModernParticle(particleName);
-                if (particle != null) {
-                    player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, speed);
-                }
+            XParticle xParticle = getXParticle(particleName);
+            if (xParticle != null) {
+                ParticleDisplay.of(xParticle)
+                        .withLocation(location)
+                        .withCount(count)
+                        .offset(0.5, 0.5, 0.5)
+                        .withExtra(speed)
+                        .spawn();
             } else {
-                playLegacyParticle(player, location, particleName, count, speed);
+                playFallbackParticle(player, location, count, speed);
             }
         } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Failed to spawn particle: " + particleName + " at location: " + location + " - " + e.getMessage());
             playFallbackParticle(player, location, count, speed);
         }
     }
 
-    private static Particle getModernParticle(String particleName) {
-        try {
-            return Particle.valueOf(particleName.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            Map<String, Particle> particleMap = new HashMap<>();
-            NMSAssistant nms = new NMSAssistant();
-
-            if (nms.isVersionGreaterThanOrEqualTo(13)) {
-                try {
-                    particleMap.put("VILLAGER_HAPPY", Particle.valueOf("HAPPY_VILLAGER"));
-                } catch (IllegalArgumentException ex) {
-                    try {
-                        particleMap.put("VILLAGER_HAPPY", Particle.valueOf("VILLAGER_HAPPY"));
-                    } catch (IllegalArgumentException ex2) {
-                        // Fallback for very old versions
-                    }
-                }
-
-                try {
-                    particleMap.put("HEART", Particle.valueOf("HEART"));
-                    particleMap.put("CRIT", Particle.valueOf("CRIT"));
-                    particleMap.put("SMOKE_NORMAL", Particle.valueOf("SMOKE_NORMAL"));
-                    particleMap.put("FIREWORKS_SPARK", Particle.valueOf("FIREWORKS_SPARK"));
-                } catch (IllegalArgumentException ex) {
-                    // Some particles might not exist in certain versions
-                }
-
-                try {
-                    particleMap.put("ENCHANTMENT_TABLE", Particle.valueOf("ENCHANTMENT_TABLE"));
-                } catch (IllegalArgumentException ex) {
-                    try {
-                        particleMap.put("ENCHANTMENT_TABLE", Particle.valueOf("ENCHANT"));
-                    } catch (IllegalArgumentException ex2) {
-                        // Fallback
-                    }
-                }
-            }
-
-            return particleMap.get(particleName.toUpperCase());
+    private static XParticle getXParticle(String particleName) {
+        if (particleName == null || particleName.isEmpty()) {
+            return getParticleByName("VILLAGER_HAPPY");
         }
-    }
 
-    @SuppressWarnings("deprecation")
-    private static void playLegacyParticle(Player player, Location location, String particleName, int count, double speed) {
         try {
-            org.bukkit.Effect effect = getLegacyEffect(particleName);
-            if (effect != null) {
-                player.playEffect(location, effect, null);
+            XParticle particle = XParticle.of(particleName.toUpperCase()).orElse(null);
+            if (particle != null) {
+                return particle;
             }
         } catch (Exception e) {
-            playFallbackParticle(player, location, count, speed);
+            // Continue to mapping
+        }
+
+        Map<String, String> particleMap = new HashMap<>();
+
+        particleMap.put("VILLAGER_HAPPY", "VILLAGER_HAPPY");
+        particleMap.put("HAPPY_VILLAGER", "VILLAGER_HAPPY");
+        particleMap.put("HEART", "HEART");
+        particleMap.put("CRIT", "CRIT");
+        particleMap.put("SMOKE_NORMAL", "SMOKE_NORMAL");
+        particleMap.put("SMOKE", "SMOKE_NORMAL");
+        particleMap.put("FIREWORKS_SPARK", "FIREWORKS_SPARK");
+        particleMap.put("ENCHANTMENT_TABLE", "ENCHANTMENT_TABLE");
+        particleMap.put("ENCHANT", "ENCHANTMENT_TABLE");
+        particleMap.put("WATER_SPLASH", "WATER_SPLASH");
+        particleMap.put("EXPLOSION_NORMAL", "EXPLOSION_NORMAL");
+        particleMap.put("SMOKE_LARGE", "SMOKE_LARGE");
+        particleMap.put("ASH", "ASH");
+
+        String mappedName = particleMap.get(particleName.toUpperCase());
+        if (mappedName != null) {
+            XParticle mapped = getParticleByName(mappedName);
+            if (mapped != null) {
+                return mapped;
+            }
+        }
+
+        Storage.getStorage().getLogger().warning("Unknown particle type: " + particleName + ", using fallback");
+        return getParticleByName("VILLAGER_HAPPY");
+    }
+
+    private static XParticle getParticleByName(String name) {
+        try {
+            return XParticle.of(name).orElse(null);
+        } catch (Exception e) {
+            // Return null if particle doesn't exist
+            return null;
         }
     }
 
-    private static org.bukkit.Effect getLegacyEffect(String particleName) {
-        Map<String, org.bukkit.Effect> effectMap = new HashMap<>();
-        effectMap.put("VILLAGER_HAPPY", org.bukkit.Effect.VILLAGER_PLANT_GROW);
-        effectMap.put("SMOKE_NORMAL", org.bukkit.Effect.SMOKE);
-
-        // These effects don't exist in legacy Effect enum, use fallback
-        effectMap.put("HEART", org.bukkit.Effect.VILLAGER_PLANT_GROW);
-        effectMap.put("CRIT", org.bukkit.Effect.VILLAGER_PLANT_GROW);
-        effectMap.put("FIREWORKS_SPARK", org.bukkit.Effect.VILLAGER_PLANT_GROW);
-
-        return effectMap.get(particleName.toUpperCase());
-    }
 
     private static void playFallbackParticle(Player player, Location location, int count, double speed) {
-        NMSAssistant nms = new NMSAssistant();
         try {
-            if (nms.isVersionGreaterThanOrEqualTo(13)) {
-                player.spawnParticle(Particle.VILLAGER_HAPPY, location, count, 0.5, 0.5, 0.5, speed);
-            } else {
-                player.playEffect(location, org.bukkit.Effect.VILLAGER_PLANT_GROW, null);
+            XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
+            if (fallbackParticle != null) {
+                ParticleDisplay.of(fallbackParticle)
+                        .withLocation(location)
+                        .withCount(count)
+                        .offset(0.5, 0.5, 0.5)
+                        .withExtra(speed)
+                        .spawn();
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Failed to spawn fallback particle at location: " + location + " - " + e.getMessage());
         }
     }
 
@@ -337,31 +328,40 @@ public class ParticleManager {
 
     private static void playSimpleParticleAtLocation(Location location, String particleType, int count, double speed) {
         try {
-            NMSAssistant nms = new NMSAssistant();
-
-            if (nms.isVersionGreaterThanOrEqualTo(13)) {
-                Particle particle = getModernParticle(particleType);
-                if (particle != null && location.getWorld() != null) {
-                    location.getWorld().spawnParticle(particle, location, count, 0.5, 0.5, 0.5, speed);
-                }
+            XParticle xParticle = getXParticle(particleType);
+            if (xParticle != null && location.getWorld() != null) {
+                ParticleDisplay.of(xParticle)
+                        .withLocation(location)
+                        .withCount(count)
+                        .offset(0.5, 0.5, 0.5)
+                        .withExtra(speed)
+                        .spawn();
             } else {
-                org.bukkit.Effect effect = getLegacyEffect(particleType);
-                if (effect != null && location.getWorld() != null) {
-                    location.getWorld().playEffect(location, effect, null);
+                // Fallback
+                XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
+                if (fallbackParticle != null) {
+                    ParticleDisplay.of(fallbackParticle)
+                            .withLocation(location)
+                            .withCount(count)
+                            .offset(0.5, 0.5, 0.5)
+                            .withExtra(speed)
+                            .spawn();
                 }
             }
         } catch (Exception e) {
-            // Fallback - play simple effect
-            if (location.getWorld() != null) {
-                try {
-                    NMSAssistant nms = new NMSAssistant();
-                    if (nms.isVersionGreaterThanOrEqualTo(13)) {
-                        location.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, location, count, 0.5, 0.5, 0.5, speed);
-                    } else {
-                        location.getWorld().playEffect(location, org.bukkit.Effect.VILLAGER_PLANT_GROW, null);
-                    }
-                } catch (Exception ignored) {
+            Storage.getStorage().getLogger().warning("Failed to spawn particle at location: " + location + " - " + e.getMessage());
+            // Final fallback
+            try {
+                XParticle fallbackParticle = getParticleByName("VILLAGER_HAPPY");
+                if (fallbackParticle != null) {
+                    ParticleDisplay.of(fallbackParticle)
+                            .withLocation(location)
+                            .withCount(1)
+                            .offset(0.5, 0.5, 0.5)
+                            .withExtra(0.1)
+                            .spawn();
                 }
+            } catch (Exception ignored) {
             }
         }
     }
@@ -591,10 +591,29 @@ public class ParticleManager {
     private static void spawnParticleForNearbyPlayers(Location location, String particleName, int count, double speed) {
         if (location.getWorld() == null) return;
 
-        for (Player player : location.getWorld().getPlayers()) {
-            if (player.getLocation().distance(location) <= MAX_PARTICLE_DISTANCE) {
-                playParticleEffect(player, location, particleName, count, speed);
+        try {
+            XParticle xParticle = getXParticle(particleName);
+            if (xParticle != null) {
+                // Check if any players are nearby before spawning
+                boolean hasNearbyPlayers = false;
+                for (Player player : location.getWorld().getPlayers()) {
+                    if (player.getLocation().distance(location) <= MAX_PARTICLE_DISTANCE) {
+                        hasNearbyPlayers = true;
+                        break;
+                    }
+                }
+
+                if (hasNearbyPlayers) {
+                    ParticleDisplay.of(xParticle)
+                            .withLocation(location)
+                            .withCount(count)
+                            .offset(0.5, 0.5, 0.5)
+                            .withExtra(speed)
+                            .spawn();
+                }
             }
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Failed to spawn particle for nearby players: " + particleName + " - " + e.getMessage());
         }
     }
 

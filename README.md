@@ -128,8 +128,13 @@
 | `%storage_event_start_time_formatted%` | Event start time (formatted) | `14:30:15` |
 | `%storage_event_start_date%` | Event start date | `01/01/2024` |
 | `%storage_event_start_datetime%` | Event start date and time | `01/01/2024 14:30:15` |
+| `%storage_event_next_time%` | Time until next event | `2h 15m 30s` |
+| `%storage_event_next_seconds%` | Seconds until next event | `8130` |
 | `%storage_event_next_<event_type>_time%` | Time until specific event type | `%storage_event_next_mining_contest_time%` |
 | `%storage_event_next_<event_type>_seconds%` | Seconds until specific event type | `%storage_event_next_mining_contest_seconds%` |
+| `%storage_event_next_<event_type>_datetime%` | Full date and time of next event | `%storage_event_next_mining_contest_datetime%` |
+| `%storage_event_next_<event_type>_date%` | Date of next event | `%storage_event_next_mining_contest_date%` |
+| `%storage_event_next_<event_type>_schedule_info%` | Schedule configuration info | `%storage_event_next_mining_contest_schedule_info%` |
 
 #### Mining Contest Placeholders
 | Placeholder | Description | Example |

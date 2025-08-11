@@ -74,17 +74,12 @@ public class File {
         getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
     }
 
-    public static void saveFiles() {
-        getFileSetting().save("config.yml", "message.yml", "events.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
-    }
-
     public static void updateConfig() {
-        getFileSetting().save("config.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("config.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         int default_configVersion = defaultConfig.getInt("config_version");
-        int current_configVersion = defaultConfig.contains("config_version") ? defaultConfig.getInt("config_version") : 0;
+        int current_configVersion = currentConfig.contains("config_version") ? currentConfig.getInt("config_version") : 0;
         if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
             List<String> default_whitelist_fortune = defaultConfig.getStringList("whitelist_fortune");
             List<String> current_whitelist_fortune = currentConfig.getStringList("whitelist_fortune");
@@ -93,11 +88,9 @@ public class File {
             Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating...");
             if (current_whitelist_fortune.isEmpty()) {
                 getConfig().set("whitelist_fortune", default_whitelist_fortune);
-                getFileSetting().save("config.yml");
             }
             if (current_blacklist_world.isEmpty()) {
                 getConfig().set("blacklist_world", default_blacklist_world);
-                getFileSetting().save("config.yml");
             }
             try {
                 ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile, "items", "blocks", "worth");
@@ -111,12 +104,11 @@ public class File {
     }
 
     public static void updateMessage() {
-        getFileSetting().save("message.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "message.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("message.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         int default_configVersion = defaultConfig.getInt("message_version");
-        int current_configVersion = defaultConfig.contains("message_version") ? defaultConfig.getInt("message_version") : 0;
+        int current_configVersion = currentConfig.contains("message_version") ? currentConfig.getInt("message_version") : 0;
         if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
             Storage.getStorage().getLogger().log(Level.WARNING, "Your message is updating...");
             List<String> default_admin_help = defaultConfig.getStringList("admin.help");
@@ -124,12 +116,10 @@ public class File {
             List<String> current_admin_help = currentConfig.getStringList("admin.help");
             List<String> current_user_help = currentConfig.getStringList("user.help");
             if (default_admin_help.size() != current_admin_help.size()) {
-                getConfig().set("admin.help", default_admin_help);
-                getFileSetting().save("message.yml");
+                getMessage().set("admin.help", default_admin_help);
             }
             if (default_user_help.size() != current_user_help.size()) {
-                getConfig().set("user.help", default_user_help);
-                getFileSetting().save("message.yml");
+                getMessage().set("user.help", default_user_help);
             }
             try {
                 ConfigUpdater.update(Storage.getStorage(), "message.yml", configFile);
@@ -143,7 +133,6 @@ public class File {
     }
 
     public static void updateEventConfig() {
-        getFileSetting().save("events.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "events.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("events.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
@@ -163,7 +152,6 @@ public class File {
     }
 
     public static void updateEnchantConfig() {
-        getFileSetting().save("enchants.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "enchants.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("enchants.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
@@ -183,7 +171,6 @@ public class File {
     }
 
     public static void updateSpecialMaterialConfig() {
-        getFileSetting().save("special_material.yml");
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "special_material.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("special_material.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);

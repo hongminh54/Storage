@@ -3,17 +3,17 @@ package net.danh.storage.Enchant;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
+import com.cryptomorin.xseries.particles.ParticleDisplay;
+import com.cryptomorin.xseries.particles.XParticle;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SpecialMaterialManager;
-import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -120,31 +120,34 @@ public class TNTEnchant {
         if (location.getWorld() == null) return;
 
         try {
-            if (new NMSAssistant().isVersionGreaterThanOrEqualTo(13)) {
-                Particle particle = getParticleFromString(enchantData.particleType);
-                if (particle != null) {
-                    location.getWorld().spawnParticle(particle, location,
-                            enchantData.particleCount,
-                            enchantData.particleOffsetX,
-                            enchantData.particleOffsetY,
-                            enchantData.particleOffsetZ,
-                            enchantData.particleExtra);
-                } else {
-                    location.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, location,
-                            enchantData.particleCount,
-                            enchantData.particleOffsetX,
-                            enchantData.particleOffsetY,
-                            enchantData.particleOffsetZ,
-                            enchantData.particleExtra);
+            XParticle particle = getXParticleFromString(enchantData.particleType);
+            if (particle != null) {
+                ParticleDisplay.of(particle)
+                        .withLocation(location)
+                        .withCount(enchantData.particleCount)
+                        .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                        .withExtra(enchantData.particleExtra)
+                        .spawn();
+            } else {
+                // Fallback to explosion particle
+                XParticle fallback = XParticle.of("EXPLOSION_HUGE").orElse(XParticle.of("EXPLOSION_LARGE").orElse(null));
+                if (fallback != null) {
+                    ParticleDisplay.of(fallback)
+                            .withLocation(location)
+                            .withCount(enchantData.particleCount)
+                            .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                            .withExtra(enchantData.particleExtra)
+                            .spawn();
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Failed to spawn TNT enchant particles: " + e.getMessage());
         }
     }
 
-    private static Particle getParticleFromString(String particleName) {
+    private static XParticle getXParticleFromString(String particleName) {
         try {
-            return Particle.valueOf(particleName.toUpperCase());
+            return XParticle.of(particleName.toUpperCase()).orElse(null);
         } catch (Exception e) {
             return null;
         }

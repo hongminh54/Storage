@@ -104,6 +104,12 @@ public class EventManager {
 
         stopAllEvents();
         scheduler.cancelAllScheduledEvents();
+
+        // Reset next scheduled times for all events
+        for (BaseEvent event : events.values()) {
+            event.getEventData().setNextScheduledTime(0);
+        }
+
         scheduleAllEvents();
 
         Storage.getStorage().getLogger().log(Level.INFO, "Event configurations reloaded");
@@ -198,6 +204,10 @@ public class EventManager {
 
     public static Map<EventType, BaseEvent> getAllEvents() {
         return new HashMap<>(events);
+    }
+
+    public static EventScheduler getScheduler() {
+        return scheduler;
     }
 
     public static void onPlayerMine(Player player, String material, int amount) {

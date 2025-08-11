@@ -1,5 +1,6 @@
 package net.danh.storage.Event;
 
+import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
@@ -11,7 +12,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,36 +76,33 @@ public class EventScheduler {
             return;
         }
 
-        String[] schedules = scheduleString.split(",");
-        for (String schedule : schedules) {
-            scheduleNextOccurrence(eventType, event, schedule.trim());
-        }
+        // Find the next earliest schedule time from all schedules
+        scheduleNextEarliestOccurrence(eventType, event, scheduleString);
     }
 
-    private void scheduleNextOccurrence(EventType eventType, BaseEvent event, String schedule) {
+    private void scheduleNextEarliestOccurrence(EventType eventType, BaseEvent event, String scheduleString) {
         try {
-            String[] parts = schedule.split(":");
-            if (parts.length != 2) return;
-
-            String dayPart = parts[0];
-            String timePart = parts[1];
-
-            String[] timeComponents = timePart.split(":");
-            if (timeComponents.length != 2) return;
-
-            int hour = Integer.parseInt(timeComponents[0]);
-            int minute = Integer.parseInt(timeComponents[1]);
+            LocalDateTime nextRun = findNextScheduleTime(scheduleString);
+            if (nextRun == null) {
+                Storage.getStorage().getLogger().warning("No valid schedule found for " + eventType.getDisplayName());
+                return;
+            }
 
             LocalDateTime now = LocalDateTime.now();
-            LocalDateTime nextRun = calculateNextRun(dayPart, hour, minute, now);
-
             long delayTicks = (nextRun.atZone(ZoneId.systemDefault()).toEpochSecond() -
                     now.atZone(ZoneId.systemDefault()).toEpochSecond()) * 20L;
 
-            if (delayTicks > 0) {
-                long nextScheduledTime = nextRun.atZone(ZoneId.systemDefault()).toEpochSecond() * 1000L;
-                event.getEventData().setNextScheduledTime(nextScheduledTime);
+            // Always set nextScheduledTime, even if delayTicks <= 0
+            long nextScheduledTime = nextRun.atZone(ZoneId.systemDefault()).toEpochSecond() * 1000L;
+            event.getEventData().setNextScheduledTime(nextScheduledTime);
 
+            // Log scheduling information
+            if (File.getEventConfig().getBoolean("performance.detailed_logging", false)) {
+                Storage.getStorage().getLogger().info("Scheduled " + eventType.getDisplayName() +
+                        " for " + nextRun + " (in " + (delayTicks / 20) + " seconds)");
+            }
+
+            if (delayTicks > 0) {
                 scheduleStartReminders(eventType, delayTicks);
 
                 BukkitRunnable task = new BukkitRunnable() {
@@ -119,42 +116,87 @@ public class EventScheduler {
                         } catch (Exception e) {
                             Storage.getStorage().getLogger().warning("Error starting scheduled event " + eventType.getDisplayName() + ": " + e.getMessage());
                         } finally {
-                            scheduleNextOccurrence(eventType, event, schedule);
+                            // Schedule the next occurrence after this event starts
+                            scheduleNextEarliestOccurrence(eventType, event, scheduleString);
                         }
                     }
                 };
 
                 task.runTaskLater(Storage.getStorage(), delayTicks);
                 scheduledTasks.put(eventType, task);
+            } else {
+                // If delay is 0 or negative, schedule for next occurrence immediately
+                scheduleNextEarliestOccurrence(eventType, event, scheduleString);
             }
         } catch (Exception e) {
-            Storage.getStorage().getLogger().warning("Failed to parse schedule: " + schedule + " for event: " + eventType.getConfigKey());
+            Storage.getStorage().getLogger().warning("Failed to schedule event " + eventType.getConfigKey() + ": " + e.getMessage());
         }
+    }
+
+    private LocalDateTime findNextScheduleTime(String scheduleString) {
+        String[] schedules = scheduleString.split(",");
+        LocalDateTime earliestTime = null;
+        LocalDateTime now = LocalDateTime.now();
+
+        for (String schedule : schedules) {
+            schedule = schedule.trim();
+            try {
+                String[] parts = schedule.split(":");
+                if (parts.length != 3) {
+                    Storage.getStorage().getLogger().warning("Invalid schedule format: " + schedule + " (expected DAY:HH:MM)");
+                    continue;
+                }
+
+                String dayPart = parts[0].trim();
+                int hour = Integer.parseInt(parts[1].trim());
+                int minute = Integer.parseInt(parts[2].trim());
+
+                if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+                    Storage.getStorage().getLogger().warning("Invalid time values: " + hour + ":" + minute);
+                    continue;
+                }
+
+                LocalDateTime nextRun = calculateNextRun(dayPart, hour, minute, now);
+
+                if (earliestTime == null || nextRun.isBefore(earliestTime)) {
+                    earliestTime = nextRun;
+                }
+
+                // Debug logging
+                if (File.getEventConfig().getBoolean("performance.detailed_logging", false)) {
+                    Storage.getStorage().getLogger().info("Schedule '" + schedule + "' next run: " + nextRun);
+                }
+            } catch (NumberFormatException e) {
+                Storage.getStorage().getLogger().warning("Invalid number in schedule: " + schedule);
+            } catch (Exception e) {
+                Storage.getStorage().getLogger().warning("Failed to parse schedule: " + schedule + " - " + e.getMessage());
+            }
+        }
+
+        return earliestTime;
     }
 
     private LocalDateTime calculateNextRun(String dayPart, int hour, int minute, LocalDateTime now) {
         LocalTime targetTime = LocalTime.of(hour, minute);
 
         if (dayPart.equalsIgnoreCase("DAILY")) {
-            LocalDateTime today = now.with(targetTime);
-            if (today.isAfter(now)) {
-                return today;
-            } else {
-                return today.plusDays(1);
-            }
+            LocalDateTime today = now.toLocalDate().atTime(targetTime);
+            return today.isAfter(now) ? today : today.plusDays(1);
         }
 
         try {
             DayOfWeek targetDay = DayOfWeek.valueOf(dayPart.toUpperCase());
-            LocalDateTime nextOccurrence = now.with(TemporalAdjusters.nextOrSame(targetDay)).with(targetTime);
+            LocalDateTime candidate = now.toLocalDate().atTime(targetTime);
 
-            if (nextOccurrence.isBefore(now) || nextOccurrence.equals(now)) {
-                nextOccurrence = now.with(TemporalAdjusters.next(targetDay)).with(targetTime);
+            // Find next occurrence of target day that is after current time
+            while (candidate.getDayOfWeek() != targetDay || !candidate.isAfter(now)) {
+                candidate = candidate.plusDays(1);
             }
 
-            return nextOccurrence;
+            return candidate;
         } catch (IllegalArgumentException e) {
-            return now.plusDays(1).with(targetTime);
+            // Invalid day, default to tomorrow at target time
+            return now.plusDays(1).toLocalDate().atTime(targetTime);
         }
     }
 
@@ -222,4 +264,34 @@ public class EventScheduler {
         BukkitRunnable task = scheduledTasks.get(eventType);
         return task != null && !task.isCancelled();
     }
+
+    // Debug method to get next schedule time for an event
+    public LocalDateTime getNextScheduleTime(EventType eventType) {
+        String timingType = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".timing.type", "interval");
+
+        if ("schedule".equals(timingType)) {
+            String scheduleString = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".timing.schedule", "");
+            if (scheduleString.isEmpty()) {
+                return null;
+            }
+            return findNextScheduleTime(scheduleString);
+        } else if ("interval".equals(timingType)) {
+            // For interval events, calculate next time based on stored nextScheduledTime
+            BaseEvent event = EventManager.getAllEvents().get(eventType);
+            if (event != null) {
+                long nextTime = event.getEventData().getNextScheduledTime();
+                if (nextTime > 0) {
+                    return LocalDateTime.ofInstant(
+                            java.time.Instant.ofEpochMilli(nextTime),
+                            java.time.ZoneId.systemDefault()
+                    );
+                }
+            }
+            return null;
+        }
+
+        return null;
+    }
+
+
 }

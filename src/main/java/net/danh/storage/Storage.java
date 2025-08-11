@@ -82,7 +82,7 @@ public final class Storage extends JavaPlugin {
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
-            getLogger().log(Level.WARNING, "If material doesn't work, you should go to discord and report to author!");
+            getLogger().log(Level.WARNING, "If the material doesn't work, you should go to the GitHub Issues section and report it to the author!");
         }
     }
 
@@ -95,7 +95,6 @@ public final class Storage extends JavaPlugin {
             MineManager.savePlayerData(p);
         }
         TransferManager.cancelAllTransfers();
-        File.saveFiles();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");

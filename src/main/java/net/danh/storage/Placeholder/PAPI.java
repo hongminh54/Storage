@@ -315,25 +315,99 @@ public class PAPI extends PlaceholderExpansion {
     }
 
     private String handleNextEventPlaceholders(String placeholder) {
-        if (placeholder.endsWith("_time") || placeholder.endsWith("_seconds")) {
-            String[] parts = placeholder.split("_");
-            if (parts.length >= 2) {
-                boolean isTime = placeholder.endsWith("_time");
-                String eventTypeStr = placeholder.substring(0, placeholder.lastIndexOf(isTime ? "_time" : "_seconds"));
+        // Handle different placeholder formats
+        if (placeholder.endsWith("_time") || placeholder.endsWith("_seconds") ||
+                placeholder.endsWith("_datetime") || placeholder.endsWith("_date") ||
+                placeholder.endsWith("_schedule_info")) {
 
-                EventType eventType = EventType.fromConfigKey(eventTypeStr);
-                if (eventType != null) {
-                    BaseEvent event = EventManager.getAllEvents().get(eventType);
-                    if (event != null) {
-                        long nextSeconds = getNextEventSeconds(event);
-                        if (nextSeconds <= 0) return isTime ? "N/A" : "0";
-                        return isTime ? formatTime(nextSeconds) : String.valueOf(nextSeconds);
-                    }
+            String eventTypeStr = extractEventTypeFromPlaceholder(placeholder);
+            EventType eventType = EventType.fromConfigKey(eventTypeStr);
+
+            if (eventType != null) {
+                BaseEvent event = EventManager.getAllEvents().get(eventType);
+                if (event != null) {
+                    return formatEventPlaceholder(event, eventType, placeholder);
                 }
             }
         }
 
         return getDefaultValue(placeholder);
+    }
+
+    private String extractEventTypeFromPlaceholder(String placeholder) {
+        if (placeholder.endsWith("_time")) {
+            return placeholder.substring(0, placeholder.lastIndexOf("_time"));
+        } else if (placeholder.endsWith("_seconds")) {
+            return placeholder.substring(0, placeholder.lastIndexOf("_seconds"));
+        } else if (placeholder.endsWith("_datetime")) {
+            return placeholder.substring(0, placeholder.lastIndexOf("_datetime"));
+        } else if (placeholder.endsWith("_date")) {
+            return placeholder.substring(0, placeholder.lastIndexOf("_date"));
+        } else if (placeholder.endsWith("_schedule_info")) {
+            return placeholder.substring(0, placeholder.lastIndexOf("_schedule_info"));
+        }
+        return placeholder;
+    }
+
+    private String formatEventPlaceholder(BaseEvent event, EventType eventType, String placeholder) {
+        long nextSeconds = getNextEventSeconds(event);
+        long nextTime = event.getEventData().getNextScheduledTime();
+
+        // If event is active, return 0 or N/A
+        if (event.isActive()) {
+            if (placeholder.endsWith("_seconds")) return "0";
+            return "N/A";
+        }
+
+        // If no next time scheduled, try to calculate from config
+        if (nextTime <= 0) {
+            String timingType = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".timing.type", "interval");
+            if ("schedule".equals(timingType)) {
+                // Try to get next time from scheduler
+                try {
+                    java.time.LocalDateTime nextDateTime = EventManager.getScheduler().getNextScheduleTime(eventType);
+                    if (nextDateTime != null) {
+                        nextTime = nextDateTime.atZone(java.time.ZoneId.systemDefault()).toEpochSecond() * 1000L;
+                        nextSeconds = Math.max(0, (nextTime - System.currentTimeMillis()) / 1000);
+                    }
+                } catch (Exception e) {
+                    // Fallback to default
+                }
+            }
+        }
+
+        if (nextTime <= 0 || nextSeconds <= 0) {
+            if (placeholder.endsWith("_seconds")) return "0";
+            return "N/A";
+        }
+
+        if (placeholder.endsWith("_time")) {
+            return formatTime(nextSeconds);
+        } else if (placeholder.endsWith("_seconds")) {
+            return String.valueOf(nextSeconds);
+        } else if (placeholder.endsWith("_datetime")) {
+            return formatTimestamp(nextTime, "dd/MM/yyyy HH:mm:ss");
+        } else if (placeholder.endsWith("_date")) {
+            return formatTimestamp(nextTime, "dd/MM/yyyy");
+        } else if (placeholder.endsWith("_schedule_info")) {
+            return getScheduleInfo(eventType);
+        }
+
+        return getDefaultValue(placeholder);
+    }
+
+    private String getScheduleInfo(EventType eventType) {
+        String timingType = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".timing.type", "interval");
+
+        if ("schedule".equals(timingType)) {
+            String schedule = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".timing.schedule", "N/A");
+            return schedule;
+        } else if ("interval".equals(timingType)) {
+            int interval = File.getEventConfig().getInt("events." + eventType.getConfigKey() + ".timing.interval", 0);
+            return "Every " + formatTime(interval);
+        }
+
+        return "N/A";
     }
 
     private BaseEvent getNextScheduledEvent() {
@@ -356,10 +430,39 @@ public class PAPI extends PlaceholderExpansion {
 
     private long getNextEventSeconds(BaseEvent event) {
         if (event.isActive()) return 0;
+
         long nextTime = event.getEventData().getNextScheduledTime();
-        if (nextTime <= 0) return 0;
         long currentTime = System.currentTimeMillis();
-        return Math.max(0, (nextTime - currentTime) / 1000);
+
+        // If nextTime is valid, calculate seconds
+        if (nextTime > 0) {
+            return Math.max(0, (nextTime - currentTime) / 1000);
+        }
+
+        // If nextTime is not set, try to calculate from scheduler
+        EventType eventType = event.getEventType();
+        String timingType = File.getEventConfig().getString("events." + eventType.getConfigKey() + ".timing.type", "interval");
+
+        if ("schedule".equals(timingType)) {
+            try {
+                java.time.LocalDateTime nextDateTime = EventManager.getScheduler().getNextScheduleTime(eventType);
+                if (nextDateTime != null) {
+                    long calculatedTime = nextDateTime.atZone(java.time.ZoneId.systemDefault()).toEpochSecond() * 1000L;
+                    return Math.max(0, (calculatedTime - currentTime) / 1000);
+                }
+            } catch (Exception e) {
+                // Log error if detailed logging is enabled
+                if (File.getEventConfig().getBoolean("performance.detailed_logging", false)) {
+                    Storage.getStorage().getLogger().warning("Failed to calculate next event time for " + eventType.getDisplayName() + ": " + e.getMessage());
+                }
+            }
+        } else if ("interval".equals(timingType)) {
+            // For interval events, return the interval time
+            int interval = File.getEventConfig().getInt("events." + eventType.getConfigKey() + ".timing.interval", 0);
+            return interval;
+        }
+
+        return 0;
     }
 
     private String formatTimestamp(long timestamp, String pattern) {
