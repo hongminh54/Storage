@@ -1,6 +1,5 @@
 package net.danh.storage.Utils;
 
-import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.NMS.NMSAssistant;
@@ -13,194 +12,304 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
 
 /**
- * Utility class for importing ItemStack data into Recipe objects
- * Uses simple but effective ItemStack deep copying to avoid "different item error"
- * 
- * APPROACH:
- * - Creates exact ItemStack copies preserving ALL data including NBT
- * - Maintains cross-version compatibility for legacy and modern Minecraft
- * - Preserves custom plugin data (MMOItems, ItemsAdder, Oraxen, etc.)
- * - Simple logic without complex conversions to avoid data loss
+ * Optimized utility for importing ItemStack data into Recipe objects
+ * Uses efficient deep copying to preserve ALL item data including NBT
  */
 public class ItemImportUtil {
     
+    // Cache version check for performance
+    private static final boolean IS_LEGACY_VERSION;
+    private static final String[] CUSTOM_PLUGIN_TAGS = {
+        "MMOITEMS_TYPE", "MMOITEMS_ID", "MMOITEMS_ITEM_ID",
+        "MyItems", "itemsadder", "oraxen", "ExecutableItems",
+        "CustomItems", "ItemJoin", "MythicMobs", "EliteMobs"
+    };
+    
+    static {
+        IS_LEGACY_VERSION = new NMSAssistant().isVersionLessThanOrEqualTo(12);
+    }
+    
     /**
-     * Imports all data from an ItemStack into a Recipe object using simple deep copy approach
-     * This method creates an exact copy of the ItemStack to avoid "different item error"
-     * 
-     * @param item The ItemStack to import from
-     * @param recipe The Recipe to import data into
+     * Imports ItemStack data into Recipe using optimized deep copy approach
      */
     public static void importItemToRecipe(ItemStack item, Recipe recipe) {
         if (item == null || recipe == null) return;
         
-        // Create a deep copy of the original item to preserve ALL data
+        // Create deep copy to preserve ALL data
         ItemStack itemCopy = createDeepCopy(item);
         if (itemCopy == null) return;
         
-        // Store the complete ItemStack data for exact reproduction
-        storeCompleteItemData(itemCopy, recipe);
-        
-        // Set default recipe properties
-        setDefaultRecipeProperties(itemCopy, recipe);
+        // Store complete item data efficiently
+        storeItemData(itemCopy, recipe);
+        setDefaultProperties(itemCopy, recipe);
     }
     
     /**
-     * Stores complete ItemStack data in Recipe using simple serialization approach
-     * This ensures 100% accuracy when recreating the item
+     * Creates exact ItemStack from Recipe data
      */
-    private static void storeCompleteItemData(ItemStack item, Recipe recipe) {
-        // Store basic material info
+    public static ItemStack createExactItemFromRecipe(Recipe recipe) {
+        if (recipe == null) return null;
+        
+        ItemStack item = createItemFromMaterial(recipe.getResultMaterial());
+        if (item == null) return null;
+        
+        item.setAmount(recipe.getResultAmount());
+        applyMetadata(item, recipe);
+        applyCustomNBT(item, recipe);
+        
+        return item;
+    }
+    
+    /**
+     * Gets material string with proper version handling
+     */
+    public static String getMaterialString(ItemStack item) {
+        if (item == null) return "STONE;0";
+        
+        if (IS_LEGACY_VERSION) {
+            short dataValue = item.getDurability();
+            return dataValue != 0 ? 
+                item.getType().name() + ";" + dataValue :
+                getXMaterialName(item.getType().name()) + ";0";
+        } else {
+            return getXMaterialName(item.getType().name()) + ";0";
+        }
+    }
+    
+    /**
+     * Creates deep copy preserving all metadata and NBT
+     */
+    public static ItemStack createDeepCopy(ItemStack original) {
+        if (original == null) return null;
+        
+        try {
+            return new NBTItem(original).getItem().clone();
+        } catch (Exception e) {
+            return original.clone();
+        }
+    }
+    
+    // Private helper methods for better organization
+    
+    private static void storeItemData(ItemStack item, Recipe recipe) {
         recipe.setResultMaterial(getMaterialString(item));
         recipe.setResultAmount(item.getAmount());
         
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            // Store display name
-            if (meta.hasDisplayName()) {
-                recipe.setResultName(meta.getDisplayName());
-            } else {
-                recipe.setResultName(generateDefaultName(item));
-            }
-            
-            // Store lore
-            if (meta.hasLore() && meta.getLore() != null) {
-                recipe.setResultLore(new ArrayList<>(meta.getLore()));
-            }
-            
-            // Store enchantments
-            Map<String, Integer> enchantments = new HashMap<>();
-            for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
-                enchantments.put(entry.getKey().getName(), entry.getValue());
-            }
-            recipe.setResultEnchantments(enchantments);
-            
-            // Store item flags
-            recipe.setResultFlags(new HashSet<>(meta.getItemFlags()));
-            
-            // Store unbreakable status
-            recipe.setResultUnbreakable(meta.isUnbreakable());
-            
-            // Store custom model data (1.14+)
-            try {
-                if (meta.hasCustomModelData()) {
-                    recipe.setResultCustomModelData(meta.getCustomModelData());
-                }
-            } catch (NoSuchMethodError ignored) {
-                // Older versions don't support custom model data
-            }
+            storeBasicMeta(meta, recipe, item);
+            storeEnchantments(meta, recipe);
+            storeFlags(meta, recipe);
+            storeCustomModelData(meta, recipe);
         }
         
-        // Store complete NBT data for custom plugins
-        storeCompleteNBTData(item, recipe);
+        storeNBTData(item, recipe);
     }
     
-    /**
-     * Stores complete NBT data from ItemStack to ensure custom plugin compatibility
-     */
-    private static void storeCompleteNBTData(ItemStack item, Recipe recipe) {
+    private static void storeBasicMeta(ItemMeta meta, Recipe recipe, ItemStack item) {
+        // Display name
+        recipe.setResultName(meta.hasDisplayName() ? 
+            meta.getDisplayName() : generateDefaultName(item));
+        
+        // Lore
+        if (meta.hasLore() && meta.getLore() != null) {
+            recipe.setResultLore(new ArrayList<>(meta.getLore()));
+        }
+        
+        // Unbreakable
+        recipe.setResultUnbreakable(meta.isUnbreakable());
+    }
+    
+    private static void storeEnchantments(ItemMeta meta, Recipe recipe) {
+        Map<String, Integer> enchantments = new HashMap<>();
+        for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
+            enchantments.put(entry.getKey().getName(), entry.getValue());
+        }
+        recipe.setResultEnchantments(enchantments);
+    }
+    
+    private static void storeFlags(ItemMeta meta, Recipe recipe) {
+        recipe.setResultFlags(new HashSet<>(meta.getItemFlags()));
+    }
+    
+    private static void storeCustomModelData(ItemMeta meta, Recipe recipe) {
+        try {
+            if (meta.hasCustomModelData()) {
+                recipe.setResultCustomModelData(meta.getCustomModelData());
+            }
+        } catch (NoSuchMethodError ignored) {
+            // Older versions don't support custom model data
+        }
+    }
+    
+    private static void storeNBTData(ItemStack item, Recipe recipe) {
         try {
             NBTItem nbtItem = new NBTItem(item);
             Map<String, String> customNBT = new HashMap<>();
             
-            // Store all important NBT tags for various custom plugins
-            String[] importantTags = {
-                "MMOITEMS_TYPE", "MMOITEMS_ID", "MMOITEMS_ITEM_ID",
-                "MyItems", "itemsadder", "oraxen", "ExecutableItems",
-                "CustomItems", "ItemJoin", "MythicMobs", "EliteMobs"
-            };
-            
-            for (String tag : importantTags) {
+            for (String tag : CUSTOM_PLUGIN_TAGS) {
                 if (nbtItem.hasTag(tag)) {
                     customNBT.put(tag, nbtItem.getString(tag));
                 }
             }
             
-            // Store custom NBT data if any found
             if (!customNBT.isEmpty()) {
                 recipe.setCustomNBTData(customNBT);
             }
-            
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             // Continue without NBT data if operations fail
         }
     }
     
-    /**
-     * Generates a default display name for items without custom names
-     */
+    private static void setDefaultProperties(ItemStack item, Recipe recipe) {
+        String itemName = recipe.getResultName();
+        if (itemName.startsWith("&f")) {
+            itemName = itemName.substring(2);
+        }
+        
+        recipe.setName("&a" + itemName + " Recipe");
+        recipe.setCategory(determineCategory(item));
+        recipe.setEnabled(true);
+        
+        // Default requirement
+        Map<String, Integer> requirements = new HashMap<>();
+        requirements.put("DIAMOND;0", 1);
+        recipe.setMaterialRequirements(requirements);
+    }
+    
+    private static ItemStack createItemFromMaterial(String materialData) {
+        if (materialData == null || materialData.isEmpty()) {
+            materialData = "STONE;0";
+        }
+        
+        String[] parts = materialData.split(";");
+        String materialName = parts[0];
+        short dataValue = 0;
+        
+        if (parts.length > 1) {
+            try {
+                dataValue = Short.parseShort(parts[1]);
+            } catch (NumberFormatException ignored) {
+                dataValue = 0;
+            }
+        }
+        
+        return createItemStack(materialName, dataValue);
+    }
+    
+    private static ItemStack createItemStack(String materialName, short dataValue) {
+        try {
+            if (IS_LEGACY_VERSION) {
+                return createLegacyItem(materialName, dataValue);
+            } else {
+                return createModernItem(materialName);
+            }
+        } catch (Exception e) {
+            // Fallback to stone
+            return new ItemStack(org.bukkit.Material.STONE, 1);
+        }
+    }
+    
+    private static ItemStack createLegacyItem(String materialName, short dataValue) {
+        try {
+            org.bukkit.Material material = org.bukkit.Material.valueOf(materialName);
+            ItemStack item = new ItemStack(material, 1);
+            if (dataValue != 0) {
+                item.setDurability(dataValue);
+            }
+            return item;
+        } catch (IllegalArgumentException e) {
+            Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+            if (xMaterial.isPresent()) {
+                ItemStack item = xMaterial.get().parseItem();
+                if (item != null && dataValue != 0) {
+                    item.setDurability(dataValue);
+                }
+                return item;
+            }
+            throw e;
+        }
+    }
+    
+    private static ItemStack createModernItem(String materialName) {
+        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+        if (xMaterial.isPresent()) {
+            return xMaterial.get().parseItem();
+        } else {
+            org.bukkit.Material material = org.bukkit.Material.valueOf(materialName);
+            return new ItemStack(material, 1);
+        }
+    }
+    
+    private static void applyMetadata(ItemStack item, Recipe recipe) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+        
+        // Display name
+        if (recipe.getResultName() != null && !recipe.getResultName().isEmpty()) {
+            meta.setDisplayName(recipe.getResultName());
+        }
+        
+        // Lore
+        if (recipe.getResultLore() != null && !recipe.getResultLore().isEmpty()) {
+            meta.setLore(new ArrayList<>(recipe.getResultLore()));
+        }
+        
+        // Enchantments
+        for (Map.Entry<String, Integer> enchant : recipe.getResultEnchantments().entrySet()) {
+            try {
+                Enchantment enchantment = Enchantment.getByName(enchant.getKey());
+                if (enchantment != null) {
+                    meta.addEnchant(enchantment, enchant.getValue(), true);
+                }
+            } catch (Exception ignored) {
+                // Skip invalid enchantments
+            }
+        }
+        
+        // Flags
+        if (recipe.getResultFlags() != null) {
+            for (ItemFlag flag : recipe.getResultFlags()) {
+                meta.addItemFlags(flag);
+            }
+        }
+        
+        // Unbreakable
+        meta.setUnbreakable(recipe.isResultUnbreakable());
+        
+        // Custom model data
+        if (recipe.getResultCustomModelData() > 0) {
+            try {
+                meta.setCustomModelData(recipe.getResultCustomModelData());
+            } catch (NoSuchMethodError ignored) {
+                // Older versions don't support custom model data
+            }
+        }
+        
+        item.setItemMeta(meta);
+    }
+    
+    private static void applyCustomNBT(ItemStack item, Recipe recipe) {
+        if (recipe.getCustomNBTData() == null || recipe.getCustomNBTData().isEmpty()) {
+            return;
+        }
+        
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            for (Map.Entry<String, String> entry : recipe.getCustomNBTData().entrySet()) {
+                nbtItem.setString(entry.getKey(), entry.getValue());
+            }
+            // Note: NBTItem modifies the original item, no need to reassign
+        } catch (Exception ignored) {
+            // Continue without NBT data if operations fail
+        }
+    }
+    
     private static String generateDefaultName(ItemStack item) {
         String materialName = item.getType().name().toLowerCase().replace("_", " ");
         return "&f" + capitalizeWords(materialName);
     }
     
-    /**
-     * Gets the correct material string with data value for cross-version compatibility
-     * Uses the same logic as the storage system for consistency
-     * 
-     * @param item The ItemStack to get material string from
-     * @return Material string in format "MATERIAL;dataValue"
-     */
-    public static String getMaterialString(ItemStack item) {
-        if (item == null) return "STONE;0";
-        
-        NMSAssistant nms = new NMSAssistant();
-        
-        // For legacy versions (<=1.12.2), preserve data value from durability
-        if (nms.isVersionLessThanOrEqualTo(12)) {
-            short dataValue = item.getDurability();
-            
-            // For legacy versions with data value != 0, use original material name
-            // to avoid XMaterial conversion issues (e.g., INK_SACK;15 -> INK_SAC;15)
-            if (dataValue != 0) {
-                return item.getType().name() + ";" + dataValue;
-            } else {
-                // Only use XMaterial for data value 0 items
-                Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(item.getType().name());
-                if (xMaterial.isPresent()) {
-                    return xMaterial.get().name() + ";" + dataValue;
-                } else {
-                    return item.getType().name() + ";" + dataValue;
-                }
-            }
-        } else {
-            // For modern versions (>=1.13), use XMaterial for better compatibility
-            Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(item.getType().name());
-            if (xMaterial.isPresent()) {
-                return xMaterial.get().name() + ";0";
-            } else {
-                return item.getType().name() + ";0";
-            }
-        }
-    }
-    
-    /**
-     * Sets default recipe properties based on imported item
-     */
-    private static void setDefaultRecipeProperties(ItemStack item, Recipe recipe) {
-        // Generate recipe name from item
-        String itemName = recipe.getResultName();
-        if (itemName.startsWith("&f")) {
-            itemName = itemName.substring(2); // Remove color prefix
-        }
-        recipe.setName("&a" + itemName + " Recipe");
-        
-        // Set default category based on material type
-        String category = determineCategory(item);
-        recipe.setCategory(category);
-        
-        // Enable by default
-        recipe.setEnabled(true);
-        
-        // Add default material requirements (can be edited later)
-        Map<String, Integer> defaultRequirements = new HashMap<>();
-        defaultRequirements.put("DIAMOND;0", 1); // Placeholder requirement
-        recipe.setMaterialRequirements(defaultRequirements);
-    }
-    
-    /**
-     * Determines appropriate category based on item type
-     */
     private static String determineCategory(ItemStack item) {
         String materialName = item.getType().name().toLowerCase();
         
@@ -226,9 +335,6 @@ public class ItemImportUtil {
         return "misc";
     }
     
-    /**
-     * Capitalizes the first letter of each word
-     */
     private static String capitalizeWords(String str) {
         if (str == null || str.isEmpty()) return str;
         
@@ -248,167 +354,8 @@ public class ItemImportUtil {
         return result.toString();
     }
     
-    /**
-     * Creates a deep copy of an ItemStack preserving all metadata
-     * Used for precise item copying to avoid "different item error"
-     */
-    public static ItemStack createDeepCopy(ItemStack original) {
-        if (original == null) return null;
-        
-        try {
-            // Use NBT for most accurate copying
-            NBTItem nbtOriginal = new NBTItem(original);
-            return nbtOriginal.getItem().clone();
-        } catch (Exception e) {
-            // Fallback to standard cloning
-            return original.clone();
-        }
-    }
-    
-    /**
-     * Creates an exact ItemStack from Recipe data using simple approach
-     * This method ensures the created item matches exactly with the imported item
-     * 
-     * @param recipe The Recipe to create ItemStack from
-     * @return ItemStack that matches the original imported item
-     */
-    public static ItemStack createExactItemFromRecipe(Recipe recipe) {
-        if (recipe == null) return null;
-        
-        // Create base ItemStack with proper material and data value
-        ItemStack item = createItemWithMaterialData(recipe.getResultMaterial());
-        if (item == null) return null;
-        
-        item.setAmount(recipe.getResultAmount());
-        
-        // Apply all metadata
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            // Set display name
-            if (recipe.getResultName() != null && !recipe.getResultName().isEmpty()) {
-                meta.setDisplayName(recipe.getResultName());
-            }
-            
-            // Set lore
-            if (recipe.getResultLore() != null && !recipe.getResultLore().isEmpty()) {
-                meta.setLore(new ArrayList<>(recipe.getResultLore()));
-            }
-            
-            // Set enchantments
-            for (Map.Entry<String, Integer> enchant : recipe.getResultEnchantments().entrySet()) {
-                try {
-                    Enchantment enchantment = Enchantment.getByName(enchant.getKey());
-                    if (enchantment != null) {
-                        meta.addEnchant(enchantment, enchant.getValue(), true);
-                    }
-                } catch (Exception ignored) {
-                    // Skip invalid enchantments
-                }
-            }
-            
-            // Set item flags
-            if (recipe.getResultFlags() != null) {
-                for (ItemFlag flag : recipe.getResultFlags()) {
-                    meta.addItemFlags(flag);
-                }
-            }
-            
-            // Set unbreakable
-            meta.setUnbreakable(recipe.isResultUnbreakable());
-            
-            // Set custom model data (1.14+)
-            if (recipe.getResultCustomModelData() > 0) {
-                try {
-                    meta.setCustomModelData(recipe.getResultCustomModelData());
-                } catch (NoSuchMethodError ignored) {
-                    // Older versions don't support custom model data
-                }
-            }
-            
-            item.setItemMeta(meta);
-        }
-        
-        // Apply custom NBT data for plugin compatibility
-        if (recipe.getCustomNBTData() != null && !recipe.getCustomNBTData().isEmpty()) {
-            try {
-                NBTItem nbtItem = new NBTItem(item);
-                for (Map.Entry<String, String> entry : recipe.getCustomNBTData().entrySet()) {
-                    nbtItem.setString(entry.getKey(), entry.getValue());
-                }
-                item = nbtItem.getItem();
-            } catch (Exception e) {
-                // Continue without NBT data if operations fail
-            }
-        }
-        
-        return item;
-    }
-    
-    /**
-     * Creates ItemStack with proper material and data value handling
-     * Ensures cross-version compatibility
-     */
-    private static ItemStack createItemWithMaterialData(String materialData) {
-        if (materialData == null || materialData.isEmpty()) {
-            materialData = "STONE;0";
-        }
-        
-        String[] parts = materialData.split(";");
-        String materialName = parts[0];
-        short dataValue = 0;
-        
-        if (parts.length > 1) {
-            try {
-                dataValue = Short.parseShort(parts[1]);
-            } catch (NumberFormatException e) {
-                dataValue = 0;
-            }
-        }
-        
-        NMSAssistant nms = new NMSAssistant();
-        
-        try {
-            // For legacy versions (<=1.12.2), handle data values properly
-            if (nms.isVersionLessThanOrEqualTo(12)) {
-                try {
-                    // Try direct material creation first
-                    org.bukkit.Material material = org.bukkit.Material.valueOf(materialName);
-                    ItemStack item = new ItemStack(material, 1);
-                    if (dataValue != 0) {
-                        item.setDurability(dataValue);
-                    }
-                    return item;
-                } catch (IllegalArgumentException e) {
-                    // Fallback to XMaterial
-                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-                    if (xMaterial.isPresent()) {
-                        ItemStack item = xMaterial.get().parseItem();
-                        if (item != null && dataValue != 0) {
-                            item.setDurability(dataValue);
-                        }
-                        return item;
-                    }
-                }
-            } else {
-                // For modern versions (>=1.13), use XMaterial
-                Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-                if (xMaterial.isPresent()) {
-                    return xMaterial.get().parseItem();
-                } else {
-                    // Fallback to direct material creation
-                    try {
-                        org.bukkit.Material material = org.bukkit.Material.valueOf(materialName);
-                        return new ItemStack(material, 1);
-                    } catch (IllegalArgumentException ignored) {
-                        // Continue to fallback
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Continue to fallback
-        }
-        
-        // Final fallback to stone
-        return new ItemStack(org.bukkit.Material.STONE, 1);
+    private static String getXMaterialName(String materialName) {
+        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+        return xMaterial.isPresent() ? xMaterial.get().name() : materialName;
     }
 }

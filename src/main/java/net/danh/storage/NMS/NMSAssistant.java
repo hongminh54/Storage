@@ -1,73 +1,60 @@
 package net.danh.storage.NMS;
 
+/**
+ * Optimized NMS version assistant with cached version checking
+ */
 public class NMSAssistant {
+    
+    // Cache the version for performance
+    private static final NMSVersion CACHED_VERSION = new NMSVersion();
+    private static final int MINOR_VERSION = CACHED_VERSION.getMinor();
 
     /**
-     * Method to get the NMS Version which stands for the current server-version.
-     *
-     * @return {@link NMSVersion}.
+     * Get cached NMS version
      */
     public NMSVersion getNMSVersion() {
-        return new NMSVersion();
+        return CACHED_VERSION;
     }
 
     /**
-     * Method to determine if the server version is greater than the given version.
-     *
-     * @param version to test against.
-     * @return {@code true} if it is.
+     * Check if server version is greater than given version (cached)
      */
     public boolean isVersionGreaterThan(int version) {
-        return getNMSVersion().getMinor() > version;
+        return MINOR_VERSION > version;
     }
 
     /**
-     * Method to determine if the server version is greater than or equal to the given version.
-     *
-     * @param version to test against.
-     * @return {@code true} if it is.
+     * Check if server version is greater than or equal to given version (cached)
      */
     public boolean isVersionGreaterThanOrEqualTo(int version) {
-        return getNMSVersion().getMinor() >= version;
+        return MINOR_VERSION >= version;
     }
 
     /**
-     * Method to determine if the server version is less than the given version.
-     *
-     * @param version to test against.
-     * @return {@code true} if it is.
+     * Check if server version is less than given version (cached)
      */
     public boolean isVersionLessThan(int version) {
-        return getNMSVersion().getMinor() < version;
+        return MINOR_VERSION < version;
     }
 
     /**
-     * Method to determine if the server version is less than the given version.
-     *
-     * @param version to test against.
-     * @return {@code true} if it is.
+     * Check if server version is less than or equal to given version (cached)
      */
     public boolean isVersionLessThanOrEqualTo(int version) {
-        return getNMSVersion().getMinor() <= version;
+        return MINOR_VERSION <= version;
     }
 
     /**
-     * Method to determine if the server is currently running this specific version.
-     *
-     * @param version to check against.
-     * @return {@code true} if it is.
+     * Check if server is running specific version (cached)
      */
     public boolean isVersion(int version) {
-        return getNMSVersion().getMinor() == version;
+        return MINOR_VERSION == version;
     }
 
     /**
-     * Method to determine if the sever isn't currently running this specific version.
-     *
-     * @param version to check against.
-     * @return {@code true} if it isn't.
+     * Check if server is not running specific version (cached)
      */
     public boolean isNotVersion(int version) {
-        return getNMSVersion().getMinor() != version;
+        return MINOR_VERSION != version;
     }
 }

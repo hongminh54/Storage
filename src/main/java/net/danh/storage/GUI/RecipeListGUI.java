@@ -12,6 +12,7 @@ import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -213,7 +214,11 @@ public class RecipeListGUI implements IGUI {
             return;
         }
 
-        if (CraftingManager.craftRecipe(player, recipe.getId(), maxCraftable)) {
+        // Calculate maximum craftable amount based on inventory space
+        int maxCraftableBySpace = calculateMaxCraftableByInventorySpace(player, recipe);
+        int safeCraftAmount = Math.min(maxCraftable, maxCraftableBySpace);
+
+        if (CraftingManager.craftRecipe(player, recipe.getId(), safeCraftAmount)) {
             SoundManager.setShouldPlayCloseSound(player, false);
             player.openInventory(new RecipeListGUI(player, currentPage, currentCategory).getInventory(SoundContext.SILENT));
         }
@@ -289,6 +294,39 @@ public class RecipeListGUI implements IGUI {
             p.closeInventory();
         });
         inventory.setItem(closeButton.getSlot(), closeButton);
+    }
+
+    /**
+     * Calculate maximum craftable amount based on available inventory space
+     */
+    private int calculateMaxCraftableByInventorySpace(Player player, Recipe recipe) {
+        // Create result item to check space
+        ItemStack resultItem = CraftingManager.createResultItem(recipe);
+        if (resultItem == null) return 0;
+
+        int availableSpace = 0;
+        ItemStack template = resultItem.clone();
+        template.setAmount(1);
+
+        // Check existing stacks that can be filled
+        for (ItemStack slot : player.getInventory().getStorageContents()) {
+            if (slot == null || slot.getType() == Material.AIR) {
+                // Empty slot can hold full stack
+                availableSpace += template.getMaxStackSize();
+            } else if (slot.isSimilar(template)) {
+                // Existing similar item can be stacked
+                int spaceLeft = slot.getMaxStackSize() - slot.getAmount();
+                if (spaceLeft > 0) {
+                    availableSpace += spaceLeft;
+                }
+            }
+        }
+
+        // Calculate how many times we can craft based on available space
+        int totalResultItems = availableSpace;
+        int itemsPerCraft = recipe.getResultAmount();
+
+        return totalResultItems / itemsPerCraft;
     }
 
 }

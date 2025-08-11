@@ -4,6 +4,7 @@ import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.admin.*;
 import net.danh.storage.CMD.handler.user.ConvertOreCommand;
 import net.danh.storage.CMD.handler.user.HelpCommand;
+import net.danh.storage.CMD.handler.user.StorageLimitCommand;
 import net.danh.storage.CMD.handler.user.ToggleCommand;
 import net.danh.storage.CMD.handler.user.TransferCommand;
 import org.bukkit.command.CommandSender;
@@ -26,6 +27,7 @@ public class CommandManager {
         registerCommand("transfer", new TransferCommand());
         registerCommand("convert", new ConvertOreCommand());
         registerCommand("craft", new net.danh.storage.CMD.handler.user.CraftCommand());
+        registerCommand("limit", new StorageLimitCommand());
 
         registerCommand("reload", new ReloadCommand());
         registerCommand("autosave", new AutoSaveCommand());

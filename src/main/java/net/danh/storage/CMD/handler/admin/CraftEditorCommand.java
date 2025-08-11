@@ -16,7 +16,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Optimized command handler for recipe editor with import functionality
+ */
 public class CraftEditorCommand extends BaseCommand {
+
+    // Cache for custom plugin detection
+    private static final String[] PLUGIN_TAGS = {
+        "MMOITEMS_TYPE", "MMOITEMS_ID", "MyItems", "itemsadder", 
+        "oraxen", "ExecutableItems", "MythicMobs", "EliteMobs"
+    };
+    
+    private static final String[] PLUGIN_NAMES = {
+        "MMOItems", "MMOItems", "MyItems", "ItemsAdder", 
+        "Oraxen", "ExecutableItems", "MythicMobs", "EliteMobs"
+    };
 
     @Override
     public void execute(CommandSender sender, String[] args) {
@@ -27,13 +41,12 @@ public class CraftEditorCommand extends BaseCommand {
 
         Player player = (Player) sender;
 
-        // Handle subcommands
         if (args.length > 0 && args[0].equalsIgnoreCase("import")) {
             handleImportCommand(player);
             return;
         }
 
-        // Default behavior - open recipe editor list GUI
+        // Open recipe editor list GUI
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.INITIAL_OPEN));
     }
@@ -41,40 +54,31 @@ public class CraftEditorCommand extends BaseCommand {
     private void handleImportCommand(Player player) {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
 
-        // Check if player is holding an item
         if (heldItem == null || heldItem.getType().name().equals("AIR")) {
             sendMessage(player, "recipe.import_empty_hand");
             return;
         }
 
         try {
-            // Create new recipe with imported item
+            // Create and import recipe
             String recipeId = CraftingManager.generateUniqueId();
             Recipe recipe = new Recipe(recipeId);
 
-            // Import item data into recipe using improved method
             ItemImportUtil.importItemToRecipe(heldItem, recipe);
-
-            // Add recipe to manager
             CraftingManager.addRecipe(recipe);
 
-            // Detect custom item plugins for detailed message
+            // Detect and notify about custom plugins
             String customPlugin = detectCustomItemPlugin(heldItem);
             if (customPlugin != null) {
                 sendMessage(player, "recipe.import_custom_item_detected", "#plugin#", customPlugin);
             }
 
-            // Open recipe editor with imported recipe
+            // Open recipe editor
             SoundManager.setShouldPlayCloseSound(player, false);
             player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.INITIAL_OPEN));
 
-            // Send detailed success message
-            String itemName = getItemDisplayName(heldItem);
-            String materialString = ItemImportUtil.getMaterialString(heldItem);
-            
-            String[] placeholders = {"#recipe#", "#item_name#", "#material#"};
-            String[] replacements = {recipe.getName(), itemName, materialString};
-            sendMessage(player, "recipe.import_success_detailed", placeholders, replacements);
+            // Send success message
+            sendSuccessMessage(player, recipe, heldItem);
 
         } catch (Exception e) {
             sendMessage(player, "recipe.import_failed");
@@ -83,34 +87,17 @@ public class CraftEditorCommand extends BaseCommand {
     }
     
     /**
-     * Detects if the item is from a custom item plugin
+     * Optimized custom plugin detection
      */
     private String detectCustomItemPlugin(ItemStack item) {
         try {
             de.tr7zw.changeme.nbtapi.NBTItem nbtItem = new de.tr7zw.changeme.nbtapi.NBTItem(item);
             
-            if (nbtItem.hasTag("MMOITEMS_TYPE") || nbtItem.hasTag("MMOITEMS_ID")) {
-                return "MMOItems";
+            for (int i = 0; i < PLUGIN_TAGS.length; i++) {
+                if (nbtItem.hasTag(PLUGIN_TAGS[i])) {
+                    return PLUGIN_NAMES[i];
+                }
             }
-            if (nbtItem.hasTag("MyItems")) {
-                return "MyItems";
-            }
-            if (nbtItem.hasTag("itemsadder")) {
-                return "ItemsAdder";
-            }
-            if (nbtItem.hasTag("oraxen")) {
-                return "Oraxen";
-            }
-            if (nbtItem.hasTag("ExecutableItems")) {
-                return "ExecutableItems";
-            }
-            if (nbtItem.hasTag("MythicMobs")) {
-                return "MythicMobs";
-            }
-            if (nbtItem.hasTag("EliteMobs")) {
-                return "EliteMobs";
-            }
-            
         } catch (Exception ignored) {
             // NBT operations might fail, continue without detection
         }
@@ -119,24 +106,42 @@ public class CraftEditorCommand extends BaseCommand {
     }
     
     /**
-     * Gets the display name of an item for user-friendly messages
+     * Send detailed success message efficiently
+     */
+    private void sendSuccessMessage(Player player, Recipe recipe, ItemStack item) {
+        String itemName = getItemDisplayName(item);
+        String materialString = ItemImportUtil.getMaterialString(item);
+        
+        String[] placeholders = {"#recipe#", "#item_name#", "#material#"};
+        String[] replacements = {recipe.getName(), itemName, materialString};
+        sendMessage(player, "recipe.import_success_detailed", placeholders, replacements);
+    }
+    
+    /**
+     * Get display name efficiently
      */
     private String getItemDisplayName(ItemStack item) {
         if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
             return item.getItemMeta().getDisplayName();
         }
         
-        // Generate friendly name from material
-        String materialName = item.getType().name().toLowerCase().replace("_", " ");
-        String[] words = materialName.split(" ");
+        return formatMaterialName(item.getType().name());
+    }
+    
+    /**
+     * Format material name to user-friendly format
+     */
+    private String formatMaterialName(String materialName) {
+        String[] words = materialName.toLowerCase().replace("_", " ").split(" ");
         StringBuilder result = new StringBuilder();
         
         for (int i = 0; i < words.length; i++) {
             if (i > 0) result.append(" ");
-            if (!words[i].isEmpty()) {
-                result.append(Character.toUpperCase(words[i].charAt(0)));
-                if (words[i].length() > 1) {
-                    result.append(words[i].substring(1));
+            String word = words[i];
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) {
+                    result.append(word.substring(1));
                 }
             }
         }

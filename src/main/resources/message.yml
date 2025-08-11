@@ -55,6 +55,8 @@ admin:
     error_opening_gui: "#prefix# &cError opening transfer GUI, please specify a valid player and material (if transfer is multi, specify player only)."
 user:
   full_storage: "#prefix# &cStorage has been full, please take some out to mine more"
+  storage_limit_info: "#prefix# &eYour storage limit: &a#limit# &7(Permission-based)"
+  storage_limit_default: "#prefix# &eYour storage limit: &a#limit# &7(Default)"
   add_material_amount: "#prefix# &a+ #amount# #material# &7[From #player#]"
   remove_material_amount: "#prefix# &c- #amount# #material# &7[From #player#]"
   set_material_amount: "#prefix# &c[~] #amount# #material# &7[From #player#]"
@@ -88,6 +90,7 @@ user:
     - "&6=== &eStorage &7v2.3.2 &6==="
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
+    - "&e/Storage limit &f- &7Check your storage limit"
     - "&e/Storage convert &f- &7Open convert materials GUI (require permission)"
     - "&e/Storage transfer &a<player> &b<material> &f- &7Transfer material to player"
     - "&e/Storage transfer multi &a<player> &f- &7Transfer multiple materials to player"
@@ -297,6 +300,7 @@ special_material:
 recipe:
   craft_success: "#prefix# &aSuccessfully crafted &e#amount#x #recipe#&a!"
   craft_failed: "#prefix# &cFailed to craft &e#recipe#&c!"
+  inventory_full: "#prefix# &cYour inventory is full! Please make some space to craft &e#recipe#&c!"
   insufficient_materials: "#prefix# &cYou don't have enough materials to craft &e#recipe#&c!"
   no_permission: "#prefix# &cYou don't have permission to craft &e#recipe#&c!"
   recipe_not_found: "#prefix# &cRecipe '&e#recipe#&c' not found!"

@@ -6,6 +6,7 @@ import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.PermissionStorageLimit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -177,7 +178,11 @@ public class MineManager {
     public static void loadPlayerData(Player p) {
         PlayerData playerData = getPlayerDatabase(p);
         List<String> list = convertOnlineData(playerData.getData());
-        playermaxdata.put(p, playerData.getMax());
+        
+        // Use permission-based storage limit
+        int permissionBasedLimit = PermissionStorageLimit.getPlayerStorageLimit(p);
+        playermaxdata.put(p, permissionBasedLimit);
+        
         setBlock(p, list);
     }
 
