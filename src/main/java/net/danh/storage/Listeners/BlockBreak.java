@@ -48,21 +48,16 @@ public class BlockBreak implements Listener {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
         // Handle autopickup functionality
-        if (MineManager.toggle.get(p)) {
+        if (MineManager.isAutoPickupEnabled(p)) {
             if (inv_full) {
-                int old_data = MineManager.getPlayerBlock(p, MineManager.getDrop(block));
-                int max_storage = MineManager.getMaxBlock(p);
-                int count = max_storage - old_data;
                 for (ItemStack itemStack : p.getInventory().getContents()) {
                     if (itemStack != null) {
                         String drop = MineManager.getItemStackDrop(itemStack);
                         int amount = itemStack.getAmount();
                         if (drop != null) {
-                            int new_data = old_data + Math.toIntExact(amount);
-                            int min = Math.min(count, Math.toIntExact(amount));
-                            int replacement = new_data >= max_storage ? min : amount;
-                            if (MineManager.addBlockAmount(p, drop, replacement)) {
-                                removeItems(p, itemStack, replacement);
+                            int actualAmount = MineManager.addBlockAmountWithPartial(p, drop, amount);
+                            if (actualAmount > 0) {
+                                removeItems(p, itemStack, actualAmount);
                             }
                         }
                     }
@@ -90,17 +85,19 @@ public class BlockBreak implements Listener {
                 int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
                 int totalAmount = amount + bonusAmount;
 
-                if (MineManager.addBlockAmount(p, drop, totalAmount)) {
+                int actualAmount = MineManager.addBlockAmountWithPartial(p, drop, totalAmount);
+
+                if (actualAmount > 0) {
                     EventManager.onPlayerMine(p, drop, amount);
                     if (File.getConfig().getBoolean("mine.actionbar.enable")) {
                         String name = File.getConfig().getString("items." + drop);
-                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
+                        String displayAmount = bonusAmount > 0 ? actualAmount + " (+" + Math.min(bonusAmount, actualAmount) + " bonus)" : String.valueOf(actualAmount);
                         ActionBar.sendActionBar(Storage.getStorage(), p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.actionbar.action")).replace("#item#", name != null ? name : drop.replace("_", " ")).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
                     }
                     if (File.getConfig().getBoolean("mine.title.enable")) {
                         String name = File.getConfig().getString("items." + drop);
                         String replacement = name != null ? name : drop.replace("_", " ");
-                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
+                        String displayAmount = bonusAmount > 0 ? actualAmount + " (+" + Math.min(bonusAmount, actualAmount) + " bonus)" : String.valueOf(actualAmount);
                         Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
                     }
 
@@ -108,8 +105,10 @@ public class BlockBreak implements Listener {
                         e.setDropItems(false);
                     }
                     e.getBlock().getDrops().clear();
-                } else {
-                    StorageFullNotificationManager.sendStorageFullNotification(p);
+                }
+
+                if (actualAmount < totalAmount) {
+                    StorageFullNotificationManager.sendStorageFullNotification(p, drop);
                 }
             }
         }

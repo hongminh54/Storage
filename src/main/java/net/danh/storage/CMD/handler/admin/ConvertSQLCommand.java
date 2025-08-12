@@ -17,16 +17,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class ConvertSQLCommand extends BaseCommand {
 
-    private static class ConversionResult {
-        final int convertedCount;
-        final int skippedCount;
-        
-        ConversionResult(int convertedCount, int skippedCount) {
-            this.convertedCount = convertedCount;
-            this.skippedCount = skippedCount;
-        }
-    }
-
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length < 1) {
@@ -36,7 +26,7 @@ public class ConvertSQLCommand extends BaseCommand {
 
         final String databasePath = args[0];
         final boolean mergeData = args.length > 1 && args[1].equalsIgnoreCase("merge");
-        
+
         // Validate database file exists
         File dbFile = new File(Storage.getStorage().getDataFolder(), databasePath);
         if (!dbFile.exists()) {
@@ -47,13 +37,13 @@ public class ConvertSQLCommand extends BaseCommand {
                 return;
             }
         }
-        
+
         // Check if trying to convert the current active database
         if (isCurrentDatabase(dbFile)) {
             sendMessage(sender, "admin.convertsql.cannot_convert_current");
             return;
         }
-        
+
         final File finalDbFile = dbFile;
 
         String[] placeholders = {"#path#", "#mode#"};
@@ -65,29 +55,29 @@ public class ConvertSQLCommand extends BaseCommand {
             try {
                 // Create backup before conversion
                 File backupFile = createBackup();
-                
+
                 ConversionResult result = convertDatabase(finalDbFile, mergeData);
-                
+
                 // Send result message on main thread
                 Storage.getStorage().getServer().getScheduler().runTask(Storage.getStorage(), () -> {
                     if (result.convertedCount > 0 || result.skippedCount > 0) {
                         String[] resultPlaceholders = {"#converted#", "#skipped#", "#total#", "#backup#"};
                         String[] resultReplacements = {
-                            String.valueOf(result.convertedCount),
-                            String.valueOf(result.skippedCount),
-                            String.valueOf(result.convertedCount + result.skippedCount),
-                            backupFile != null ? backupFile.getName() : "none"
+                                String.valueOf(result.convertedCount),
+                                String.valueOf(result.skippedCount),
+                                String.valueOf(result.convertedCount + result.skippedCount),
+                                backupFile != null ? backupFile.getName() : "none"
                         };
                         sendMessage(sender, "admin.convertsql.success_with_backup", resultPlaceholders, resultReplacements);
                     } else {
                         sendMessage(sender, "admin.convertsql.no_data");
                     }
                 });
-                
+
             } catch (Exception e) {
                 Storage.getStorage().getLogger().severe("Error during database conversion: " + e.getMessage());
                 e.printStackTrace();
-                
+
                 // Send error message on main thread
                 Storage.getStorage().getServer().getScheduler().runTask(Storage.getStorage(), () -> {
                     sendMessage(sender, "admin.convertsql.error", "#error#", e.getMessage());
@@ -108,42 +98,42 @@ public class ConvertSQLCommand extends BaseCommand {
             // Create temporary copy to avoid lock issues
             tempDbFile = createTemporaryCopy(sourceDbFile);
             File dbToUse = tempDbFile != null ? tempDbFile : sourceDbFile;
-            
+
             // Connect to source database (or temporary copy)
             sourceConn = DriverManager.getConnection("jdbc:sqlite:" + dbToUse.getAbsolutePath());
-            
+
             // Try different possible table names and structures
             String[] possibleTables = {"PlayerData", "playerdata", "player_data", "storage_data"};
             String[] possibleColumns = {
-                "player, data, max",           // Current format
-                "player, data, maximum",       // Alternative max column
-                "uuid, data, max",            // UUID instead of player name
-                "playername, data, max",      // Alternative player column
-                "player_name, player_data, max_storage" // Different naming convention
+                    "player, data, max",           // Current format
+                    "player, data, maximum",       // Alternative max column
+                    "uuid, data, max",            // UUID instead of player name
+                    "playername, data, max",      // Alternative player column
+                    "player_name, player_data, max_storage" // Different naming convention
             };
 
             for (String tableName : possibleTables) {
                 if (tableExists(sourceConn, tableName)) {
                     Storage.getStorage().getLogger().info("Found table: " + tableName);
-                    
+
                     for (String columns : possibleColumns) {
                         try {
                             sourcePs = sourceConn.prepareStatement("SELECT " + columns + " FROM " + tableName);
                             rs = sourcePs.executeQuery();
-                            
+
                             while (rs.next()) {
                                 String player = rs.getString(1);
                                 String data = rs.getString(2);
                                 int max = rs.getInt(3);
-                                
+
                                 // Validate data
                                 if (player != null && !player.trim().isEmpty() && data != null) {
                                     // Normalize player name (remove UUID format if present)
                                     String normalizedPlayer = normalizePlayerName(player);
-                                    
+
                                     // Check if player already exists in current database
                                     PlayerData existingData = Storage.db.getData(normalizedPlayer);
-                                    
+
                                     if (existingData == null) {
                                         // Create new player data
                                         PlayerData newPlayerData = new PlayerData(normalizedPlayer, data, max);
@@ -164,12 +154,12 @@ public class ConvertSQLCommand extends BaseCommand {
                                     }
                                 }
                             }
-                            
+
                             // If we successfully read data, break from column attempts
                             if (convertedCount > 0) {
                                 break;
                             }
-                            
+
                         } catch (SQLException e) {
                             // Try next column combination
                             continue;
@@ -178,7 +168,7 @@ public class ConvertSQLCommand extends BaseCommand {
                             if (sourcePs != null) sourcePs.close();
                         }
                     }
-                    
+
                     // If we found data in this table, break from table attempts
                     if (convertedCount > 0) {
                         break;
@@ -190,7 +180,7 @@ public class ConvertSQLCommand extends BaseCommand {
             if (rs != null) rs.close();
             if (sourcePs != null) sourcePs.close();
             if (sourceConn != null) sourceConn.close();
-            
+
             // Clean up temporary file
             if (tempDbFile != null && tempDbFile.exists()) {
                 try {
@@ -223,7 +213,7 @@ public class ConvertSQLCommand extends BaseCommand {
             // For now, just return the UUID as is since we can't easily convert without external API
             return player;
         }
-        
+
         // Remove any special characters and ensure proper case
         return player.trim();
     }
@@ -232,7 +222,7 @@ public class ConvertSQLCommand extends BaseCommand {
         try {
             // Get current database file path
             File currentDbFile = new File(Storage.getStorage().getDataFolder(), "PlayerData.db");
-            
+
             // Compare canonical paths to handle different path representations
             return dbFile.getCanonicalPath().equals(currentDbFile.getCanonicalPath());
         } catch (Exception e) {
@@ -247,13 +237,13 @@ public class ConvertSQLCommand extends BaseCommand {
             // Create temporary file
             File tempFile = File.createTempFile("storage_convert_", ".db");
             tempFile.deleteOnExit();
-            
+
             // Copy source to temporary file
             Files.copy(sourceFile.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            
+
             Storage.getStorage().getLogger().info("Created temporary copy for conversion: " + tempFile.getName());
             return tempFile;
-            
+
         } catch (Exception e) {
             Storage.getStorage().getLogger().warning("Failed to create temporary copy, using original file: " + e.getMessage());
             return null;
@@ -270,13 +260,13 @@ public class ConvertSQLCommand extends BaseCommand {
             // Create backup with timestamp
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             File backupFile = new File(Storage.getStorage().getDataFolder(), "PlayerData_backup_" + timestamp + ".db");
-            
+
             // Copy current database to backup
             Files.copy(currentDbFile.toPath(), backupFile.toPath());
-            
+
             Storage.getStorage().getLogger().info("Created database backup: " + backupFile.getName());
             return backupFile;
-            
+
         } catch (Exception e) {
             Storage.getStorage().getLogger().warning("Failed to create backup: " + e.getMessage());
             return null;
@@ -292,11 +282,11 @@ public class ConvertSQLCommand extends BaseCommand {
             if (newData == null || newData.trim().isEmpty() || newData.equals("{}")) {
                 return existingData;
             }
-            
+
             // Simple JSON merge - add amounts for same materials
             // This is a basic implementation, could be improved with proper JSON parsing
             return existingData; // For safety, keep existing data if both have content
-            
+
         } catch (Exception e) {
             Storage.getStorage().getLogger().warning("Failed to merge player data, keeping existing: " + e.getMessage());
             return existingData;
@@ -306,7 +296,7 @@ public class ConvertSQLCommand extends BaseCommand {
     @Override
     public List<String> getTabCompletions(CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
-        
+
         if (args.length == 1) {
             // Suggest common database file names
             completions.add("PlayerData.db");
@@ -317,7 +307,7 @@ public class ConvertSQLCommand extends BaseCommand {
             // Suggest merge option
             completions.add("merge");
         }
-        
+
         return completions;
     }
 
@@ -334,5 +324,15 @@ public class ConvertSQLCommand extends BaseCommand {
     @Override
     public String getDescription() {
         return "Convert player data from another SQLite database";
+    }
+
+    private static class ConversionResult {
+        final int convertedCount;
+        final int skippedCount;
+
+        ConversionResult(int convertedCount, int skippedCount) {
+            this.convertedCount = convertedCount;
+            this.skippedCount = skippedCount;
+        }
     }
 }

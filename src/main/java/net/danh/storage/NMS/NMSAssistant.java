@@ -4,7 +4,7 @@ package net.danh.storage.NMS;
  * Optimized NMS version assistant with cached version checking
  */
 public class NMSAssistant {
-    
+
     // Cache the version for performance
     private static final NMSVersion CACHED_VERSION = new NMSVersion();
     private static final int MINOR_VERSION = CACHED_VERSION.getMinor();

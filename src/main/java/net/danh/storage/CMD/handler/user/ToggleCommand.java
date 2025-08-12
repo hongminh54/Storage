@@ -3,6 +3,7 @@ package net.danh.storage.CMD.handler.user;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Storage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -18,10 +19,12 @@ public class ToggleCommand extends BaseCommand {
         }
 
         Player player = (Player) sender;
-        boolean currentStatus = MineManager.toggle.get(player);
+        boolean currentStatus = MineManager.isAutoPickupEnabled(player);
         boolean newStatus = !currentStatus;
 
         MineManager.toggle.replace(player, newStatus);
+
+        Storage.db.updateAutoPickup(player.getName(), newStatus);
 
         String statusText = ItemManager.getStatus(player);
         sendMessage(sender, "user.status.toggle", "#status#", statusText);

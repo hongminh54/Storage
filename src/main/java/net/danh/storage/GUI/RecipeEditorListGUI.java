@@ -97,26 +97,26 @@ public class RecipeEditorListGUI implements IGUI {
         // Setup pagination
         String recipeSlots = config.getString("items.recipe_item.slot");
         if (recipeSlots == null) return;
-        
+
         String[] slotArray = recipeSlots.split(",");
         int itemsPerPage = slotArray.length;
         int totalPages = Math.max(1, (int) Math.ceil((double) recipeList.size() / itemsPerPage));
-        
+
         // Add recipe items
         int startIndex = currentPage * itemsPerPage;
         int endIndex = Math.min(startIndex + itemsPerPage, recipeList.size());
-        
+
         for (int i = startIndex; i < endIndex; i++) {
             Recipe recipe = recipeList.get(i);
             int slotIndex = i - startIndex;
             if (slotIndex < slotArray.length) {
                 int slot = Number.getInteger(slotArray[slotIndex].trim());
-                
+
                 ItemStack recipeItem = createRecipeEditorItem(recipe);
                 if (recipeItem != null) {
                     InteractiveItem interactiveItem = new InteractiveItem(recipeItem, slot)
                             .onClick((p, clickType) -> handleRecipeClick(p, recipe, clickType));
-                    
+
                     inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                 }
             }
@@ -146,7 +146,7 @@ public class RecipeEditorListGUI implements IGUI {
         // Apply placeholders to lore
         List<String> lore = config.getStringList("items.recipe_item.lore");
         List<String> processedLore = new ArrayList<>();
-        
+
         for (String line : lore) {
             String processed = line
                     .replace("#recipe_id#", recipe.getId())
@@ -194,7 +194,7 @@ public class RecipeEditorListGUI implements IGUI {
         CraftingManager.removeRecipe(recipe.getId());
         player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.editor_deleted")
                 .replace("#recipe#", recipe.getName())));
-        
+
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorListGUI(player, currentPage).getInventory(SoundContext.SILENT));
     }
@@ -215,11 +215,11 @@ public class RecipeEditorListGUI implements IGUI {
         String newRecipeId = CraftingManager.generateUniqueId();
         Recipe newRecipe = new Recipe(newRecipeId);
         newRecipe.setName("Công Thức Mới");
-        
+
         CraftingManager.addRecipe(newRecipe);
         player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.editor_created")
                 .replace("#recipe#", newRecipe.getName())));
-        
+
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorGUI(player, newRecipe).getInventory(SoundContext.SILENT));
     }
@@ -229,7 +229,7 @@ public class RecipeEditorListGUI implements IGUI {
                 Objects.requireNonNull(config.getConfigurationSection("items.previous_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
-        
+
         InteractiveItem prevButton = new InteractiveItem(prevItem, 45)
                 .onLeftClick(p -> {
                     SoundManager.setShouldPlayCloseSound(p, false);
@@ -243,7 +243,7 @@ public class RecipeEditorListGUI implements IGUI {
                 Objects.requireNonNull(config.getConfigurationSection("items.next_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
-        
+
         InteractiveItem nextButton = new InteractiveItem(nextItem, 53)
                 .onLeftClick(p -> {
                     SoundManager.setShouldPlayCloseSound(p, false);

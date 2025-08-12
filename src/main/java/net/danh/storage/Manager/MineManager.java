@@ -23,6 +23,15 @@ public class MineManager {
     public static HashMap<String, String> blocksdrop = new HashMap<>();
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
 
+    public static boolean isAutoPickupEnabled(@NotNull Player player) {
+        if (!toggle.containsKey(player)) {
+            PlayerData playerData = Storage.db.getData(player.getName());
+            boolean autoPickup = playerData != null ? playerData.isAutoPickup() : File.getConfig().getBoolean("settings.default_auto_pickup");
+            toggle.put(player, autoPickup);
+        }
+        return toggle.get(player);
+    }
+
     public static int getPlayerBlock(@NotNull Player p, String material) {
         return playerdata.getOrDefault(p.getName() + "_" + material, 0);
     }
@@ -32,7 +41,7 @@ public class MineManager {
     }
 
     public static int getMaxBlock(Player p) {
-        return playermaxdata.get(p);
+        return playermaxdata.getOrDefault(p, File.getConfig().getInt("settings.default_max_storage"));
     }
 
     @Contract(" -> new")
@@ -82,11 +91,12 @@ public class MineManager {
         PlayerData playerStats = Storage.db.getData(player.getName());
 
         if (playerStats == null) {
-            playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"));
+            boolean defaultAutoPickup = File.getConfig().getBoolean("settings.default_auto_pickup");
+            playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"), defaultAutoPickup);
             Storage.db.createTable(playerStats);
-            toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
+            toggle.put(player, defaultAutoPickup);
         } else {
-            toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
+            toggle.put(player, playerStats.isAutoPickup());
         }
 
         return playerStats;
@@ -164,6 +174,30 @@ public class MineManager {
         return false;
     }
 
+    public static int addBlockAmountWithPartial(Player p, String material, int amount) {
+        if (amount <= 0 || !blocksdata.containsKey(material)) {
+            return 0;
+        }
+
+        int old_data = hasPlayerBlock(p, material) ? getPlayerBlock(p, material) : 0;
+        int max_storage = getMaxBlock(p);
+
+        if (old_data >= max_storage) {
+            return 0;
+        }
+
+        int available_space = max_storage - old_data;
+        int actual_amount = Math.min(amount, available_space);
+
+        if (hasPlayerBlock(p, material)) {
+            playerdata.replace(p.getName() + "_" + material, old_data + actual_amount);
+        } else {
+            setBlock(p, material, actual_amount);
+        }
+
+        return actual_amount;
+    }
+
     public static boolean removeBlockAmount(Player p, String material, int amount) {
         if (amount > 0) {
             int old_data = getPlayerBlock(p, material);
@@ -178,16 +212,17 @@ public class MineManager {
     public static void loadPlayerData(Player p) {
         PlayerData playerData = getPlayerDatabase(p);
         List<String> list = convertOnlineData(playerData.getData());
-        
+
         // Use permission-based storage limit
         int permissionBasedLimit = PermissionStorageLimit.getPlayerStorageLimit(p);
         playermaxdata.put(p, permissionBasedLimit);
-        
+
         setBlock(p, list);
     }
 
     public static void savePlayerData(@NotNull Player p) {
-        PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p));
+        boolean autoPickup = toggle.getOrDefault(p, File.getConfig().getBoolean("settings.default_auto_pickup"));
+        PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p), autoPickup);
         Storage.db.updateTable(playerData);
     }
 

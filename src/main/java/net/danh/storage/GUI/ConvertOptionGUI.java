@@ -49,7 +49,7 @@ public class ConvertOptionGUI implements IGUI {
             player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
             return Bukkit.createInventory(this, 9, "No Permission");
         }
-        
+
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
         String materialName = File.getConfig().getString("items." + material, material.split(";")[0]);

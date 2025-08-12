@@ -15,6 +15,7 @@ commands:
     description: Main command
     aliases:
       - kho
+      - kks
 permissions:
   storage.toggle:
     description: Toggle permission

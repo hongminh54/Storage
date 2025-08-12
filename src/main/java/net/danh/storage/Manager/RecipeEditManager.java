@@ -81,7 +81,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         recipe.setResultName(Chat.colorizewp(input));
         player.sendMessage(Chat.colorize("&aResult item name updated to: " + input));
         SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
@@ -93,7 +93,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         List<String> lore = new ArrayList<>(recipe.getResultLore());
         lore.add(input);
         recipe.setResultLore(lore);
@@ -109,7 +109,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         recipe.setResultAmount(amount);
         player.sendMessage(Chat.colorize("&aResult amount updated to: " + amount));
         SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
@@ -117,7 +117,7 @@ public class RecipeEditManager {
 
     private static void handleMaterialEdit(Player player, Recipe recipe, String input) {
         String materialName = input.toUpperCase().trim();
-        
+
         Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
         if (!xMaterial.isPresent()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_material")
@@ -125,7 +125,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         recipe.setResultMaterial(materialName + ";0");
         player.sendMessage(Chat.colorize("&aResult material updated to: " + materialName));
         SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
@@ -139,7 +139,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         Optional<XEnchantment> xEnchant = XEnchantment.matchXEnchantment(enchantName);
         if (!xEnchant.isPresent()) {
             player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.invalid_enchantment")
@@ -147,7 +147,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         Map<String, Integer> enchants = new HashMap<>(recipe.getResultEnchantments());
         enchants.put(enchantName.toUpperCase(), level);
         recipe.setResultEnchantments(enchants);
@@ -157,14 +157,14 @@ public class RecipeEditManager {
 
     private static void handleRequirementAdd(Player player, Recipe recipe, String input) {
         String materialName = input.toUpperCase().trim();
-        
+
         // Check if material exists in storage system
         if (!MineManager.getPluginBlocks().contains(materialName + ";0")) {
             player.sendMessage(Chat.colorize("&cMaterial '" + materialName + "' is not available in storage system!"));
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         Map<String, Integer> requirements = new HashMap<>(recipe.getMaterialRequirements());
         requirements.put(materialName + ";0", 1);
         recipe.setMaterialRequirements(requirements);
@@ -180,7 +180,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         Map<String, Integer> requirements = new HashMap<>(recipe.getMaterialRequirements());
         if (requirements.containsKey(material)) {
             requirements.put(material, amount);
@@ -199,7 +199,7 @@ public class RecipeEditManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             return;
         }
-        
+
         recipe.setCategory(input.toLowerCase().trim());
         player.sendMessage(Chat.colorize("&aCategory updated to: " + input));
         SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);

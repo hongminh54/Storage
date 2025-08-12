@@ -3,11 +3,7 @@ package net.danh.storage.Listeners;
 import net.danh.storage.Enchant.TNTEnchant;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
-import net.danh.storage.Manager.CraftingManager;
-import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Manager.StorageFullNotificationManager;
-import net.danh.storage.Manager.TransferManager;
+import net.danh.storage.Manager.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -46,5 +42,9 @@ public class JoinQuit implements Listener {
 
         // Cleanup sound tracking data
         SoundManager.cleanupPlayer(p);
+
+        // Cleanup toggle data
+        MineManager.toggle.remove(p);
+        MineManager.playermaxdata.remove(p);
     }
 }

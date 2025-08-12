@@ -2,11 +2,7 @@ package net.danh.storage.CMD;
 
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.admin.*;
-import net.danh.storage.CMD.handler.user.ConvertOreCommand;
-import net.danh.storage.CMD.handler.user.HelpCommand;
-import net.danh.storage.CMD.handler.user.StorageLimitCommand;
-import net.danh.storage.CMD.handler.user.ToggleCommand;
-import net.danh.storage.CMD.handler.user.TransferCommand;
+import net.danh.storage.CMD.handler.user.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 

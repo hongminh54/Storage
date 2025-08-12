@@ -303,13 +303,14 @@ public class TransferManager {
 
             // Perform the transfer
             if (MineManager.removeBlockAmount(sender, material, amount)) {
-                if (MineManager.addBlockAmount(receiver, material, amount)) {
+                int actualAmount = MineManager.addBlockAmountWithPartial(receiver, material, amount);
+                if (actualAmount > 0) {
                     // Log successful transfer
                     TransferData transferData = new TransferData(
                             sender.getName(),
                             receiver.getName(),
                             material,
-                            amount,
+                            actualAmount,
                             System.currentTimeMillis(),
                             "SUCCESS_MULTI"
                     );
@@ -319,13 +320,17 @@ public class TransferManager {
                     if (successCount > 0) {
                         successfulTransfers.append(", ");
                     }
-                    successfulTransfers.append(amount).append(" ").append(getDisplayName(material));
+                    successfulTransfers.append(actualAmount).append(" ").append(getDisplayName(material));
                     successCount++;
-                } else {
-                    // Rollback if receiver couldn't receive
-                    MineManager.addBlockAmount(sender, material, amount);
-                    sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
-                            .replace("#player#", receiver.getName())));
+                }
+
+                // Rollback remaining amount if not fully transferred
+                if (actualAmount < amount) {
+                    MineManager.addBlockAmount(sender, material, amount - actualAmount);
+                    if (actualAmount == 0) {
+                        sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
+                                .replace("#player#", receiver.getName())));
+                    }
                 }
             }
         }
@@ -362,12 +367,17 @@ public class TransferManager {
         }
 
         if (MineManager.removeBlockAmount(sender, material, amount)) {
-            if (MineManager.addBlockAmount(receiver, material, amount)) {
-                handleSuccessfulTransfer(sender, receiver, material, amount);
-            } else {
-                // Rollback if receiver couldn't receive
-                MineManager.addBlockAmount(sender, material, amount);
-                handleFailedTransfer(sender, receiver.getName(), material, amount, "RECEIVER_FULL");
+            int actualAmount = MineManager.addBlockAmountWithPartial(receiver, material, amount);
+            if (actualAmount > 0) {
+                handleSuccessfulTransfer(sender, receiver, material, actualAmount);
+            }
+
+            // Rollback remaining amount if not fully transferred
+            if (actualAmount < amount) {
+                MineManager.addBlockAmount(sender, material, amount - actualAmount);
+                if (actualAmount == 0) {
+                    handleFailedTransfer(sender, receiver.getName(), material, amount, "RECEIVER_FULL");
+                }
             }
         } else {
             handleFailedTransfer(sender, receiver.getName(), material, amount, "REMOVAL_FAILED");

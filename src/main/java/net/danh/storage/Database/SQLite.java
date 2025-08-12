@@ -16,6 +16,7 @@ public class SQLite extends Database {
             "`player` VARCHAR(36) NOT NULL," +
             "`data` TEXT DEFAULT '{}'," +
             "`max` BIGINT NOT NULL," +
+            "`autopickup` BOOLEAN DEFAULT 1," +
             "PRIMARY KEY (`player`)" +
             ");";
     String dbname;
@@ -54,6 +55,12 @@ public class SQLite extends Database {
         try {
             Statement s = connection.createStatement();
             s.executeUpdate(SQLiteCreateTokensTable);
+
+            try {
+                s.executeUpdate("ALTER TABLE " + table + " ADD COLUMN autopickup BOOLEAN DEFAULT 1");
+            } catch (SQLException e) {
+            }
+
             s.close();
         } catch (SQLException e) {
             e.printStackTrace();

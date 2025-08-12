@@ -42,15 +42,21 @@ public class AddCommand extends BaseCommand {
             return;
         }
 
-        if (MineManager.addBlockAmount(target, material, amount)) {
+        int actualAmount = MineManager.addBlockAmountWithPartial(target, material, amount);
+        if (actualAmount > 0) {
             String[] placeholders = {"#amount#", "#material#", "#player#"};
-            String[] replacements = {args[2], material, target.getName()};
+            String[] replacements = {String.valueOf(actualAmount), material, target.getName()};
 
             sendMessage(sender, "admin.add_material_amount", placeholders, replacements);
 
             String[] targetPlaceholders = {"#amount#", "#material#", "#player#"};
-            String[] targetReplacements = {args[2], material, sender.getName()};
+            String[] targetReplacements = {String.valueOf(actualAmount), material, sender.getName()};
             sendMessage(target, "user.add_material_amount", targetPlaceholders, targetReplacements);
+        }
+        if (actualAmount < amount) {
+            String[] placeholders = {"#amount#", "#material#", "#player#"};
+            String[] replacements = {String.valueOf(amount - actualAmount), material, target.getName()};
+            sendMessage(sender, "admin.storage_full_warning", placeholders, replacements);
         }
     }
 

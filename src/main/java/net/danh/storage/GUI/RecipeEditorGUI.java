@@ -20,12 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class RecipeEditorGUI implements IGUI {
 
@@ -74,13 +69,13 @@ public class RecipeEditorGUI implements IGUI {
 
         // Add result preview
         addResultPreview(inventory);
-        
+
         // Add item configuration panel
         addItemConfigurationPanel(inventory);
-        
+
         // Add requirements configuration panel
         addRequirementsPanel(inventory);
-        
+
         // Add control buttons
         addControlButtons(inventory);
     }
@@ -183,7 +178,7 @@ public class RecipeEditorGUI implements IGUI {
                 ItemMeta meta = fallback.getItemMeta();
                 if (meta != null) {
                     meta.setDisplayName(Chat.colorizewp("&cLỗi Cấu Hình"));
-                    meta.setLore(Arrays.asList(Chat.colorizewp("&7Không thể tải: " + configPath)));
+                    meta.setLore(Collections.singletonList(Chat.colorizewp("&7Không thể tải: " + configPath)));
                     fallback.setItemMeta(meta);
                 }
             }
@@ -492,7 +487,7 @@ public class RecipeEditorGUI implements IGUI {
         CraftingManager.updateRecipe(recipe);
         player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.editor_saved")
                 .replace("#recipe#", recipe.getName())));
-        
+
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.SILENT));
     }
@@ -506,7 +501,7 @@ public class RecipeEditorGUI implements IGUI {
         CraftingManager.removeRecipe(recipe.getId());
         player.sendMessage(Chat.colorize(File.getMessage().getString("recipe.editor_deleted")
                 .replace("#recipe#", recipe.getName())));
-        
+
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.SILENT));
     }
@@ -520,8 +515,8 @@ public class RecipeEditorGUI implements IGUI {
     private void openEnchantmentSelectionGUI(Player player) {
         // Create a simple enchantment selection menu
         String[] commonEnchants = {
-            "DAMAGE_ALL", "DIG_SPEED", "DURABILITY", "FIRE_ASPECT", "KNOCKBACK",
-            "LOOTING", "FORTUNE", "SILK_TOUCH", "PROTECTION_ENVIRONMENTAL", "THORNS"
+                "DAMAGE_ALL", "DIG_SPEED", "DURABILITY", "FIRE_ASPECT", "KNOCKBACK",
+                "LOOTING", "FORTUNE", "SILK_TOUCH", "PROTECTION_ENVIRONMENTAL", "THORNS"
         };
 
         player.sendMessage(Chat.colorize("&eCommon enchantments:"));
@@ -560,11 +555,11 @@ public class RecipeEditorGUI implements IGUI {
     private void openFlagsSelectionGUI(Player player) {
         // Toggle common item flags
         org.bukkit.inventory.ItemFlag[] commonFlags = {
-            org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS,
-            org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES,
-            org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE,
-            org.bukkit.inventory.ItemFlag.HIDE_DESTROYS,
-            org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON
+                org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS,
+                org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES,
+                org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE,
+                org.bukkit.inventory.ItemFlag.HIDE_DESTROYS,
+                org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON
         };
 
         // Toggle HIDE_ENCHANTS for simplicity

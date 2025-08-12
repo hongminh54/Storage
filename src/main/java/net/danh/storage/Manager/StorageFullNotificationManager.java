@@ -9,9 +9,13 @@ import java.util.Map;
 
 public class StorageFullNotificationManager {
 
-    private static final Map<Player, Long> lastNotificationTime = new HashMap<>();
+    private static final Map<String, Long> lastNotificationTime = new HashMap<>();
 
     public static void sendStorageFullNotification(Player player) {
+        sendStorageFullNotification(player, null);
+    }
+
+    public static void sendStorageFullNotification(Player player, String material) {
         if (!isNotificationEnabled()) {
             return;
         }
@@ -19,18 +23,33 @@ public class StorageFullNotificationManager {
         long currentTime = System.currentTimeMillis();
         long cooldownMs = getCooldownSeconds() * 1000L;
 
-        Long lastTime = lastNotificationTime.get(player);
+        String key = material != null ? player.getName() + "_" + material : player.getName() + "_general";
+        Long lastTime = lastNotificationTime.get(key);
+
         if (lastTime == null || (currentTime - lastTime) >= cooldownMs) {
-            String message = File.getMessage().getString("user.full_storage");
+            String message;
+            if (material != null) {
+                message = File.getMessage().getString("user.material_storage_full");
+                if (message != null) {
+                    String materialName = File.getConfig().getString("items." + material);
+                    if (materialName == null) {
+                        materialName = material.replace("_", " ").replace(";", ":");
+                    }
+                    message = message.replace("#material#", materialName);
+                }
+            } else {
+                message = File.getMessage().getString("user.full_storage");
+            }
+
             if (message != null) {
                 player.sendMessage(Chat.colorize(message));
             }
-            lastNotificationTime.put(player, currentTime);
+            lastNotificationTime.put(key, currentTime);
         }
     }
 
     public static void removePlayer(Player player) {
-        lastNotificationTime.remove(player);
+        lastNotificationTime.entrySet().removeIf(entry -> entry.getKey().startsWith(player.getName() + "_"));
     }
 
     private static boolean isNotificationEnabled() {

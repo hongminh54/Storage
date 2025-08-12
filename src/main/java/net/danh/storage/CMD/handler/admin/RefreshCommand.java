@@ -27,12 +27,12 @@ public class RefreshCommand extends BaseCommand {
 
     private void refreshAllPlayers(CommandSender sender) {
         int refreshedCount = 0;
-        
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             PermissionStorageLimit.refreshPlayerStorageLimit(player);
             refreshedCount++;
         }
-        
+
         String[] placeholders = {"#count#"};
         String[] replacements = {String.valueOf(refreshedCount)};
         sendMessage(sender, "admin.refresh_all_success", placeholders, replacements);

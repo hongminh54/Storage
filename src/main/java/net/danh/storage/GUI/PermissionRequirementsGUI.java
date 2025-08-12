@@ -18,28 +18,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class PermissionRequirementsGUI implements IGUI {
 
-    private final Player player;
-    private final Recipe recipe;
-
     // Common permission suggestions
     private static final String[] COMMON_PERMISSIONS = {
-        "storage.craft.enhanced",
-        "storage.craft.magic", 
-        "storage.craft.ultimate",
-        "storage.craft.legendary",
-        "storage.craft.mythic",
-        "storage.vip",
-        "storage.premium",
-        "storage.admin",
-        "essentials.fly",
-        "worldedit.navigation.jumpto",
-        "minecraft.command.gamemode",
-        "bukkit.command.teleport"
+            "storage.craft.enhanced",
+            "storage.craft.magic",
+            "storage.craft.ultimate",
+            "storage.craft.legendary",
+            "storage.craft.mythic",
+            "storage.vip",
+            "storage.premium",
+            "storage.admin",
+            "essentials.fly",
+            "worldedit.navigation.jumpto",
+            "minecraft.command.gamemode",
+            "bukkit.command.teleport"
     };
+    private final Player player;
+    private final Recipe recipe;
 
     public PermissionRequirementsGUI(Player player, Recipe recipe) {
         this.player = player;
@@ -97,7 +97,7 @@ public class PermissionRequirementsGUI implements IGUI {
         for (int i = 0; i < Math.min(currentPerms.size(), permSlots.length); i++) {
             String permission = currentPerms.get(i);
             ItemStack permItem = createPermissionItem(permission, true);
-            
+
             InteractiveItem interactiveItem = new InteractiveItem(permItem, permSlots[i])
                     .onClick((p, clickType) -> handlePermissionClick(p, permission, clickType));
             inventory.setItem(interactiveItem.getSlot(), interactiveItem);
@@ -110,10 +110,10 @@ public class PermissionRequirementsGUI implements IGUI {
             if (meta != null) {
                 meta.setDisplayName(Chat.colorizewp("&cKhông Có Yêu Cầu Quyền Hạn"));
                 meta.setLore(Arrays.asList(
-                    Chat.colorizewp("&7Công thức này không có yêu cầu"),
-                    Chat.colorizewp("&7quyền hạn. Ai cũng có thể chế tạo."),
-                    Chat.colorizewp("&7"),
-                    Chat.colorizewp("&eThêm quyền hạn bên dưới để hạn chế player")
+                        Chat.colorizewp("&7Công thức này không có yêu cầu"),
+                        Chat.colorizewp("&7quyền hạn. Ai cũng có thể chế tạo."),
+                        Chat.colorizewp("&7"),
+                        Chat.colorizewp("&eThêm quyền hạn bên dưới để hạn chế player")
                 ));
                 noPermsItem.setItemMeta(meta);
             }
@@ -123,11 +123,11 @@ public class PermissionRequirementsGUI implements IGUI {
 
     private void addPermissionSuggestions(Inventory inventory) {
         int[] suggestionSlots = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
-        
+
         for (int i = 0; i < Math.min(COMMON_PERMISSIONS.length, suggestionSlots.length); i++) {
             String permission = COMMON_PERMISSIONS[i];
             boolean alreadyAdded = recipe.getPermissionRequirements().contains(permission);
-            
+
             if (!alreadyAdded) {
                 ItemStack suggestionItem = createPermissionItem(permission, false);
                 InteractiveItem interactiveItem = new InteractiveItem(suggestionItem, suggestionSlots[i])
@@ -143,7 +143,7 @@ public class PermissionRequirementsGUI implements IGUI {
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp((isRequired ? "&a" : "&e") + permission));
             List<String> lore = new ArrayList<>();
-            
+
             if (isRequired) {
                 lore.add(Chat.colorizewp("&7Trạng thái: &aBắt buộc"));
                 lore.add(Chat.colorizewp("&7"));
@@ -153,7 +153,7 @@ public class PermissionRequirementsGUI implements IGUI {
                 lore.add(Chat.colorizewp("&7"));
                 lore.add(Chat.colorizewp("&eNhấp trái để thêm"));
             }
-            
+
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
@@ -194,10 +194,10 @@ public class PermissionRequirementsGUI implements IGUI {
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&a&lThêm Quyền Hạn Tùy Chỉnh"));
             meta.setLore(Arrays.asList(
-                Chat.colorizewp("&7Thêm một quyền hạn tùy chỉnh"),
-                Chat.colorizewp("&7không có trong danh sách"),
-                Chat.colorizewp("&7"),
-                Chat.colorizewp("&eNhấp để thêm quyền hạn tùy chỉnh")
+                    Chat.colorizewp("&7Thêm một quyền hạn tùy chỉnh"),
+                    Chat.colorizewp("&7không có trong danh sách"),
+                    Chat.colorizewp("&7"),
+                    Chat.colorizewp("&eNhấp để thêm quyền hạn tùy chỉnh")
             ));
             addCustomItem.setItemMeta(meta);
         }
@@ -211,10 +211,10 @@ public class PermissionRequirementsGUI implements IGUI {
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&c&lXóa Tất Cả Quyền Hạn"));
             meta.setLore(Arrays.asList(
-                Chat.colorizewp("&7Xóa tất cả yêu cầu"),
-                Chat.colorizewp("&7quyền hạn khỏi công thức này"),
-                Chat.colorizewp("&7"),
-                Chat.colorizewp("&cNhấp để xóa tất cả")
+                    Chat.colorizewp("&7Xóa tất cả yêu cầu"),
+                    Chat.colorizewp("&7quyền hạn khỏi công thức này"),
+                    Chat.colorizewp("&7"),
+                    Chat.colorizewp("&cNhấp để xóa tất cả")
             ));
             clearAllItem.setItemMeta(meta);
         }
@@ -227,8 +227,8 @@ public class PermissionRequirementsGUI implements IGUI {
         meta = backItem.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&cQuay Lại"));
-            meta.setLore(Arrays.asList(
-                Chat.colorizewp("&7Quay lại trình chỉnh sửa công thức")
+            meta.setLore(Collections.singletonList(
+                    Chat.colorizewp("&7Quay lại trình chỉnh sửa công thức")
             ));
             backItem.setItemMeta(meta);
         }

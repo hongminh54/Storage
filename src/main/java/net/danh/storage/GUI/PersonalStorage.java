@@ -5,6 +5,7 @@ import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
@@ -94,7 +95,9 @@ public class PersonalStorage implements IGUI {
                     for (String slot_string : slot.split(",")) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
-                            MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                            boolean newStatus = !MineManager.isAutoPickupEnabled(p);
+                            MineManager.toggle.replace(p, newStatus);
+                            Storage.db.updateAutoPickup(p.getName(), newStatus);
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                             SoundManager.setShouldPlayCloseSound(p, false);
                             p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
@@ -104,7 +107,9 @@ public class PersonalStorage implements IGUI {
                 } else {
                     InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
-                        MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                        boolean newStatus = !MineManager.isAutoPickupEnabled(p);
+                        MineManager.toggle.replace(p, newStatus);
+                        Storage.db.updateAutoPickup(p.getName(), newStatus);
                         p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                         SoundManager.setShouldPlayCloseSound(p, false);
                         p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));

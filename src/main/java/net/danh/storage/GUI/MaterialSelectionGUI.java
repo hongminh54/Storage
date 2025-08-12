@@ -3,7 +3,6 @@ package net.danh.storage.GUI;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.Chat;
@@ -17,40 +16,38 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class MaterialSelectionGUI implements IGUI {
 
+    // Comprehensive material categories
+    private static final String[][] MATERIAL_CATEGORIES = {
+            // Building Blocks
+            {"STONE", "COBBLESTONE", "DIRT", "GRASS_BLOCK", "SAND", "GRAVEL", "CLAY", "TERRACOTTA", "CONCRETE", "WOOL", "GLASS", "OBSIDIAN", "BEDROCK", "NETHERRACK", "END_STONE"},
+            // Ores & Ingots
+            {"COAL", "IRON_INGOT", "GOLD_INGOT", "DIAMOND", "EMERALD", "REDSTONE", "LAPIS_LAZULI", "QUARTZ", "NETHERITE_INGOT", "COPPER_INGOT", "IRON_ORE", "GOLD_ORE", "DIAMOND_ORE", "EMERALD_ORE", "COAL_ORE"},
+            // Wood & Plants
+            {"OAK_LOG", "BIRCH_LOG", "SPRUCE_LOG", "JUNGLE_LOG", "ACACIA_LOG", "DARK_OAK_LOG", "CRIMSON_STEM", "WARPED_STEM", "OAK_PLANKS", "BIRCH_PLANKS", "SPRUCE_PLANKS", "JUNGLE_PLANKS", "ACACIA_PLANKS", "DARK_OAK_PLANKS", "BAMBOO"},
+            // Food & Agriculture
+            {"WHEAT", "CARROT", "POTATO", "BEETROOT", "SUGAR_CANE", "CACTUS", "MELON", "PUMPKIN", "APPLE", "BREAD", "COOKED_BEEF", "COOKED_PORK", "COOKED_CHICKEN", "COOKED_MUTTON", "COOKED_RABBIT"},
+            // Combat & Tools
+            {"DIAMOND_SWORD", "IRON_SWORD", "GOLDEN_SWORD", "STONE_SWORD", "WOODEN_SWORD", "BOW", "CROSSBOW", "ARROW", "SHIELD", "DIAMOND_PICKAXE", "IRON_PICKAXE", "GOLDEN_PICKAXE", "STONE_PICKAXE", "WOODEN_PICKAXE"},
+            // Mob Drops
+            {"LEATHER", "BEEF", "PORK", "CHICKEN", "MUTTON", "RABBIT", "STRING", "FEATHER", "BONE", "GUNPOWDER", "BLAZE_POWDER", "ENDER_PEARL", "SLIME_BALL", "MAGMA_CREAM", "GHAST_TEAR"},
+            // Redstone & Mechanisms
+            {"REDSTONE", "REDSTONE_TORCH", "LEVER", "BUTTON", "PRESSURE_PLATE", "TRIPWIRE_HOOK", "PISTON", "STICKY_PISTON", "DISPENSER", "DROPPER", "HOPPER", "COMPARATOR", "REPEATER", "OBSERVER", "TARGET"},
+            // Nether & End
+            {"NETHERRACK", "SOUL_SAND", "SOUL_SOIL", "NETHER_BRICKS", "NETHER_WART", "BLAZE_ROD", "GHAST_TEAR", "MAGMA_CREAM", "NETHER_STAR", "END_STONE", "ENDER_PEARL", "CHORUS_FRUIT", "SHULKER_SHELL", "ELYTRA", "DRAGON_EGG"}
+    };
+    private static final String[] CATEGORY_NAMES = {
+            "Building Blocks", "Ores & Ingots", "Wood & Plants", "Food & Agriculture",
+            "Combat & Tools", "Mob Drops", "Redstone & Mechanisms", "Nether & End"
+    };
     private final Player player;
     private final Recipe recipe;
     private final String selectionType; // "result" or "requirement"
     private final int currentPage;
-
-    // Comprehensive material categories
-    private static final String[][] MATERIAL_CATEGORIES = {
-        // Building Blocks
-        {"STONE", "COBBLESTONE", "DIRT", "GRASS_BLOCK", "SAND", "GRAVEL", "CLAY", "TERRACOTTA", "CONCRETE", "WOOL", "GLASS", "OBSIDIAN", "BEDROCK", "NETHERRACK", "END_STONE"},
-        // Ores & Ingots
-        {"COAL", "IRON_INGOT", "GOLD_INGOT", "DIAMOND", "EMERALD", "REDSTONE", "LAPIS_LAZULI", "QUARTZ", "NETHERITE_INGOT", "COPPER_INGOT", "IRON_ORE", "GOLD_ORE", "DIAMOND_ORE", "EMERALD_ORE", "COAL_ORE"},
-        // Wood & Plants
-        {"OAK_LOG", "BIRCH_LOG", "SPRUCE_LOG", "JUNGLE_LOG", "ACACIA_LOG", "DARK_OAK_LOG", "CRIMSON_STEM", "WARPED_STEM", "OAK_PLANKS", "BIRCH_PLANKS", "SPRUCE_PLANKS", "JUNGLE_PLANKS", "ACACIA_PLANKS", "DARK_OAK_PLANKS", "BAMBOO"},
-        // Food & Agriculture
-        {"WHEAT", "CARROT", "POTATO", "BEETROOT", "SUGAR_CANE", "CACTUS", "MELON", "PUMPKIN", "APPLE", "BREAD", "COOKED_BEEF", "COOKED_PORK", "COOKED_CHICKEN", "COOKED_MUTTON", "COOKED_RABBIT"},
-        // Combat & Tools
-        {"DIAMOND_SWORD", "IRON_SWORD", "GOLDEN_SWORD", "STONE_SWORD", "WOODEN_SWORD", "BOW", "CROSSBOW", "ARROW", "SHIELD", "DIAMOND_PICKAXE", "IRON_PICKAXE", "GOLDEN_PICKAXE", "STONE_PICKAXE", "WOODEN_PICKAXE"},
-        // Mob Drops
-        {"LEATHER", "BEEF", "PORK", "CHICKEN", "MUTTON", "RABBIT", "STRING", "FEATHER", "BONE", "GUNPOWDER", "BLAZE_POWDER", "ENDER_PEARL", "SLIME_BALL", "MAGMA_CREAM", "GHAST_TEAR"},
-        // Redstone & Mechanisms
-        {"REDSTONE", "REDSTONE_TORCH", "LEVER", "BUTTON", "PRESSURE_PLATE", "TRIPWIRE_HOOK", "PISTON", "STICKY_PISTON", "DISPENSER", "DROPPER", "HOPPER", "COMPARATOR", "REPEATER", "OBSERVER", "TARGET"},
-        // Nether & End
-        {"NETHERRACK", "SOUL_SAND", "SOUL_SOIL", "NETHER_BRICKS", "NETHER_WART", "BLAZE_ROD", "GHAST_TEAR", "MAGMA_CREAM", "NETHER_STAR", "END_STONE", "ENDER_PEARL", "CHORUS_FRUIT", "SHULKER_SHELL", "ELYTRA", "DRAGON_EGG"}
-    };
-
-    private static final String[] CATEGORY_NAMES = {
-        "Building Blocks", "Ores & Ingots", "Wood & Plants", "Food & Agriculture",
-        "Combat & Tools", "Mob Drops", "Redstone & Mechanisms", "Nether & End"
-    };
-
     private final int currentCategory;
 
     public MaterialSelectionGUI(Player player, Recipe recipe, String selectionType) {
@@ -193,8 +190,8 @@ public class MaterialSelectionGUI implements IGUI {
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&aTrang Trước"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Trang " + (currentPage + 1) + " / " + totalPages),
-                Chat.colorizewp("&eNhấp để đi đến trang trước")
+                    Chat.colorizewp("&7Trang " + (currentPage + 1) + " / " + totalPages),
+                    Chat.colorizewp("&eNhấp để đi đến trang trước")
             );
             meta.setLore(lore);
             prevItem.setItemMeta(meta);
@@ -214,8 +211,8 @@ public class MaterialSelectionGUI implements IGUI {
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&aTrang sau"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Trang " + (currentPage + 1) + " / " + totalPages),
-                Chat.colorizewp("&eNhấp để đi đến trang sau")
+                    Chat.colorizewp("&7Trang " + (currentPage + 1) + " / " + totalPages),
+                    Chat.colorizewp("&eNhấp để đi đến trang sau")
             );
             meta.setLore(lore);
             nextItem.setItemMeta(meta);
@@ -234,8 +231,8 @@ public class MaterialSelectionGUI implements IGUI {
         ItemMeta meta = backItem.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&cQuay Lại"));
-            List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Quay lại trình chỉnh sửa công thức")
+            List<String> lore = Collections.singletonList(
+                    Chat.colorizewp("&7Quay lại trình chỉnh sửa công thức")
             );
             meta.setLore(lore);
             backItem.setItemMeta(meta);
@@ -252,8 +249,8 @@ public class MaterialSelectionGUI implements IGUI {
         if (meta != null) {
             meta.setDisplayName(Chat.colorizewp("&6Chọn Material"));
             List<String> lore = Arrays.asList(
-                Chat.colorizewp("&7Nhấp để lựa chọn"),
-                Chat.colorizewp("&7material cụ thể theo tên")
+                    Chat.colorizewp("&7Nhấp để lựa chọn"),
+                    Chat.colorizewp("&7material cụ thể theo tên")
             );
             meta.setLore(lore);
             searchItem.setItemMeta(meta);
@@ -286,8 +283,8 @@ public class MaterialSelectionGUI implements IGUI {
             if (meta != null) {
                 meta.setDisplayName(Chat.colorizewp("&eDanh mục trước"));
                 meta.setLore(Arrays.asList(
-                    Chat.colorizewp("&7Hiện tại: &e" + CATEGORY_NAMES[currentCategory]),
-                    Chat.colorizewp("&eNhấp để đi đến danh mục trước")
+                        Chat.colorizewp("&7Hiện tại: &e" + CATEGORY_NAMES[currentCategory]),
+                        Chat.colorizewp("&eNhấp để đi đến danh mục trước")
                 ));
                 prevCatItem.setItemMeta(meta);
             }
@@ -306,8 +303,8 @@ public class MaterialSelectionGUI implements IGUI {
             if (meta != null) {
                 meta.setDisplayName(Chat.colorizewp("&eDanh mục sau"));
                 meta.setLore(Arrays.asList(
-                    Chat.colorizewp("&7Hiện tại: &e" + CATEGORY_NAMES[currentCategory]),
-                    Chat.colorizewp("&eNhấp để đi đến danh mục sau")
+                        Chat.colorizewp("&7Hiện tại: &e" + CATEGORY_NAMES[currentCategory]),
+                        Chat.colorizewp("&eNhấp để đi đến danh mục sau")
                 ));
                 nextCatItem.setItemMeta(meta);
             }

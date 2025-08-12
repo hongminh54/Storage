@@ -11,7 +11,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -22,21 +21,21 @@ import java.util.stream.Collectors;
  * Optimized manager for custom recipe system with simple inventory checking
  */
 public class CraftingManager {
-    
+
     private static final Map<String, Recipe> recipes = new HashMap<>();
     private static final Map<String, List<Recipe>> recipesByCategory = new HashMap<>();
     private static final Map<String, BukkitRunnable> activeCrafting = new HashMap<>();
-    
+
     public static void loadRecipes() {
         recipes.clear();
         recipesByCategory.clear();
-        
+
         FileConfiguration config = File.getCustomRecipesConfig();
         if (config == null) return;
-        
+
         ConfigurationSection recipesSection = config.getConfigurationSection("recipes");
         if (recipesSection == null) return;
-        
+
         for (String recipeId : recipesSection.getKeys(false)) {
             try {
                 ConfigurationSection recipeSection = recipesSection.getConfigurationSection(recipeId);
@@ -50,56 +49,56 @@ public class CraftingManager {
             }
         }
     }
-    
+
     public static void saveRecipes() {
         FileConfiguration config = File.getCustomRecipesConfig();
         if (config == null) return;
-        
+
         // Clear existing recipes
         config.set("recipes", null);
-        
+
         ConfigurationSection recipesSection = config.createSection("recipes");
         for (Recipe recipe : recipes.values()) {
             ConfigurationSection recipeSection = recipesSection.createSection(recipe.getId());
             recipe.saveToConfig(recipeSection);
         }
-        
+
         File.saveCustomRecipesConfig();
     }
-    
+
     // Public API methods
-    
+
     public static Recipe getRecipe(String id) {
         return recipes.get(id);
     }
-    
+
     public static Collection<Recipe> getAllRecipes() {
         return recipes.values();
     }
-    
+
     public static List<Recipe> getRecipesByCategory(String category) {
         return recipesByCategory.getOrDefault(category, new ArrayList<>());
     }
-    
+
     public static Set<String> getCategories() {
         return recipesByCategory.keySet();
     }
-    
+
     public static List<Recipe> getAvailableRecipes(Player player) {
         return recipes.values().stream()
                 .filter(Recipe::isEnabled)
                 .filter(recipe -> hasPermissions(player, recipe))
                 .collect(Collectors.toList());
     }
-    
+
     // Crafting methods
-    
+
     public static boolean canCraft(Player player, String recipeId) {
         Recipe recipe = recipes.get(recipeId);
-        return recipe != null && recipe.isEnabled() && 
-               hasPermissions(player, recipe) && hasMaterials(player, recipe);
+        return recipe != null && recipe.isEnabled() &&
+                hasPermissions(player, recipe) && hasMaterials(player, recipe);
     }
-    
+
     public static boolean craftRecipe(Player player, String recipeId) {
         return craftRecipe(player, recipeId, 1);
     }
@@ -162,7 +161,7 @@ public class CraftingManager {
         // Immediate crafting (no delay)
         return completeCrafting(player, recipe, actualAmount);
     }
-    
+
     /**
      * Creates result item with proper colorization
      */
@@ -171,19 +170,19 @@ public class CraftingManager {
 
         ItemStack item = ItemImportUtil.createExactItemFromRecipe(recipe);
         if (item == null) return null;
-        
+
         // Apply color codes efficiently
         colorizeItem(item);
         return item;
     }
-    
+
     // Recipe management methods
-    
+
     public static void addRecipe(Recipe recipe) {
         addRecipeToMaps(recipe);
         saveRecipes();
     }
-    
+
     public static void removeRecipe(String id) {
         Recipe recipe = recipes.remove(id);
         if (recipe != null) {
@@ -191,18 +190,18 @@ public class CraftingManager {
             saveRecipes();
         }
     }
-    
+
     public static void updateRecipe(Recipe recipe) {
         // Remove from old category
         removeRecipeFromAllCategories(recipe.getId());
-        
+
         // Add to new category
         addRecipeToMaps(recipe);
         saveRecipes();
     }
-    
+
     // Permission and material checking
-    
+
     public static boolean hasPermissions(Player player, Recipe recipe) {
         return recipe.getPermissionRequirements().stream()
                 .allMatch(player::hasPermission);
@@ -224,7 +223,7 @@ public class CraftingManager {
     }
 
     // Chat input handling
-    
+
     public static void requestCraftAmount(Player player, String recipeId) {
         Recipe recipe = recipes.get(recipeId);
         if (recipe == null || !recipe.isEnabled()) {
@@ -281,26 +280,26 @@ public class CraftingManager {
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
         }
     }
-    
+
     public static String generateUniqueId() {
         String baseId = "recipe_" + System.currentTimeMillis();
         int counter = 1;
         String id = baseId;
-        
+
         while (recipes.containsKey(id)) {
             id = baseId + "_" + counter;
             counter++;
         }
-        
+
         return id;
     }
-    
+
     // Crafting delay system methods
-    
+
     public static boolean isCraftingInProgress(Player player) {
         return activeCrafting.containsKey(player.getName());
     }
-    
+
     public static void cancelCrafting(Player player) {
         BukkitRunnable task = activeCrafting.remove(player.getName());
         if (task != null) {
@@ -310,36 +309,36 @@ public class CraftingManager {
         // Stop any processing animation
         ParticleManager.stopCraftingProcessingAnimation(player);
     }
-    
+
     public static void cancelAllCrafting() {
         for (BukkitRunnable task : activeCrafting.values()) {
             task.cancel();
         }
         activeCrafting.clear();
     }
-    
+
     private static void startCraftingProcess(Player player, Recipe recipe, int amount) {
         FileConfiguration config = File.getConfig();
         int craftingDelay = config.getInt("crafting.delay", 3);
-        
+
         // Notify player that crafting is starting
-        sendMessage(player, "recipe.processing", 
-            new String[]{"#amount#", "#recipe#", "#time#"}, 
-            new String[]{String.valueOf(amount), recipe.getName(), String.valueOf(craftingDelay)});
-        
+        sendMessage(player, "recipe.processing",
+                new String[]{"#amount#", "#recipe#", "#time#"},
+                new String[]{String.valueOf(amount), recipe.getName(), String.valueOf(craftingDelay)});
+
         // Cancel any existing crafting for this player
         cancelCrafting(player);
-        
+
         // Start processing animation
         ParticleManager.playCraftingProcessingAnimation(player, craftingDelay);
-        
+
         // Create and start the crafting task
         BukkitRunnable craftingTask = new BukkitRunnable() {
             @Override
             public void run() {
                 // Stop processing animation
                 ParticleManager.stopCraftingProcessingAnimation(player);
-                
+
                 if (completeCrafting(player, recipe, amount)) {
                     // Play success particles and sounds
                     ParticleManager.playCraftingSuccessParticle(player);
@@ -349,58 +348,58 @@ public class CraftingManager {
                     ParticleManager.playCraftingFailedParticle(player);
                     playCraftingFailedSound(player);
                 }
-                
+
                 activeCrafting.remove(player.getName());
             }
         };
-        
+
         activeCrafting.put(player.getName(), craftingTask);
         craftingTask.runTaskLater(Storage.getStorage(), craftingDelay * 20L); // Convert seconds to ticks
     }
-    
+
     private static boolean completeCrafting(Player player, Recipe recipe, int amount) {
         // Double-check conditions before completing crafting
         if (!player.isOnline()) {
             return false;
         }
-        
+
         // Re-check materials (player might have used them during delay)
         int maxCraftable = getMaxCraftableAmount(player, recipe);
         if (maxCraftable < amount) {
             sendMessage(player, "recipe.processing_failed", "#recipe#", recipe.getName());
             return false;
         }
-        
+
         // Re-check inventory space
         ItemStack resultItem = createResultItem(recipe);
         if (resultItem == null) {
             sendMessage(player, "recipe.craft_failed", "#recipe#", recipe.getName());
             return false;
         }
-        
+
         int totalItemsNeeded = recipe.getResultAmount() * amount;
         int availableSpace = calculateInventorySpace(player, resultItem);
-        
+
         if (availableSpace < totalItemsNeeded) {
             sendMessage(player, "recipe.inventory_full", "#recipe#", recipe.getName());
             return false;
         }
-        
+
         // Remove materials from storage
         if (!removeMaterials(player, recipe, amount)) {
             return false;
         }
-        
+
         // Give result items
         giveResultItems(player, resultItem, recipe.getResultAmount() * amount);
-        
-        sendMessage(player, "recipe.craft_success", 
-            new String[]{"#recipe#", "#amount#"}, 
-            new String[]{recipe.getName(), String.valueOf(amount)});
-        
+
+        sendMessage(player, "recipe.craft_success",
+                new String[]{"#recipe#", "#amount#"},
+                new String[]{recipe.getName(), String.valueOf(amount)});
+
         return true;
     }
-    
+
     private static void playCraftingSuccessSound(Player player) {
         FileConfiguration config = File.getConfig();
         if (config.getBoolean("crafting.sounds.enabled", true)) {
@@ -412,7 +411,7 @@ public class CraftingManager {
             }
         }
     }
-    
+
     private static void playCraftingFailedSound(Player player) {
         FileConfiguration config = File.getConfig();
         if (config.getBoolean("crafting.sounds.enabled", true)) {
@@ -426,13 +425,13 @@ public class CraftingManager {
     }
 
     // Private helper methods
-    
+
     private static void addRecipeToMaps(Recipe recipe) {
         recipes.put(recipe.getId(), recipe);
         String category = recipe.getCategory();
         recipesByCategory.computeIfAbsent(category, k -> new ArrayList<>()).add(recipe);
     }
-    
+
     private static void removeRecipeFromCategory(Recipe recipe) {
         List<Recipe> categoryRecipes = recipesByCategory.get(recipe.getCategory());
         if (categoryRecipes != null) {
@@ -442,13 +441,13 @@ public class CraftingManager {
             }
         }
     }
-    
+
     private static void removeRecipeFromAllCategories(String recipeId) {
         for (List<Recipe> categoryRecipes : recipesByCategory.values()) {
             categoryRecipes.removeIf(r -> r.getId().equals(recipeId));
         }
     }
-    
+
     private static boolean removeMaterials(Player player, Recipe recipe, int amount) {
         for (Map.Entry<String, Integer> requirement : recipe.getMaterialRequirements().entrySet()) {
             int totalRequired = requirement.getValue() * amount;
@@ -458,9 +457,8 @@ public class CraftingManager {
         }
         return true;
     }
-    
 
-    
+
     /**
      * Give items to player using Bukkit's addItem method
      * Simple and reliable approach
@@ -505,12 +503,12 @@ public class CraftingManager {
     private static void colorizeItem(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return;
-        
+
         // Colorize display name
         if (meta.hasDisplayName()) {
             meta.setDisplayName(Chat.colorizewp(meta.getDisplayName()));
         }
-        
+
         // Colorize lore
         if (meta.hasLore() && meta.getLore() != null) {
             List<String> coloredLore = meta.getLore().stream()
@@ -518,24 +516,24 @@ public class CraftingManager {
                     .collect(Collectors.toList());
             meta.setLore(coloredLore);
         }
-        
+
         item.setItemMeta(meta);
     }
-    
+
     private static void sendMessage(Player player, String messageKey) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
             player.sendMessage(Chat.colorize(message));
         }
     }
-    
+
     private static void sendMessage(Player player, String messageKey, String placeholder, String replacement) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
             player.sendMessage(Chat.colorize(message.replace(placeholder, replacement)));
         }
     }
-    
+
     private static void sendMessage(Player player, String messageKey, String[] placeholders, String[] replacements) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {

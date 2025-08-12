@@ -5,10 +5,7 @@ import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.particles.XParticle;
-import net.danh.storage.Manager.EnchantManager;
-import net.danh.storage.Manager.EventManager;
-import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.SpecialMaterialManager;
+import net.danh.storage.Manager.*;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
@@ -195,11 +192,15 @@ public class TNTEnchant {
 
                     if (totalAmount > 0) {
                         // Check storage integration setting
-                        if (enchantData.storageIntegration && MineManager.toggle.get(player)) {
+                        if (enchantData.storageIntegration && MineManager.isAutoPickupEnabled(player)) {
                             // Add to storage if autopickup is enabled and storage integration is true
-                            if (MineManager.addBlockAmount(player, drop, totalAmount)) {
+                            int actualAmount = MineManager.addBlockAmountWithPartial(player, drop, totalAmount);
+                            if (actualAmount > 0) {
                                 EventManager.onPlayerMine(player, drop, amount);
                                 block.setType(XMaterial.AIR.parseMaterial());
+                            }
+                            if (actualAmount < totalAmount) {
+                                StorageFullNotificationManager.sendStorageFullNotification(player, drop);
                             }
                         } else {
                             // Drop items vanilla style when storage integration is false or autopickup is disabled

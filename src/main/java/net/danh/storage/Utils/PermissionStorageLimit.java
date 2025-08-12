@@ -1,10 +1,9 @@
 package net.danh.storage.Utils;
 
 import net.danh.storage.API.events.StoragePermissionRefreshEvent;
-import net.danh.storage.Storage;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 import java.util.Set;
 
@@ -16,6 +15,7 @@ public class PermissionStorageLimit {
     /**
      * Get the maximum storage limit for a player based on their permissions
      * Uses priority system - higher priority overrides lower priority
+     *
      * @param player The player to check
      * @return The maximum storage limit for the player
      */
@@ -57,9 +57,10 @@ public class PermissionStorageLimit {
         // If no storage permissions found, use default
         return File.getConfig().getInt("settings.default_max_storage", 100000);
     }
-    
+
     /**
      * Refresh storage limit for a player (useful when permissions change)
+     *
      * @param player The player to refresh
      */
     public static void refreshPlayerStorageLimit(Player player) {
@@ -84,6 +85,7 @@ public class PermissionStorageLimit {
 
     /**
      * Check if storage permissions are configured
+     *
      * @return true if storage permissions are configured, false otherwise
      */
     public static boolean hasStoragePermissionsConfigured() {

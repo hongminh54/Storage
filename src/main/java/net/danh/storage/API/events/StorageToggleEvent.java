@@ -32,7 +32,7 @@ public class StorageToggleEvent extends Event implements Cancellable {
         this.player = player;
         this.newState = newState;
         // Get current state as old state
-        this.oldState = net.danh.storage.Manager.MineManager.toggle.getOrDefault(player, false);
+        this.oldState = net.danh.storage.Manager.MineManager.isAutoPickupEnabled(player);
     }
 
     @NotNull

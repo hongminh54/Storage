@@ -29,7 +29,7 @@ public class ConvertOre {
             sendMessage("admin.no_permission");
             return;
         }
-        
+
         if (!ConvertOreManager.isConvertibleMaterial(fromMaterial)) {
             sendMessage("convert.invalid_material");
             return;
@@ -82,16 +82,18 @@ public class ConvertOre {
         }
 
         if (MineManager.removeBlockAmount(player, fromMaterial, requiredAmount)) {
-            if (MineManager.addBlockAmount(player, toMaterial, resultAmount)) {
+            int actualAmount = MineManager.addBlockAmountWithPartial(player, toMaterial, resultAmount);
+            if (actualAmount > 0) {
                 playEffects();
                 sendMessage("convert.success",
                         "#from_amount#", String.valueOf(requiredAmount),
                         "#from_material#", getMaterialName(fromMaterial),
-                        "#to_amount#", String.valueOf(resultAmount),
+                        "#to_amount#", String.valueOf(actualAmount),
                         "#to_material#", getMaterialName(toMaterial));
-            } else {
+            }
+            if (actualAmount < resultAmount) {
                 MineManager.addBlockAmount(player, fromMaterial, requiredAmount);
-                sendMessage("convert.failed");
+                sendMessage("convert.storage_full", "#material#", getMaterialName(toMaterial));
             }
         } else {
             sendMessage("convert.failed");

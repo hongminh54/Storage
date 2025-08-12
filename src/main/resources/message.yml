@@ -2,6 +2,7 @@ message_version: 2
 admin:
   new_version_available: "#prefix# &6&lPhiên bản mới đã có sẵn. Bạn đang sử dụng &e&lv#old_version#&6&l, phiên bản mới &e&lv#new_version#"
   add_material_amount: "#prefix# &bĐã thêm &6#amount# #material# &bcho &e#player#"
+  storage_full_warning: "#prefix# &cCảnh báo: Không thể thêm &6#amount# #material# &ccho &e#player# &cdo kho đầy"
   remove_material_amount: "#prefix# &bĐã xóa &6#amount# #material# &bkhỏi &e#player#"
   reload: "#prefix# &eĐã tải lại"
   set_max_storage: "#prefix# &aĐã đặt kho lưu trữ tối đa của &e#player# &athành &b#amount#"
@@ -67,6 +68,7 @@ admin:
     error_opening_gui: "#prefix# &cLỗi mở giao diện chuyển tài nguyên, vui lòng chỉ định người chơi và tên tài nguyên hợp lệ (nếu chuyển tài nguyên là multi, chỉ chỉ định người chơi)."
 user:
   full_storage: "#prefix# &cKho lưu trữ đã đầy, vui lòng lấy một số tài nguyên ra để đào thêm"
+  material_storage_full: "#prefix# &cKho lưu trữ #material# đã đầy, vui lòng lấy một số ra để đào thêm"
   storage_limit_info: "#prefix# &eGiới hạn kho lưu trữ của bạn: &a#limit#"
   storage_limit_default: "#prefix# &eGiới hạn kho lưu trữ của bạn: &a#limit# &7(Mặc định)"
   add_material_amount: "#prefix# &a+ #amount# #material# &7[Từ #player#]"

@@ -113,6 +113,35 @@ public class StorageAPI {
     }
 
     /**
+     * Add item to player's storage with partial support
+     *
+     * @param player   The player
+     * @param material Material name
+     * @param amount   Amount to add
+     * @return actual amount added (may be less than requested if storage is nearly full)
+     * @throws StorageException if operation fails
+     */
+    public static int addItemPartial(@NotNull Player player, @NotNull String material, int amount)
+            throws StorageException {
+        if (!isInitialized()) {
+            throw new IllegalStateException("StorageAPI not initialized");
+        }
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        StorageDepositEvent event = new StorageDepositEvent(player, material, amount);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return 0;
+        }
+
+        return MineManager.addBlockAmountWithPartial(player, material, event.getAmount());
+    }
+
+    /**
      * Remove item from player's storage
      *
      * @param player   The player
@@ -205,7 +234,7 @@ public class StorageAPI {
         if (!isInitialized()) {
             return false;
         }
-        return MineManager.toggle.getOrDefault(player, false);
+        return MineManager.isAutoPickupEnabled(player);
     }
 
     /**
@@ -225,6 +254,7 @@ public class StorageAPI {
 
         if (!event.isCancelled()) {
             MineManager.toggle.put(player, event.getNewState());
+            Storage.db.updateAutoPickup(player.getName(), event.getNewState());
         }
     }
 

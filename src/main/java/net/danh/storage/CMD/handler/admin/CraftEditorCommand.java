@@ -23,13 +23,13 @@ public class CraftEditorCommand extends BaseCommand {
 
     // Cache for custom plugin detection
     private static final String[] PLUGIN_TAGS = {
-        "MMOITEMS_TYPE", "MMOITEMS_ID", "MyItems", "itemsadder", 
-        "oraxen", "ExecutableItems", "MythicMobs", "EliteMobs"
+            "MMOITEMS_TYPE", "MMOITEMS_ID", "MyItems", "itemsadder",
+            "oraxen", "ExecutableItems", "MythicMobs", "EliteMobs"
     };
-    
+
     private static final String[] PLUGIN_NAMES = {
-        "MMOItems", "MMOItems", "MyItems", "ItemsAdder", 
-        "Oraxen", "ExecutableItems", "MythicMobs", "EliteMobs"
+            "MMOItems", "MMOItems", "MyItems", "ItemsAdder",
+            "Oraxen", "ExecutableItems", "MythicMobs", "EliteMobs"
     };
 
     @Override
@@ -85,14 +85,14 @@ public class CraftEditorCommand extends BaseCommand {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Optimized custom plugin detection
      */
     private String detectCustomItemPlugin(ItemStack item) {
         try {
             de.tr7zw.changeme.nbtapi.NBTItem nbtItem = new de.tr7zw.changeme.nbtapi.NBTItem(item);
-            
+
             for (int i = 0; i < PLUGIN_TAGS.length; i++) {
                 if (nbtItem.hasTag(PLUGIN_TAGS[i])) {
                     return PLUGIN_NAMES[i];
@@ -101,22 +101,22 @@ public class CraftEditorCommand extends BaseCommand {
         } catch (Exception ignored) {
             // NBT operations might fail, continue without detection
         }
-        
+
         return null;
     }
-    
+
     /**
      * Send detailed success message efficiently
      */
     private void sendSuccessMessage(Player player, Recipe recipe, ItemStack item) {
         String itemName = getItemDisplayName(item);
         String materialString = ItemImportUtil.getMaterialString(item);
-        
+
         String[] placeholders = {"#recipe#", "#item_name#", "#material#"};
         String[] replacements = {recipe.getName(), itemName, materialString};
         sendMessage(player, "recipe.import_success_detailed", placeholders, replacements);
     }
-    
+
     /**
      * Get display name efficiently
      */
@@ -124,17 +124,17 @@ public class CraftEditorCommand extends BaseCommand {
         if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
             return item.getItemMeta().getDisplayName();
         }
-        
+
         return formatMaterialName(item.getType().name());
     }
-    
+
     /**
      * Format material name to user-friendly format
      */
     private String formatMaterialName(String materialName) {
         String[] words = materialName.toLowerCase().replace("_", " ").split(" ");
         StringBuilder result = new StringBuilder();
-        
+
         for (int i = 0; i < words.length; i++) {
             if (i > 0) result.append(" ");
             String word = words[i];
@@ -145,14 +145,14 @@ public class CraftEditorCommand extends BaseCommand {
                 }
             }
         }
-        
+
         return result.toString();
     }
 
     @Override
     public List<String> getTabCompletions(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("import");
+            return Collections.singletonList("import");
         }
         return Collections.emptyList();
     }

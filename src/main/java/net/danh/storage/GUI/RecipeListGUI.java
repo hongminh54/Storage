@@ -79,7 +79,7 @@ public class RecipeListGUI implements IGUI {
 
         // Get available recipes
         List<Recipe> availableRecipes = CraftingManager.getAvailableRecipes(player);
-        
+
         // Filter by category if not "all"
         if (!currentCategory.equals("all")) {
             availableRecipes = availableRecipes.stream()
@@ -100,7 +100,7 @@ public class RecipeListGUI implements IGUI {
         // Check if player can craft any available recipes
         boolean canCraftAny = availableRecipes.stream()
                 .anyMatch(recipe -> CraftingManager.getMaxCraftableAmount(player, recipe) > 0);
-        
+
         if (!canCraftAny) {
             // Show insufficient materials message
             InteractiveItem insufficientMaterialsItem = new InteractiveItem(
@@ -114,21 +114,21 @@ public class RecipeListGUI implements IGUI {
         // Setup pagination
         String recipeSlots = config.getString("items.recipe_item.slot");
         if (recipeSlots == null) return;
-        
+
         String[] slotArray = recipeSlots.split(",");
         int itemsPerPage = slotArray.length;
         int totalPages = Math.max(1, (int) Math.ceil((double) availableRecipes.size() / itemsPerPage));
-        
+
         // Add recipe items
         int startIndex = currentPage * itemsPerPage;
         int endIndex = Math.min(startIndex + itemsPerPage, availableRecipes.size());
-        
+
         for (int i = startIndex; i < endIndex; i++) {
             Recipe recipe = availableRecipes.get(i);
             int slotIndex = i - startIndex;
             if (slotIndex < slotArray.length) {
                 int slot = Number.getInteger(slotArray[slotIndex].trim());
-                
+
                 ItemStack recipeItem = createRecipeItem(recipe);
                 if (recipeItem != null) {
                     InteractiveItem interactiveItem = new InteractiveItem(recipeItem, slot)
@@ -260,7 +260,7 @@ public class RecipeListGUI implements IGUI {
                 Objects.requireNonNull(config.getConfigurationSection("items.previous_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
-        
+
         InteractiveItem prevButton = new InteractiveItem(prevItem, 45)
                 .onLeftClick(p -> {
                     SoundManager.setShouldPlayCloseSound(p, false);
@@ -274,7 +274,7 @@ public class RecipeListGUI implements IGUI {
                 Objects.requireNonNull(config.getConfigurationSection("items.next_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
-        
+
         InteractiveItem nextButton = new InteractiveItem(nextItem, 53)
                 .onLeftClick(p -> {
                     SoundManager.setShouldPlayCloseSound(p, false);
@@ -287,7 +287,7 @@ public class RecipeListGUI implements IGUI {
         ItemStack categoryItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.category_filter")),
                 "#current_category#", currentCategory.equals("all") ? "All" : currentCategory);
-        
+
         InteractiveItem categoryButton = new InteractiveItem(categoryItem, 4)
                 .onLeftClick(p -> cycleCategoryFilter(p));
         inventory.setItem(categoryButton.getSlot(), categoryButton);
@@ -296,11 +296,11 @@ public class RecipeListGUI implements IGUI {
     private void cycleCategoryFilter(Player player) {
         List<String> categories = new ArrayList<>(CraftingManager.getCategories());
         categories.add(0, "all");
-        
+
         int currentIndex = categories.indexOf(currentCategory);
         int nextIndex = (currentIndex + 1) % categories.size();
         String nextCategory = categories.get(nextIndex);
-        
+
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeListGUI(player, 0, nextCategory).getInventory(SoundContext.SILENT));
     }

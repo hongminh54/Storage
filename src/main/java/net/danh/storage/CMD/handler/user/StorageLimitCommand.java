@@ -19,7 +19,7 @@ public class StorageLimitCommand extends BaseCommand {
 
         Player player = (Player) sender;
         int currentLimit = MineManager.getMaxBlock(player);
-        
+
         if (PermissionStorageLimit.hasStoragePermissionsConfigured()) {
             sendColorizedMessage(sender, "user.storage_limit_info", "#limit#", String.valueOf(currentLimit));
         } else {

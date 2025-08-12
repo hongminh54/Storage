@@ -20,7 +20,7 @@ public class CraftCommand extends BaseCommand {
         }
 
         Player player = (Player) sender;
-        
+
         // Open recipe list GUI
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeListGUI(player).getInventory(SoundContext.INITIAL_OPEN));
