@@ -49,49 +49,43 @@ public class Deposit {
             int amount = getPlayerAmount();
             if (getAmount() > 0) {
                 if (amount >= getAmount()) {
-                    int old_data = MineManager.getPlayerBlock(getPlayer(), getMaterialData());
-                    int new_data = old_data + Math.toIntExact(getAmount());
-                    int max_storage = MineManager.getMaxBlock(getPlayer());
-                    int count = max_storage - old_data;
-                    int min = Math.min(count, Math.toIntExact(amount));
                     String material = getMaterialData();
-                    String replacement = String.valueOf(new_data >= max_storage ? min : getAmount());
-                    if (material.contains(";")) {
-                        if (MineManager.addBlockAmount(getPlayer(), material, Integer.parseInt(replacement))) {
-                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
-                            removeItems(Long.parseLong(replacement));
-                        } else
-                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                    int maxAddable = MineManager.getMaxAddableAmount(getPlayer(), material, Math.toIntExact(getAmount()));
+                    
+                    if (maxAddable <= 0) {
+                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", String.valueOf(getAmount())).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                     } else {
-                        if (MineManager.addBlockAmount(getPlayer(), getMaterialData(), Integer.parseInt(replacement))) {
-                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
-                            removeItems(Long.parseLong(replacement));
-                        } else
-                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        if (MineManager.addBlockAmount(getPlayer(), material, maxAddable)) {
+                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", String.valueOf(maxAddable)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                            removeItems(maxAddable);
+                            
+                            if (maxAddable < getAmount()) {
+                                getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", String.valueOf(getAmount() - maxAddable)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                            }
+                        } else {
+                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", String.valueOf(getAmount())).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        }
                     }
                 } else {
                     getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items")).replace("<amount>", String.valueOf(amount))));
                 }
             } else {
-                int old_data = MineManager.getPlayerBlock(getPlayer(), getMaterialData());
-                int new_data = old_data + amount;
-                int max_storage = MineManager.getMaxBlock(getPlayer());
-                int count = max_storage - old_data;
-                int min = Math.min(count, Math.toIntExact(amount));
                 String material = getMaterialData();
-                String replacement = String.valueOf(new_data >= max_storage ? min : amount);
-                if (material.contains(";")) {
-                    if (MineManager.addBlockAmount(getPlayer(), material, Integer.parseInt(replacement))) {
-                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
-                        removeItems(Long.parseLong(replacement));
-                    } else
-                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                int maxAddable = MineManager.getMaxAddableAmount(getPlayer(), material, amount);
+                
+                if (maxAddable <= 0) {
+                    getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", String.valueOf(amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                 } else {
-                    if (MineManager.addBlockAmount(getPlayer(), getMaterialData(), Integer.parseInt(replacement))) {
-                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
-                        removeItems(Long.parseLong(replacement));
-                    } else
-                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                    if (MineManager.addBlockAmount(getPlayer(), material, maxAddable)) {
+                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", String.valueOf(maxAddable)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        removeItems(maxAddable);
+                        
+                        if (maxAddable < amount) {
+                            getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", String.valueOf(amount - maxAddable)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        }
+                    } else {
+                        getPlayer().sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", String.valueOf(amount)).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                    }
                 }
             }
         } else {
