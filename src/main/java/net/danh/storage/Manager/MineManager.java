@@ -34,30 +34,6 @@ public class MineManager {
         return playermaxdata.get(p);
     }
 
-    public static int getTotalPlayerItems(@NotNull Player p) {
-        int total = 0;
-        String playerPrefix = p.getName() + "_";
-        for (Map.Entry<String, Integer> entry : playerdata.entrySet()) {
-            if (entry.getKey().startsWith(playerPrefix)) {
-                total += entry.getValue();
-            }
-        }
-        return total;
-    }
-
-    public static int getAvailableSpace(@NotNull Player p) {
-        return Math.max(0, getMaxBlock(p) - getTotalPlayerItems(p));
-    }
-
-    public static int getMaxAddableAmount(@NotNull Player p, String material, int requestedAmount) {
-        if (!blocksdata.containsKey(material) || requestedAmount <= 0) {
-            return 0;
-        }
-        
-        int availableSpace = getAvailableSpace(p);
-        return Math.min(requestedAmount, availableSpace);
-    }
-
     @Contract(" -> new")
     public static @NotNull List<String> getPluginBlocks() {
         return new ArrayList<>(blocksdata.values());
@@ -171,22 +147,20 @@ public class MineManager {
     }
 
     public static boolean addBlockAmount(Player p, String material, int amount) {
-        int actualAmountToAdd = getMaxAddableAmount(p, material, amount);
-        
-        if (actualAmountToAdd <= 0) {
-            return false;
+        if (amount > 0) {
+            if (blocksdata.containsKey(material) && hasPlayerBlock(p, material)) {
+                int old_data = getPlayerBlock(p, material);
+                int new_data = old_data + amount;
+                int max_storage = getMaxBlock(p);
+                if (old_data >= max_storage) return false;
+                playerdata.replace(p.getName() + "_" + material, Math.min(new_data, max_storage));
+                return true;
+            } else if (blocksdata.containsKey(material) && !hasPlayerBlock(p, material)) {
+                setBlock(p, material, amount);
+                return true;
+            }
         }
-        
-        // Add the items
-        if (hasPlayerBlock(p, material)) {
-            int currentAmount = getPlayerBlock(p, material);
-            int newAmount = currentAmount + actualAmountToAdd;
-            playerdata.replace(p.getName() + "_" + material, newAmount);
-        } else {
-            setBlock(p, material, actualAmountToAdd);
-        }
-        
-        return true;
+        return false;
     }
 
     public static boolean removeBlockAmount(Player p, String material, int amount) {
@@ -218,8 +192,12 @@ public class MineManager {
             return 0;
         }
 
-        int receiverAvailableSpace = getAvailableSpace(receiver);
-        return Math.min(senderAmount, Math.max(0, receiverAvailableSpace));
+        int receiverMaxStorage = getMaxBlock(receiver);
+        int receiverCurrentAmount = getPlayerBlock(receiver, material);
+
+        int maxCanReceive = receiverMaxStorage - receiverCurrentAmount;
+
+        return Math.min(senderAmount, Math.max(0, maxCanReceive));
     }
 
     public static @NotNull Map<String, Integer> calculateOptimalMultiTransfer(@NotNull Player sender, @NotNull Player receiver, @NotNull Map<String, Integer> requestedAmounts) {

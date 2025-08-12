@@ -160,7 +160,9 @@ public class StoragePlayer {
      * @return Total items count
      */
     public int getTotalStoredItems() {
-        return MineManager.getTotalPlayerItems(player);
+        return getStoredMaterials().stream()
+                .mapToInt(this::getStoredAmount)
+                .sum();
     }
 
     /**
@@ -215,7 +217,7 @@ public class StoragePlayer {
      * @return Available space
      */
     public int getRemainingSpace() {
-        return MineManager.getAvailableSpace(player);
+        return Math.max(0, getMaxStorage() - getTotalStoredItems());
     }
 
     /**
