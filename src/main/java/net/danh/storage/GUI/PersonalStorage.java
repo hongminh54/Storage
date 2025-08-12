@@ -115,6 +115,11 @@ public class PersonalStorage implements IGUI {
                 if (slot.contains(",")) {
                     for (String slot_string : slot.split(",")) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
+                            if (!player.hasPermission("storage.convert")) {
+                                player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+                                player.closeInventory();
+                                return;
+                            }
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                             SoundManager.setShouldPlayCloseSound(player, false);
                             player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
@@ -123,6 +128,11 @@ public class PersonalStorage implements IGUI {
                     }
                 } else {
                     InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
+                        if (!player.hasPermission("storage.convert")) {
+                            player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+                            player.closeInventory();
+                            return;
+                        }
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                         SoundManager.setShouldPlayCloseSound(player, false);
                         player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
