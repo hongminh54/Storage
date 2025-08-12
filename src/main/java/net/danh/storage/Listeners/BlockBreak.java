@@ -50,13 +50,19 @@ public class BlockBreak implements Listener {
         // Handle autopickup functionality
         if (MineManager.toggle.get(p)) {
             if (inv_full) {
+                int old_data = MineManager.getPlayerBlock(p, MineManager.getDrop(block));
+                int max_storage = MineManager.getMaxBlock(p);
+                int count = max_storage - old_data;
                 for (ItemStack itemStack : p.getInventory().getContents()) {
                     if (itemStack != null) {
                         String drop = MineManager.getItemStackDrop(itemStack);
+                        int amount = itemStack.getAmount();
                         if (drop != null) {
-                            int amount = itemStack.getAmount();
-                            if (MineManager.addBlockAmount(p, drop, amount)) {
-                                removeItems(p, itemStack, amount);
+                            int new_data = old_data + Math.toIntExact(amount);
+                            int min = Math.min(count, Math.toIntExact(amount));
+                            int replacement = new_data >= max_storage ? min : amount;
+                            if (MineManager.addBlockAmount(p, drop, replacement)) {
+                                removeItems(p, itemStack, replacement);
                             }
                         }
                     }
