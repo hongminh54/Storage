@@ -147,18 +147,18 @@ public class MineManager {
     }
 
     public static boolean addBlockAmount(Player p, String material, int amount) {
-        if (amount > 0) {
-            if (blocksdata.containsKey(material) && hasPlayerBlock(p, material)) {
-                int old_data = getPlayerBlock(p, material);
-                int new_data = old_data + amount;
-                int max_storage = getMaxBlock(p);
-                if (old_data >= max_storage) return false;
-                playerdata.replace(p.getName() + "_" + material, Math.min(new_data, max_storage));
-                return true;
-            } else if (blocksdata.containsKey(material) && !hasPlayerBlock(p, material)) {
-                setBlock(p, material, amount);
-                return true;
-            }
+        if (amount > 0 && blocksdata.containsKey(material)) {
+            int currentAmount = getPlayerBlock(p, material);
+            int maxStorage = getMaxBlock(p);
+
+            if (currentAmount >= maxStorage) return false;
+
+            int availableSpace = maxStorage - currentAmount;
+            int amountToAdd = Math.min(amount, availableSpace);
+            int newAmount = currentAmount + amountToAdd;
+
+            playerdata.put(p.getName() + "_" + material, newAmount);
+            return amountToAdd > 0;
         }
         return false;
     }
@@ -194,10 +194,9 @@ public class MineManager {
 
         int receiverMaxStorage = getMaxBlock(receiver);
         int receiverCurrentAmount = getPlayerBlock(receiver, material);
+        int availableSpace = receiverMaxStorage - receiverCurrentAmount;
 
-        int maxCanReceive = receiverMaxStorage - receiverCurrentAmount;
-
-        return Math.min(senderAmount, Math.max(0, maxCanReceive));
+        return Math.min(senderAmount, Math.max(0, availableSpace));
     }
 
     public static @NotNull Map<String, Integer> calculateOptimalMultiTransfer(@NotNull Player sender, @NotNull Player receiver, @NotNull Map<String, Integer> requestedAmounts) {
