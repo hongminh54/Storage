@@ -192,7 +192,7 @@ public class StorageAPI {
         if (!isInitialized()) {
             return false;
         }
-        return MineManager.toggle.getOrDefault(player, false);
+        return MineManager.getToggleStatus(player);
     }
 
     /**

@@ -81,11 +81,12 @@ public class MineManager {
         PlayerData playerStats = Storage.db.getData(player.getName());
 
         if (playerStats == null) {
-            playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"));
+            boolean defaultAutoPickup = File.getConfig().getBoolean("settings.default_auto_pickup");
+            playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"), defaultAutoPickup);
             Storage.db.createTable(playerStats);
-            toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
+            toggle.put(player, defaultAutoPickup);
         } else {
-            toggle.put(player, File.getConfig().getBoolean("settings.default_auto_pickup"));
+            toggle.put(player, playerStats.isAutoPickup());
         }
 
         return playerStats;
@@ -179,11 +180,34 @@ public class MineManager {
         List<String> list = convertOnlineData(playerData.getData());
         playermaxdata.put(p, playerData.getMax());
         setBlock(p, list);
+        
+        if (!toggle.containsKey(p)) {
+            toggle.put(p, playerData.isAutoPickup());
+        }
     }
 
     public static void savePlayerData(@NotNull Player p) {
-        PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p));
+        boolean autoPickup = toggle.getOrDefault(p, false);
+        PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p), autoPickup);
         Storage.db.updateTable(playerData);
+    }
+
+    public static void cleanupPlayerData(@NotNull Player p) {
+        toggle.remove(p);
+        playermaxdata.remove(p);
+        
+        String playerName = p.getName();
+        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+    }
+
+    public static boolean getToggleStatus(@NotNull Player p) {
+        Boolean status = toggle.get(p);
+        if (status == null) {
+            PlayerData playerData = getPlayerDatabase(p);
+            status = playerData.isAutoPickup();
+            toggle.put(p, status);
+        }
+        return status;
     }
 
     public static int getMaxTransferableAmount(@NotNull Player sender, @NotNull Player receiver, @NotNull String material) {

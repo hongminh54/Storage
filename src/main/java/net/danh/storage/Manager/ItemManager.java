@@ -131,7 +131,7 @@ public class ItemManager {
     }
 
     public static String getStatus(Player p) {
-        if (MineManager.toggle.get(p)) {
+        if (MineManager.getToggleStatus(p)) {
             return Chat.colorizewp(File.getMessage().getString("user.status.status_on"));
         } else return Chat.colorizewp(File.getMessage().getString("user.status.status_off"));
     }

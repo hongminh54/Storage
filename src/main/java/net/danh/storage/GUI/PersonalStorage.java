@@ -94,7 +94,8 @@ public class PersonalStorage implements IGUI {
                     for (String slot_string : slot.split(",")) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
-                            MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                            boolean currentStatus = MineManager.getToggleStatus(p);
+                            MineManager.toggle.put(p, !currentStatus);
                             p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                             SoundManager.setShouldPlayCloseSound(p, false);
                             p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
@@ -104,7 +105,8 @@ public class PersonalStorage implements IGUI {
                 } else {
                     InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
-                        MineManager.toggle.replace(p, !MineManager.toggle.get(p));
+                        boolean currentStatus = MineManager.getToggleStatus(p);
+                        MineManager.toggle.put(p, !currentStatus);
                         p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                         SoundManager.setShouldPlayCloseSound(p, false);
                         p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
