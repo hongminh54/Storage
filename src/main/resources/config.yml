@@ -189,7 +189,7 @@ items:
 # Cài đặt hiển thị khi đào
 mine:
   title:
-    enable: true
+    enable: false
     title: "&e+#amount# #item#"
     subtitle: "&b#storage#/#max#"
   actionbar:

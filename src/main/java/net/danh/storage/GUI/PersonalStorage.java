@@ -112,22 +112,32 @@ public class PersonalStorage implements IGUI {
                     inventory.setItem(item.getSlot(), item);
                 }
             } else if (item_tag.equalsIgnoreCase("convert_button")) {
-                if (slot.contains(",")) {
-                    for (String slot_string : slot.split(",")) {
-                        InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
+                if (p.hasPermission("storage.convert")) {
+                    if (slot.contains(",")) {
+                        for (String slot_string : slot.split(",")) {
+                            InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
+                                if (!player.hasPermission("storage.convert")) {
+                                    player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+                                    return;
+                                }
+                                SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(player, false);
+                                player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
+                            });
+                            inventory.setItem(item.getSlot(), item);
+                        }
+                    } else {
+                        InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
+                            if (!player.hasPermission("storage.convert")) {
+                                player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+                                return;
+                            }
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                             SoundManager.setShouldPlayCloseSound(player, false);
                             player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
                         });
                         inventory.setItem(item.getSlot(), item);
                     }
-                } else {
-                    InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
-                        SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
-                        SoundManager.setShouldPlayCloseSound(player, false);
-                        player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
-                    });
-                    inventory.setItem(item.getSlot(), item);
                 }
             } else if (item_tag.equalsIgnoreCase("previous_page")) {
                 if (hasMultiplePages && currentPage > 0) {

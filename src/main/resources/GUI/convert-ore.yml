@@ -155,7 +155,7 @@ option_items:
   # Convert options
   convert_option:
     slot: 10
-    name: "&aConvert to #to_material#"
+    name: "&aConvert tài nguyên #to_material#"
     material: STONE
     lore:
       - "&7 "

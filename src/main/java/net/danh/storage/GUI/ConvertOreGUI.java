@@ -51,6 +51,11 @@ public class ConvertOreGUI implements IGUI {
     @NotNull
     @Override
     public Inventory getInventory(SoundContext context) {
+        if (!player.hasPermission("storage.convert")) {
+            player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+            return Bukkit.createInventory(this, 9, "No Permission");
+        }
+        
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
         String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))

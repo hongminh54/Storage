@@ -25,6 +25,11 @@ public class ConvertOre {
     }
 
     public void doAction() {
+        if (!player.hasPermission("storage.convert")) {
+            sendMessage("admin.no_permission");
+            return;
+        }
+        
         if (!ConvertOreManager.isConvertibleMaterial(fromMaterial)) {
             sendMessage("convert.invalid_material");
             return;

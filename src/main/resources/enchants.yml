@@ -63,7 +63,7 @@ enchants:
       delay_ticks: 0
 
   haste:
-    name: "Tăng Tốc"
+    name: "Đào Nhanh"
     description: "Tăng tốc độ đào khi cầm cúp"
     max_level: 5
     applicable_items:
@@ -114,7 +114,7 @@ enchants:
       delay_ticks: 0
 
   multiplier:
-    name: "Nhân Bội"
+    name: "Nhân Đôi"
     description: "Nhân số lượng vật phẩm rơi khi đào"
     max_level: 3
     applicable_items:
