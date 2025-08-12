@@ -55,13 +55,13 @@ public class SQLite extends Database {
         try {
             Statement s = connection.createStatement();
             s.executeUpdate(SQLiteCreateTokensTable);
-            
+
             try {
                 s.executeUpdate("ALTER TABLE PlayerData ADD COLUMN autopickup BOOLEAN DEFAULT 0");
                 Storage.getStorage().getLogger().info("Added autopickup column to existing database");
             } catch (SQLException ignored) {
             }
-            
+
             s.close();
         } catch (SQLException e) {
             e.printStackTrace();

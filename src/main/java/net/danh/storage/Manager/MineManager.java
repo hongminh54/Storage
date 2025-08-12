@@ -180,7 +180,7 @@ public class MineManager {
         List<String> list = convertOnlineData(playerData.getData());
         playermaxdata.put(p, playerData.getMax());
         setBlock(p, list);
-        
+
         if (!toggle.containsKey(p)) {
             toggle.put(p, playerData.isAutoPickup());
         }
@@ -195,7 +195,7 @@ public class MineManager {
     public static void cleanupPlayerData(@NotNull Player p) {
         toggle.remove(p);
         playermaxdata.remove(p);
-        
+
         String playerName = p.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
     }
