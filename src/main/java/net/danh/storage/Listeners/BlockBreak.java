@@ -48,25 +48,9 @@ public class BlockBreak implements Listener {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
         // Handle autopickup functionality
-        if (MineManager.toggle.get(p)) {
+        if (MineManager.getToggleStatus(p)) {
             if (inv_full) {
-                int old_data = MineManager.getPlayerBlock(p, MineManager.getDrop(block));
-                int max_storage = MineManager.getMaxBlock(p);
-                int count = max_storage - old_data;
-                for (ItemStack itemStack : p.getInventory().getContents()) {
-                    if (itemStack != null) {
-                        String drop = MineManager.getItemStackDrop(itemStack);
-                        int amount = itemStack.getAmount();
-                        if (drop != null) {
-                            int new_data = old_data + Math.toIntExact(amount);
-                            int min = Math.min(count, Math.toIntExact(amount));
-                            int replacement = new_data >= max_storage ? min : amount;
-                            if (MineManager.addBlockAmount(p, drop, replacement)) {
-                                removeItems(p, itemStack, replacement);
-                            }
-                        }
-                    }
-                }
+                processInventoryItems(p);
             }
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);
@@ -138,6 +122,31 @@ public class BlockBreak implements Listener {
         // Check for special material drops
         if (MineManager.checkBreak(block)) {
             SpecialMaterialManager.checkSpecialMaterialDrop(p, block);
+        }
+    }
+
+    private void processInventoryItems(Player player) {
+        final PlayerInventory inv = player.getInventory();
+        final ItemStack[] items = inv.getContents();
+        boolean inventoryChanged = false;
+        
+        for (int i = 0; i < items.length; i++) {
+            final ItemStack itemStack = items[i];
+            if (itemStack != null) {
+                String drop = MineManager.getItemStackDrop(itemStack);
+                if (drop != null) {
+                    int amount = itemStack.getAmount();
+                    if (MineManager.addBlockAmount(player, drop, amount)) {
+                        items[i] = null;
+                        inventoryChanged = true;
+                    }
+                }
+            }
+        }
+        
+        if (inventoryChanged) {
+            inv.setContents(items);
+            player.updateInventory();
         }
     }
 

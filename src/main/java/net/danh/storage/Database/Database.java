@@ -46,7 +46,12 @@ public abstract class Database {
             ps = conn.prepareStatement("SELECT * FROM " + table + " WHERE player = '" + player + "';");
             rs = ps.executeQuery();
             if (rs.next()) {
-                return new PlayerData(rs.getString("player"), rs.getString("data"), rs.getInt("max"));
+                boolean autoPickup = false;
+                try {
+                    autoPickup = rs.getBoolean("autopickup");
+                } catch (SQLException ignored) {
+                }
+                return new PlayerData(rs.getString("player"), rs.getString("data"), rs.getInt("max"), autoPickup);
             }
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
@@ -66,10 +71,11 @@ public abstract class Database {
         PreparedStatement ps = null;
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("INSERT INTO " + table + " (player,data,max) VALUES(?,?,?)"); // IMPORTANT. In SQLite class, We made 3 colums. player, Kills, Total.
+            ps = conn.prepareStatement("INSERT INTO " + table + " (player,data,max,autopickup) VALUES(?,?,?,?)");
             ps.setString(1, playerData.getPlayer());
             ps.setString(2, playerData.getData());
             ps.setInt(3, playerData.getMax());
+            ps.setBoolean(4, playerData.isAutoPickup());
             ps.executeUpdate();
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
@@ -90,12 +96,13 @@ public abstract class Database {
         PreparedStatement ps = null;
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("UPDATE " + table + " SET data = ?, max = ? " +
+            ps = conn.prepareStatement("UPDATE " + table + " SET data = ?, max = ?, autopickup = ? " +
                     "WHERE player = ?");
             conn.setAutoCommit(false);
             ps.setString(1, playerData.getData());
             ps.setInt(2, playerData.getMax());
-            ps.setString(3, playerData.getPlayer());
+            ps.setBoolean(3, playerData.isAutoPickup());
+            ps.setString(4, playerData.getPlayer());
             ps.addBatch();
             ps.executeBatch();
             conn.commit();
