@@ -10,7 +10,7 @@ import java.util.*;
 public class EnchantManager {
 
     private static final Map<String, EnchantData> enchants = new HashMap<>();
-    private static final int MAX_ALLOWED_LEVEL = 10;
+    private static final int MAX_ALLOWED_LEVEL = 255;
 
     public static void loadEnchants() {
         enchants.clear();
@@ -32,21 +32,11 @@ public class EnchantManager {
             ConfigurationSection levelsSection = enchantSection.getConfigurationSection("levels");
             if (levelsSection != null) {
                 for (String levelKey : levelsSection.getKeys(false)) {
-                    int level = Integer.parseInt(levelKey);
-                    ConfigurationSection levelSection = levelsSection.getConfigurationSection(levelKey);
-                    if (levelSection != null) {
-                        EnchantLevelData levelData = new EnchantLevelData();
-                        levelData.explosionPower = levelSection.getDouble("explosion_power", 2.0);
-                        levelData.cooldownTicks = levelSection.getInt("cooldown_ticks", 60);
-                        levelData.radius = levelSection.getInt("radius", 3); // Only used by TNT enchant
-
-                        // Load specific enchant fields
-                        levelData.hasteLevel = levelSection.getDouble("haste_level", levelData.hasteLevel);
-                        levelData.hasteDuration = levelSection.getInt("haste_duration", levelData.hasteDuration);
-                        levelData.multiplierValue = levelSection.getDouble("multiplier_value", levelData.multiplierValue);
-                        levelData.maxBlocks = levelSection.getDouble("max_blocks", levelData.maxBlocks);
-
-                        enchantData.levels.put(level, levelData);
+                    // Support range format (e.g., "1-10") and individual levels
+                    if (levelKey.contains("-")) {
+                        parseRangeLevel(levelKey, levelsSection, enchantData);
+                    } else {
+                        parseIndividualLevel(levelKey, levelsSection, enchantData);
                     }
                 }
             }
@@ -167,28 +157,124 @@ public class EnchantManager {
         if (enchantSection != null) {
             enchantSection.set("max_level", newMaxLevel);
 
-            // Update levels section in config
+            // Update levels section in config using efficient range format
             ConfigurationSection levelsSection = enchantSection.getConfigurationSection("levels");
             if (levelsSection != null) {
-                // Clear existing levels and regenerate
+                // Clear existing levels
                 for (String key : levelsSection.getKeys(false)) {
                     levelsSection.set(key, null);
                 }
 
-                // Add new levels to config
-                for (int level = 1; level <= newMaxLevel; level++) {
-                    EnchantLevelData levelData = enchantData.levels.get(level);
-                    if (levelData != null) {
-                        ConfigurationSection levelSection = levelsSection.createSection(String.valueOf(level));
-                        saveLevelDataToConfig(levelSection, enchantName, levelData);
-                    }
-                }
+                // Save levels using 1-10 range format to minimize config size
+                saveRangeFormat(levelsSection, enchantName, newMaxLevel);
             }
 
             File.getFileSetting().save("enchants.yml");
         }
 
         return true;
+    }
+
+    // Helper methods for range format support
+    private static void parseRangeLevel(String levelKey, ConfigurationSection levelsSection, EnchantData enchantData) {
+        try {
+            String[] parts = levelKey.split("-");
+            if (parts.length != 2) return;
+            
+            int startLevel = Integer.parseInt(parts[0].trim());
+            int endLevel = Integer.parseInt(parts[1].trim());
+            
+            if (startLevel > endLevel || startLevel < 1) return;
+            
+            ConfigurationSection rangeSection = levelsSection.getConfigurationSection(levelKey);
+            if (rangeSection == null) return;
+            
+            // Load base configuration from the range
+            EnchantLevelData baseData = new EnchantLevelData();
+            loadLevelDataFromConfig(rangeSection, baseData);
+            
+            // Generate data for each level in range using scaling
+            for (int level = startLevel; level <= endLevel; level++) {
+                EnchantLevelData scaledData = scaleDataForLevel(enchantData.key, baseData, level, startLevel, endLevel);
+                enchantData.levels.put(level, scaledData);
+            }
+        } catch (NumberFormatException e) {
+            // Invalid range format, skip silently
+        }
+    }
+
+    private static void parseIndividualLevel(String levelKey, ConfigurationSection levelsSection, EnchantData enchantData) {
+        try {
+            int level = Integer.parseInt(levelKey);
+            ConfigurationSection levelSection = levelsSection.getConfigurationSection(levelKey);
+            if (levelSection != null) {
+                EnchantLevelData levelData = new EnchantLevelData();
+                loadLevelDataFromConfig(levelSection, levelData);
+                enchantData.levels.put(level, levelData);
+            }
+        } catch (NumberFormatException e) {
+            // Invalid level format, skip silently
+        }
+    }
+
+    private static void loadLevelDataFromConfig(ConfigurationSection section, EnchantLevelData levelData) {
+        levelData.explosionPower = section.getDouble("explosion_power", levelData.explosionPower);
+        levelData.cooldownTicks = section.getInt("cooldown_ticks", levelData.cooldownTicks);
+        levelData.radius = section.getInt("radius", levelData.radius);
+        levelData.hasteLevel = section.getDouble("haste_level", levelData.hasteLevel);
+        levelData.hasteDuration = section.getInt("haste_duration", levelData.hasteDuration);
+        levelData.multiplierValue = section.getDouble("multiplier_value", levelData.multiplierValue);
+        levelData.maxBlocks = section.getDouble("max_blocks", levelData.maxBlocks);
+    }
+
+    private static EnchantLevelData scaleDataForLevel(String enchantType, EnchantLevelData baseData, int currentLevel, int startLevel, int endLevel) {
+        EnchantLevelData scaledData = new EnchantLevelData();
+        double progress = endLevel > startLevel ? (double)(currentLevel - startLevel) / (endLevel - startLevel) : 0.0;
+        
+        switch (enchantType.toLowerCase()) {
+            case "tnt":
+                scaledData.explosionPower = baseData.explosionPower + progress * 2.0;
+                scaledData.cooldownTicks = Math.max(10, (int)(baseData.cooldownTicks - progress * 50));
+                scaledData.radius = baseData.radius + (int)(progress * (endLevel - startLevel));
+                break;
+            case "haste":
+                scaledData.hasteLevel = Math.min(5, baseData.hasteLevel + progress * 2.0);
+                scaledData.hasteDuration = (int)(baseData.hasteDuration + progress * 1200);
+                scaledData.cooldownTicks = 0;
+                break;
+            case "multiplier":
+                scaledData.multiplierValue = baseData.multiplierValue + progress * (endLevel - startLevel);
+                scaledData.cooldownTicks = 0;
+                break;
+            case "veinminer":
+                scaledData.maxBlocks = Math.min(64.0, baseData.maxBlocks + progress * 32.0);
+                scaledData.cooldownTicks = Math.max(10, (int)(baseData.cooldownTicks - progress * 30));
+                break;
+            default:
+                scaledData.explosionPower = baseData.explosionPower;
+                scaledData.cooldownTicks = Math.max(10, (int)(baseData.cooldownTicks - progress * 20));
+                scaledData.radius = baseData.radius;
+                scaledData.hasteLevel = baseData.hasteLevel;
+                scaledData.hasteDuration = baseData.hasteDuration;
+                scaledData.multiplierValue = baseData.multiplierValue;
+                scaledData.maxBlocks = baseData.maxBlocks;
+                break;
+        }
+        return scaledData;
+    }
+
+    private static void saveRangeFormat(ConfigurationSection levelsSection, String enchantName, int maxLevel) {
+        // Use 10-level ranges for optimal config organization (1-10, 11-20, etc.)
+        int rangeSize = 10;
+        
+        for (int start = 1; start <= maxLevel; start += rangeSize) {
+            int end = Math.min(start + rangeSize - 1, maxLevel);
+            String rangeKey = (start == end) ? String.valueOf(start) : start + "-" + end;
+            
+            ConfigurationSection rangeSection = levelsSection.createSection(rangeKey);
+            EnchantLevelData baseData = generateLevelData(enchantName, start);
+            saveLevelDataToConfig(rangeSection, enchantName, baseData);
+        }
     }
 
     private static void generateMissingLevels(EnchantData enchantData) {
