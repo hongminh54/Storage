@@ -1,6 +1,7 @@
 package net.danh.storage.Utils;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
+import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.Storage;
@@ -66,8 +67,8 @@ public class File {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
         }
-        net.danh.storage.Manager.ConvertOreManager.loadConvertOptions();
-        net.danh.storage.Manager.SpecialMaterialManager.loadSpecialMaterials();
+        ConvertOreManager.loadConvertOptions();
+        SpecialMaterialManager.loadSpecialMaterials();
     }
 
     public static void loadGUI() {
@@ -187,6 +188,16 @@ public class File {
             }
             getFileSetting().reload("special_material.yml");
             SpecialMaterialManager.loadSpecialMaterials();
+        }
+    }
+
+    public static void saveEnchantConfig() {
+        try {
+            java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "enchants.yml");
+            getEnchantsConfig().save(configFile);
+        } catch (IOException e) {
+            Storage.getStorage().getLogger().log(Level.SEVERE, "Could not save enchants.yml config: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

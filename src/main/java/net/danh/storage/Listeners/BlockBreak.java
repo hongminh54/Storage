@@ -129,7 +129,7 @@ public class BlockBreak implements Listener {
         final PlayerInventory inv = player.getInventory();
         final ItemStack[] items = inv.getContents();
         boolean inventoryChanged = false;
-        
+
         for (int i = 0; i < items.length; i++) {
             final ItemStack itemStack = items[i];
             if (itemStack != null) {
@@ -143,7 +143,7 @@ public class BlockBreak implements Listener {
                 }
             }
         }
-        
+
         if (inventoryChanged) {
             inv.setContents(items);
             player.updateInventory();
