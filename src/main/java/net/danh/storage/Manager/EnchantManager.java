@@ -185,7 +185,7 @@ public class EnchantManager {
                 }
             }
 
-            File.updateEnchantConfig();
+            File.getFileSetting().save("enchants.yml");
         }
 
         return true;
