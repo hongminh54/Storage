@@ -81,6 +81,7 @@ public final class Storage extends JavaPlugin {
         EnchantManager.loadEnchants();
         SpecialMaterialManager.loadSpecialMaterials();
         CraftingManager.loadRecipes();
+        BlockBreakProcessor.initialize();
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");

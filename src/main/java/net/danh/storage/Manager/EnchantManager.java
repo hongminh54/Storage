@@ -180,19 +180,19 @@ public class EnchantManager {
         try {
             String[] parts = levelKey.split("-");
             if (parts.length != 2) return;
-            
+
             int startLevel = Integer.parseInt(parts[0].trim());
             int endLevel = Integer.parseInt(parts[1].trim());
-            
+
             if (startLevel > endLevel || startLevel < 1) return;
-            
+
             ConfigurationSection rangeSection = levelsSection.getConfigurationSection(levelKey);
             if (rangeSection == null) return;
-            
+
             // Load base configuration from the range
             EnchantLevelData baseData = new EnchantLevelData();
             loadLevelDataFromConfig(rangeSection, baseData);
-            
+
             // Generate data for each level in range using scaling
             for (int level = startLevel; level <= endLevel; level++) {
                 EnchantLevelData scaledData = scaleDataForLevel(enchantData.key, baseData, level, startLevel, endLevel);
@@ -229,17 +229,17 @@ public class EnchantManager {
 
     private static EnchantLevelData scaleDataForLevel(String enchantType, EnchantLevelData baseData, int currentLevel, int startLevel, int endLevel) {
         EnchantLevelData scaledData = new EnchantLevelData();
-        double progress = endLevel > startLevel ? (double)(currentLevel - startLevel) / (endLevel - startLevel) : 0.0;
-        
+        double progress = endLevel > startLevel ? (double) (currentLevel - startLevel) / (endLevel - startLevel) : 0.0;
+
         switch (enchantType.toLowerCase()) {
             case "tnt":
                 scaledData.explosionPower = baseData.explosionPower + progress * 2.0;
-                scaledData.cooldownTicks = Math.max(10, (int)(baseData.cooldownTicks - progress * 50));
-                scaledData.radius = baseData.radius + (int)(progress * (endLevel - startLevel));
+                scaledData.cooldownTicks = Math.max(10, (int) (baseData.cooldownTicks - progress * 50));
+                scaledData.radius = baseData.radius + (int) (progress * (endLevel - startLevel));
                 break;
             case "haste":
                 scaledData.hasteLevel = Math.min(5, baseData.hasteLevel + progress * 2.0);
-                scaledData.hasteDuration = (int)(baseData.hasteDuration + progress * 1200);
+                scaledData.hasteDuration = (int) (baseData.hasteDuration + progress * 1200);
                 scaledData.cooldownTicks = 0;
                 break;
             case "multiplier":
@@ -248,11 +248,11 @@ public class EnchantManager {
                 break;
             case "veinminer":
                 scaledData.maxBlocks = Math.min(64.0, baseData.maxBlocks + progress * 32.0);
-                scaledData.cooldownTicks = Math.max(10, (int)(baseData.cooldownTicks - progress * 30));
+                scaledData.cooldownTicks = Math.max(10, (int) (baseData.cooldownTicks - progress * 30));
                 break;
             default:
                 scaledData.explosionPower = baseData.explosionPower;
-                scaledData.cooldownTicks = Math.max(10, (int)(baseData.cooldownTicks - progress * 20));
+                scaledData.cooldownTicks = Math.max(10, (int) (baseData.cooldownTicks - progress * 20));
                 scaledData.radius = baseData.radius;
                 scaledData.hasteLevel = baseData.hasteLevel;
                 scaledData.hasteDuration = baseData.hasteDuration;
@@ -266,11 +266,11 @@ public class EnchantManager {
     private static void saveRangeFormat(ConfigurationSection levelsSection, String enchantName, int maxLevel) {
         // Use 10-level ranges for optimal config organization (1-10, 11-20, etc.)
         int rangeSize = 10;
-        
+
         for (int start = 1; start <= maxLevel; start += rangeSize) {
             int end = Math.min(start + rangeSize - 1, maxLevel);
             String rangeKey = (start == end) ? String.valueOf(start) : start + "-" + end;
-            
+
             ConfigurationSection rangeSection = levelsSection.createSection(rangeKey);
             EnchantLevelData baseData = generateLevelData(enchantName, start);
             saveLevelDataToConfig(rangeSection, enchantName, baseData);

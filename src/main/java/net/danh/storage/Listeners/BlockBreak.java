@@ -35,7 +35,6 @@ public class BlockBreak implements Listener {
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
-        boolean inv_full = (p.getInventory().firstEmpty() == -1);
         if (Storage.isWorldGuardInstalled()) {
             if (!WorldGuard.handleForLocation(p, block.getLocation())) {
                 return;
@@ -47,6 +46,12 @@ public class BlockBreak implements Listener {
         if (File.getConfig().contains("blacklist_world")) {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
+        processBlockBreakOptimized(e, p, block);
+    }
+
+    private void processBlockBreakOptimized(@NotNull BlockBreakEvent e, Player p, Block block) {
+        boolean inv_full = (p.getInventory().firstEmpty() == -1);
+
         // Handle autopickup functionality
         if (MineManager.isAutoPickupEnabled(p)) {
             if (inv_full) {
