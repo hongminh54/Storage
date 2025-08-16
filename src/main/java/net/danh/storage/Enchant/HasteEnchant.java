@@ -70,7 +70,6 @@ public class HasteEnchant {
         UUID playerId = player.getUniqueId();
         long currentTime = System.currentTimeMillis();
 
-        // Refresh logic: if player had haste recently (within 5 seconds), extend duration
         if (playerLastHaste.containsKey(playerId)) {
             long lastHasteTime = playerLastHaste.get(playerId);
             if (currentTime - lastHasteTime < 5000) { // 5 seconds
@@ -78,10 +77,13 @@ public class HasteEnchant {
             }
         }
 
-        PotionEffect hasteEffect = new PotionEffect(PotionEffectType.FAST_DIGGING, duration, hasteLevel - 1, false, false);
+        PotionEffectType hasteType = PotionEffectType.getByName("HASTE");
+        if (hasteType == null) {
+            hasteType = PotionEffectType.getByName("FAST_DIGGING");
+        }
+        PotionEffect hasteEffect = new PotionEffect(hasteType, duration, hasteLevel - 1, false, false);
         player.addPotionEffect(hasteEffect, true);
 
-        // Update last haste time
         playerLastHaste.put(playerId, currentTime);
 
         createCustomEffects(player.getLocation(), enchantData);
@@ -123,7 +125,6 @@ public class HasteEnchant {
         }.runTaskLater(Storage.getStorage(), enchantData.soundDelayTicks);
     }
 
-    // Cleanup method to prevent memory leaks
     public static void cleanupOldEntries() {
         long currentTime = System.currentTimeMillis();
         long cleanupThreshold = 300000; // 5 minutes

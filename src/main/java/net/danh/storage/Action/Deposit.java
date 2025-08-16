@@ -143,7 +143,9 @@ public class Deposit {
             }
         }
         inv.setContents(items);
-        getPlayer().updateInventory();
+        if (new NMSAssistant().isVersionLessThan(9)) {
+            getPlayer().updateInventory();
+        }
     }
 
     public Player getPlayer() {

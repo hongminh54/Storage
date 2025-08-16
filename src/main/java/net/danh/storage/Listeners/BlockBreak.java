@@ -56,8 +56,8 @@ public class BlockBreak implements Listener {
                 String drop = MineManager.getDrop(block);
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
-                Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() : Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
-                if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || !hand.containsEnchantment(fortune)) {
+                Enchantment fortune = XEnchantment.FORTUNE.get();
+                if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || fortune == null || !hand.containsEnchantment(fortune)) {
                     amount = getDropAmount(block);
                 } else {
                     if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
@@ -146,7 +146,9 @@ public class BlockBreak implements Listener {
 
         if (inventoryChanged) {
             inv.setContents(items);
-            player.updateInventory();
+            if (new NMSAssistant().isVersionLessThan(9)) {
+                player.updateInventory();
+            }
         }
     }
 
@@ -172,7 +174,9 @@ public class BlockBreak implements Listener {
             }
         }
         inv.setContents(items);
-        player.updateInventory();
+        if (new NMSAssistant().isVersionLessThan(9)) {
+            player.updateInventory();
+        }
     }
 
     private int getDropAmount(Block block) {

@@ -178,8 +178,7 @@ public class TNTEnchant {
         if (!player.isOnline()) return;
 
         ItemStack hand = player.getInventory().getItemInMainHand();
-        Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() :
-                Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
+        Enchantment fortune = XEnchantment.FORTUNE.get();
 
         for (Block block : blocks) {
             if (MineManager.checkBreak(block)) {
