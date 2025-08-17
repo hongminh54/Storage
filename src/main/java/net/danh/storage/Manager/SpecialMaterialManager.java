@@ -119,7 +119,12 @@ public class SpecialMaterialManager {
                         if (apply) {
                             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES,
                                     ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS,
-                                    ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_POTION_EFFECTS);
+                                    ItemFlag.HIDE_PLACED_ON);
+                            try {
+                                meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+                            } catch (IllegalArgumentException ignored) {
+                                // Not available in this version
+                            }
                             break;
                         }
                     } else {
@@ -139,7 +144,11 @@ public class SpecialMaterialManager {
         // Set glow effect
         boolean glow = itemSection.getBoolean("glow", false);
         if (glow) {
-            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            Enchantment durabilityEnchant = Enchantment.getByName("UNBREAKING");
+            if (durabilityEnchant == null) {
+                durabilityEnchant = Enchantment.getByName("DURABILITY"); // Fallback for older versions
+            }
+            meta.addEnchant(durabilityEnchant, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
 

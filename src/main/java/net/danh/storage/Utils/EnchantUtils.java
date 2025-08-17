@@ -84,11 +84,16 @@ public class EnchantUtils {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
+        Enchantment durabilityEnchant = Enchantment.getByName("UNBREAKING");
+        if (durabilityEnchant == null) {
+            durabilityEnchant = Enchantment.getByName("DURABILITY");
+        }
+
         if (new NMSAssistant().isVersionGreaterThanOrEqualTo(14)) {
-            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            meta.addEnchant(durabilityEnchant, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         } else {
-            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            meta.addEnchant(durabilityEnchant, 1, true);
         }
 
         item.setItemMeta(meta);
@@ -101,7 +106,11 @@ public class EnchantUtils {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
-        meta.removeEnchant(Enchantment.DURABILITY);
+        Enchantment durabilityEnchant = Enchantment.getByName("UNBREAKING");
+        if (durabilityEnchant == null) {
+            durabilityEnchant = Enchantment.getByName("DURABILITY");
+        }
+        meta.removeEnchant(durabilityEnchant);
         if (new NMSAssistant().isVersionGreaterThanOrEqualTo(14)) {
             meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
         }

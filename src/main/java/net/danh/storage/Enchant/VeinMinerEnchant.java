@@ -135,8 +135,7 @@ public class VeinMinerEnchant {
         if (!player.isOnline()) return;
 
         ItemStack hand = player.getInventory().getItemInMainHand();
-        Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() :
-                Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
+        Enchantment fortune = XEnchantment.FORTUNE.get();
 
         for (Block block : blocks) {
             if (MineManager.checkBreak(block)) {
@@ -186,7 +185,7 @@ public class VeinMinerEnchant {
         int baseAmount = getDropAmount(block);
 
         // Apply Fortune enchant
-        if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && hand.containsEnchantment(fortune)) {
+        if (fortune != null && hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && hand.containsEnchantment(fortune)) {
             if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
                 baseAmount = Number.getRandomInteger(baseAmount, baseAmount + hand.getEnchantmentLevel(fortune) + 2);
             }

@@ -2,8 +2,7 @@ package net.danh.storage;
 
 import net.danh.storage.API.StorageAPI;
 import net.danh.storage.CMD.StorageCMD;
-import net.danh.storage.Database.Database;
-import net.danh.storage.Database.SQLite;
+import net.danh.storage.Database.*;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.BlockBreak;
 import net.danh.storage.Listeners.BlockPlace;
@@ -25,6 +24,7 @@ import java.util.logging.Level;
 
 public final class Storage extends JavaPlugin {
 
+    public static IDataStorage dataStorage;
     public static Database db;
     private static Storage storage;
 
@@ -69,8 +69,18 @@ public final class Storage extends JavaPlugin {
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat(), new BlockPlace());
         new UpdateChecker(storage).fetch();
         new StorageCMD("storage");
-        db = new SQLite(Storage.getStorage());
-        db.load();
+
+        dataStorage = DatabaseFactory.createDatabase(this);
+        dataStorage.load();
+        getLogger().info("Using " + dataStorage.getType() + " database for data storage");
+
+        if (dataStorage instanceof SQLiteAdapter) {
+            db = ((SQLiteAdapter) dataStorage).getSQLiteDatabase();
+        } else if (dataStorage instanceof MySQLAdapter) {
+            db = ((MySQLAdapter) dataStorage).getMySQLDatabase();
+        } else {
+            db = new DatabaseCompatibilityWrapper(dataStorage);
+        }
         TransferManager.initialize();
         MineManager.loadBlocks();
         ConvertOreManager.loadConvertOptions();

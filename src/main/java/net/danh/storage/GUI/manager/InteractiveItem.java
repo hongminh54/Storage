@@ -158,11 +158,16 @@ public class InteractiveItem extends ItemStack {
     }
 
     public void setGlow(boolean active) {
+        Enchantment glowEnchant = Enchantment.getByName("SHARPNESS");
+        if (glowEnchant == null) {
+            glowEnchant = Enchantment.getByName("DAMAGE_ALL"); // Fallback for older versions
+        }
+
         if (active) {
-            this.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+            this.addUnsafeEnchantment(glowEnchant, 1);
             this.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         } else {
-            this.removeEnchantment(Enchantment.DAMAGE_ALL);
+            this.removeEnchantment(glowEnchant);
             this.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
     }

@@ -63,7 +63,12 @@ public class ItemManager {
                     boolean apply = section.getBoolean("flags." + flag_name);
                     if (flag_name.equalsIgnoreCase("ALL")) {
                         if (apply) {
-                            meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_POTION_EFFECTS);
+                            meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_PLACED_ON);
+                            try {
+                                meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+                            } catch (IllegalArgumentException ignored) {
+                                // Not available in this version
+                            }
                             break;
                         }
                     } else {

@@ -46,7 +46,10 @@ public class GUIClickListener implements Listener {
 
         if (isGUIInv || isInteractiveItem) {
             e.setCancelled(true);
-            player.updateInventory();
+            // updateInventory() is deprecated since 1.19 and not needed for 1.9+
+            if (new net.danh.storage.NMS.NMSAssistant().isVersionLessThan(9)) {
+                player.updateInventory();
+            }
 
             if (currentItem != null && currentItem.getType() != Material.AIR && currentItem.getAmount() > 0) {
                 try {
@@ -90,8 +93,13 @@ public class GUIClickListener implements Listener {
 
     @EventHandler
     public void onAnimation(PlayerAnimationEvent e) {
-        if (e.getAnimationType() != PlayerAnimationType.ARM_SWING || e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
-            return;
+        try {
+            if (e.getAnimationType() != PlayerAnimationType.ARM_SWING || e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
+                return;
+        } catch (Exception ex) {
+            if (e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
+                return;
+        }
 
         ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR || item.getAmount() <= 0) return;

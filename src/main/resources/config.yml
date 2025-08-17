@@ -1,6 +1,22 @@
 #Do not touch it
 config_version: 2
 
+#Database configuration
+database:
+  #Database type: sqlite, yml, mysql
+  #Required: Restart server to apply changes
+  type: sqlite
+  
+  #MySQL configuration (only used when type is mysql)
+  mysql:
+    host: "localhost"
+    port: "3306"
+    database: "storage"
+    username: "root"
+    password: ""
+    useSSL: false
+
+# Worlds that will not be affected by the plugin
 blacklist_world:
   - defaultworld
   - exampleworld
