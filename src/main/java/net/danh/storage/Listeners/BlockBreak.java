@@ -50,23 +50,10 @@ public class BlockBreak implements Listener {
     }
 
     private void processBlockBreakOptimized(@NotNull BlockBreakEvent e, Player p, Block block) {
-        boolean inv_full = (p.getInventory().firstEmpty() == -1);
-
-        // Handle autopickup functionality
-        if (MineManager.isAutoPickupEnabled(p)) {
+        boolean inv_full = !BlockBreakProcessor.hasEmptySlot(p);
+        if (BlockBreakProcessor.isAutoPickupEnabled(p)) {
             if (inv_full) {
-                for (ItemStack itemStack : p.getInventory().getContents()) {
-                    if (itemStack != null) {
-                        String drop = MineManager.getItemStackDrop(itemStack);
-                        int amount = itemStack.getAmount();
-                        if (drop != null) {
-                            int actualAmount = MineManager.addBlockAmountWithPartial(p, drop, amount);
-                            if (actualAmount > 0) {
-                                removeItems(p, itemStack, actualAmount);
-                            }
-                        }
-                    }
-                }
+                BlockBreakProcessor.processInventoryBulk(p);
             }
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);

@@ -19,23 +19,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class DatabaseMigration {
-    
-    private final Storage plugin;
+
     private static String lastDatabaseType = null;
-    
+    private final Storage plugin;
+
     public DatabaseMigration(Storage plugin) {
         this.plugin = plugin;
     }
-    
+
     /**
      * Check if database type has changed and perform migration if needed
      */
     public static void checkAndMigrate() {
         String currentType = File.getConfig().getString("database.type", "sqlite").toLowerCase();
-        
+
         if (lastDatabaseType != null && !lastDatabaseType.equals(currentType)) {
             Storage.getStorage().getLogger().info("Database type changed from " + lastDatabaseType + " to " + currentType);
-            
+
             // Perform migration asynchronously
             CompletableFuture.runAsync(() -> {
                 try {
@@ -46,85 +46,85 @@ public class DatabaseMigration {
                 }
             });
         }
-        
+
         lastDatabaseType = currentType;
     }
-    
+
     /**
      * Migrate all data from source database type to target database type
      */
     private void migrateData(String fromType, String toType) throws Exception {
         plugin.getLogger().info("Starting database migration from " + fromType + " to " + toType);
-        
+
         // Create backup before migration
         createBackup(fromType);
-        
+
         // Migrate PlayerData
         int playerDataCount = migratePlayerData(fromType, toType);
-        
+
         // Migrate TransferData
         int transferDataCount = migrateTransferData(fromType, toType);
-        
-        plugin.getLogger().info("Migration completed: " + playerDataCount + " player records, " + 
-                               transferDataCount + " transfer records");
+
+        plugin.getLogger().info("Migration completed: " + playerDataCount + " player records, " +
+                transferDataCount + " transfer records");
     }
-    
+
     /**
      * Migrate player data between database types
      */
     private int migratePlayerData(String fromType, String toType) throws Exception {
         List<PlayerData> playerDataList = readAllPlayerData(fromType);
-        
+
         if (playerDataList.isEmpty()) {
             plugin.getLogger().info("No player data to migrate");
             return 0;
         }
-        
+
         // Write to new database type
         writeAllPlayerData(toType, playerDataList);
-        
+
         plugin.getLogger().info("Migrated " + playerDataList.size() + " player data records");
         return playerDataList.size();
     }
-    
+
     /**
      * Migrate transfer data between database types
      */
     private int migrateTransferData(String fromType, String toType) throws Exception {
         List<TransferData> transferDataList = readAllTransferData(fromType);
-        
+
         if (transferDataList.isEmpty()) {
             plugin.getLogger().info("No transfer data to migrate");
             return 0;
         }
-        
+
         // Write to new database type
         writeAllTransferData(toType, transferDataList);
-        
+
         plugin.getLogger().info("Migrated " + transferDataList.size() + " transfer data records");
         return transferDataList.size();
     }
-    
+
     /**
      * Read all player data from specified database type
      */
     private List<PlayerData> readAllPlayerData(String databaseType) throws Exception {
         List<PlayerData> playerDataList = new ArrayList<>();
-        
+
         if ("sqlite".equals(databaseType)) {
             // Read from SQLite
             Connection conn = null;
             PreparedStatement ps = null;
             ResultSet rs = null;
-            
+
             try {
                 SQLite sqliteDb = new SQLite(plugin);
                 conn = sqliteDb.getSQLConnection();
                 if (conn == null) return playerDataList;
-                
+
                 ps = conn.prepareStatement("SELECT player, data, max, autopickup FROM PlayerData");
                 rs = ps.executeQuery();
-                
+
                 while (rs.next()) {
                     String player = rs.getString("player");
                     String data = rs.getString("data");
@@ -135,7 +135,7 @@ public class DatabaseMigration {
                     } catch (SQLException e) {
                         autoPickup = true;
                     }
-                    
+
                     playerDataList.add(new PlayerData(player, data, max, autoPickup));
                 }
             } finally {
@@ -148,20 +148,20 @@ public class DatabaseMigration {
             java.io.File playersFile = new java.io.File(plugin.getDataFolder(), "playerdata/players.yml");
             if (playersFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(playersFile);
-                
+
                 for (String player : config.getKeys(false)) {
                     String data = config.getString(player + ".data", "{}");
                     int max = config.getInt(player + ".max", 100000);
                     boolean autoPickup = config.getBoolean(player + ".autopickup", true);
-                    
+
                     playerDataList.add(new PlayerData(player, data, max, autoPickup));
                 }
             }
         }
-        
+
         return playerDataList;
     }
-    
+
     /**
      * Write all player data to specified database type
      */
@@ -170,7 +170,7 @@ public class DatabaseMigration {
             // Write to SQLite
             SQLite sqliteDb = new SQLite(plugin);
             sqliteDb.load(); // Initialize tables
-            
+
             for (PlayerData playerData : playerDataList) {
                 PlayerData existing = sqliteDb.getData(playerData.getPlayer());
                 if (existing == null) {
@@ -185,45 +185,45 @@ public class DatabaseMigration {
             if (!playerDataFolder.exists()) {
                 playerDataFolder.mkdirs();
             }
-            
+
             java.io.File playersFile = new java.io.File(playerDataFolder, "players.yml");
             FileConfiguration config = new YamlConfiguration();
-            
+
             for (PlayerData playerData : playerDataList) {
                 config.set(playerData.getPlayer() + ".data", playerData.getData());
                 config.set(playerData.getPlayer() + ".max", playerData.getMax());
                 config.set(playerData.getPlayer() + ".autopickup", playerData.isAutoPickup());
             }
-            
+
             config.save(playersFile);
         }
     }
-    
+
     /**
      * Read all transfer data from specified database type
      */
     private List<TransferData> readAllTransferData(String databaseType) throws Exception {
         List<TransferData> transferDataList = new ArrayList<>();
-        
+
         if ("sqlite".equals(databaseType)) {
             // Read from SQLite
             Connection conn = null;
             PreparedStatement ps = null;
             ResultSet rs = null;
-            
+
             try {
                 SQLite sqliteDb = new SQLite(plugin);
                 conn = sqliteDb.getSQLConnection();
                 if (conn == null) return transferDataList;
-                
+
                 // Check if transfer table exists
                 if (!tableExists(conn, "TransferLogs")) {
                     return transferDataList;
                 }
-                
+
                 ps = conn.prepareStatement("SELECT id, sender, receiver, material, amount, timestamp, status FROM TransferLogs");
                 rs = ps.executeQuery();
-                
+
                 while (rs.next()) {
                     TransferData transferData = new TransferData(
                             rs.getInt("id"),
@@ -246,7 +246,7 @@ public class DatabaseMigration {
             java.io.File transferFile = new java.io.File(plugin.getDataFolder(), "playerdata/transfers.yml");
             if (transferFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(transferFile);
-                
+
                 if (config.getConfigurationSection("transfers") != null) {
                     for (String key : config.getConfigurationSection("transfers").getKeys(false)) {
                         String path = "transfers." + key;
@@ -264,10 +264,10 @@ public class DatabaseMigration {
                 }
             }
         }
-        
+
         return transferDataList;
     }
-    
+
     /**
      * Write all transfer data to specified database type
      */
@@ -276,7 +276,7 @@ public class DatabaseMigration {
             // Write to SQLite - use existing TransferDatabase logic
             TransferDatabase transferDb = new TransferDatabase(plugin);
             transferDb.createTransferTable();
-            
+
             for (TransferData transferData : transferDataList) {
                 transferDb.insertTransfer(transferData);
             }
@@ -286,10 +286,10 @@ public class DatabaseMigration {
             if (!playerDataFolder.exists()) {
                 playerDataFolder.mkdirs();
             }
-            
+
             java.io.File transferFile = new java.io.File(playerDataFolder, "transfers.yml");
             FileConfiguration config = new YamlConfiguration();
-            
+
             int nextId = 1;
             for (TransferData transferData : transferDataList) {
                 String path = "transfers." + transferData.getId();
@@ -299,28 +299,28 @@ public class DatabaseMigration {
                 config.set(path + ".amount", transferData.getAmount());
                 config.set(path + ".timestamp", transferData.getTimestamp());
                 config.set(path + ".status", transferData.getStatus());
-                
+
                 if (transferData.getId() >= nextId) {
                     nextId = transferData.getId() + 1;
                 }
             }
-            
+
             config.set("next_id", nextId);
             config.save(transferFile);
         }
     }
-    
+
     /**
      * Create backup of current database
      */
     private void createBackup(String databaseType) {
         try {
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            
+
             if ("sqlite".equals(databaseType)) {
                 java.io.File currentDb = new java.io.File(plugin.getDataFolder(), "PlayerData.db");
                 if (currentDb.exists()) {
-                    java.io.File backupDb = new java.io.File(plugin.getDataFolder(), 
+                    java.io.File backupDb = new java.io.File(plugin.getDataFolder(),
                             "PlayerData_migration_backup_" + timestamp + ".db");
                     java.nio.file.Files.copy(currentDb.toPath(), backupDb.toPath());
                     plugin.getLogger().info("Created SQLite backup: " + backupDb.getName());
@@ -328,7 +328,7 @@ public class DatabaseMigration {
             } else {
                 java.io.File playerDataFolder = new java.io.File(plugin.getDataFolder(), "playerdata");
                 if (playerDataFolder.exists()) {
-                    java.io.File backupFolder = new java.io.File(plugin.getDataFolder(), 
+                    java.io.File backupFolder = new java.io.File(plugin.getDataFolder(),
                             "playerdata_migration_backup_" + timestamp);
                     copyFolder(playerDataFolder, backupFolder);
                     plugin.getLogger().info("Created YML backup: " + backupFolder.getName());
@@ -338,22 +338,22 @@ public class DatabaseMigration {
             plugin.getLogger().log(Level.WARNING, "Failed to create backup", e);
         }
     }
-    
+
     private void copyFolder(java.io.File source, java.io.File destination) throws IOException {
         if (!destination.exists()) {
             destination.mkdirs();
         }
-        
+
         for (java.io.File file : source.listFiles()) {
             if (file.isDirectory()) {
                 copyFolder(file, new java.io.File(destination, file.getName()));
             } else {
-                java.nio.file.Files.copy(file.toPath(), 
+                java.nio.file.Files.copy(file.toPath(),
                         new java.io.File(destination, file.getName()).toPath());
             }
         }
     }
-    
+
     private boolean tableExists(Connection conn, String tableName) {
         try {
             PreparedStatement ps = conn.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?");

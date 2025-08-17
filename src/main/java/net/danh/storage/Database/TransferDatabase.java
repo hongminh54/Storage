@@ -51,7 +51,7 @@ public class TransferDatabase {
             // YML database doesn't need table creation
             return;
         }
-        
+
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -91,7 +91,7 @@ public class TransferDatabase {
         try {
             int nextId = transferConfig.getInt("next_id", 1);
             String path = "transfers." + nextId;
-            
+
             transferConfig.set(path + ".sender", transferData.getSender());
             transferConfig.set(path + ".receiver", transferData.getReceiver());
             transferConfig.set(path + ".material", transferData.getMaterial());
@@ -99,7 +99,7 @@ public class TransferDatabase {
             transferConfig.set(path + ".timestamp", transferData.getTimestamp());
             transferConfig.set(path + ".status", transferData.getStatus());
             transferConfig.set("next_id", nextId + 1);
-            
+
             transferConfig.save(transferFile);
         } catch (IOException ex) {
             plugin.getLogger().log(Level.SEVERE, "Unable to insert transfer data to YML", ex);
@@ -148,13 +148,13 @@ public class TransferDatabase {
     private List<TransferData> getTransferHistoryYml(String playerName, int limit, int offset) {
         List<TransferData> transfers = new ArrayList<>();
         List<TransferData> allTransfers = new ArrayList<>();
-        
+
         if (transferConfig.getConfigurationSection("transfers") != null) {
             for (String key : transferConfig.getConfigurationSection("transfers").getKeys(false)) {
                 String path = "transfers." + key;
                 String sender = transferConfig.getString(path + ".sender");
                 String receiver = transferConfig.getString(path + ".receiver");
-                
+
                 if (playerName.equals(sender) || playerName.equals(receiver)) {
                     TransferData transfer = new TransferData(
                             Integer.parseInt(key),
@@ -169,18 +169,18 @@ public class TransferDatabase {
                 }
             }
         }
-        
+
         // Sort by timestamp descending
         allTransfers.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
-        
+
         // Apply offset and limit
         int start = Math.max(0, offset);
         int end = Math.min(allTransfers.size(), start + limit);
-        
+
         if (start < allTransfers.size()) {
             transfers = allTransfers.subList(start, end);
         }
-        
+
         return transfers;
     }
 
@@ -241,7 +241,7 @@ public class TransferDatabase {
                 String path = "transfers." + key;
                 String sender = transferConfig.getString(path + ".sender");
                 String receiver = transferConfig.getString(path + ".receiver");
-                
+
                 if (playerName.equals(sender) || playerName.equals(receiver)) {
                     count++;
                 }
@@ -290,7 +290,7 @@ public class TransferDatabase {
 
     private List<TransferData> getAllTransferHistoryYml(int limit) {
         List<TransferData> transfers = new ArrayList<>();
-        
+
         if (transferConfig.getConfigurationSection("transfers") != null) {
             for (String key : transferConfig.getConfigurationSection("transfers").getKeys(false)) {
                 String path = "transfers." + key;
@@ -306,15 +306,15 @@ public class TransferDatabase {
                 transfers.add(transfer);
             }
         }
-        
+
         // Sort by timestamp descending
         transfers.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
-        
+
         // Apply limit
         if (transfers.size() > limit) {
             transfers = transfers.subList(0, limit);
         }
-        
+
         return transfers;
     }
 

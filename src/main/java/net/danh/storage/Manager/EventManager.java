@@ -326,7 +326,7 @@ public class EventManager {
         };
 
         cleanupTask.runTaskTimer(Storage.getStorage(), cleanupInterval * 20L, cleanupInterval * 20L);
-        
+
         Storage.getStorage().getLogger().log(Level.INFO, "Event cleanup task started with interval: " + cleanupInterval + " seconds");
     }
 
@@ -345,18 +345,18 @@ public class EventManager {
             BaseEvent event = entry.getValue();
             if (event.isActive()) {
                 long endTime = event.getEventData().getEndTime();
-                
+
                 // Check if event has expired (with 5 second buffer for processing time)
                 if (currentTime > (endTime + 5000)) {
-                    Storage.getStorage().getLogger().warning("Found expired event: " + entry.getKey().getDisplayName() + 
-                        " - forcing cleanup");
-                    
+                    Storage.getStorage().getLogger().warning("Found expired event: " + entry.getKey().getDisplayName() +
+                            " - forcing cleanup");
+
                     try {
                         event.forceStop();
                         foundExpiredEvent = true;
                     } catch (Exception e) {
-                        Storage.getStorage().getLogger().severe("Failed to cleanup expired event " + 
-                            entry.getKey().getDisplayName() + ": " + e.getMessage());
+                        Storage.getStorage().getLogger().severe("Failed to cleanup expired event " +
+                                entry.getKey().getDisplayName() + ": " + e.getMessage());
                     }
                 }
             }

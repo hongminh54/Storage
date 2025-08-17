@@ -112,9 +112,9 @@ public final class Storage extends JavaPlugin {
     private void initializeDatabase() {
         // Check and perform migration if database type changed
         DatabaseMigration.checkAndMigrate();
-        
+
         String databaseType = File.getConfig().getString("database.type", "sqlite").toLowerCase();
-        
+
         switch (databaseType) {
             case "yml":
             case "yaml":
