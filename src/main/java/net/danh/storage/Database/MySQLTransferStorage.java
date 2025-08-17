@@ -11,69 +11,53 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-public class TransferDatabase {
+public class MySQLTransferStorage {
+
     private final String transferTable = "TransferLogs";
     private final Storage plugin;
-    private YMLTransferStorage ymlStorage;
-    private MySQLTransferStorage mysqlStorage;
+    private final MySQL mysql;
 
-    public TransferDatabase(Storage plugin) {
+    public MySQLTransferStorage(Storage plugin) {
         this.plugin = plugin;
-
-        // Initialize appropriate storage based on database type
-        if (Storage.dataStorage instanceof MySQLAdapter) {
-            mysqlStorage = new MySQLTransferStorage(plugin);
-        } else if (!(Storage.dataStorage instanceof SQLiteAdapter)) {
-            ymlStorage = new YMLTransferStorage(plugin);
-        }
+        this.mysql = new MySQL(plugin);
+        createTransferTable();
     }
 
     public void createTransferTable() {
-        // Only create SQL table if using SQLite database
-        if (mysqlStorage != null) {
-            mysqlStorage.createTransferTable();
-        } else if (Storage.dataStorage instanceof SQLiteAdapter) {
-            Connection conn = null;
-            PreparedStatement ps = null;
-            try {
-                conn = Storage.db.getSQLConnection();
-                ps = conn.prepareStatement("CREATE TABLE IF NOT EXISTS " + transferTable + " (" +
-                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        "sender TEXT NOT NULL," +
-                        "receiver TEXT NOT NULL," +
-                        "material TEXT NOT NULL," +
-                        "amount INTEGER NOT NULL," +
-                        "timestamp LONG NOT NULL," +
-                        "status TEXT NOT NULL" +
-                        ");");
-                ps.executeUpdate();
-            } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Unable to create transfer table", ex);
-            } finally {
-                try {
-                    if (ps != null) ps.close();
-                    if (conn != null) conn.close();
-                } catch (SQLException ex) {
-                    plugin.getLogger().log(Level.SEVERE, "Unable to close connection", ex);
-                }
-            }
-        }
-        // YML database doesn't need table creation
-    }
-
-    public void insertTransfer(TransferData transferData) {
-        if (mysqlStorage != null) {
-            mysqlStorage.insertTransfer(transferData);
-            return;
-        } else if (ymlStorage != null) {
-            ymlStorage.insertTransfer(transferData);
-            return;
-        }
-
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            conn = Storage.db.getSQLConnection();
+            conn = mysql.getSQLConnection();
+            ps = conn.prepareStatement("CREATE TABLE IF NOT EXISTS " + transferTable + " (" +
+                    "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
+                    "sender VARCHAR(36) NOT NULL," +
+                    "receiver VARCHAR(36) NOT NULL," +
+                    "material VARCHAR(50) NOT NULL," +
+                    "amount INTEGER NOT NULL," +
+                    "timestamp BIGINT NOT NULL," +
+                    "status VARCHAR(20) NOT NULL," +
+                    "INDEX idx_sender (sender)," +
+                    "INDEX idx_receiver (receiver)," +
+                    "INDEX idx_timestamp (timestamp)" +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Unable to create MySQL transfer table", ex);
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (conn != null) conn.close();
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Unable to close MySQL connection", ex);
+            }
+        }
+    }
+
+    public void insertTransfer(TransferData transferData) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = mysql.getSQLConnection();
             ps = conn.prepareStatement("INSERT INTO " + transferTable +
                     " (sender, receiver, material, amount, timestamp, status) VALUES (?, ?, ?, ?, ?, ?)");
             ps.setString(1, transferData.getSender());
@@ -84,34 +68,24 @@ public class TransferDatabase {
             ps.setString(6, transferData.getStatus());
             ps.executeUpdate();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Unable to insert transfer data", ex);
+            plugin.getLogger().log(Level.SEVERE, "Unable to insert MySQL transfer data", ex);
         } finally {
             try {
                 if (ps != null) ps.close();
                 if (conn != null) conn.close();
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Unable to close connection", ex);
+                plugin.getLogger().log(Level.SEVERE, "Unable to close MySQL connection", ex);
             }
         }
     }
 
-    public List<TransferData> getTransferHistory(String playerName, int limit) {
-        return getTransferHistory(playerName, limit, 0);
-    }
-
     public List<TransferData> getTransferHistory(String playerName, int limit, int offset) {
-        if (mysqlStorage != null) {
-            return mysqlStorage.getTransferHistory(playerName, limit, offset);
-        } else if (ymlStorage != null) {
-            return ymlStorage.getTransferHistory(playerName, limit, offset);
-        }
-
         List<TransferData> transfers = new ArrayList<>();
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            conn = Storage.db.getSQLConnection();
+            conn = mysql.getSQLConnection();
             ps = conn.prepareStatement("SELECT * FROM " + transferTable +
                     " WHERE sender = ? OR receiver = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?");
             ps.setString(1, playerName);
@@ -133,31 +107,25 @@ public class TransferDatabase {
                 transfers.add(transfer);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Unable to get transfer history", ex);
+            plugin.getLogger().log(Level.SEVERE, "Unable to get MySQL transfer history", ex);
         } finally {
             try {
                 if (rs != null) rs.close();
                 if (ps != null) ps.close();
                 if (conn != null) conn.close();
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Unable to close connection", ex);
+                plugin.getLogger().log(Level.SEVERE, "Unable to close MySQL connection", ex);
             }
         }
         return transfers;
     }
 
     public int getTotalTransferCount(String playerName) {
-        if (mysqlStorage != null) {
-            return mysqlStorage.getTotalTransferCount(playerName);
-        } else if (ymlStorage != null) {
-            return ymlStorage.getTotalTransferCount(playerName);
-        }
-
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            conn = Storage.db.getSQLConnection();
+            conn = mysql.getSQLConnection();
             ps = conn.prepareStatement("SELECT COUNT(*) FROM " + transferTable +
                     " WHERE sender = ? OR receiver = ?");
             ps.setString(1, playerName);
@@ -168,32 +136,26 @@ public class TransferDatabase {
                 return rs.getInt(1);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Unable to get transfer count", ex);
+            plugin.getLogger().log(Level.SEVERE, "Unable to get MySQL transfer count", ex);
         } finally {
             try {
                 if (rs != null) rs.close();
                 if (ps != null) ps.close();
                 if (conn != null) conn.close();
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Unable to close connection", ex);
+                plugin.getLogger().log(Level.SEVERE, "Unable to close MySQL connection", ex);
             }
         }
         return 0;
     }
 
     public List<TransferData> getAllTransferHistory(int limit) {
-        if (mysqlStorage != null) {
-            return mysqlStorage.getAllTransferHistory(limit);
-        } else if (ymlStorage != null) {
-            return ymlStorage.getAllTransferHistory(limit);
-        }
-
         List<TransferData> transfers = new ArrayList<>();
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            conn = Storage.db.getSQLConnection();
+            conn = mysql.getSQLConnection();
             ps = conn.prepareStatement("SELECT * FROM " + transferTable +
                     " ORDER BY timestamp DESC LIMIT ?");
             ps.setInt(1, limit);
@@ -212,14 +174,14 @@ public class TransferDatabase {
                 transfers.add(transfer);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Unable to get all transfer history", ex);
+            plugin.getLogger().log(Level.SEVERE, "Unable to get all MySQL transfer history", ex);
         } finally {
             try {
                 if (rs != null) rs.close();
                 if (ps != null) ps.close();
                 if (conn != null) conn.close();
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Unable to close connection", ex);
+                plugin.getLogger().log(Level.SEVERE, "Unable to close MySQL connection", ex);
             }
         }
         return transfers;
