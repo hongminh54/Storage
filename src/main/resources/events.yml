@@ -12,7 +12,7 @@ events:
   # Sự kiện Cuộc thi Đào - Thi đấu để đào nhiều khối nhất
   mining_contest:
     # Tên hiển thị sự kiện cho tin nhắn
-    event_name: "&eCuộc thi Đào"
+    event_name: "&eMining Contest"
     # Bật/tắt sự kiện này
     enabled: true
     # Cấu hình thời gian
@@ -54,7 +54,7 @@ events:
   # Sự kiện Rơi Đôi - Nhân đôi số lượng tài nguyên khi đào
   double_drop:
     # Tên hiển thị sự kiện cho tin nhắn
-    event_name: "&eRơi Đôi"
+    event_name: "&eDouble Drop"
     enabled: true
     timing:
       type: "interval"
@@ -68,7 +68,7 @@ events:
   # Sự kiện Cộng đồng - Mục tiêu đào hợp tác toàn server
   community_event:
     # Tên hiển thị sự kiện cho tin nhắn
-    event_name: "&eSự kiện Cộng đồng"
+    event_name: "&eCommunity Event"
     enabled: true
     timing:
       type: "schedule"

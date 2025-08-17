@@ -3,7 +3,9 @@ package net.danh.storage;
 import net.danh.storage.API.StorageAPI;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.Database;
+import net.danh.storage.Database.DatabaseMigration;
 import net.danh.storage.Database.SQLite;
+import net.danh.storage.Database.YMLDatabase;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.BlockBreak;
 import net.danh.storage.Listeners.BlockPlace;
@@ -71,7 +73,7 @@ public final class Storage extends JavaPlugin {
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat(), new BlockPlace());
         new UpdateChecker(storage).fetch();
         new StorageCMD("storage");
-        db = new SQLite(Storage.getStorage());
+        initializeDatabase();
         db.load();
         TransferManager.initialize();
         MineManager.loadBlocks();
@@ -106,6 +108,26 @@ public final class Storage extends JavaPlugin {
         getLogger().log(Level.INFO, "Shutting down completed. See you again!");
     }
 
+
+    private void initializeDatabase() {
+        // Check and perform migration if database type changed
+        DatabaseMigration.checkAndMigrate();
+        
+        String databaseType = File.getConfig().getString("database.type", "sqlite").toLowerCase();
+        
+        switch (databaseType) {
+            case "yml":
+            case "yaml":
+                db = new YMLDatabase(this);
+                getLogger().log(Level.INFO, "Using YML database");
+                break;
+            case "sqlite":
+            default:
+                db = new SQLite(this);
+                getLogger().log(Level.INFO, "Using SQLite database");
+                break;
+        }
+    }
 
     public void registerEvents(Listener... listeners) {
         Arrays.asList(listeners).forEach(listener -> getServer().getPluginManager().registerEvents(listener, storage));

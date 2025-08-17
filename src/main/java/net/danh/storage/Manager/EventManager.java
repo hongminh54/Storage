@@ -9,6 +9,7 @@ import net.danh.storage.Event.Events.MiningContestEvent;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.logging.Level;
 public class EventManager {
     private static final Map<EventType, BaseEvent> events = new HashMap<>();
     private static EventScheduler scheduler;
+    private static BukkitRunnable cleanupTask;
     private static boolean initialized = false;
 
     public static void initialize() {
@@ -27,6 +29,7 @@ public class EventManager {
         loadEvents();
         scheduler = new EventScheduler();
         scheduleAllEvents();
+        startCleanupTask();
         initialized = true;
 
         Storage.getStorage().getLogger().log(Level.INFO, "Event system initialized successfully");
@@ -42,6 +45,7 @@ public class EventManager {
         if (scheduler != null) {
             scheduler.cancelAllScheduledEvents();
         }
+        stopCleanupTask();
         events.clear();
         initialized = false;
 
@@ -301,6 +305,65 @@ public class EventManager {
             return File.getMessage().getString("events.stop.method.graceful");
         } else {
             return File.getMessage().getString("events.stop.method.immediate");
+        }
+    }
+
+    private static void startCleanupTask() {
+        int cleanupInterval = File.getEventConfig().getInt("performance.cleanup_interval", 300);
+        if (cleanupInterval < 60) {
+            cleanupInterval = 60; // Minimum 1 minute
+        }
+
+        cleanupTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!initialized) {
+                    cancel();
+                    return;
+                }
+                checkAndCleanupExpiredEvents();
+            }
+        };
+
+        cleanupTask.runTaskTimer(Storage.getStorage(), cleanupInterval * 20L, cleanupInterval * 20L);
+        
+        Storage.getStorage().getLogger().log(Level.INFO, "Event cleanup task started with interval: " + cleanupInterval + " seconds");
+    }
+
+    private static void stopCleanupTask() {
+        if (cleanupTask != null && !cleanupTask.isCancelled()) {
+            cleanupTask.cancel();
+            cleanupTask = null;
+        }
+    }
+
+    private static void checkAndCleanupExpiredEvents() {
+        long currentTime = System.currentTimeMillis();
+        boolean foundExpiredEvent = false;
+
+        for (Map.Entry<EventType, BaseEvent> entry : events.entrySet()) {
+            BaseEvent event = entry.getValue();
+            if (event.isActive()) {
+                long endTime = event.getEventData().getEndTime();
+                
+                // Check if event has expired (with 5 second buffer for processing time)
+                if (currentTime > (endTime + 5000)) {
+                    Storage.getStorage().getLogger().warning("Found expired event: " + entry.getKey().getDisplayName() + 
+                        " - forcing cleanup");
+                    
+                    try {
+                        event.forceStop();
+                        foundExpiredEvent = true;
+                    } catch (Exception e) {
+                        Storage.getStorage().getLogger().severe("Failed to cleanup expired event " + 
+                            entry.getKey().getDisplayName() + ": " + e.getMessage());
+                    }
+                }
+            }
+        }
+
+        if (foundExpiredEvent && File.getEventConfig().getBoolean("performance.detailed_logging", false)) {
+            Storage.getStorage().getLogger().info("Event cleanup completed");
         }
     }
 }
