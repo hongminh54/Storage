@@ -145,7 +145,7 @@ public class DatabaseMigration {
             }
         } else {
             // Read from YML
-            java.io.File playersFile = new java.io.File(plugin.getDataFolder(), "playerdata/players.yml");
+            java.io.File playersFile = new java.io.File(plugin.getDataFolder(), "playerdata/players/players.yml");
             if (playersFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(playersFile);
 
@@ -182,11 +182,12 @@ public class DatabaseMigration {
         } else {
             // Write to YML
             java.io.File playerDataFolder = new java.io.File(plugin.getDataFolder(), "playerdata");
-            if (!playerDataFolder.exists()) {
-                playerDataFolder.mkdirs();
+            java.io.File playersFolder = new java.io.File(playerDataFolder, "players");
+            if (!playersFolder.exists()) {
+                playersFolder.mkdirs();
             }
 
-            java.io.File playersFile = new java.io.File(playerDataFolder, "players.yml");
+            java.io.File playersFile = new java.io.File(playersFolder, "players.yml");
             FileConfiguration config = new YamlConfiguration();
 
             for (PlayerData playerData : playerDataList) {
@@ -243,7 +244,7 @@ public class DatabaseMigration {
             }
         } else {
             // Read from YML
-            java.io.File transferFile = new java.io.File(plugin.getDataFolder(), "playerdata/transfers.yml");
+            java.io.File transferFile = new java.io.File(plugin.getDataFolder(), "playerdata/transfers/transfers.yml");
             if (transferFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(transferFile);
 
@@ -283,11 +284,12 @@ public class DatabaseMigration {
         } else {
             // Write to YML
             java.io.File playerDataFolder = new java.io.File(plugin.getDataFolder(), "playerdata");
-            if (!playerDataFolder.exists()) {
-                playerDataFolder.mkdirs();
+            java.io.File transfersFolder = new java.io.File(playerDataFolder, "transfers");
+            if (!transfersFolder.exists()) {
+                transfersFolder.mkdirs();
             }
 
-            java.io.File transferFile = new java.io.File(playerDataFolder, "transfers.yml");
+            java.io.File transferFile = new java.io.File(transfersFolder, "transfers.yml");
             FileConfiguration config = new YamlConfiguration();
 
             int nextId = 1;

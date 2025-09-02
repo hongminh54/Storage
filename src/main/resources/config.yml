@@ -14,7 +14,7 @@ prefix: "&7[&6Storage&7]"
 
 # Cài đặt cơ sở dữ liệu
 database:
-  type: "yml" # Hỗ trợ: sqlite, yml
+  type: "sqlite" # Hỗ trợ: sqlite, yml
 
 settings:
   # Dung lượng kho lưu trữ mặc định cho tất cả vật phẩm

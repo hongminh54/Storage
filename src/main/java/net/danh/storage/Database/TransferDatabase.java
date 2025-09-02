@@ -23,7 +23,7 @@ public class TransferDatabase {
 
     public TransferDatabase(Storage plugin) {
         this.plugin = plugin;
-        this.transferFile = new java.io.File(plugin.getDataFolder(), "playerdata/transfers.yml");
+        this.transferFile = new java.io.File(plugin.getDataFolder(), "playerdata/transfers/transfers.yml");
         initializeYmlFile();
     }
 

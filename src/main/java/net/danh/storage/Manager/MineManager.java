@@ -259,7 +259,14 @@ public class MineManager {
     }
 
     public static String getDrop(@NotNull Block block) {
-        return blocksdrop.get(block.getType() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
+        String blockType = block.getType().name();
+        
+        // Normalize redstone ore variants to REDSTONE_ORE for consistent handling
+        if ("LIT_REDSTONE_ORE".equals(blockType) || "GLOWING_REDSTONE_ORE".equals(blockType)) {
+            blockType = "REDSTONE_ORE";
+        }
+        
+        return blocksdrop.get(blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
     }
 
     public static void loadBlocks() {
@@ -293,10 +300,19 @@ public class MineManager {
     }
 
     public static boolean checkBreak(@NotNull Block block) {
-        if (File.getConfig().contains("blocks." + block.getType().name() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop")) {
-            return File.getConfig().getString("blocks." + block.getType().name() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop") != null;
-        } else if (File.getConfig().contains("blocks." + block.getType().name() + ".drop")) {
-            return File.getConfig().getString("blocks." + block.getType().name() + ".drop") != null;
+        String blockType = block.getType().name();
+        
+        // Normalize redstone ore variants to REDSTONE_ORE for consistent handling
+        if ("LIT_REDSTONE_ORE".equals(blockType) || "GLOWING_REDSTONE_ORE".equals(blockType)) {
+            blockType = "REDSTONE_ORE";
+        }
+        
+        String blockKey = blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0");
+        
+        if (File.getConfig().contains("blocks." + blockKey + ".drop")) {
+            return File.getConfig().getString("blocks." + blockKey + ".drop") != null;
+        } else if (File.getConfig().contains("blocks." + blockType + ".drop")) {
+            return File.getConfig().getString("blocks." + blockType + ".drop") != null;
         }
         return false;
     }

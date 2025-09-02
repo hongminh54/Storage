@@ -12,20 +12,26 @@ import java.util.logging.Level;
 
 public class YMLDatabase extends Database {
 
-    private final File dataFolder;
+    private final File ymlDataFolder;
+    private final File playersFolder;
     private final File playersFile;
     private FileConfiguration playersConfig;
 
     public YMLDatabase(Storage instance) {
         super(instance);
-        this.dataFolder = new File(instance.getDataFolder(), "playerdata");
-        this.playersFile = new File(dataFolder, "players.yml");
+        this.ymlDataFolder = new File(instance.getDataFolder(), "playerdata");
+        this.playersFolder = new File(ymlDataFolder, "players");
+        this.playersFile = new File(playersFolder, "players.yml");
         initializeFiles();
     }
 
     private void initializeFiles() {
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
+        if (!ymlDataFolder.exists()) {
+            ymlDataFolder.mkdirs();
+        }
+        
+        if (!playersFolder.exists()) {
+            playersFolder.mkdirs();
         }
 
         if (!playersFile.exists()) {

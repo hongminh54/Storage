@@ -30,11 +30,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class BlockBreak implements Listener {
+    
+    // Cache NMS version check to avoid repeated instantiation
+    private static Boolean isHigherThan12 = null;
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
+        
+        
         if (Storage.isWorldGuardInstalled()) {
             if (!WorldGuard.handleForLocation(p, block.getLocation())) {
                 return;
@@ -50,11 +55,17 @@ public class BlockBreak implements Listener {
     }
 
     private void processBlockBreakOptimized(@NotNull BlockBreakEvent e, Player p, Block block) {
+        // Skip processing in creative mode to preserve vanilla behavior
+        if (p.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+            return;
+        }
+        
         boolean inv_full = !BlockBreakProcessor.hasEmptySlot(p);
         if (BlockBreakProcessor.isAutoPickupEnabled(p)) {
             if (inv_full) {
                 BlockBreakProcessor.processInventoryBulk(p);
             }
+            
             if (MineManager.checkBreak(block)) {
                 String drop = MineManager.getDrop(block);
                 int amount;
@@ -63,7 +74,13 @@ public class BlockBreak implements Listener {
                 if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || !hand.containsEnchantment(fortune)) {
                     amount = getDropAmount(block);
                 } else {
-                    if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
+                    // Normalize block type for fortune check (same as in MineManager)
+                    String blockTypeForFortune = block.getType().name();
+                    if ("LIT_REDSTONE_ORE".equals(blockTypeForFortune) || "GLOWING_REDSTONE_ORE".equals(blockTypeForFortune)) {
+                        blockTypeForFortune = "REDSTONE_ORE";
+                    }
+                    
+                    if (File.getConfig().getStringList("whitelist_fortune").contains(blockTypeForFortune)) {
                         amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(fortune) + 2);
                     } else amount = getDropAmount(block);
                 }
@@ -81,21 +98,12 @@ public class BlockBreak implements Listener {
 
                 if (actualAmount > 0) {
                     EventManager.onPlayerMine(p, drop, amount);
-                    if (File.getConfig().getBoolean("mine.actionbar.enable")) {
-                        String name = File.getConfig().getString("items." + drop);
-                        String displayAmount = bonusAmount > 0 ? actualAmount + " (+" + Math.min(bonusAmount, actualAmount) + " bonus)" : String.valueOf(actualAmount);
-                        ActionBar.sendActionBar(Storage.getStorage(), p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.actionbar.action")).replace("#item#", name != null ? name : drop.replace("_", " ")).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
-                    }
-                    if (File.getConfig().getBoolean("mine.title.enable")) {
-                        String name = File.getConfig().getString("items." + drop);
-                        String replacement = name != null ? name : drop.replace("_", " ");
-                        String displayAmount = bonusAmount > 0 ? actualAmount + " (+" + Math.min(bonusAmount, actualAmount) + " bonus)" : String.valueOf(actualAmount);
-                        Titles.sendTitle(p, Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), Chat.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
-                    }
+                    
+                    // Use optimized notification system
+                    BlockBreakProcessor.sendOptimizedNotifications(p, drop, actualAmount, bonusAmount);
 
-                    if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
-                        e.setDropItems(false);
-                    }
+                    // Prevent vanilla drops - use both methods for maximum compatibility
+                    e.setDropItems(false);
                     e.getBlock().getDrops().clear();
                 }
 
@@ -105,24 +113,11 @@ public class BlockBreak implements Listener {
             }
         }
 
-        // Trigger enchants regardless of autopickup status
+        // Optimized enchant processing - check hand once and batch enchant operations
         if (MineManager.checkBreak(block)) {
             ItemStack hand = p.getInventory().getItemInMainHand();
             if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0) {
-                if (EnchantManager.hasEnchant(hand, "tnt")) {
-                    int enchantLevel = EnchantManager.getEnchantLevel(hand, "tnt");
-                    TNTEnchant.triggerExplosion(p, block.getLocation(), enchantLevel);
-                }
-
-                if (EnchantManager.hasEnchant(hand, "haste")) {
-                    int enchantLevel = EnchantManager.getEnchantLevel(hand, "haste");
-                    HasteEnchant.triggerHaste(p, enchantLevel);
-                }
-
-                if (EnchantManager.hasEnchant(hand, "veinminer")) {
-                    int enchantLevel = EnchantManager.getEnchantLevel(hand, "veinminer");
-                    VeinMinerEnchant.triggerVeinMiner(p, block.getLocation(), enchantLevel);
-                }
+                processEnchantsBatch(p, hand, block);
             }
         }
 
@@ -158,10 +153,45 @@ public class BlockBreak implements Listener {
     }
 
     private int getDropAmount(Block block) {
+        // Calculate vanilla drops for proper amount handling
         int amount = 0;
-        if (block != null) for (ItemStack itemStack : block.getDrops())
-            if (itemStack != null) amount += itemStack.getAmount();
-        return amount;
+        if (block != null) {
+            for (ItemStack itemStack : block.getDrops()) {
+                if (itemStack != null) amount += itemStack.getAmount();
+            }
+        }
+        return Math.max(amount, 1); // Ensure at least 1 item
+    }
+
+    // Cache NMS version check
+    private static boolean isVersionHigherThan12() {
+        if (isHigherThan12 == null) {
+            isHigherThan12 = new NMSAssistant().isVersionGreaterThanOrEqualTo(12);
+        }
+        return isHigherThan12;
+    }
+    
+    // Batch process enchants to reduce repeated method calls
+    private void processEnchantsBatch(Player player, ItemStack hand, Block block) {
+        // Check all enchants in one pass to minimize EnchantManager calls
+        boolean hasTnt = EnchantManager.hasEnchant(hand, "tnt");
+        boolean hasHaste = EnchantManager.hasEnchant(hand, "haste");
+        boolean hasVeinMiner = EnchantManager.hasEnchant(hand, "veinminer");
+        
+        if (hasTnt) {
+            int level = EnchantManager.getEnchantLevel(hand, "tnt");
+            TNTEnchant.triggerExplosion(player, block.getLocation(), level);
+        }
+        
+        if (hasHaste) {
+            int level = EnchantManager.getEnchantLevel(hand, "haste");
+            HasteEnchant.triggerHaste(player, level);
+        }
+        
+        if (hasVeinMiner) {
+            int level = EnchantManager.getEnchantLevel(hand, "veinminer");
+            VeinMinerEnchant.triggerVeinMiner(player, block.getLocation(), level);
+        }
     }
 
     public boolean isPlacedBlock(Block b) {
