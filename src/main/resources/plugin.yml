@@ -64,7 +64,7 @@ permissions:
     default: op
   storage.convert:
     description: Use convert materials feature
-    default: op
+    default: true
   storage.craft.use:
     description: Use custom recipe crafting
     default: true

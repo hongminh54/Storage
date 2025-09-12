@@ -33,62 +33,120 @@ public class BlockBreak implements Listener {
     
     // Cache NMS version check to avoid repeated instantiation
     private static Boolean isHigherThan12 = null;
+    // Cache frequently accessed config values
+    private static Boolean preventRebreak = null;
+    private static List<String> blacklistWorlds = null;
+    private static long configCacheTime = 0;
+    private static final long CONFIG_CACHE_DURATION = 30000; // 30 seconds
+    
+    // Cache for frequently used enchantments
+    private static Enchantment fortuneEnchant = null;
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
         
+        // Quick early returns to minimize processing
+        if (p.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+            return;
+        }
+        
+        // Cache frequently accessed config values
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - configCacheTime > CONFIG_CACHE_DURATION) {
+            preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
+            blacklistWorlds = File.getConfig().getStringList("blacklist_world");
+            configCacheTime = currentTime;
+            
+            // Cache fortune enchantment
+            fortuneEnchant = XEnchantment.FORTUNE.get() != null ? 
+                XEnchantment.FORTUNE.get() : 
+                Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
+        }
         
         if (Storage.isWorldGuardInstalled()) {
             if (!WorldGuard.handleForLocation(p, block.getLocation())) {
                 return;
             }
         }
-        if (File.getConfig().getBoolean("prevent_rebreak")) {
-            if (isPlacedBlock(block)) return;
+        
+        if (preventRebreak && isPlacedBlock(block)) {
+            return;
         }
-        if (File.getConfig().contains("blacklist_world")) {
-            if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
+        
+        if (blacklistWorlds.contains(p.getWorld().getName())) {
+            return;
         }
+        
         processBlockBreakOptimized(e, p, block);
     }
 
     private void processBlockBreakOptimized(@NotNull BlockBreakEvent e, Player p, Block block) {
-        // Skip processing in creative mode to preserve vanilla behavior
-        if (p.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+        // Single check for auto pickup enabled
+        boolean autoPickupEnabled = BlockBreakProcessor.isAutoPickupEnabled(p);
+        
+        // Early return if auto pickup is disabled
+        if (!autoPickupEnabled && !MineManager.checkBreak(block)) {
             return;
         }
         
-        boolean inv_full = !BlockBreakProcessor.hasEmptySlot(p);
-        if (BlockBreakProcessor.isAutoPickupEnabled(p)) {
-            if (inv_full) {
-                BlockBreakProcessor.processInventoryBulk(p);
+        // Process auto pickup if enabled
+        if (autoPickupEnabled) {
+            processAutoPickup(e, p, block);
+        }
+        
+        // Process enchants and special drops only if block is valid for storage
+        if (MineManager.checkBreak(block)) {
+            ItemStack hand = p.getInventory().getItemInMainHand();
+            if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0) {
+                // Batch process enchants to reduce repeated method calls
+                processEnchantsBatch(p, hand, block);
             }
             
-            if (MineManager.checkBreak(block)) {
-                String drop = MineManager.getDrop(block);
-                int amount;
+            // Check for special material drops
+            SpecialMaterialManager.checkSpecialMaterialDrop(p, block);
+        }
+    }
+    
+    private void processAutoPickup(@NotNull BlockBreakEvent e, Player p, Block block) {
+        // Only check if block is valid for storage once
+        if (MineManager.checkBreak(block)) {
+            String drop = MineManager.getDrop(block);
+            if (drop != null) { // Additional null check for safety
+                int amount = 1; // Default amount
                 ItemStack hand = p.getInventory().getItemInMainHand();
-                Enchantment fortune = XEnchantment.FORTUNE.get() != null ? XEnchantment.FORTUNE.get() : Objects.requireNonNull(XEnchantment.of(Enchantment.LOOT_BONUS_BLOCKS).get());
-                if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || !hand.containsEnchantment(fortune)) {
-                    amount = getDropAmount(block);
-                } else {
-                    // Normalize block type for fortune check (same as in MineManager)
-                    String blockTypeForFortune = block.getType().name();
-                    if ("LIT_REDSTONE_ORE".equals(blockTypeForFortune) || "GLOWING_REDSTONE_ORE".equals(blockTypeForFortune)) {
-                        blockTypeForFortune = "REDSTONE_ORE";
+                
+                // Only calculate drop amount if we need it
+                boolean needsDropCalculation = hand != null && 
+                    !hand.getType().name().equals("AIR") && 
+                    hand.getAmount() > 0;
+                
+                if (needsDropCalculation) {
+                    if (hand.containsEnchantment(fortuneEnchant)) {
+                        // Normalize block type for fortune check (same as in MineManager)
+                        String blockTypeForFortune = block.getType().name();
+                        if ("LIT_REDSTONE_ORE".equals(blockTypeForFortune) || "GLOWING_REDSTONE_ORE".equals(blockTypeForFortune)) {
+                            blockTypeForFortune = "REDSTONE_ORE";
+                        }
+                        
+                        if (File.getConfig().getStringList("whitelist_fortune").contains(blockTypeForFortune)) {
+                            amount = Number.getRandomInteger(getDropAmount(block), 
+                                getDropAmount(block) + hand.getEnchantmentLevel(fortuneEnchant) + 2);
+                        } else {
+                            amount = getDropAmount(block);
+                        }
+                    } else {
+                        amount = getDropAmount(block);
                     }
-                    
-                    if (File.getConfig().getStringList("whitelist_fortune").contains(blockTypeForFortune)) {
-                        amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(fortune) + 2);
-                    } else amount = getDropAmount(block);
-                }
 
-                // Apply multiplier enchant if present
-                if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "multiplier")) {
-                    int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
-                    amount = MultiplierEnchant.calculateMultipliedAmount(p, amount, multiplierLevel);
+                    // Apply multiplier enchant if present
+                    if (EnchantManager.hasEnchant(hand, "multiplier")) {
+                        int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
+                        amount = MultiplierEnchant.calculateMultipliedAmount(p, amount, multiplierLevel);
+                    }
+                } else {
+                    amount = getDropAmount(block);
                 }
 
                 int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
@@ -104,7 +162,6 @@ public class BlockBreak implements Listener {
 
                     // Prevent vanilla drops - use both methods for maximum compatibility
                     e.setDropItems(false);
-                    e.getBlock().getDrops().clear();
                 }
 
                 if (actualAmount < totalAmount) {
@@ -112,44 +169,6 @@ public class BlockBreak implements Listener {
                 }
             }
         }
-
-        // Optimized enchant processing - check hand once and batch enchant operations
-        if (MineManager.checkBreak(block)) {
-            ItemStack hand = p.getInventory().getItemInMainHand();
-            if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0) {
-                processEnchantsBatch(p, hand, block);
-            }
-        }
-
-        // Check for special material drops
-        if (MineManager.checkBreak(block)) {
-            SpecialMaterialManager.checkSpecialMaterialDrop(p, block);
-        }
-    }
-
-    public void removeItems(Player player, ItemStack itemStack, long amount) {
-        final PlayerInventory inv = player.getInventory();
-        final ItemStack[] items = inv.getContents();
-        int c = 0;
-        for (int i = 0; i < items.length; ++i) {
-            final ItemStack is = items[i];
-            if (is != null) {
-                if (itemStack != null) {
-                    if (is.isSimilar(itemStack)) {
-                        if (c + is.getAmount() > amount) {
-                            final long canDelete = amount - c;
-                            is.setAmount((int) (is.getAmount() - canDelete));
-                            items[i] = is;
-                            break;
-                        }
-                        c += is.getAmount();
-                        items[i] = null;
-                    }
-                }
-            }
-        }
-        inv.setContents(items);
-        player.updateInventory();
     }
 
     private int getDropAmount(Block block) {
@@ -173,33 +192,39 @@ public class BlockBreak implements Listener {
     
     // Batch process enchants to reduce repeated method calls
     private void processEnchantsBatch(Player player, ItemStack hand, Block block) {
-        // Check all enchants in one pass to minimize EnchantManager calls
-        boolean hasTnt = EnchantManager.hasEnchant(hand, "tnt");
-        boolean hasHaste = EnchantManager.hasEnchant(hand, "haste");
-        boolean hasVeinMiner = EnchantManager.hasEnchant(hand, "veinminer");
+        // Single check for all enchantments to minimize EnchantManager calls
+        int tntLevel = EnchantManager.getEnchantLevel(hand, "tnt");
+        int hasteLevel = EnchantManager.getEnchantLevel(hand, "haste");
+        int veinMinerLevel = EnchantManager.getEnchantLevel(hand, "veinminer");
         
-        if (hasTnt) {
-            int level = EnchantManager.getEnchantLevel(hand, "tnt");
-            TNTEnchant.triggerExplosion(player, block.getLocation(), level);
+        // Process enchants only if they exist
+        if (tntLevel > 0) {
+            TNTEnchant.triggerExplosion(player, block.getLocation(), tntLevel);
         }
         
-        if (hasHaste) {
-            int level = EnchantManager.getEnchantLevel(hand, "haste");
-            HasteEnchant.triggerHaste(player, level);
+        if (hasteLevel > 0) {
+            HasteEnchant.triggerHaste(player, hasteLevel);
         }
         
-        if (hasVeinMiner) {
-            int level = EnchantManager.getEnchantLevel(hand, "veinminer");
-            VeinMinerEnchant.triggerVeinMiner(player, block.getLocation(), level);
+        if (veinMinerLevel > 0) {
+            VeinMinerEnchant.triggerVeinMiner(player, block.getLocation(), veinMinerLevel);
         }
     }
 
     public boolean isPlacedBlock(Block b) {
-        List<MetadataValue> metaDataValues = b.getMetadata("PlacedBlock");
-        for (MetadataValue value : metaDataValues) {
-            return value.asBoolean();
+        // Optimized metadata check - early return if no metadata
+        if (!b.hasMetadata("PlacedBlock")) {
+            return false;
         }
-        return false;
+        
+        List<MetadataValue> metaDataValues = b.getMetadata("PlacedBlock");
+        // Return early if no metadata values
+        if (metaDataValues.isEmpty()) {
+            return false;
+        }
+        
+        // Only check first value for performance
+        return metaDataValues.get(0).asBoolean();
     }
 
 }

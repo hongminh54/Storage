@@ -20,6 +20,12 @@ public class EventManager {
     private static EventScheduler scheduler;
     private static BukkitRunnable cleanupTask;
     private static boolean initialized = false;
+    
+    // Cache active events to avoid iteration through all events
+    private static boolean hasActiveEvents = false;
+    private static boolean doubleDropActive = false;
+    private static long lastEventCheck = 0;
+    private static final long EVENT_CACHE_DURATION = 5000; // 5 seconds (increased from 1 second)
 
     public static void initialize() {
         if (initialized) {
@@ -115,6 +121,9 @@ public class EventManager {
         }
 
         scheduleAllEvents();
+        
+        // Invalidate cache
+        lastEventCheck = 0;
 
         Storage.getStorage().getLogger().log(Level.INFO, "Event configurations reloaded");
     }
@@ -131,6 +140,8 @@ public class EventManager {
 
         try {
             event.start();
+            // Invalidate cache to force refresh
+            lastEventCheck = 0;
             return true;
         } catch (Exception e) {
             Storage.getStorage().getLogger().log(Level.SEVERE,
@@ -172,6 +183,8 @@ public class EventManager {
                             "Manually stopped event: " + eventType.getDisplayName());
                 }
             }
+            // Invalidate cache to force refresh
+            lastEventCheck = 0;
             return true;
         } catch (Exception e) {
             Storage.getStorage().getLogger().log(Level.SEVERE,
@@ -195,6 +208,8 @@ public class EventManager {
                 }
             }
         }
+        // Invalidate cache to force refresh
+        lastEventCheck = 0;
     }
 
     public static boolean isEventActive(EventType eventType) {
@@ -214,11 +229,21 @@ public class EventManager {
         return scheduler;
     }
 
+    // Optimized event processing with caching
     public static void onPlayerMine(Player player, String material, int amount) {
         if (!initialized) {
             return;
         }
 
+        // Update cache if needed
+        updateEventCache();
+        
+        // Only process if we have active events
+        if (!hasActiveEvents) {
+            return;
+        }
+
+        // Process events
         for (BaseEvent event : events.values()) {
             if (event.isActive()) {
                 try {
@@ -231,7 +256,16 @@ public class EventManager {
         }
     }
 
+    // Optimized double drop calculation with caching
     public static int calculateDoubleDropBonus(int originalAmount) {
+        // Update cache if needed
+        updateEventCache();
+        
+        // Only calculate if double drop is active
+        if (!doubleDropActive) {
+            return 0;
+        }
+        
         DoubleDropEvent doubleDropEvent = (DoubleDropEvent) events.get(EventType.DOUBLE_DROP);
         if (doubleDropEvent != null && doubleDropEvent.isActive()) {
             return doubleDropEvent.calculateBonusAmount(originalAmount);
@@ -240,7 +274,9 @@ public class EventManager {
     }
 
     public static boolean isDoubleDropActive() {
-        return isEventActive(EventType.DOUBLE_DROP);
+        // Update cache if needed
+        updateEventCache();
+        return doubleDropActive;
     }
 
     public static boolean isMiningContestActive() {
@@ -308,6 +344,29 @@ public class EventManager {
         }
     }
 
+    // Update event cache to avoid repeated checks
+    private static void updateEventCache() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastEventCheck > EVENT_CACHE_DURATION) {
+            hasActiveEvents = false;
+            doubleDropActive = false;
+            
+            // Check for any active events
+            for (BaseEvent event : events.values()) {
+                if (event.isActive()) {
+                    hasActiveEvents = true;
+                    // Specifically check for double drop event
+                    if (event.getEventType() == EventType.DOUBLE_DROP) {
+                        doubleDropActive = true;
+                    }
+                    // If we found active events and we've checked double drop, we can break early in some cases
+                }
+            }
+            
+            lastEventCheck = currentTime;
+        }
+    }
+
     private static void startCleanupTask() {
         int cleanupInterval = File.getEventConfig().getInt("performance.cleanup_interval", 300);
         if (cleanupInterval < 60) {
@@ -365,5 +424,8 @@ public class EventManager {
         if (foundExpiredEvent && File.getEventConfig().getBoolean("performance.detailed_logging", false)) {
             Storage.getStorage().getLogger().info("Event cleanup completed");
         }
+        
+        // Invalidate cache after cleanup
+        lastEventCheck = 0;
     }
 }

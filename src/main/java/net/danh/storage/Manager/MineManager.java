@@ -22,6 +22,10 @@ public class MineManager {
     public static HashMap<String, String> blocksdata = new HashMap<>();
     public static HashMap<String, String> blocksdrop = new HashMap<>();
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
+    
+    // Cache for NMS version checks to avoid repeated instantiation
+    private static Boolean isVersionLessThanOrEqualTo12 = null;
+    private static Boolean isVersionGreaterThanOrEqualTo13 = null;
 
     public static boolean isAutoPickupEnabled(@NotNull Player player) {
         if (!toggle.containsKey(player)) {
@@ -54,15 +58,19 @@ public class MineManager {
         List<String> orderedBlocks = new ArrayList<>();
         for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
-            NMSAssistant nms = new NMSAssistant();
             if (item_drop != null) {
+                // Cache NMS version check
+                if (isVersionLessThanOrEqualTo12 == null) {
+                    isVersionLessThanOrEqualTo12 = new NMSAssistant().isVersionLessThanOrEqualTo(12);
+                }
+                
                 if (!item_drop.contains(";")) {
                     String material = item_drop + ";0";
                     if (!orderedBlocks.contains(material)) {
                         orderedBlocks.add(material);
                     }
                 } else {
-                    if (nms.isVersionLessThanOrEqualTo(12)) {
+                    if (isVersionLessThanOrEqualTo12) {
                         String[] item_data = item_drop.split(";");
                         String item_material = item_data[0] + ";" + item_data[1];
                         if (!orderedBlocks.contains(item_material)) {
@@ -83,11 +91,9 @@ public class MineManager {
 
     public static void addPluginBlocks(String material) {
         blocksdata.put(material, material);
-
     }
 
     public static @NotNull PlayerData getPlayerDatabase(@NotNull Player player) {
-
         PlayerData playerStats = Storage.db.getData(player.getName());
 
         if (playerStats == null) {
@@ -258,15 +264,44 @@ public class MineManager {
         return optimizedAmounts;
     }
 
+    // Cache for getDrop to avoid repeated computation
+    private static String lastGetDropBlockType = null;
+    private static byte lastGetDropBlockData = -1;
+    private static String lastGetDropResult = null;
+    private static long lastGetDropTime = 0;
+    private static final long GET_DROP_CACHE_DURATION = 1000; // 1 second cache
+
     public static String getDrop(@NotNull Block block) {
         String blockType = block.getType().name();
+        byte blockData = block.getData();
+        
+        // Quick cache check for repeated same block types
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastGetDropTime < GET_DROP_CACHE_DURATION && 
+            blockType.equals(lastGetDropBlockType) && 
+            blockData == lastGetDropBlockData) {
+            return lastGetDropResult;
+        }
         
         // Normalize redstone ore variants to REDSTONE_ORE for consistent handling
         if ("LIT_REDSTONE_ORE".equals(blockType) || "GLOWING_REDSTONE_ORE".equals(blockType)) {
             blockType = "REDSTONE_ORE";
         }
         
-        return blocksdrop.get(blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
+        // Cache NMS version check
+        if (isVersionLessThanOrEqualTo12 == null) {
+            isVersionLessThanOrEqualTo12 = new NMSAssistant().isVersionLessThanOrEqualTo(12);
+        }
+        
+        String result = blocksdrop.get(blockType + ";" + (isVersionLessThanOrEqualTo12 ? blockData : "0"));
+        
+        // Update cache
+        lastGetDropBlockType = blockType;
+        lastGetDropBlockData = blockData;
+        lastGetDropResult = result;
+        lastGetDropTime = currentTime;
+        
+        return result;
     }
 
     public static void loadBlocks() {
@@ -278,13 +313,17 @@ public class MineManager {
         }
         for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
-            NMSAssistant nms = new NMSAssistant();
             if (item_drop != null) {
+                // Cache NMS version check
+                if (isVersionLessThanOrEqualTo12 == null) {
+                    isVersionLessThanOrEqualTo12 = new NMSAssistant().isVersionLessThanOrEqualTo(12);
+                }
+                
                 if (!item_drop.contains(";")) {
                     addPluginBlocks(item_drop + ";0");
                     blocksdrop.put(block_break, item_drop + ";0");
                 } else {
-                    if (nms.isVersionLessThanOrEqualTo(12)) {
+                    if (isVersionLessThanOrEqualTo12) {
                         String[] item_data = item_drop.split(";");
                         String item_material = item_data[0] + ";" + item_data[1];
                         addPluginBlocks(item_material);
@@ -299,28 +338,58 @@ public class MineManager {
         }
     }
 
+    // Cache for last checked block to avoid repeated checks for the same block type
+    private static String lastBlockType = null;
+    private static boolean lastCheckResult = false;
+    private static long lastCheckTime = 0;
+    private static final long CACHE_DURATION = 1000; // 1 second cache
+    
     public static boolean checkBreak(@NotNull Block block) {
         String blockType = block.getType().name();
+        
+        // Quick cache check for repeated same block types
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastCheckTime < CACHE_DURATION && blockType.equals(lastBlockType)) {
+            return lastCheckResult;
+        }
         
         // Normalize redstone ore variants to REDSTONE_ORE for consistent handling
         if ("LIT_REDSTONE_ORE".equals(blockType) || "GLOWING_REDSTONE_ORE".equals(blockType)) {
             blockType = "REDSTONE_ORE";
         }
         
-        String blockKey = blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0");
-        
-        if (File.getConfig().contains("blocks." + blockKey + ".drop")) {
-            return File.getConfig().getString("blocks." + blockKey + ".drop") != null;
-        } else if (File.getConfig().contains("blocks." + blockType + ".drop")) {
-            return File.getConfig().getString("blocks." + blockType + ".drop") != null;
+        // Cache NMS version check
+        if (isVersionLessThanOrEqualTo12 == null) {
+            isVersionLessThanOrEqualTo12 = new NMSAssistant().isVersionLessThanOrEqualTo(12);
         }
-        return false;
+        
+        String blockKey = blockType + ";" + (isVersionLessThanOrEqualTo12 ? block.getData() : "0");
+        
+        // Check for exact match first, then fallback to type-only match
+        boolean result = false;
+        if (blocksdrop.containsKey(blockKey)) {
+            result = true;
+        } else if (blocksdrop.containsKey(blockType + ";0")) {
+            result = true;
+        }
+        
+        // Update cache
+        lastBlockType = blockType;
+        lastCheckResult = result;
+        lastCheckTime = currentTime;
+        
+        return result;
     }
 
     public static String getMaterial(String material) {
         String material_data = material.replace(":", ";");
-        NMSAssistant nms = new NMSAssistant();
-        if (nms.isVersionGreaterThanOrEqualTo(13)) {
+        
+        // Cache NMS version check
+        if (isVersionGreaterThanOrEqualTo13 == null) {
+            isVersionGreaterThanOrEqualTo13 = new NMSAssistant().isVersionGreaterThanOrEqualTo(13);
+        }
+        
+        if (isVersionGreaterThanOrEqualTo13) {
             return material_data.split(";")[0] + ";0";
         } else {
             if (Number.getInteger(material_data.split(";")[1]) > 0) {
@@ -332,10 +401,19 @@ public class MineManager {
     }
 
     public static String getItemStackDrop(ItemStack item) {
+        // Quick check for null or air items
+        if (item == null || item.getType().name().equals("AIR")) {
+            return null;
+        }
+        
+        // Cache NMS version check
+        if (isVersionLessThanOrEqualTo12 == null) {
+            isVersionLessThanOrEqualTo12 = new NMSAssistant().isVersionLessThanOrEqualTo(12);
+        }
+        
         for (String drops : getPluginBlocks()) {
             if (drops != null) {
-                NMSAssistant nms = new NMSAssistant();
-                if (nms.isVersionLessThanOrEqualTo(12)) {
+                if (isVersionLessThanOrEqualTo12) {
                     Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops);
                     if (xMaterial.isPresent()) {
                         ItemStack itemStack = xMaterial.get().parseItem();
@@ -343,8 +421,7 @@ public class MineManager {
                             return drops;
                         }
                     }
-                }
-                if (drops.contains(";")) {
+                } else if (drops.contains(";")) {
                     Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops.split(";")[0]);
                     if (xMaterial.isPresent()) {
                         ItemStack itemStack = xMaterial.get().parseItem();
