@@ -130,7 +130,16 @@
 			<id>central</id>
 			<url>https://repo.maven.apache.org/maven2/</url>
 		</repository>
-	</repositories>
+        <repository>
+            <id>nexus</id>
+            <name>Lumine Releases</name>
+            <url>https://mvn.lumine.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>matteodev</id>
+            <url>https://maven.devs.beer/</url>
+        </repository>
+    </repositories>
 	
 	<dependencies>
 		<dependency>
@@ -154,10 +163,28 @@
 		<dependency>
 			<groupId>com.github.cryptomorin</groupId>
 			<artifactId>XSeries</artifactId>
-			<version>13.2.0</version>
+			<version>13.3.3</version>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>io.lumine</groupId>
+            <artifactId>Mythic-Dist</artifactId>
+            <version>5.6.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dev.lone</groupId>
+            <artifactId>api-itemsadder</artifactId>
+            <version>4.0.10</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.decentsoftware-eu</groupId>
+            <artifactId>decentholograms</artifactId>
+            <version>2.9.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
 			<groupId>org.codemc.worldguardwrapper</groupId>
 			<artifactId>worldguardwrapper</artifactId>
 			<version>1.2.1-SNAPSHOT</version>
