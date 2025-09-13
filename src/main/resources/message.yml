@@ -86,9 +86,14 @@ user:
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
     - "&e/Storage convert &f- &7Open convert materials GUI (require permission)"
+    - "&e/Storage view &a<player> &f- &7View player's storage (read-only)"
     - "&e/Storage transfer &a<player> &b<material> &f- &7Transfer material to player"
     - "&e/Storage transfer multi &a<player> &f- &7Transfer multiple materials to player"
     - "&e/Storage transfer log &a<player> &d<page> &f- &7View transfer history"
+view:
+  viewing_storage: "#prefix# &aViewing &e#player#'s &astorage"
+  storage_empty: "#prefix# &e#player# &cdoesn't have any items in storage"
+  no_permission_view: "#prefix# &cYou don't have permission to view other players' storage"
 transfer:
   success_send: "#prefix# &aSuccessfully transferred &6#amount#&r #material# &ato &e#player#"
   success_receive: "#prefix# &aReceived &6#amount#&r #material# &afrom &e#player#"

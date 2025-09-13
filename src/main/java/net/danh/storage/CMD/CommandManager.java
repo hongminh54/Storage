@@ -6,6 +6,7 @@ import net.danh.storage.CMD.handler.user.ConvertOreCommand;
 import net.danh.storage.CMD.handler.user.HelpCommand;
 import net.danh.storage.CMD.handler.user.ToggleCommand;
 import net.danh.storage.CMD.handler.user.TransferCommand;
+import net.danh.storage.CMD.handler.user.ViewCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -23,6 +24,7 @@ public class CommandManager {
     private void registerCommands() {
         registerCommand("help", new HelpCommand());
         registerCommand("toggle", new ToggleCommand());
+        registerCommand("view", new ViewCommand());
         registerCommand("transfer", new TransferCommand());
         registerCommand("convert", new ConvertOreCommand());
 

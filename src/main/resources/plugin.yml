@@ -62,3 +62,6 @@ permissions:
   storage.convert:
     description: Use convert materials feature
     default: op
+  storage.view:
+    description: View other players' storage
+    default: true
