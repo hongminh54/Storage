@@ -2,5 +2,6 @@
 /target/
 /.idea/
 *.iml
-update.txts
+update.txt
 .vscode/
+mythiclib
