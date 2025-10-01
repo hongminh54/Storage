@@ -48,6 +48,10 @@ public class File {
         return getFileSetting().get("GUI/view-storage.yml");
     }
 
+    public static FileConfiguration getMythicStorageGUIConfig() {
+        return getFileSetting().get("GUI/mythicstorage.yml");
+    }
+
     public static FileConfiguration getEventConfig() {
         return getFileSetting().get("events.yml");
     }
@@ -60,13 +64,17 @@ public class File {
         return getFileSetting().get("special_material.yml");
     }
 
+    public static FileConfiguration getMythicStorageConfig() {
+        return getFileSetting().get("mythicstorage.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -76,7 +84,7 @@ public class File {
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml");
     }
 
     public static void updateConfig() {
@@ -179,8 +187,8 @@ public class File {
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "special_material.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("special_material.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_specialMaterialVersion = defaultConfig.getInt("special_materials_version");
-        int current_specialMaterialVersion = currentConfig.contains("special_materials_version") ? currentConfig.getInt("special_materials_version") : 0;
+        int default_specialMaterialVersion = defaultConfig.getInt("special_material_version");
+        int current_specialMaterialVersion = currentConfig.contains("special_material_version") ? currentConfig.getInt("special_material_version") : 0;
         if (default_specialMaterialVersion > current_specialMaterialVersion || default_specialMaterialVersion < current_specialMaterialVersion) {
             Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config is updating...");
             try {
@@ -192,6 +200,25 @@ public class File {
             }
             getFileSetting().reload("special_material.yml");
             SpecialMaterialManager.loadSpecialMaterials();
+        }
+    }
+
+    public static void updateMythicStorageConfig() {
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "mythicstorage.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("mythicstorage.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_mythicStorageVersion = defaultConfig.getInt("mythicstorage_version");
+        int current_mythicStorageVersion = currentConfig.contains("mythicstorage_version") ? currentConfig.getInt("mythicstorage_version") : 0;
+        if (default_mythicStorageVersion > current_mythicStorageVersion || default_mythicStorageVersion < current_mythicStorageVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config is updating...");
+            try {
+                ConfigUpdater.update(Storage.getStorage(), "mythicstorage.yml", configFile);
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config have been updated successful");
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update mythicstorage config by it self, please backup and rename your mythicstorage config then restart to get newest config!!");
+                e.printStackTrace();
+            }
+            getFileSetting().reload("mythicstorage.yml");
         }
     }
 

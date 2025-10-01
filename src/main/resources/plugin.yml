@@ -10,11 +10,17 @@ provides:
 softdepend:
   - WorldGuard
   - PlaceholderAPI
+  - MythicMobs
 commands:
   storage:
     description: Main command
     aliases:
       - kho
+  mythicstorage:
+    description: MythicMobs storage command
+    aliases:
+      - mstorage
+      - mythics
 permissions:
   storage.toggle:
     description: Toggle permission
@@ -64,4 +70,13 @@ permissions:
     default: op
   storage.view:
     description: View other players' storage
+    default: true
+  storage.mythicstorage.toggle:
+    description: Toggle MythicMobs auto-pickup
+    default: true
+  storage.mythicstorage.view:
+    description: View other players' MythicMobs storage
+    default: op
+  storage.mythicstorage.use:
+    description: Use MythicMobs storage feature
     default: true

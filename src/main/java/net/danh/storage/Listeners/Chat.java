@@ -2,9 +2,12 @@ package net.danh.storage.Listeners;
 
 import net.danh.storage.Action.ConvertOre;
 import net.danh.storage.Action.Deposit;
+import net.danh.storage.Action.MythicDeposit;
+import net.danh.storage.Action.MythicWithdraw;
 import net.danh.storage.Action.Sell;
 import net.danh.storage.Action.Withdraw;
 import net.danh.storage.GUI.ConvertOptionGUI;
+import net.danh.storage.GUI.MythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
 import net.danh.storage.Manager.SoundManager;
@@ -28,6 +31,8 @@ public class Chat implements Listener {
     public static HashMap<Player, String> chat_deposit = new HashMap<>();
     public static HashMap<Player, String> chat_withdraw = new HashMap<>();
     public static HashMap<Player, String> chat_sell = new HashMap<>();
+    public static HashMap<Player, String> chat_mythic_withdraw = new HashMap<>();
+    public static HashMap<Player, String> chat_mythic_deposit = new HashMap<>();
     public static HashMap<Player, String> chat_convert_from = new HashMap<>();
     public static HashMap<Player, String> chat_convert_to = new HashMap<>();
     public static HashMap<Player, Integer> chat_return_page = new HashMap<>();
@@ -75,6 +80,36 @@ public class Chat implements Listener {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_sell.remove(p);
+            chat_return_page.remove(p);
+            e.setCancelled(true);
+        }
+
+        if (chat_mythic_withdraw.containsKey(p) && chat_mythic_withdraw.get(p) != null) {
+            if (Number.getInteger(message) > 0) {
+                new MythicWithdraw(p, chat_mythic_withdraw.get(p), (long) Number.getInteger(message)).doAction();
+                SoundManager.playChatDepositSound(p);
+                int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+            }
+            chat_mythic_withdraw.remove(p);
+            chat_return_page.remove(p);
+            e.setCancelled(true);
+        }
+
+        if (chat_mythic_deposit.containsKey(p) && chat_mythic_deposit.get(p) != null) {
+            if (Number.getInteger(message) > 0) {
+                new MythicDeposit(p, chat_mythic_deposit.get(p), (long) Number.getInteger(message)).doAction();
+                SoundManager.playChatDepositSound(p);
+                int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
+                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+            }
+            chat_mythic_deposit.remove(p);
             chat_return_page.remove(p);
             e.setCancelled(true);
         }
