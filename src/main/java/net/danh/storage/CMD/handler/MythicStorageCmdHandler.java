@@ -47,7 +47,7 @@ public class MythicStorageCmdHandler {
                 break;
             default:
                 sender.sendMessage(Chat.colorize(getMessage("admin.unknown_command")
-                    .replace("#command#", subCommand)));
+                        .replace("#command#", subCommand)));
                 break;
         }
     }
@@ -67,9 +67,9 @@ public class MythicStorageCmdHandler {
         boolean currentStatus = MythicStorageManager.getToggleStatus(player);
         MythicStorageManager.setToggleStatus(player, !currentStatus);
 
-        String message = !currentStatus 
-            ? getMessage("enabled")
-            : getMessage("disabled");
+        String message = !currentStatus
+                ? getMessage("enabled")
+                : getMessage("disabled");
 
         if (!message.isEmpty()) {
             player.sendMessage(Chat.colorize(message));
@@ -90,7 +90,7 @@ public class MythicStorageCmdHandler {
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null || !target.isOnline()) {
             String message = getMessage("player_not_found")
-                .replace("#player#", args[1]);
+                    .replace("#player#", args[1]);
             sender.sendMessage(Chat.colorize(message));
             return;
         }
@@ -168,11 +168,11 @@ public class MythicStorageCmdHandler {
         }
 
         MythicStorageManager.addItemAmount(target, itemName, amount);
-        
+
         String message = getMessage("admin.add_success")
-            .replace("#amount#", String.valueOf(amount))
-            .replace("#item#", itemName)
-            .replace("#player#", target.getName());
+                .replace("#amount#", String.valueOf(amount))
+                .replace("#item#", itemName)
+                .replace("#player#", target.getName());
         sender.sendMessage(Chat.colorize(message));
     }
 
@@ -209,17 +209,17 @@ public class MythicStorageCmdHandler {
         int currentAmount = MythicStorageManager.getPlayerItem(target, itemName);
         if (currentAmount < amount) {
             sender.sendMessage(Chat.colorize(getMessage("admin.not_enough_items")
-                .replace("#player#", target.getName())
-                .replace("#item#", itemName)));
+                    .replace("#player#", target.getName())
+                    .replace("#item#", itemName)));
             return;
         }
 
         MythicStorageManager.removeItemAmount(target, itemName, amount);
-        
+
         String message = getMessage("admin.remove_success")
-            .replace("#amount#", String.valueOf(amount))
-            .replace("#item#", itemName)
-            .replace("#player#", target.getName());
+                .replace("#amount#", String.valueOf(amount))
+                .replace("#item#", itemName)
+                .replace("#player#", target.getName());
         sender.sendMessage(Chat.colorize(message));
     }
 
@@ -254,11 +254,11 @@ public class MythicStorageCmdHandler {
         }
 
         MythicStorageManager.setItemAmount(target, itemName, amount);
-        
+
         String message = getMessage("admin.set_success")
-            .replace("#amount#", String.valueOf(amount))
-            .replace("#item#", itemName)
-            .replace("#player#", target.getName());
+                .replace("#amount#", String.valueOf(amount))
+                .replace("#item#", itemName)
+                .replace("#player#", target.getName());
         sender.sendMessage(Chat.colorize(message));
     }
 
@@ -280,30 +280,30 @@ public class MythicStorageCmdHandler {
                 sender.sendMessage(Chat.colorize(getMessage("invalid_item").replace("#item#", itemName)));
                 return;
             }
-            
+
             MythicStorageManager.setItemAmount(target, itemName, 0);
-            
+
             String message = getMessage("admin.reset_item_success")
-                .replace("#item#", itemName)
-                .replace("#player#", target.getName());
+                    .replace("#item#", itemName)
+                    .replace("#player#", target.getName());
             sender.sendMessage(Chat.colorize(message));
-            
+
             if (target.isOnline()) {
                 target.sendMessage(Chat.colorize(getMessage("admin.reset_notify")
-                    .replace("#player#", sender.getName())));
+                        .replace("#player#", sender.getName())));
             }
         } else {
             for (String itemName : MythicStorageManager.getConfiguredDrops()) {
                 MythicStorageManager.setItemAmount(target, itemName, 0);
             }
-            
+
             String message = getMessage("admin.reset_all_success")
-                .replace("#player#", target.getName());
+                    .replace("#player#", target.getName());
             sender.sendMessage(Chat.colorize(message));
-            
+
             if (target.isOnline()) {
                 target.sendMessage(Chat.colorize(getMessage("admin.reset_notify")
-                    .replace("#player#", sender.getName())));
+                        .replace("#player#", sender.getName())));
             }
         }
     }
@@ -319,11 +319,11 @@ public class MythicStorageCmdHandler {
         sender.sendMessage(Chat.colorize(getMessage("help_title")));
         sender.sendMessage(Chat.colorize(getMessage("help_main")));
         sender.sendMessage(Chat.colorize(getMessage("help_toggle")));
-        
+
         if (sender.hasPermission("storage.mythicstorage.view")) {
             sender.sendMessage(Chat.colorize(getMessage("help_view")));
         }
-        
+
         if (sender.hasPermission("storage.admin")) {
             sender.sendMessage(Chat.colorize(getMessage("help_admin_add")));
             sender.sendMessage(Chat.colorize(getMessage("help_admin_remove")));
@@ -331,7 +331,7 @@ public class MythicStorageCmdHandler {
             sender.sendMessage(Chat.colorize(getMessage("help_admin_reset")));
             sender.sendMessage(Chat.colorize(getMessage("help_admin_reload")));
         }
-        
+
         sender.sendMessage(Chat.colorize(getMessage("help_help")));
         sender.sendMessage(Chat.colorize(getMessage("help_footer")));
     }
@@ -356,7 +356,7 @@ public class MythicStorageCmdHandler {
                 }
                 return filterCompletions(completions, args[1]);
             }
-            
+
             if (args[0].equalsIgnoreCase("admin") && sender.hasPermission("storage.admin")) {
                 completions.add("add");
                 completions.add("remove");
@@ -368,8 +368,8 @@ public class MythicStorageCmdHandler {
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("admin")) {
-            if (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove") || 
-                args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reset")) {
+            if (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove") ||
+                    args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reset")) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     completions.add(player.getName());
                 }
@@ -378,8 +378,8 @@ public class MythicStorageCmdHandler {
         }
 
         if (args.length == 4 && args[0].equalsIgnoreCase("admin")) {
-            if (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove") || 
-                args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reset")) {
+            if (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove") ||
+                    args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reset")) {
                 completions.addAll(MythicStorageManager.getConfiguredDrops());
                 return filterCompletions(completions, args[3]);
             }
@@ -391,13 +391,13 @@ public class MythicStorageCmdHandler {
     private List<String> filterCompletions(List<String> completions, String input) {
         List<String> filtered = new ArrayList<>();
         String lowerInput = input.toLowerCase();
-        
+
         for (String completion : completions) {
             if (completion.toLowerCase().startsWith(lowerInput)) {
                 filtered.add(completion);
             }
         }
-        
+
         return filtered;
     }
 

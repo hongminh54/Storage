@@ -90,12 +90,12 @@ public class MythicMobsHelper {
             }
 
             Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] Attempting to get item: " + itemName);
-            
+
             // Try getItemStack method (common for all versions)
             try {
                 Method getItemStack = itemManager.getClass().getMethod("getItemStack", String.class);
                 ItemStack result = (ItemStack) getItemStack.invoke(itemManager, itemName);
-                
+
                 if (result != null) {
                     Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] ✓ Found item via getItemStack: " + itemName);
                     return result;
@@ -103,12 +103,12 @@ public class MythicMobsHelper {
             } catch (NoSuchMethodException e) {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItemStack method not found, trying alternatives...");
             }
-            
+
             // Try getItem + generateItemStack for newer versions
             try {
                 Method getItem = itemManager.getClass().getMethod("getItem", String.class);
                 Object item = getItem.invoke(itemManager, itemName);
-                
+
                 if (item != null) {
                     // Try to get ItemStack from MythicItem
                     try {
@@ -123,10 +123,10 @@ public class MythicMobsHelper {
                 }
             } catch (Exception ignored) {
             }
-            
+
             Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × Item not found: " + itemName);
             return null;
-            
+
         } catch (Exception e) {
             Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error getting item '" + itemName + "': " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return null;
@@ -178,9 +178,9 @@ public class MythicMobsHelper {
 
     public boolean isValidMythicItem(@NotNull String itemName) {
         if (!initialized) return false;
-        
+
         Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] Validating item: " + itemName);
-        
+
         try {
             Object itemManager = getItemManager();
             if (itemManager == null) {
@@ -192,7 +192,7 @@ public class MythicMobsHelper {
             try {
                 Method getItem = itemManager.getClass().getMethod("getItem", String.class);
                 Object item = getItem.invoke(itemManager, itemName);
-                
+
                 if (item != null) {
                     Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via getItem: " + itemName);
                     return true;
@@ -200,12 +200,12 @@ public class MythicMobsHelper {
             } catch (NoSuchMethodException e) {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItem method not available");
             }
-            
+
             // Method 2: Try getItemOptional (MM 5.x)
             try {
                 Method getItemOptional = itemManager.getClass().getMethod("getItemOptional", String.class);
                 Object optional = getItemOptional.invoke(itemManager, itemName);
-                
+
                 if (optional instanceof Optional) {
                     boolean present = ((Optional<?>) optional).isPresent();
                     if (present) {
@@ -216,7 +216,7 @@ public class MythicMobsHelper {
             } catch (NoSuchMethodException e) {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItemOptional method not available");
             }
-            
+
             // Method 3: Try contains/has method
             try {
                 Method hasItem = itemManager.getClass().getMethod("hasItem", String.class);
@@ -228,19 +228,19 @@ public class MythicMobsHelper {
             } catch (NoSuchMethodException e) {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] hasItem method not available");
             }
-            
+
             // Method 4: Last resort - try to get ItemStack
             ItemStack testStack = getMythicItem(itemName);
             if (testStack != null) {
                 Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via getMythicItem: " + itemName);
                 return true;
             }
-            
+
             Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × Item validation failed for: " + itemName);
             Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Available methods in ItemManager: " + Arrays.toString(itemManager.getClass().getMethods()));
-            
+
             return false;
-            
+
         } catch (Exception e) {
             Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Exception validating item '" + itemName + "': " + e.getClass().getSimpleName() + " - " + e.getMessage());
             e.printStackTrace();
@@ -252,24 +252,24 @@ public class MythicMobsHelper {
     private Object getItemManager() {
         // Try multiple possible main class paths for different MM versions
         String[] possibleMainClasses = {
-            "io.lumine.mythic.bukkit.MythicBukkit",              // MM 5.x Free
-            "io.lumine.mythic.core.MythicMobs",                  // MM 5.x Premium
-            "io.lumine.xikage.mythicmobs.MythicMobs",            // MM 4.x
-            "io.lumine.mythic.MythicMobs"                        // Fallback
+                "io.lumine.mythic.bukkit.MythicBukkit",              // MM 5.x Free
+                "io.lumine.mythic.core.MythicMobs",                  // MM 5.x Premium
+                "io.lumine.xikage.mythicmobs.MythicMobs",            // MM 4.x
+                "io.lumine.mythic.MythicMobs"                        // Fallback
         };
 
         for (String mainClass : possibleMainClasses) {
             try {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] Trying main class: " + mainClass);
                 Class<?> mmClass = Class.forName(mainClass);
-                
+
                 // Try inst() method (most common)
                 try {
                     Method instMethod = mmClass.getMethod("inst");
                     Object mmInstance = instMethod.invoke(null);
                     Method getItemManager = mmInstance.getClass().getMethod("getItemManager");
                     Object itemManager = getItemManager.invoke(mmInstance);
-                    
+
                     if (itemManager != null) {
                         Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Got ItemManager from: " + mainClass);
                         return itemManager;
@@ -281,7 +281,7 @@ public class MythicMobsHelper {
                         Object mmInstance = getInstance.invoke(null);
                         Method getItemManager = mmInstance.getClass().getMethod("getItemManager");
                         Object itemManager = getItemManager.invoke(mmInstance);
-                        
+
                         if (itemManager != null) {
                             Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Got ItemManager from: " + mainClass);
                             return itemManager;
@@ -295,7 +295,7 @@ public class MythicMobsHelper {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] × Failed to get ItemManager from " + mainClass + ": " + e.getMessage());
             }
         }
-        
+
         Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × Failed to get ItemManager from any known MythicMobs class");
         return null;
     }

@@ -1,6 +1,5 @@
 package net.danh.storage.Listeners;
 
-import net.danh.storage.Listeners.MythicMobDeath;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Storage;
 import org.bukkit.event.EventHandler;
@@ -15,10 +14,10 @@ public class MythicMobsLoadListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPluginEnable(PluginEnableEvent event) {
         if (initialized) return;
-        
+
         if (event.getPlugin().getName().equals("MythicMobs")) {
             Storage.getStorage().getLogger().info("[MythicStorage] Detected MythicMobs plugin enabled, initializing MythicStorage...");
-            
+
             // Initialize MythicStorage after MythicMobs is fully loaded
             initializeMythicStorage();
             initialized = true;
@@ -28,7 +27,7 @@ public class MythicMobsLoadListener implements Listener {
     public void initializeMythicStorage() {
         try {
             MythicStorageManager.initialize();
-            
+
             if (MythicStorageManager.isSystemEnabled()) {
                 MythicMobDeath.registerListener(Storage.getStorage());
                 Storage.getStorage().getLogger().info("[MythicStorage] Successfully initialized after MythicMobs load");

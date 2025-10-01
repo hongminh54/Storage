@@ -1,11 +1,6 @@
 package net.danh.storage.Listeners;
 
-import net.danh.storage.Action.ConvertOre;
-import net.danh.storage.Action.Deposit;
-import net.danh.storage.Action.MythicDeposit;
-import net.danh.storage.Action.MythicWithdraw;
-import net.danh.storage.Action.Sell;
-import net.danh.storage.Action.Withdraw;
+import net.danh.storage.Action.*;
 import net.danh.storage.GUI.ConvertOptionGUI;
 import net.danh.storage.GUI.MythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
@@ -86,7 +81,7 @@ public class Chat implements Listener {
 
         if (chat_mythic_withdraw.containsKey(p) && chat_mythic_withdraw.get(p) != null) {
             if (Number.getInteger(message) > 0) {
-                new MythicWithdraw(p, chat_mythic_withdraw.get(p), (long) Number.getInteger(message)).doAction();
+                new MythicWithdraw(p, chat_mythic_withdraw.get(p), Number.getInteger(message)).doAction();
                 SoundManager.playChatDepositSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
                 Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
@@ -101,7 +96,7 @@ public class Chat implements Listener {
 
         if (chat_mythic_deposit.containsKey(p) && chat_mythic_deposit.get(p) != null) {
             if (Number.getInteger(message) > 0) {
-                new MythicDeposit(p, chat_mythic_deposit.get(p), (long) Number.getInteger(message)).doAction();
+                new MythicDeposit(p, chat_mythic_deposit.get(p), Number.getInteger(message)).doAction();
                 SoundManager.playChatDepositSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
                 Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));

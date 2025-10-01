@@ -160,7 +160,7 @@ public class MythicStorageManager {
             if (part.startsWith("mythic:")) {
                 String mythicData = part.substring(7);
                 if (mythicData.isEmpty()) continue;
-                
+
                 String[] items = mythicData.split(",");
                 for (String item : items) {
                     if (item.isEmpty()) continue;
@@ -209,7 +209,7 @@ public class MythicStorageManager {
         StringBuilder finalData = new StringBuilder();
         if (existingDataString != null && !existingDataString.isEmpty()) {
             String[] existingParts = existingDataString.split(";");
-            
+
             for (String part : existingParts) {
                 if (!part.startsWith("mythic:") && !part.startsWith("mythictoggle:") && !part.isEmpty()) {
                     if (finalData.length() > 0) {
@@ -234,9 +234,9 @@ public class MythicStorageManager {
             finalData.append("mythictoggle:").append(toggle.get(player));
         }
 
-        int maxStorage = playerMaxData.getOrDefault(player, 
-            File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
-        
+        int maxStorage = playerMaxData.getOrDefault(player,
+                File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
+
         boolean autoPickup = MineManager.getToggleStatus(player);
 
         PlayerData newData = new PlayerData(playerName, finalData.toString(), maxStorage, autoPickup);
@@ -258,14 +258,14 @@ public class MythicStorageManager {
     public static HashMap<String, Integer> getPlayerAllItems(@NotNull Player player) {
         HashMap<String, Integer> items = new HashMap<>();
         String playerName = player.getName();
-        
+
         for (String drop : configuredDrops) {
             String key = playerName + "_" + drop;
             if (playerData.containsKey(key)) {
                 items.put(drop, playerData.get(key));
             }
         }
-        
+
         return items;
     }
 }

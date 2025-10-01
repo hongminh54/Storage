@@ -31,16 +31,16 @@ public class MythicDeposit {
         ItemStack[] contents = inv.getContents();
         long deposited = 0;
         long toDeposit = amount;
-        
+
         for (int i = 0; i < contents.length && toDeposit > 0; i++) {
             ItemStack item = contents[i];
             if (item == null) continue;
-            
+
             String foundItemName = helper.getMythicItemInternalName(item);
             if (foundItemName != null && foundItemName.equals(itemName)) {
                 int itemAmount = item.getAmount();
                 int canDeposit = (int) Math.min(itemAmount, toDeposit);
-                
+
                 if (MythicStorageManager.addItemAmount(player, itemName, canDeposit)) {
                     if (canDeposit == itemAmount) {
                         contents[i] = null;
@@ -51,26 +51,26 @@ public class MythicDeposit {
                     toDeposit -= canDeposit;
                 } else {
                     player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.deposit.full_storage")
-                        .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
-                        .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)))
-                        .replace("#amount#", String.valueOf(canDeposit))
-                        .replace("#material#", itemName)));
+                            .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
+                            .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)))
+                            .replace("#amount#", String.valueOf(canDeposit))
+                            .replace("#material#", itemName)));
                     break;
                 }
             }
         }
-        
+
         if (deposited > 0) {
             inv.setContents(contents);
             if (new NMSAssistant().isVersionLessThan(9)) {
                 player.updateInventory();
             }
-            
+
             String message = File.getMessage().getString("mythicstorage.action.deposit.deposit_item")
-                .replace("#amount#", String.valueOf(deposited))
-                .replace("#material#", itemName)
-                .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
-                .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
+                    .replace("#amount#", String.valueOf(deposited))
+                    .replace("#material#", itemName)
+                    .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
+                    .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
             player.sendMessage(Chat.colorize(message));
         } else {
             player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.deposit.no_items")));

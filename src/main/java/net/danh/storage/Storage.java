@@ -1,16 +1,11 @@
 package net.danh.storage;
 
 import net.danh.storage.API.StorageAPI;
-import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.CMD.MythicStorageCMD;
+import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
 import net.danh.storage.GUI.GUI;
-import net.danh.storage.Listeners.BlockBreak;
-import net.danh.storage.Listeners.BlockPlace;
-import net.danh.storage.Listeners.Chat;
-import net.danh.storage.Listeners.JoinQuit;
-import net.danh.storage.Listeners.MythicMobDeath;
-import net.danh.storage.Listeners.MythicMobsLoadListener;
+import net.danh.storage.Listeners.*;
 import net.danh.storage.Manager.*;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Placeholder.PAPI;
@@ -93,10 +88,10 @@ public final class Storage extends JavaPlugin {
         EventManager.initialize();
         EnchantManager.loadEnchants();
         SpecialMaterialManager.loadSpecialMaterials();
-        
+
         // Initialize MythicStorage with delayed loading support
         initializeMythicStorage();
-        
+
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
@@ -128,12 +123,12 @@ public final class Storage extends JavaPlugin {
 
     private void initializeMythicStorage() {
         // Check if MythicMobs is already loaded
-        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null 
-            && Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
-            
+        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null
+                && Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
+
             getLogger().info("[MythicStorage] MythicMobs is already loaded, initializing immediately...");
             MythicStorageManager.initialize();
-            
+
             if (MythicStorageManager.isSystemEnabled()) {
                 MythicMobDeath.registerListener(this);
             }

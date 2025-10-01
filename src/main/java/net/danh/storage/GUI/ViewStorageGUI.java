@@ -1,20 +1,5 @@
 package net.danh.storage.GUI;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
-
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
@@ -24,6 +9,14 @@ import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 
 public class ViewStorageGUI implements IGUI {
 
@@ -59,13 +52,13 @@ public class ViewStorageGUI implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(viewer, config, "gui_open_sound", context);
-        
+
         // Create inventory with target player's name
         String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
                 .replace("#player#", target.getName()));
-        
+
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
-        
+
         List<String> item_list = new ArrayList<>(MineManager.getOrderedPluginBlocks());
         int itemsPerPage = Objects.requireNonNull(config.getString("items.storage_item.slot")).split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) item_list.size() / itemsPerPage));
@@ -83,7 +76,7 @@ public class ViewStorageGUI implements IGUI {
 
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
-            
+
             if (item_tag.equalsIgnoreCase("storage_item")) {
                 setupStorageItems(inventory, slot, item_list, itemsPerPage);
             } else if (item_tag.equalsIgnoreCase("previous_page")) {
@@ -118,7 +111,7 @@ public class ViewStorageGUI implements IGUI {
     }
 
     private ItemStack getNavigationItem(String itemTag, int currentPage, int totalPages) {
-        return ItemManager.getItemConfigWithPlaceholders(viewer, 
+        return ItemManager.getItemConfigWithPlaceholders(viewer,
                 Objects.requireNonNull(config.getConfigurationSection("items." + itemTag)),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
@@ -129,20 +122,20 @@ public class ViewStorageGUI implements IGUI {
             List<String> slot_list = new ArrayList<>(Arrays.asList(slot.split(",")));
             int startIndex = currentPage * itemsPerPage;
             int endIndex = Math.min(startIndex + itemsPerPage, item_list.size());
-            
+
             for (int i = startIndex; i < endIndex; i++) {
                 int slotIndex = i - startIndex;
                 if (slotIndex < slot_list.size()) {
                     String material = MineManager.getMaterial(item_list.get(i));
                     String name = File.getConfig().getString("items." + item_list.get(i));
-                    
+
                     // Use target player's data for item amount
-                    ItemStack itemStack = ItemManager.getItemConfig(target, material, 
-                            name != null ? name : item_list.get(i).split(";")[0], 
+                    ItemStack itemStack = ItemManager.getItemConfig(target, material,
+                            name != null ? name : item_list.get(i).split(";")[0],
                             config.getConfigurationSection("items.storage_item"));
-                    
+
                     // Make item read-only - no click action
-                    InteractiveItem interactiveItem = new InteractiveItem(itemStack, 
+                    InteractiveItem interactiveItem = new InteractiveItem(itemStack,
                             Number.getInteger(slot_list.get(slotIndex)));
                     inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                 }
@@ -155,12 +148,12 @@ public class ViewStorageGUI implements IGUI {
             ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
             if (prevPageItem != null) {
                 InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot))
-                    .onClick((player, clickType) -> {
-                        SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
-                        SoundManager.setShouldPlayCloseSound(player, false);
-                        player.openInventory(new ViewStorageGUI(viewer, target, currentPage - 1)
-                                .getInventory(SoundContext.SILENT));
-                    });
+                        .onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            player.openInventory(new ViewStorageGUI(viewer, target, currentPage - 1)
+                                    .getInventory(SoundContext.SILENT));
+                        });
                 inventory.setItem(item.getSlot(), item);
             }
         }
@@ -171,12 +164,12 @@ public class ViewStorageGUI implements IGUI {
             ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
             if (nextPageItem != null) {
                 InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot))
-                    .onClick((player, clickType) -> {
-                        SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
-                        SoundManager.setShouldPlayCloseSound(player, false);
-                        player.openInventory(new ViewStorageGUI(viewer, target, currentPage + 1)
-                                .getInventory(SoundContext.SILENT));
-                    });
+                        .onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            player.openInventory(new ViewStorageGUI(viewer, target, currentPage + 1)
+                                    .getInventory(SoundContext.SILENT));
+                        });
                 inventory.setItem(item.getSlot(), item);
             }
         }
@@ -186,7 +179,7 @@ public class ViewStorageGUI implements IGUI {
         ItemStack viewInfoItem = ItemManager.getItemConfigWithPlaceholders(viewer,
                 Objects.requireNonNull(config.getConfigurationSection("items.view_info")),
                 "#player#", target.getName());
-        
+
         InteractiveItem item = new InteractiveItem(viewInfoItem, Number.getInteger(slot));
         inventory.setItem(item.getSlot(), item);
     }
@@ -194,19 +187,19 @@ public class ViewStorageGUI implements IGUI {
     private void setupBackButton(Inventory inventory, String slot) {
         ItemStack backItem = ItemManager.getItemConfig(
                 Objects.requireNonNull(config.getConfigurationSection("items.back_button")));
-        
+
         InteractiveItem item = new InteractiveItem(backItem, Number.getInteger(slot))
-            .onClick((player, clickType) -> {
-                SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
-                SoundManager.setShouldPlayCloseSound(player, false);
-                // Open viewer's personal storage
-                int viewerCurrentPage = PersonalStorage.getPlayerCurrentPage(viewer);
-                player.openInventory(new PersonalStorage(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
-            });
+                .onClick((player, clickType) -> {
+                    SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
+                    SoundManager.setShouldPlayCloseSound(player, false);
+                    // Open viewer's personal storage
+                    int viewerCurrentPage = PersonalStorage.getPlayerCurrentPage(viewer);
+                    player.openInventory(new PersonalStorage(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
+                });
         inventory.setItem(item.getSlot(), item);
     }
 
-    private void setupDecorativeItems(Inventory inventory, String slot, String item_tag, 
+    private void setupDecorativeItems(Inventory inventory, String slot, String item_tag,
                                       boolean hasMultiplePages, Set<Integer> navigationSlots) {
         if (slot.contains(",")) {
             for (String slot_string : slot.split(",")) {

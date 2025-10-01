@@ -1,14 +1,13 @@
 package net.danh.storage.CMD.handler.user;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.danh.storage.CMD.handler.BaseCommand;
+import net.danh.storage.GUI.ViewStorageGUI;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.GUI.ViewStorageGUI;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViewCommand extends BaseCommand {
 
@@ -45,12 +44,12 @@ public class ViewCommand extends BaseCommand {
     @Override
     public List<String> getTabCompletions(CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
-        
+
         if (args.length == 1) {
             List<String> playerNames = getOnlinePlayerNames();
             StringUtil.copyPartialMatches(args[0], playerNames, completions);
         }
-        
+
         return completions;
     }
 
