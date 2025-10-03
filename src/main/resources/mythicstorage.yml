@@ -2,11 +2,12 @@ mythicstorage_version: 1
 
 settings:
   enabled: true
-  default_max_storage: 100000
+  default_max_storage: 5000
   default_auto_pickup: false
-  
+
 storage_full_notification:
   enabled: true
   cooldown_seconds: 10
 
-items_drop: []
+items_drop:
+  - test

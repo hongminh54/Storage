@@ -1,5 +1,6 @@
 package net.danh.storage.MythicMobs;
 
+import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Storage;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
@@ -91,7 +92,6 @@ public class MythicMobsHelper {
 
             Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] Attempting to get item: " + itemName);
 
-            // Try getItemStack method (common for all versions)
             try {
                 Method getItemStack = itemManager.getClass().getMethod("getItemStack", String.class);
                 ItemStack result = (ItemStack) getItemStack.invoke(itemManager, itemName);
@@ -104,13 +104,11 @@ public class MythicMobsHelper {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItemStack method not found, trying alternatives...");
             }
 
-            // Try getItem + generateItemStack for newer versions
             try {
                 Method getItem = itemManager.getClass().getMethod("getItem", String.class);
                 Object item = getItem.invoke(itemManager, itemName);
 
                 if (item != null) {
-                    // Try to get ItemStack from MythicItem
                     try {
                         Method generateItemStack = item.getClass().getMethod("generateItemStack");
                         ItemStack result = (ItemStack) generateItemStack.invoke(item);
@@ -133,47 +131,99 @@ public class MythicMobsHelper {
         }
     }
 
+    private String stripAllColors(String text) {
+        if (text == null) return null;
+        text = text.replaceAll("§x(§[0-9a-fA-F]){6}", "");
+        text = text.replaceAll("§[0-9a-fk-orA-FK-OR]", "");
+        text = text.replaceAll("&x(&[0-9a-fA-F]){6}", "");
+        text = text.replaceAll("&[0-9a-fk-orA-FK-OR]", "");
+        return text;
+    }
+
     @Nullable
     public String getMythicItemInternalName(@NotNull ItemStack item) {
         if (!initialized || item == null) return null;
+
         try {
             if (!item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
                 return null;
             }
 
             String displayName = item.getItemMeta().getDisplayName();
+            String strippedDisplayName = stripAllColors(displayName);
+
             Object itemManager = getItemManager();
             if (itemManager == null) return null;
 
             Method getItems = itemManager.getClass().getMethod("getItems");
             Object itemsCollection = getItems.invoke(itemManager);
 
-            if (itemsCollection instanceof Iterable) {
+            if (!(itemsCollection instanceof Iterable)) return null;
+
+            List<String> configuredDrops = MythicStorageManager.getConfiguredDrops();
+
+            if (configuredDrops != null && !configuredDrops.isEmpty()) {
                 for (Object mythicItem : (Iterable<?>) itemsCollection) {
-                    String mythicDisplayName = null;
                     try {
+                        Method getInternalName = mythicItem.getClass().getMethod("getInternalName");
+                        String internalName = (String) getInternalName.invoke(mythicItem);
+
+                        if (!configuredDrops.contains(internalName)) continue;
+
                         Method getDisplayName = mythicItem.getClass().getMethod("getDisplayName");
                         Object displayNameObj = getDisplayName.invoke(mythicItem);
 
-                        if (displayNameObj instanceof String) {
-                            mythicDisplayName = (String) displayNameObj;
-                        } else if (displayNameObj != null) {
-                            Method get = displayNameObj.getClass().getMethod("get");
-                            mythicDisplayName = (String) get.invoke(displayNameObj);
+                        String mythicDisplayName = extractDisplayName(displayNameObj);
+                        if (mythicDisplayName == null) continue;
+
+                        String strippedMythicName = stripAllColors(mythicDisplayName);
+
+                        if (strippedMythicName.equals(strippedDisplayName)) {
+                            return internalName;
                         }
                     } catch (Exception ignored) {
                     }
+                }
+            }
 
-                    if (mythicDisplayName != null && mythicDisplayName.equals(displayName)) {
-                        Method getInternalName = mythicItem.getClass().getMethod("getInternalName");
-                        return (String) getInternalName.invoke(mythicItem);
+            for (Object mythicItem : (Iterable<?>) itemsCollection) {
+                try {
+                    Method getInternalName = mythicItem.getClass().getMethod("getInternalName");
+                    String internalName = (String) getInternalName.invoke(mythicItem);
+
+                    Method getDisplayName = mythicItem.getClass().getMethod("getDisplayName");
+                    Object displayNameObj = getDisplayName.invoke(mythicItem);
+
+                    String mythicDisplayName = extractDisplayName(displayNameObj);
+                    if (mythicDisplayName == null) continue;
+
+                    String strippedMythicName = stripAllColors(mythicDisplayName);
+
+                    if (strippedMythicName.equals(strippedDisplayName)) {
+                        return internalName;
                     }
+                } catch (Exception ignored) {
                 }
             }
         } catch (Exception e) {
             return null;
         }
         return null;
+    }
+
+    private String extractDisplayName(Object displayNameObj) {
+        if (displayNameObj == null) return null;
+
+        if (displayNameObj instanceof String) {
+            return (String) displayNameObj;
+        }
+
+        try {
+            Method get = displayNameObj.getClass().getMethod("get");
+            return (String) get.invoke(displayNameObj);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean isValidMythicItem(@NotNull String itemName) {
@@ -188,7 +238,6 @@ public class MythicMobsHelper {
                 return false;
             }
 
-            // Method 1: Try getItem (works for all versions)
             try {
                 Method getItem = itemManager.getClass().getMethod("getItem", String.class);
                 Object item = getItem.invoke(itemManager, itemName);
@@ -201,7 +250,6 @@ public class MythicMobsHelper {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItem method not available");
             }
 
-            // Method 2: Try getItemOptional (MM 5.x)
             try {
                 Method getItemOptional = itemManager.getClass().getMethod("getItemOptional", String.class);
                 Object optional = getItemOptional.invoke(itemManager, itemName);
@@ -217,7 +265,6 @@ public class MythicMobsHelper {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItemOptional method not available");
             }
 
-            // Method 3: Try contains/has method
             try {
                 Method hasItem = itemManager.getClass().getMethod("hasItem", String.class);
                 boolean has = (boolean) hasItem.invoke(itemManager, itemName);
@@ -229,7 +276,6 @@ public class MythicMobsHelper {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] hasItem method not available");
             }
 
-            // Method 4: Last resort - try to get ItemStack
             ItemStack testStack = getMythicItem(itemName);
             if (testStack != null) {
                 Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via getMythicItem: " + itemName);
@@ -250,7 +296,6 @@ public class MythicMobsHelper {
 
     @Nullable
     private Object getItemManager() {
-        // Try multiple possible main class paths for different MM versions
         String[] possibleMainClasses = {
                 "io.lumine.mythic.bukkit.MythicBukkit",              // MM 5.x Free
                 "io.lumine.mythic.core.MythicMobs",                  // MM 5.x Premium
@@ -263,7 +308,6 @@ public class MythicMobsHelper {
                 Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] Trying main class: " + mainClass);
                 Class<?> mmClass = Class.forName(mainClass);
 
-                // Try inst() method (most common)
                 try {
                     Method instMethod = mmClass.getMethod("inst");
                     Object mmInstance = instMethod.invoke(null);
@@ -271,11 +315,9 @@ public class MythicMobsHelper {
                     Object itemManager = getItemManager.invoke(mmInstance);
 
                     if (itemManager != null) {
-                        Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Got ItemManager from: " + mainClass);
                         return itemManager;
                     }
                 } catch (NoSuchMethodException e) {
-                    // Try getInstance() method (alternative)
                     try {
                         Method getInstance = mmClass.getMethod("getInstance");
                         Object mmInstance = getInstance.invoke(null);
@@ -283,7 +325,6 @@ public class MythicMobsHelper {
                         Object itemManager = getItemManager.invoke(mmInstance);
 
                         if (itemManager != null) {
-                            Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Got ItemManager from: " + mainClass);
                             return itemManager;
                         }
                     } catch (Exception ignored) {

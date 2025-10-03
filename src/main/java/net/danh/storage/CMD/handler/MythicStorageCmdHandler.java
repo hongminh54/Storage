@@ -1,6 +1,7 @@
 package net.danh.storage.CMD.handler;
 
 import net.danh.storage.GUI.MythicStorageGUI;
+import net.danh.storage.GUI.ViewMythicStorageGUI;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
@@ -82,6 +83,13 @@ public class MythicStorageCmdHandler {
             return;
         }
 
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(Chat.colorize(getMessage("admin.only_players")));
+            return;
+        }
+
+        Player viewer = (Player) sender;
+
         if (args.length < 2) {
             sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage view <player>"));
             return;
@@ -95,10 +103,13 @@ public class MythicStorageCmdHandler {
             return;
         }
 
-        if (sender instanceof Player) {
-            ((Player) sender).openInventory(new MythicStorageGUI(target).getInventory());
-        } else {
-            sender.sendMessage(Chat.colorize(getMessage("admin.only_players")));
+        try {
+            viewer.openInventory(new ViewMythicStorageGUI(viewer, target).getInventory());
+            String viewMessage = getMessage("mythicstorage.viewing_storage")
+                    .replace("#player#", target.getName());
+            sender.sendMessage(Chat.colorize(viewMessage));
+        } catch (IndexOutOfBoundsException e) {
+            sender.sendMessage(Chat.colorize(getMessage("admin.not_enough_slot")));
         }
     }
 

@@ -7,10 +7,10 @@ import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.EventExecutor;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -44,13 +44,7 @@ public class MythicMobDeath implements Listener {
 
         String packageName = helper.getPackageName();
 
-        // Try multiple possible event class paths for different MM versions
-        String[] possibleEventPaths = {
-                packageName + ".events.MythicMobDeathEvent",
-                "io.lumine.mythic.api.bukkit.events.MythicMobDeathEvent",
-                "io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent",
-                "io.lumine.mythic.bukkit.events.MythicMobDeathEvent"
-        };
+        String[] possibleEventPaths = {packageName + ".events.MythicMobDeathEvent", "io.lumine.mythic.api.bukkit.events.MythicMobDeathEvent", "io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent", "io.lumine.mythic.bukkit.events.MythicMobDeathEvent"};
 
         Class<?> eventClass = null;
         for (String eventPath : possibleEventPaths) {
@@ -70,10 +64,19 @@ public class MythicMobDeath implements Listener {
         }
 
         try {
-            // Simply register the MythicMobDeath listener directly
-            // The onMythicMobDeath method will handle any event type via reflection
             MythicMobDeath listener = new MythicMobDeath();
-            plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+            final Class<?> finalEventClass = eventClass;
+
+            EventExecutor executor = (listenerInstance, event) -> {
+                if (finalEventClass.isInstance(event)) {
+                    listener.handleMythicMobDeath(event);
+                }
+            };
+
+            @SuppressWarnings("unchecked") Class<? extends org.bukkit.event.Event> eventType = (Class<? extends org.bukkit.event.Event>) eventClass;
+
+            plugin.getServer().getPluginManager().registerEvent(eventType, listener, EventPriority.HIGHEST, executor, plugin, true // ignoreCancelled
+            );
 
             plugin.getLogger().info("[MythicStorage] ✓ MythicMobs death listener registered successfully");
         } catch (Exception e) {
@@ -82,11 +85,9 @@ public class MythicMobDeath implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMythicMobDeath(org.bukkit.event.Event event) {
+    public void handleMythicMobDeath(org.bukkit.event.Event event) {
         if (!MythicStorageManager.isSystemEnabled()) return;
 
-        // Check if this is a MythicMobDeathEvent
         String eventClassName = event.getClass().getName();
         if (!eventClassName.contains("MythicMobDeathEvent")) {
             return;
@@ -104,18 +105,15 @@ public class MythicMobDeath implements Listener {
             if (killer == null || !killer.isOnline()) return;
             if (!MythicStorageManager.getToggleStatus(killer)) return;
 
-            @SuppressWarnings("unchecked")
-            Collection<ItemStack> drops = new ArrayList<>((Collection<ItemStack>) getDrops.invoke(event));
-            if (drops.isEmpty()) return;
-
             MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
             if (helper == null || !helper.isInitialized()) return;
 
-            Iterator<ItemStack> iterator = drops.iterator();
-            boolean addedAny = false;
+            @SuppressWarnings("unchecked") Collection<ItemStack> entityDrops = (Collection<ItemStack>) getDrops.invoke(event);
+            if (entityDrops == null || entityDrops.isEmpty()) return;
 
-            while (iterator.hasNext()) {
-                ItemStack drop = iterator.next();
+            List<ItemStack> dropsToProcess = new ArrayList<>(entityDrops);
+
+            for (ItemStack drop : dropsToProcess) {
                 if (drop == null) continue;
 
                 String mythicItemName = helper.getMythicItemInternalName(drop);
@@ -125,12 +123,9 @@ public class MythicMobDeath implements Listener {
 
                 int amount = drop.getAmount();
                 if (MythicStorageManager.addItemAmount(killer, mythicItemName, amount)) {
-                    iterator.remove();
-                    addedAny = true;
+                    entityDrops.remove(drop);
 
-                    String message = File.getMessage().getString("mythicstorage.item_added", "")
-                            .replace("#amount#", String.valueOf(amount))
-                            .replace("#item#", mythicItemName);
+                    String message = File.getMessage().getString("mythicstorage.item_added", "").replace("#amount#", String.valueOf(amount)).replace("#item#", mythicItemName);
 
                     if (!message.isEmpty()) {
                         ActionBar.sendActionBar(killer, Chat.colorize(message));
@@ -148,13 +143,8 @@ public class MythicMobDeath implements Listener {
                 }
             }
 
-            if (addedAny) {
-                Method setDrops = eventClass.getMethod("setDrops", Collection.class);
-                setDrops.invoke(event, drops);
-            }
-
         } catch (Exception e) {
-            // Silent fail for compatibility
+            // Ignore
         }
     }
 }

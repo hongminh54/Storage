@@ -299,6 +299,7 @@ mythicstorage:
   disabled: "#prefix# &cYou have disabled MythicMobs auto-pickup"
   storage_full: "&cYour MythicMobs storage is full!"
   item_added: "&aAdded &e#amount#x #item# &ato MythicMobs storage"
+  viewing_storage: "#prefix# &aViewing &e#player#'s &aMythicMobs storage"
   player_not_found: "#prefix# &cPlayer &e#player# &cnot found or offline"
   invalid_item: "#prefix# &cInvalid MythicMobs item: &e#item#"
   system_disabled: "#prefix# &cMythicStorage feature is disabled!"
