@@ -5,8 +5,6 @@ author: VoChiDanh, hongminh54
 description: "${project.description}"
 api-version: '1.13'
 load: STARTUP
-provides:
-  - StorageAPI
 softdepend:
   - WorldGuard
   - PlaceholderAPI
