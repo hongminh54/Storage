@@ -60,6 +60,7 @@ public final class Storage extends JavaPlugin {
         File.updateConfig();
         File.updateMessage();
         File.updateEventConfig();
+        File.updateEnchantConfig();
         File.updateSpecialMaterialConfig();
         File.updateMythicStorageConfig();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
