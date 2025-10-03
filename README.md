@@ -1,4 +1,4 @@
-# Storage [1.8.x - 1.21.x]
+# Storage [1.8.x - 1.21.9]
 
 > A comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined blocks, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
 
@@ -8,7 +8,7 @@
 - **Convert System** - Convert materials between different forms (ingots ↔ blocks) with configurable ratios
 - **Transfer System** - Send items to other players with single or multi-item transfers
 - **Event System** - Participate in server-wide mining contests and special events
-- **Multi-Version Support** - Compatible with Minecraft 1.8.x to 1.21.x
+- **Multi-Version Support** - Compatible with Minecraft 1.8.x to 1.21.9
 - **WorldGuard Integration** - Respect region protections
 - **PlaceholderAPI Support** - Rich placeholder system for other plugins
 - **Custom Enchant System** - Custom enchantments for tools with configurable effects, particles, and sounds
