@@ -1,8 +1,10 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Enchant.TNTEnchant;
+import net.danh.storage.GUI.MythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.TransferGUI;
+import net.danh.storage.GUI.ViewMythicStorageGUI;
 import net.danh.storage.Manager.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,6 +31,8 @@ public class JoinQuit implements Listener {
         MythicStorageManager.cleanupPlayerData(p);
         MythicMobDeath.cleanupPlayer(p);
         PersonalStorage.playerCurrentPage.remove(p);
+        MythicStorageGUI.playerCurrentPage.remove(p);
+        ViewMythicStorageGUI.playerCurrentPage.remove(p);
         Chat.chat_return_page.remove(p);
         Chat.chat_mythic_withdraw.remove(p);
         Chat.chat_mythic_deposit.remove(p);

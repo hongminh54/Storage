@@ -21,24 +21,37 @@ public class MythicWithdraw {
     }
 
     public void doAction() {
+        if (player == null || !player.isOnline()) return;
+        if (itemName == null || itemName.trim().isEmpty()) return;
+        if (amount <= 0) return;
+
         int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
 
         if (currentAmount < amount) {
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.withdraw.not_enough")
-                    .replace("#amount#", String.valueOf(currentAmount))));
+            String message = File.getMessage().getString("mythicstorage.action.withdraw.not_enough", "")
+                    .replace("#amount#", String.valueOf(currentAmount));
+            if (!message.isEmpty()) {
+                player.sendMessage(Chat.colorize(message));
+            }
             return;
         }
 
         MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
         if (helper == null || !helper.isInitialized()) {
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.system_disabled")));
+            String message = File.getMessage().getString("mythicstorage.system_disabled", "");
+            if (!message.isEmpty()) {
+                player.sendMessage(Chat.colorize(message));
+            }
             return;
         }
 
         ItemStack mythicItem = helper.getMythicItem(itemName);
         if (mythicItem == null) {
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.invalid_item")
-                    .replace("#item#", itemName)));
+            String message = File.getMessage().getString("mythicstorage.invalid_item", "")
+                    .replace("#item#", itemName);
+            if (!message.isEmpty()) {
+                player.sendMessage(Chat.colorize(message));
+            }
             return;
         }
 
@@ -52,7 +65,10 @@ public class MythicWithdraw {
 
             HashMap<Integer, ItemStack> notFit = player.getInventory().addItem(mythicItem.clone());
             if (!notFit.isEmpty()) {
-                player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.withdraw.inventory_full")));
+                String message = File.getMessage().getString("mythicstorage.action.withdraw.inventory_full", "");
+                if (!message.isEmpty()) {
+                    player.sendMessage(Chat.colorize(message));
+                }
                 break;
             }
 
@@ -62,12 +78,14 @@ public class MythicWithdraw {
 
         if (given > 0) {
             MythicStorageManager.removeItemAmount(player, itemName, (int) given);
-            String message = File.getMessage().getString("mythicstorage.action.withdraw.withdraw_item")
+            String message = File.getMessage().getString("mythicstorage.action.withdraw.withdraw_item", "")
                     .replace("#amount#", String.valueOf(given))
                     .replace("#material#", itemName)
                     .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                     .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
-            player.sendMessage(Chat.colorize(message));
+            if (!message.isEmpty()) {
+                player.sendMessage(Chat.colorize(message));
+            }
         }
     }
 }

@@ -9,5 +9,42 @@ storage_full_notification:
   enabled: true
   cooldown_seconds: 10
 
+notification:
+  title:
+    enable: false
+    item_added:
+      title: "&a+ #amount# #item#"
+      subtitle: "&7Storage: &a#storage#&7/&a#max#"
+    # Storage full notifications
+    storage_full:
+      title: "&cStorage Full!"
+      subtitle: "&7(&c#storage#&7/&c#max#&7)"
+  actionbar:
+    enable: true
+    # Placeholders: #item#, #amount#, #storage#, #max#
+    item_added: "&a+ #amount# #item# &7| &a#storage#&7/&a#max#"
+    storage_full: "&cStorage Full! &7(&c#storage#&7/&c#max#&7)"
+
+# Items that can be added to the storage (MythicMobs/Items/<item>.yml)
+# example:
+# In MM 5.X.X
+#test: <--- ID item mythicmobs will be used on configuration items_drop
+#  Id: diamond
+#  Display: '&dabc'
+#  Lore:
+#    - '&6A kingly crowl that grants'
+#    - '&6the wearer unwavering power!'
+#  Enchantments:
+#    - PROTECTION_ENVIRONMENTAL:2
+#    - PROTECTION_PROJECTILE:2
+#    - PROTECTION_FIRE:2
+#    - PROTECTION_EXPLOSIONS:2
+#  Hide:
+#    - ATTRIBUTES
+#    - ENCHANTS
+#  Attributes:
+#    Head:
+#      Health: 10
+#      KnockbackResistance: 10
 items_drop:
   - test

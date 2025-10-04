@@ -1,8 +1,10 @@
 package net.danh.storage.Listeners;
 
 import com.cryptomorin.xseries.messages.ActionBar;
+import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.LivingEntity;
@@ -33,7 +35,9 @@ public class MythicMobDeath implements Listener {
     }
 
     public static void cleanupPlayer(Player player) {
-        lastStorageFullNotification.remove(player);
+        if (player != null) {
+            lastStorageFullNotification.remove(player);
+        }
     }
 
     public static void registerListener(org.bukkit.plugin.Plugin plugin) {
@@ -44,17 +48,20 @@ public class MythicMobDeath implements Listener {
 
         String packageName = helper.getPackageName();
 
-        String[] possibleEventPaths = {packageName + ".events.MythicMobDeathEvent", "io.lumine.mythic.api.bukkit.events.MythicMobDeathEvent", "io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent", "io.lumine.mythic.bukkit.events.MythicMobDeathEvent"};
+        String[] possibleEventPaths = {
+                packageName + ".events.MythicMobDeathEvent",
+                "io.lumine.mythic.api.bukkit.events.MythicMobDeathEvent",
+                "io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent",
+                "io.lumine.mythic.bukkit.events.MythicMobDeathEvent"
+        };
 
         Class<?> eventClass = null;
         for (String eventPath : possibleEventPaths) {
             try {
-                plugin.getLogger().fine("[MythicStorage] Trying event class: " + eventPath);
                 eventClass = Class.forName(eventPath);
-                plugin.getLogger().info("[MythicStorage] ✓ Found event class: " + eventPath);
+                plugin.getLogger().info("[MythicStorage] Found event class: " + eventPath);
                 break;
             } catch (ClassNotFoundException e) {
-                plugin.getLogger().fine("[MythicStorage] × Event class not found: " + eventPath);
             }
         }
 
@@ -73,15 +80,21 @@ public class MythicMobDeath implements Listener {
                 }
             };
 
-            @SuppressWarnings("unchecked") Class<? extends org.bukkit.event.Event> eventType = (Class<? extends org.bukkit.event.Event>) eventClass;
+            @SuppressWarnings("unchecked")
+            Class<? extends org.bukkit.event.Event> eventType = (Class<? extends org.bukkit.event.Event>) eventClass;
 
-            plugin.getServer().getPluginManager().registerEvent(eventType, listener, EventPriority.HIGHEST, executor, plugin, true // ignoreCancelled
+            plugin.getServer().getPluginManager().registerEvent(
+                    eventType,
+                    listener,
+                    EventPriority.HIGHEST,
+                    executor,
+                    plugin,
+                    true
             );
 
-            plugin.getLogger().info("[MythicStorage] ✓ MythicMobs death listener registered successfully");
+            plugin.getLogger().info("[MythicStorage] MythicMobs death listener registered successfully");
         } catch (Exception e) {
             plugin.getLogger().warning("[MythicStorage] Failed to register MythicMobs death listener: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -108,7 +121,8 @@ public class MythicMobDeath implements Listener {
             MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
             if (helper == null || !helper.isInitialized()) return;
 
-            @SuppressWarnings("unchecked") Collection<ItemStack> entityDrops = (Collection<ItemStack>) getDrops.invoke(event);
+            @SuppressWarnings("unchecked")
+            Collection<ItemStack> entityDrops = (Collection<ItemStack>) getDrops.invoke(event);
             if (entityDrops == null || entityDrops.isEmpty()) return;
 
             List<ItemStack> dropsToProcess = new ArrayList<>(entityDrops);
@@ -125,18 +139,61 @@ public class MythicMobDeath implements Listener {
                 if (MythicStorageManager.addItemAmount(killer, mythicItemName, amount)) {
                     entityDrops.remove(drop);
 
-                    String message = File.getMessage().getString("mythicstorage.item_added", "").replace("#amount#", String.valueOf(amount)).replace("#item#", mythicItemName);
+                    int currentStorage = MythicStorageManager.getPlayerItem(killer, mythicItemName);
+                    int maxStorage = MythicStorageManager.getMaxStorage(killer);
 
-                    if (!message.isEmpty()) {
-                        ActionBar.sendActionBar(killer, Chat.colorize(message));
+                    // Send ActionBar notification
+                    if (File.getMythicStorageConfig().getBoolean("notification.actionbar.enable", true)) {
+                        String actionBarMessage = File.getMythicStorageConfig().getString("notification.actionbar.item_added", "&a+ #amount# #item# &7| &a#storage#&7/&a#max#")
+                                .replace("#amount#", String.valueOf(amount))
+                                .replace("#item#", mythicItemName)
+                                .replace("#storage#", String.valueOf(currentStorage))
+                                .replace("#max#", String.valueOf(maxStorage));
+                        ActionBar.sendActionBar(Storage.getStorage(), killer, Chat.colorizewp(actionBarMessage));
+                    }
+
+                    // Send Title notification
+                    if (File.getMythicStorageConfig().getBoolean("notification.title.enable", false)) {
+                        String title = File.getMythicStorageConfig().getString("notification.title.item_added.title", "&a+ #amount# #item#")
+                                .replace("#amount#", String.valueOf(amount))
+                                .replace("#item#", mythicItemName)
+                                .replace("#storage#", String.valueOf(currentStorage))
+                                .replace("#max#", String.valueOf(maxStorage));
+                        String subtitle = File.getMythicStorageConfig().getString("notification.title.item_added.subtitle", "&7Storage: &a#storage#&7/&a#max#")
+                                .replace("#amount#", String.valueOf(amount))
+                                .replace("#item#", mythicItemName)
+                                .replace("#storage#", String.valueOf(currentStorage))
+                                .replace("#max#", String.valueOf(maxStorage));
+                        Titles.sendTitle(killer, Chat.colorizewp(title), Chat.colorizewp(subtitle));
                     }
                 } else {
+                    // Storage is full
                     if (File.getMythicStorageConfig().getBoolean("storage_full_notification.enabled", true)) {
                         int cooldownSeconds = File.getMythicStorageConfig().getInt("storage_full_notification.cooldown_seconds", 10);
                         if (canShowStorageFullNotification(killer, cooldownSeconds)) {
-                            String fullMessage = File.getMessage().getString("mythicstorage.storage_full", "");
-                            if (!fullMessage.isEmpty()) {
-                                ActionBar.sendActionBar(killer, Chat.colorize(fullMessage));
+                            int currentStorage = MythicStorageManager.getPlayerItem(killer, mythicItemName);
+                            int maxStorage = MythicStorageManager.getMaxStorage(killer);
+
+                            // Send ActionBar for storage full
+                            if (File.getMythicStorageConfig().getBoolean("notification.actionbar.enable", true)) {
+                                String actionBarMessage = File.getMythicStorageConfig().getString("notification.actionbar.storage_full", "&cStorage Full! &7(&c#storage#&7/&c#max#&7)")
+                                        .replace("#item#", mythicItemName)
+                                        .replace("#storage#", String.valueOf(currentStorage))
+                                        .replace("#max#", String.valueOf(maxStorage));
+                                ActionBar.sendActionBar(Storage.getStorage(), killer, Chat.colorizewp(actionBarMessage));
+                            }
+
+                            // Send Title for storage full
+                            if (File.getMythicStorageConfig().getBoolean("notification.title.enable", false)) {
+                                String title = File.getMythicStorageConfig().getString("notification.title.storage_full.title", "&cStorage Full!")
+                                        .replace("#item#", mythicItemName)
+                                        .replace("#storage#", String.valueOf(currentStorage))
+                                        .replace("#max#", String.valueOf(maxStorage));
+                                String subtitle = File.getMythicStorageConfig().getString("notification.title.storage_full.subtitle", "&7(&c#storage#&7/&c#max#&7)")
+                                        .replace("#item#", mythicItemName)
+                                        .replace("#storage#", String.valueOf(currentStorage))
+                                        .replace("#max#", String.valueOf(maxStorage));
+                                Titles.sendTitle(killer, Chat.colorizewp(title), Chat.colorizewp(subtitle));
                             }
                         }
                     }
@@ -144,7 +201,7 @@ public class MythicMobDeath implements Listener {
             }
 
         } catch (Exception e) {
-            // Ignore
+            Storage.getStorage().getLogger().warning("[MythicStorage] Error handling MythicMob death: " + e.getMessage());
         }
     }
 }

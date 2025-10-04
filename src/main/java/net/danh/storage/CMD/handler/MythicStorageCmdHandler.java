@@ -91,7 +91,7 @@ public class MythicStorageCmdHandler {
         Player viewer = (Player) sender;
 
         if (args.length < 2) {
-            sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage view <player>"));
+            sender.sendMessage(Chat.colorize(getInvalidUsage("/mythicstorage view <player>")));
             return;
         }
 
@@ -105,11 +105,15 @@ public class MythicStorageCmdHandler {
 
         try {
             viewer.openInventory(new ViewMythicStorageGUI(viewer, target).getInventory());
-            String viewMessage = getMessage("mythicstorage.viewing_storage")
+            String viewMessage = getMessage("viewing_storage")
                     .replace("#player#", target.getName());
-            sender.sendMessage(Chat.colorize(viewMessage));
+            if (!viewMessage.isEmpty()) {
+                sender.sendMessage(Chat.colorize(viewMessage));
+            }
         } catch (IndexOutOfBoundsException e) {
             sender.sendMessage(Chat.colorize(getMessage("admin.not_enough_slot")));
+        } catch (Exception e) {
+            sender.sendMessage(Chat.colorize(getMessage("admin.error_opening_gui")));
         }
     }
 
@@ -120,7 +124,7 @@ public class MythicStorageCmdHandler {
         }
 
         if (args.length < 2) {
-            sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage admin <add|remove|set|reset|reload>"));
+            sender.sendMessage(Chat.colorize(getInvalidUsage("/mythicstorage admin <add|remove|set|reset|reload>")));
             return;
         }
 
@@ -143,14 +147,15 @@ public class MythicStorageCmdHandler {
                 handleAdminReload(sender);
                 break;
             default:
-                sender.sendMessage(Chat.colorize(getPrefix() + " &cUnknown admin command"));
+                sender.sendMessage(Chat.colorize(getMessage("admin.unknown_command")
+                        .replace("#command#", adminCmd)));
                 break;
         }
     }
 
     private void handleAdminAdd(CommandSender sender, String[] args) {
         if (args.length < 5) {
-            sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage admin add <player> <item> <amount>"));
+            sender.sendMessage(Chat.colorize(getInvalidUsage("/mythicstorage admin add <player> <item> <amount>")));
             return;
         }
 
@@ -178,18 +183,21 @@ public class MythicStorageCmdHandler {
             return;
         }
 
-        MythicStorageManager.addItemAmount(target, itemName, amount);
-
-        String message = getMessage("admin.add_success")
-                .replace("#amount#", String.valueOf(amount))
-                .replace("#item#", itemName)
-                .replace("#player#", target.getName());
-        sender.sendMessage(Chat.colorize(message));
+        if (MythicStorageManager.addItemAmount(target, itemName, amount)) {
+            String message = getMessage("admin.add_success")
+                    .replace("#amount#", String.valueOf(amount))
+                    .replace("#item#", itemName)
+                    .replace("#player#", target.getName());
+            sender.sendMessage(Chat.colorize(message));
+        } else {
+            sender.sendMessage(Chat.colorize(getMessage("admin.storage_full")
+                    .replace("#player#", target.getName())));
+        }
     }
 
     private void handleAdminRemove(CommandSender sender, String[] args) {
         if (args.length < 5) {
-            sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage admin remove <player> <item> <amount>"));
+            sender.sendMessage(Chat.colorize(getInvalidUsage("/mythicstorage admin remove <player> <item> <amount>")));
             return;
         }
 
@@ -225,18 +233,18 @@ public class MythicStorageCmdHandler {
             return;
         }
 
-        MythicStorageManager.removeItemAmount(target, itemName, amount);
-
-        String message = getMessage("admin.remove_success")
-                .replace("#amount#", String.valueOf(amount))
-                .replace("#item#", itemName)
-                .replace("#player#", target.getName());
-        sender.sendMessage(Chat.colorize(message));
+        if (MythicStorageManager.removeItemAmount(target, itemName, amount)) {
+            String message = getMessage("admin.remove_success")
+                    .replace("#amount#", String.valueOf(amount))
+                    .replace("#item#", itemName)
+                    .replace("#player#", target.getName());
+            sender.sendMessage(Chat.colorize(message));
+        }
     }
 
     private void handleAdminSet(CommandSender sender, String[] args) {
         if (args.length < 5) {
-            sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage admin set <player> <item> <amount>"));
+            sender.sendMessage(Chat.colorize(getInvalidUsage("/mythicstorage admin set <player> <item> <amount>")));
             return;
         }
 
@@ -275,7 +283,7 @@ public class MythicStorageCmdHandler {
 
     private void handleAdminReset(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(Chat.colorize(getPrefix() + " &cUsage: /mythicstorage admin reset <player> [item]"));
+            sender.sendMessage(Chat.colorize(getInvalidUsage("/mythicstorage admin reset <player> [item]")));
             return;
         }
 
@@ -300,8 +308,11 @@ public class MythicStorageCmdHandler {
             sender.sendMessage(Chat.colorize(message));
 
             if (target.isOnline()) {
-                target.sendMessage(Chat.colorize(getMessage("admin.reset_notify")
-                        .replace("#player#", sender.getName())));
+                String notifyMsg = getMessage("admin.reset_notify")
+                        .replace("#player#", sender.getName());
+                if (!notifyMsg.isEmpty()) {
+                    target.sendMessage(Chat.colorize(notifyMsg));
+                }
             }
         } else {
             for (String itemName : MythicStorageManager.getConfiguredDrops()) {
@@ -313,8 +324,11 @@ public class MythicStorageCmdHandler {
             sender.sendMessage(Chat.colorize(message));
 
             if (target.isOnline()) {
-                target.sendMessage(Chat.colorize(getMessage("admin.reset_notify")
-                        .replace("#player#", sender.getName())));
+                String notifyMsg = getMessage("admin.reset_notify")
+                        .replace("#player#", sender.getName());
+                if (!notifyMsg.isEmpty()) {
+                    target.sendMessage(Chat.colorize(notifyMsg));
+                }
             }
         }
     }
@@ -415,6 +429,12 @@ public class MythicStorageCmdHandler {
     private String getMessage(String path) {
         String message = File.getMessage().getString("mythicstorage." + path, "");
         return message.replace("#prefix#", getPrefix());
+    }
+
+    private String getInvalidUsage(String usage) {
+        return File.getMessage().getString("admin.invalid_usage", "#prefix# &cInvalid usage! &eUsage: #usage#")
+                .replace("#prefix#", getPrefix())
+                .replace("#usage#", usage);
     }
 
     private String getPrefix() {

@@ -13,9 +13,9 @@ import java.util.List;
 
 public class MythicStorageManager {
 
-    private static final HashMap<String, Integer> playerData = new HashMap<>();
-    private static final HashMap<Player, Boolean> toggle = new HashMap<>();
-    private static final HashMap<Player, Integer> playerMaxData = new HashMap<>();
+    public static HashMap<String, Integer> playerdata = new HashMap<>();
+    public static HashMap<Player, Boolean> toggle = new HashMap<>();
+    public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     private static List<String> configuredDrops = new ArrayList<>();
     private static MythicMobsHelper mythicMobsHelper;
     private static boolean systemEnabled = false;
@@ -37,7 +37,6 @@ public class MythicStorageManager {
 
         loadConfiguredDrops();
         Storage.getStorage().getLogger().info("[MythicStorage] Initialized successfully with " + configuredDrops.size() + " configured drops");
-        Storage.getStorage().getLogger().info("[MythicStorage] Configured items: " + String.join(", ", configuredDrops));
     }
 
     public static boolean isSystemEnabled() {
@@ -49,25 +48,28 @@ public class MythicStorageManager {
     }
 
     private static void loadConfiguredDrops() {
-        configuredDrops = File.getMythicStorageConfig().getStringList("items_drop");
-        if (configuredDrops == null) {
+        List<String> items = File.getMythicStorageConfig().getStringList("items_drop");
+        if (items == null) {
             configuredDrops = new ArrayList<>();
+            return;
         }
 
-        Storage.getStorage().getLogger().info("[MythicStorage] Loading " + configuredDrops.size() + " items from config...");
+        configuredDrops = new ArrayList<>();
+        for (String itemName : items) {
+            if (itemName == null || itemName.trim().isEmpty()) continue;
 
-        configuredDrops.removeIf(itemName -> {
             if (!mythicMobsHelper.isValidMythicItem(itemName)) {
                 Storage.getStorage().getLogger().warning("[MythicStorage] Invalid MythicMobs item in config: " + itemName);
-                return true;
+                continue;
             }
-            Storage.getStorage().getLogger().fine("[MythicStorage] Validated: " + itemName);
-            return false;
-        });
+            configuredDrops.add(itemName);
+        }
     }
 
     public static void reloadConfiguredDrops() {
+        if (!isSystemEnabled()) return;
         loadConfiguredDrops();
+        Storage.getStorage().getLogger().info("[MythicStorage] Reloaded " + configuredDrops.size() + " configured drops");
     }
 
     public static List<String> getConfiguredDrops() {
@@ -79,19 +81,24 @@ public class MythicStorageManager {
     }
 
     public static int getPlayerItem(@NotNull Player player, @NotNull String itemName) {
-        return playerData.getOrDefault(player.getName() + "_" + itemName, 0);
+        return playerdata.getOrDefault(player.getName() + "_" + itemName, 0);
     }
 
     public static boolean hasPlayerItem(@NotNull Player player, @NotNull String itemName) {
-        return playerData.containsKey(player.getName() + "_" + itemName);
+        return playerdata.containsKey(player.getName() + "_" + itemName);
     }
 
     public static int getMaxStorage(@NotNull Player player) {
-        return playerMaxData.getOrDefault(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
+        return playermaxdata.getOrDefault(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
     }
 
     public static boolean getToggleStatus(@NotNull Player player) {
-        return toggle.getOrDefault(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
+        Boolean status = toggle.get(player);
+        if (status == null) {
+            status = File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false);
+            toggle.put(player, status);
+        }
+        return status;
     }
 
     public static void setToggleStatus(@NotNull Player player, boolean status) {
@@ -101,9 +108,10 @@ public class MythicStorageManager {
     public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
         if (!isSystemEnabled()) return false;
         if (!isConfiguredDrop(itemName)) return false;
+        if (amount <= 0) return false;
 
         String key = player.getName() + "_" + itemName;
-        int current = playerData.getOrDefault(key, 0);
+        int current = playerdata.getOrDefault(key, 0);
         int max = getMaxStorage(player);
 
         if (current >= max) {
@@ -111,30 +119,36 @@ public class MythicStorageManager {
         }
 
         int newAmount = Math.min(current + amount, max);
-        playerData.put(key, newAmount);
+        playerdata.put(key, newAmount);
         return true;
     }
 
     public static boolean removeItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
         if (!isSystemEnabled()) return false;
+        if (amount <= 0) return false;
 
         String key = player.getName() + "_" + itemName;
-        int current = playerData.getOrDefault(key, 0);
+        int current = playerdata.getOrDefault(key, 0);
 
         if (current < amount) {
             return false;
         }
 
-        playerData.put(key, current - amount);
+        int newValue = current - amount;
+        if (newValue <= 0) {
+            playerdata.remove(key);
+        } else {
+            playerdata.put(key, newValue);
+        }
         return true;
     }
 
     public static void setItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
         String key = player.getName() + "_" + itemName;
         if (amount <= 0) {
-            playerData.remove(key);
+            playerdata.remove(key);
         } else {
-            playerData.put(key, amount);
+            playerdata.put(key, amount);
         }
     }
 
@@ -143,32 +157,38 @@ public class MythicStorageManager {
 
         PlayerData data = Storage.dataStorage.getData(player.getName());
         if (data == null) {
-            playerMaxData.put(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
+            playermaxdata.put(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
             toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
             return;
         }
 
         String dataString = data.getData();
         if (dataString == null || dataString.isEmpty()) {
-            playerMaxData.put(player, data.getMax());
+            playermaxdata.put(player, data.getMax());
             toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
             return;
         }
 
+        // Parse data format: "mythic:item1:amount1,item2:amount2;mythictoggle:true"
         String[] dataParts = dataString.split(";");
         for (String part : dataParts) {
+            if (part == null || part.isEmpty()) continue;
+
             if (part.startsWith("mythic:")) {
                 String mythicData = part.substring(7);
                 if (mythicData.isEmpty()) continue;
 
                 String[] items = mythicData.split(",");
                 for (String item : items) {
-                    if (item.isEmpty()) continue;
+                    if (item == null || item.isEmpty()) continue;
                     String[] itemParts = item.split(":");
                     if (itemParts.length == 2) {
                         String key = player.getName() + "_" + itemParts[0];
                         try {
-                            playerData.put(key, Integer.parseInt(itemParts[1]));
+                            int value = Integer.parseInt(itemParts[1]);
+                            if (value > 0) {
+                                playerdata.put(key, value);
+                            }
                         } catch (NumberFormatException ignored) {
                         }
                     }
@@ -181,7 +201,7 @@ public class MythicStorageManager {
             }
         }
 
-        playerMaxData.put(player, data.getMax());
+        playermaxdata.put(player, data.getMax());
     }
 
     public static void savePlayerData(@NotNull Player player) {
@@ -192,8 +212,8 @@ public class MythicStorageManager {
 
         for (String drop : configuredDrops) {
             String key = playerName + "_" + drop;
-            if (playerData.containsKey(key)) {
-                int amount = playerData.get(key);
+            if (playerdata.containsKey(key)) {
+                int amount = playerdata.get(key);
                 if (amount > 0) {
                     if (mythicData.length() > 0) {
                         mythicData.append(",");
@@ -234,7 +254,7 @@ public class MythicStorageManager {
             finalData.append("mythictoggle:").append(toggle.get(player));
         }
 
-        int maxStorage = playerMaxData.getOrDefault(player,
+        int maxStorage = playermaxdata.getOrDefault(player,
                 File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
 
         boolean autoPickup = MineManager.getToggleStatus(player);
@@ -249,10 +269,12 @@ public class MythicStorageManager {
     }
 
     public static void cleanupPlayerData(@NotNull Player player) {
-        String playerName = player.getName();
-        playerData.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+        if (player == null) return;
         toggle.remove(player);
-        playerMaxData.remove(player);
+        playermaxdata.remove(player);
+
+        String playerName = player.getName();
+        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
     }
 
     public static HashMap<String, Integer> getPlayerAllItems(@NotNull Player player) {
@@ -261,8 +283,8 @@ public class MythicStorageManager {
 
         for (String drop : configuredDrops) {
             String key = playerName + "_" + drop;
-            if (playerData.containsKey(key)) {
-                items.put(drop, playerData.get(key));
+            if (playerdata.containsKey(key)) {
+                items.put(drop, playerdata.get(key));
             }
         }
 

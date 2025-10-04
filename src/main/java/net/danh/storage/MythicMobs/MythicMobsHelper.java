@@ -25,6 +25,12 @@ public class MythicMobsHelper {
     private String packageName = "";
     private boolean initialized = false;
 
+    // Cache reflection methods for performance
+    private Method cachedIsMythicMobMethod;
+    private Method cachedGetMythicMobInstanceMethod;
+    private Method cachedGetTypeMethod;
+    private Method cachedGetInternalNameMethod;
+
     public MythicMobsHelper() {
         this.scanPackage();
     }
@@ -34,17 +40,25 @@ public class MythicMobsHelper {
         for (String packagee : mmPackageAPI) {
             try {
                 String className = packagee + ".BukkitAPIHelper";
-                Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] Trying: " + className);
                 apiInstance = Class.forName(className).newInstance();
                 this.packageName = packagee;
-                Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ MythicMobs API detected: " + className);
+                Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] MythicMobs API detected: " + packagee);
                 initialized = true;
+                cacheCommonMethods();
                 return;
             } catch (Exception ignored) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] × Failed to load: " + packagee);
             }
         }
-        Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × MythicMobs API not found! MythicStorage feature will be disabled.");
+        Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] MythicMobs API not found! MythicStorage feature will be disabled.");
+    }
+
+    private void cacheCommonMethods() {
+        try {
+            cachedIsMythicMobMethod = apiInstance.getClass().getMethod("isMythicMob", Entity.class);
+            cachedGetMythicMobInstanceMethod = apiInstance.getClass().getMethod("getMythicMobInstance", Entity.class);
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Failed to cache methods: " + e.getMessage());
+        }
     }
 
     public boolean isInitialized() {
@@ -52,10 +66,9 @@ public class MythicMobsHelper {
     }
 
     public boolean isMythicMob(@NotNull Entity entity) {
-        if (!initialized) return false;
+        if (!initialized || cachedIsMythicMobMethod == null) return false;
         try {
-            Method isMythicMob = apiInstance.getClass().getMethod("isMythicMob", Entity.class);
-            return (boolean) isMythicMob.invoke(apiInstance, entity);
+            return (boolean) cachedIsMythicMobMethod.invoke(apiInstance, entity);
         } catch (Exception e) {
             return false;
         }
@@ -63,18 +76,21 @@ public class MythicMobsHelper {
 
     @Nullable
     public String getMythicMobInternalName(@NotNull Entity entity) {
-        if (!initialized) return null;
+        if (!initialized || cachedGetMythicMobInstanceMethod == null) return null;
         try {
-            Method getMythicMobInstance = apiInstance.getClass().getMethod("getMythicMobInstance", Entity.class);
-            Object mobInstance = getMythicMobInstance.invoke(apiInstance, entity);
+            Object mobInstance = cachedGetMythicMobInstanceMethod.invoke(apiInstance, entity);
             if (mobInstance == null) return null;
 
-            Method getType = mobInstance.getClass().getMethod("getType");
-            Object mobType = getType.invoke(mobInstance);
+            if (cachedGetTypeMethod == null) {
+                cachedGetTypeMethod = mobInstance.getClass().getMethod("getType");
+            }
+            Object mobType = cachedGetTypeMethod.invoke(mobInstance);
             if (mobType == null) return null;
 
-            Method getInternalName = mobType.getClass().getMethod("getInternalName");
-            return (String) getInternalName.invoke(mobType);
+            if (cachedGetInternalNameMethod == null) {
+                cachedGetInternalNameMethod = mobType.getClass().getMethod("getInternalName");
+            }
+            return (String) cachedGetInternalNameMethod.invoke(mobType);
         } catch (Exception e) {
             return null;
         }
@@ -86,22 +102,17 @@ public class MythicMobsHelper {
         try {
             Object itemManager = getItemManager();
             if (itemManager == null) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] ItemManager is null for item: " + itemName);
                 return null;
             }
-
-            Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] Attempting to get item: " + itemName);
 
             try {
                 Method getItemStack = itemManager.getClass().getMethod("getItemStack", String.class);
                 ItemStack result = (ItemStack) getItemStack.invoke(itemManager, itemName);
 
                 if (result != null) {
-                    Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] ✓ Found item via getItemStack: " + itemName);
                     return result;
                 }
             } catch (NoSuchMethodException e) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItemStack method not found, trying alternatives...");
             }
 
             try {
@@ -113,7 +124,6 @@ public class MythicMobsHelper {
                         Method generateItemStack = item.getClass().getMethod("generateItemStack");
                         ItemStack result = (ItemStack) generateItemStack.invoke(item);
                         if (result != null) {
-                            Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] ✓ Found item via getItem+generateItemStack: " + itemName);
                             return result;
                         }
                     } catch (Exception ignored) {
@@ -122,11 +132,10 @@ public class MythicMobsHelper {
             } catch (Exception ignored) {
             }
 
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × Item not found: " + itemName);
             return null;
 
         } catch (Exception e) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error getting item '" + itemName + "': " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error getting item '" + itemName + "': " + e.getMessage());
             return null;
         }
     }
@@ -229,12 +238,9 @@ public class MythicMobsHelper {
     public boolean isValidMythicItem(@NotNull String itemName) {
         if (!initialized) return false;
 
-        Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] Validating item: " + itemName);
-
         try {
             Object itemManager = getItemManager();
             if (itemManager == null) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × ItemManager is null, cannot validate: " + itemName);
                 return false;
             }
 
@@ -243,11 +249,9 @@ public class MythicMobsHelper {
                 Object item = getItem.invoke(itemManager, itemName);
 
                 if (item != null) {
-                    Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via getItem: " + itemName);
                     return true;
                 }
             } catch (NoSuchMethodException e) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItem method not available");
             }
 
             try {
@@ -257,39 +261,31 @@ public class MythicMobsHelper {
                 if (optional instanceof Optional) {
                     boolean present = ((Optional<?>) optional).isPresent();
                     if (present) {
-                        Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via getItemOptional: " + itemName);
                         return true;
                     }
                 }
             } catch (NoSuchMethodException e) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] getItemOptional method not available");
             }
 
             try {
                 Method hasItem = itemManager.getClass().getMethod("hasItem", String.class);
                 boolean has = (boolean) hasItem.invoke(itemManager, itemName);
                 if (has) {
-                    Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via hasItem: " + itemName);
                     return true;
                 }
             } catch (NoSuchMethodException e) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] hasItem method not available");
             }
 
             ItemStack testStack = getMythicItem(itemName);
             if (testStack != null) {
-                Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] ✓ Validated item via getMythicItem: " + itemName);
                 return true;
             }
 
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × Item validation failed for: " + itemName);
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Available methods in ItemManager: " + Arrays.toString(itemManager.getClass().getMethods()));
-
+            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Invalid MythicMobs item: " + itemName);
             return false;
 
         } catch (Exception e) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Exception validating item '" + itemName + "': " + e.getClass().getSimpleName() + " - " + e.getMessage());
-            e.printStackTrace();
+            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Exception validating item '" + itemName + "': " + e.getMessage());
             return false;
         }
     }
@@ -297,15 +293,14 @@ public class MythicMobsHelper {
     @Nullable
     private Object getItemManager() {
         String[] possibleMainClasses = {
-                "io.lumine.mythic.bukkit.MythicBukkit",              // MM 5.x Free
-                "io.lumine.mythic.core.MythicMobs",                  // MM 5.x Premium
-                "io.lumine.xikage.mythicmobs.MythicMobs",            // MM 4.x
-                "io.lumine.mythic.MythicMobs"                        // Fallback
+                "io.lumine.mythic.bukkit.MythicBukkit",
+                "io.lumine.mythic.core.MythicMobs",
+                "io.lumine.xikage.mythicmobs.MythicMobs",
+                "io.lumine.mythic.MythicMobs"
         };
 
         for (String mainClass : possibleMainClasses) {
             try {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] Trying main class: " + mainClass);
                 Class<?> mmClass = Class.forName(mainClass);
 
                 try {
@@ -331,13 +326,10 @@ public class MythicMobsHelper {
                     }
                 }
             } catch (ClassNotFoundException e) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] × Class not found: " + mainClass);
             } catch (Exception e) {
-                Storage.getStorage().getLogger().log(Level.FINE, "[MythicStorage] × Failed to get ItemManager from " + mainClass + ": " + e.getMessage());
             }
         }
 
-        Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] × Failed to get ItemManager from any known MythicMobs class");
         return null;
     }
 
