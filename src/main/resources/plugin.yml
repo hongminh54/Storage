@@ -69,12 +69,15 @@ permissions:
   storage.view:
     description: View other players' storage
     default: true
+  storage.mythicstorage.use:
+    description: Use MythicMobs storage feature
+    default: true
   storage.mythicstorage.toggle:
     description: Toggle MythicMobs auto-pickup
     default: true
   storage.mythicstorage.view:
     description: View other players' MythicMobs storage
     default: op
-  storage.mythicstorage.use:
-    description: Use MythicMobs storage feature
-    default: true
+  storage.mythicstorage.admin:
+    description: Admin commands for MythicMobs storage (add, remove, set, reset, reload)
+    default: op

@@ -1,7 +1,6 @@
 package net.danh.storage.CMD;
 
 import net.danh.storage.API.CMDBase;
-import net.danh.storage.CMD.handler.MythicStorageCmdHandler;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,20 +8,20 @@ import java.util.List;
 
 public class MythicStorageCMD extends CMDBase {
 
-    private final MythicStorageCmdHandler commandHandler;
+    private final MythicStorageCommandManager commandManager;
 
     public MythicStorageCMD(String name) {
         super(name);
-        this.commandHandler = new MythicStorageCmdHandler();
+        this.commandManager = new MythicStorageCommandManager();
     }
 
     @Override
     public void execute(@NotNull CommandSender sender, String[] args) {
-        commandHandler.handleCommand(sender, args);
+        commandManager.handleCommand(sender, args);
     }
 
     @Override
     public List<String> TabComplete(@NotNull CommandSender sender, String[] args) {
-        return commandHandler.getTabCompletions(sender, args);
+        return commandManager.getCommandTabCompletions(sender, args);
     }
 }

@@ -76,14 +76,14 @@ items:
   # This item setting for toggle auto-pickup | Name can't be change
   toggle_item:
     # Slot of item (same position as main Storage GUI)
-    slot: 41
+    slot: 40
     # Display name of item
-    name: "&dAuto-Pickup Toggle"
-    material: ENDER_CHEST
+    name: "&dMythicMobs Toggle"
+    material: CHEST
     lore:
       - "&7 "
-      - "&fAuto-Pickup: #status#"
-      - "&7&oClick to toggle auto-pickup"
+      - "&fStatus: #status#"
+      - "&7&oClick to toggle use mythicmobs storage"
       - "&7 "
     # Amount of item
     amount: 1
