@@ -244,45 +244,66 @@ public class MythicMobsHelper {
                 return false;
             }
 
+            boolean foundByMethod = false;
+
             try {
                 Method getItem = itemManager.getClass().getMethod("getItem", String.class);
                 Object item = getItem.invoke(itemManager, itemName);
 
                 if (item != null) {
-                    return true;
+                    foundByMethod = true;
                 }
             } catch (NoSuchMethodException e) {
+                // Method doesn't exist, try next
+            } catch (Exception e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error checking item '" + itemName + "': " + e.getMessage());
+                return false;
             }
 
-            try {
-                Method getItemOptional = itemManager.getClass().getMethod("getItemOptional", String.class);
-                Object optional = getItemOptional.invoke(itemManager, itemName);
+            // Try getItemOptional method (MM 5.x)
+            if (!foundByMethod) {
+                try {
+                    Method getItemOptional = itemManager.getClass().getMethod("getItemOptional", String.class);
+                    Object optional = getItemOptional.invoke(itemManager, itemName);
 
-                if (optional instanceof Optional) {
-                    boolean present = ((Optional<?>) optional).isPresent();
-                    if (present) {
-                        return true;
+                    if (optional instanceof Optional) {
+                        foundByMethod = ((Optional<?>) optional).isPresent();
                     }
+                } catch (NoSuchMethodException e) {
+                    // Method doesn't exist, try next
+                } catch (Exception e) {
+                    Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error checking item '" + itemName + "': " + e.getMessage());
+                    return false;
                 }
-            } catch (NoSuchMethodException e) {
             }
 
-            try {
-                Method hasItem = itemManager.getClass().getMethod("hasItem", String.class);
-                boolean has = (boolean) hasItem.invoke(itemManager, itemName);
-                if (has) {
-                    return true;
+            if (!foundByMethod) {
+                try {
+                    Method hasItem = itemManager.getClass().getMethod("hasItem", String.class);
+                    foundByMethod = (boolean) hasItem.invoke(itemManager, itemName);
+                } catch (NoSuchMethodException e) {
+                    // Method doesn't exist, try next
+                } catch (Exception e) {
+                    Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error checking item '" + itemName + "': " + e.getMessage());
+                    return false;
                 }
-            } catch (NoSuchMethodException e) {
             }
 
-            ItemStack testStack = getMythicItem(itemName);
-            if (testStack != null) {
-                return true;
+            if (!foundByMethod) {
+                try {
+                    ItemStack testStack = getMythicItem(itemName);
+                    foundByMethod = (testStack != null);
+                } catch (Exception e) {
+                    Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Error generating ItemStack for '" + itemName + "': " + e.getMessage());
+                    return false;
+                }
             }
 
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Invalid MythicMobs item: " + itemName);
-            return false;
+            if (!foundByMethod) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Invalid MythicMobs item: " + itemName);
+            }
+
+            return foundByMethod;
 
         } catch (Exception e) {
             Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Exception validating item '" + itemName + "': " + e.getMessage());
@@ -328,6 +349,59 @@ public class MythicMobsHelper {
             } catch (ClassNotFoundException e) {
             } catch (Exception e) {
             }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public String getItemDisplayName(@NotNull String itemName) {
+        if (!initialized) return null;
+
+        try {
+            Object itemManager = getItemManager();
+            if (itemManager == null) return null;
+
+            Object mythicItem = null;
+            try {
+                Method getItem = itemManager.getClass().getMethod("getItem", String.class);
+                mythicItem = getItem.invoke(itemManager, itemName);
+            } catch (NoSuchMethodException e) {
+                try {
+                    Method getItemOptional = itemManager.getClass().getMethod("getItemOptional", String.class);
+                    Object optional = getItemOptional.invoke(itemManager, itemName);
+                    if (optional instanceof Optional && ((Optional<?>) optional).isPresent()) {
+                        mythicItem = ((Optional<?>) optional).get();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (mythicItem == null) {
+                ItemStack itemStack = getMythicItem(itemName);
+                if (itemStack != null && itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName()) {
+                    return itemStack.getItemMeta().getDisplayName();
+                }
+                return null;
+            }
+
+            try {
+                Method getDisplayName = mythicItem.getClass().getMethod("getDisplayName");
+                Object displayNameObj = getDisplayName.invoke(mythicItem);
+                String displayName = extractDisplayName(displayNameObj);
+                if (displayName != null && !displayName.isEmpty()) {
+                    return displayName;
+                }
+            } catch (Exception ignored) {
+            }
+
+            ItemStack itemStack = getMythicItem(itemName);
+            if (itemStack != null && itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName()) {
+                return itemStack.getItemMeta().getDisplayName();
+            }
+
+        } catch (Exception ignored) {
+            // Silent fail - this is expected for items without display names
         }
 
         return null;

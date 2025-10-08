@@ -142,11 +142,14 @@ public class MythicMobDeath implements Listener {
                     int currentStorage = MythicStorageManager.getPlayerItem(killer, mythicItemName);
                     int maxStorage = MythicStorageManager.getMaxStorage(killer);
 
+                    // Get display name or fallback to ID
+                    String displayName = MythicStorageManager.getItemDisplayNameOrId(mythicItemName, killer);
+
                     // Send ActionBar notification
                     if (File.getMythicStorageConfig().getBoolean("notification.actionbar.enable", true)) {
                         String actionBarMessage = File.getMythicStorageConfig().getString("notification.actionbar.item_added", "&a+ #amount# #item# &7| &a#storage#&7/&a#max#")
                                 .replace("#amount#", String.valueOf(amount))
-                                .replace("#item#", mythicItemName)
+                                .replace("#item#", displayName)
                                 .replace("#storage#", String.valueOf(currentStorage))
                                 .replace("#max#", String.valueOf(maxStorage));
                         ActionBar.sendActionBar(Storage.getStorage(), killer, Chat.colorizewp(actionBarMessage));
@@ -156,12 +159,12 @@ public class MythicMobDeath implements Listener {
                     if (File.getMythicStorageConfig().getBoolean("notification.title.enable", false)) {
                         String title = File.getMythicStorageConfig().getString("notification.title.item_added.title", "&a+ #amount# #item#")
                                 .replace("#amount#", String.valueOf(amount))
-                                .replace("#item#", mythicItemName)
+                                .replace("#item#", displayName)
                                 .replace("#storage#", String.valueOf(currentStorage))
                                 .replace("#max#", String.valueOf(maxStorage));
                         String subtitle = File.getMythicStorageConfig().getString("notification.title.item_added.subtitle", "&7Storage: &a#storage#&7/&a#max#")
                                 .replace("#amount#", String.valueOf(amount))
-                                .replace("#item#", mythicItemName)
+                                .replace("#item#", displayName)
                                 .replace("#storage#", String.valueOf(currentStorage))
                                 .replace("#max#", String.valueOf(maxStorage));
                         Titles.sendTitle(killer, Chat.colorizewp(title), Chat.colorizewp(subtitle));
@@ -174,10 +177,13 @@ public class MythicMobDeath implements Listener {
                             int currentStorage = MythicStorageManager.getPlayerItem(killer, mythicItemName);
                             int maxStorage = MythicStorageManager.getMaxStorage(killer);
 
+                            // Get display name for storage full notification
+                            String displayNameFull = MythicStorageManager.getItemDisplayNameOrId(mythicItemName, killer);
+
                             // Send ActionBar for storage full
                             if (File.getMythicStorageConfig().getBoolean("notification.actionbar.enable", true)) {
                                 String actionBarMessage = File.getMythicStorageConfig().getString("notification.actionbar.storage_full", "&cStorage Full! &7(&c#storage#&7/&c#max#&7)")
-                                        .replace("#item#", mythicItemName)
+                                        .replace("#item#", displayNameFull)
                                         .replace("#storage#", String.valueOf(currentStorage))
                                         .replace("#max#", String.valueOf(maxStorage));
                                 ActionBar.sendActionBar(Storage.getStorage(), killer, Chat.colorizewp(actionBarMessage));
@@ -186,11 +192,11 @@ public class MythicMobDeath implements Listener {
                             // Send Title for storage full
                             if (File.getMythicStorageConfig().getBoolean("notification.title.enable", false)) {
                                 String title = File.getMythicStorageConfig().getString("notification.title.storage_full.title", "&cStorage Full!")
-                                        .replace("#item#", mythicItemName)
+                                        .replace("#item#", displayNameFull)
                                         .replace("#storage#", String.valueOf(currentStorage))
                                         .replace("#max#", String.valueOf(maxStorage));
                                 String subtitle = File.getMythicStorageConfig().getString("notification.title.storage_full.subtitle", "&7(&c#storage#&7/&c#max#&7)")
-                                        .replace("#item#", mythicItemName)
+                                        .replace("#item#", displayNameFull)
                                         .replace("#storage#", String.valueOf(currentStorage))
                                         .replace("#max#", String.valueOf(maxStorage));
                                 Titles.sendTitle(killer, Chat.colorizewp(title), Chat.colorizewp(subtitle));

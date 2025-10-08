@@ -81,6 +81,13 @@ public class MythicStorageGUI implements IGUI {
             return inventory;
         }
 
+        // Notify admin if there are invalid items
+        if (MythicStorageManager.hasInvalidItems() && player.hasPermission("storage.mythicstorage.admin")) {
+            player.sendMessage(Chat.colorize("&c&l[!] MythicStorage Warning:"));
+            player.sendMessage(Chat.colorize("&e" + MythicStorageManager.getInvalidItems().size() + " &7invalid item(s) detected: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
+            player.sendMessage(Chat.colorize("&7Use &e/mythicstorage reload &7to see detailed errors"));
+        }
+
         for (String itemTag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + itemTag + ".slot")).replace(" ", "");
 

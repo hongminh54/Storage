@@ -17,6 +17,7 @@ public class MythicStorageManager {
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     private static List<String> configuredDrops = new ArrayList<>();
+    private static List<String> invalidItems = new ArrayList<>();
     private static MythicMobsHelper mythicMobsHelper;
     private static boolean systemEnabled = false;
 
@@ -36,7 +37,21 @@ public class MythicStorageManager {
         }
 
         loadConfiguredDrops();
-        Storage.getStorage().getLogger().info("[MythicStorage] Initialized successfully with " + configuredDrops.size() + " configured drops");
+
+        Storage.getStorage().getLogger().info("[MythicStorage] ========== INITIALIZATION SUMMARY ==========");
+        Storage.getStorage().getLogger().info("[MythicStorage] Valid items loaded: " + configuredDrops.size());
+
+        if (!invalidItems.isEmpty()) {
+            Storage.getStorage().getLogger().warning("[MythicStorage] Invalid items found: " + invalidItems.size());
+            Storage.getStorage().getLogger().warning("[MythicStorage] Items with errors: " + String.join(", ", invalidItems));
+            Storage.getStorage().getLogger().warning("[MythicStorage] These items will NOT appear in the GUI!");
+            Storage.getStorage().getLogger().warning("[MythicStorage] Check the detailed error messages above for fixes");
+        } else {
+            Storage.getStorage().getLogger().info("[MythicStorage] No invalid items found - all items loaded successfully!");
+        }
+
+        Storage.getStorage().getLogger().info("[MythicStorage] Initialization completed!");
+        Storage.getStorage().getLogger().info("[MythicStorage] ===================================");
     }
 
     public static boolean isSystemEnabled() {
@@ -51,15 +66,39 @@ public class MythicStorageManager {
         List<String> items = File.getMythicStorageConfig().getStringList("items_drop");
         if (items == null) {
             configuredDrops = new ArrayList<>();
+            invalidItems = new ArrayList<>();
             return;
         }
 
         configuredDrops = new ArrayList<>();
+        invalidItems = new ArrayList<>();
+
         for (String itemName : items) {
-            if (itemName == null || itemName.trim().isEmpty()) continue;
+            if (itemName == null || itemName.trim().isEmpty()) {
+                invalidItems.add(itemName);
+                Storage.getStorage().getLogger().severe("========================================");
+                Storage.getStorage().getLogger().severe("[MythicStorage] INVALID ITEM CONFIGURATION");
+                Storage.getStorage().getLogger().severe("Item: <empty or null>");
+                Storage.getStorage().getLogger().severe("Error: Item name is empty or null");
+                Storage.getStorage().getLogger().severe("Fix: Remove empty lines from items_drop list in mythicstorage.yml");
+                Storage.getStorage().getLogger().severe("========================================");
+                continue;
+            }
 
             if (!mythicMobsHelper.isValidMythicItem(itemName)) {
-                Storage.getStorage().getLogger().warning("[MythicStorage] Invalid MythicMobs item in config: " + itemName);
+                invalidItems.add(itemName);
+                Storage.getStorage().getLogger().severe("========================================");
+                Storage.getStorage().getLogger().severe("[MythicStorage] INVALID ITEM CONFIGURATION");
+                Storage.getStorage().getLogger().severe("Item: " + itemName);
+                Storage.getStorage().getLogger().severe("Error: Item does not exist in MythicMobs configuration");
+                Storage.getStorage().getLogger().severe("Possible causes:");
+                Storage.getStorage().getLogger().severe("  1. Item ID is misspelled or does not exist");
+                Storage.getStorage().getLogger().severe("  2. MythicMobs has not loaded this item yet");
+                Storage.getStorage().getLogger().severe("  3. Item configuration file is missing or invalid");
+                Storage.getStorage().getLogger().severe("Fix: Use the item ID (not filename) from your MythicMobs configuration");
+                Storage.getStorage().getLogger().severe("Example: In 'MythicMobs/Items/weapons.yml' with item 'crown:', use 'crown' in items_drop");
+                Storage.getStorage().getLogger().severe("Note: The item ID is the key name inside the yml file, NOT the filename");
+                Storage.getStorage().getLogger().severe("========================================");
                 continue;
             }
             configuredDrops.add(itemName);
@@ -69,15 +108,51 @@ public class MythicStorageManager {
     public static void reloadConfiguredDrops() {
         if (!isSystemEnabled()) return;
         loadConfiguredDrops();
-        Storage.getStorage().getLogger().info("[MythicStorage] Reloaded " + configuredDrops.size() + " configured drops");
+
+        Storage.getStorage().getLogger().info("[MythicStorage] ========== RELOAD SUMMARY ==========");
+        Storage.getStorage().getLogger().info("[MythicStorage] Valid items loaded: " + configuredDrops.size());
+
+        if (!invalidItems.isEmpty()) {
+            Storage.getStorage().getLogger().warning("[MythicStorage] Invalid items found: " + invalidItems.size());
+            Storage.getStorage().getLogger().warning("[MythicStorage] Items with errors: " + String.join(", ", invalidItems));
+            Storage.getStorage().getLogger().warning("[MythicStorage] These items will NOT appear in the GUI!");
+            Storage.getStorage().getLogger().warning("[MythicStorage] Check the detailed error messages above for fixes");
+        } else {
+            Storage.getStorage().getLogger().info("[MythicStorage] No invalid items found - all items loaded successfully!");
+        }
+
+        Storage.getStorage().getLogger().info("[MythicStorage] ===================================");
     }
 
     public static List<String> getConfiguredDrops() {
         return new ArrayList<>(configuredDrops);
     }
 
+    public static List<String> getInvalidItems() {
+        return new ArrayList<>(invalidItems);
+    }
+
+    public static boolean hasInvalidItems() {
+        return !invalidItems.isEmpty();
+    }
+
     public static boolean isConfiguredDrop(@NotNull String itemName) {
         return configuredDrops.contains(itemName);
+    }
+
+    @NotNull
+    public static String getItemDisplayNameOrId(@NotNull String itemName, @NotNull Player player) {
+        if (!isSystemEnabled() || mythicMobsHelper == null) {
+            return itemName;
+        }
+
+        String displayName = mythicMobsHelper.getItemDisplayName(itemName);
+
+        if (displayName == null || displayName.trim().isEmpty()) {
+            return itemName;
+        }
+
+        return displayName;
     }
 
     public static int getPlayerItem(@NotNull Player player, @NotNull String itemName) {

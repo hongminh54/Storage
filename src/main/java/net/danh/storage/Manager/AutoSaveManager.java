@@ -91,6 +91,9 @@ public class AutoSaveManager {
             int playerCount = 0;
             for (Player player : Bukkit.getOnlinePlayers()) {
                 MineManager.savePlayerData(player);
+                if (MythicStorageManager.isSystemEnabled()) {
+                    MythicStorageManager.savePlayerData(player);
+                }
                 playerCount++;
             }
 
