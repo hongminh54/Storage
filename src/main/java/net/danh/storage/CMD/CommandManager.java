@@ -65,8 +65,19 @@ public class CommandManager {
 
     private void handleDefaultCommand(CommandSender sender) {
         if (sender instanceof org.bukkit.entity.Player) {
+            org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+
+            if (net.danh.storage.Utils.File.getConfig().contains("blacklist_world")) {
+                if (net.danh.storage.Utils.File.getConfig().getStringList("blacklist_world").contains(player.getWorld().getName())) {
+                    String message = net.danh.storage.Utils.File.getMessage().getString("admin.world_blacklisted")
+                            .replace("#feature#", "Storage")
+                            .replace("#world#", player.getWorld().getName());
+                    sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+                    return;
+                }
+            }
+
             try {
-                org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
                 int currentPage = net.danh.storage.GUI.PersonalStorage.getPlayerCurrentPage(player);
                 player.openInventory(new net.danh.storage.GUI.PersonalStorage(player, currentPage).getInventory());
             } catch (IndexOutOfBoundsException e) {

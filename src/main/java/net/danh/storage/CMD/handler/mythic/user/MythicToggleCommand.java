@@ -17,6 +17,12 @@ public class MythicToggleCommand extends MythicCommand {
         }
 
         Player player = (Player) sender;
+
+        if (isMythicStorageWorldBlacklisted(player)) {
+            sendWorldBlacklisted(sender, "MythicStorage", player.getWorld().getName());
+            return;
+        }
+
         boolean currentStatus = MythicStorageManager.getToggleStatus(player);
         boolean newStatus = !currentStatus;
 

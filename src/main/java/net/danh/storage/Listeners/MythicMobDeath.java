@@ -118,6 +118,12 @@ public class MythicMobDeath implements Listener {
             if (killer == null || !killer.isOnline()) return;
             if (!MythicStorageManager.getToggleStatus(killer)) return;
 
+            if (File.getMythicStorageConfig().contains("blacklist_world")) {
+                if (File.getMythicStorageConfig().getStringList("blacklist_world").contains(killer.getWorld().getName())) {
+                    return;
+                }
+            }
+
             MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
             if (helper == null || !helper.isInitialized()) return;
 

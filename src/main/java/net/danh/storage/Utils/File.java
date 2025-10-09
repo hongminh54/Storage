@@ -214,7 +214,12 @@ public class File {
         int default_mythicStorageVersion = defaultConfig.getInt("mythicstorage_version");
         int current_mythicStorageVersion = currentConfig.contains("mythicstorage_version") ? currentConfig.getInt("mythicstorage_version") : 0;
         if (default_mythicStorageVersion > current_mythicStorageVersion || default_mythicStorageVersion < current_mythicStorageVersion) {
+            List<String> default_blacklist_world = defaultConfig.getStringList("blacklist_world");
+            List<String> current_blacklist_world = currentConfig.getStringList("blacklist_world");
             Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config is updating...");
+            if (current_blacklist_world.isEmpty()) {
+                getMythicStorageConfig().set("blacklist_world", default_blacklist_world);
+            }
             try {
                 ConfigUpdater.update(Storage.getStorage(), "mythicstorage.yml", configFile);
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config have been updated successful");

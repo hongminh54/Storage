@@ -22,6 +22,7 @@ admin:
   invalid_number: "#prefix# &c'&e#number#&c' is not a valid number!"
   number_too_low: "#prefix# &cNumber must be greater than 0!"
   available_commands: "#prefix# &eAvailable commands: &7#commands#"
+  world_blacklisted: "#prefix# &c#feature# &cfeature is disabled in world &e#world#&c!"
   autosave:
     status_header: "&6=== Auto-Save Status ==="
     enabled: "&7Enabled: #status#"

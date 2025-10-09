@@ -1,5 +1,10 @@
 mythicstorage_version: 1
 
+# Worlds that will not be affected by MythicStorage feature
+blacklist_world:
+  - defaultworld
+  - exampleworld
+
 settings:
   enabled: true
   default_max_storage: 5000

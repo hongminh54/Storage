@@ -72,8 +72,14 @@ public class MythicStorageCommandManager extends BaseCommand {
             return;
         }
 
+        Player player = (Player) sender;
+
+        if (isMythicStorageWorldBlacklisted(player)) {
+            sendWorldBlacklisted(sender, "MythicStorage", player.getWorld().getName());
+            return;
+        }
+
         try {
-            Player player = (Player) sender;
             player.openInventory(new net.danh.storage.GUI.MythicStorageGUI(player).getInventory());
         } catch (IndexOutOfBoundsException e) {
             sendMessage(sender, "mythicstorage.admin.not_enough_slot");

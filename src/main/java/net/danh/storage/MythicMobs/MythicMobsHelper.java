@@ -15,17 +15,11 @@ import java.util.logging.Level;
 
 public class MythicMobsHelper {
 
-    private final List<String> mmPackageAPI = Arrays.asList(
-            "io.lumine.mythic.bukkit",
-            "io.lumine.xikage.mythicmobs.api.bukkit",
-            "io.lumine.mythic.api.bukkit"
-    );
+    private final List<String> mmPackageAPI = Arrays.asList("io.lumine.mythic.bukkit", "io.lumine.xikage.mythicmobs.api.bukkit", "io.lumine.mythic.api.bukkit");
 
     private Object apiInstance;
     private String packageName = "";
     private boolean initialized = false;
-
-    // Cache reflection methods for performance
     private Method cachedIsMythicMobMethod;
     private Method cachedGetMythicMobInstanceMethod;
     private Method cachedGetTypeMethod;
@@ -313,12 +307,7 @@ public class MythicMobsHelper {
 
     @Nullable
     private Object getItemManager() {
-        String[] possibleMainClasses = {
-                "io.lumine.mythic.bukkit.MythicBukkit",
-                "io.lumine.mythic.core.MythicMobs",
-                "io.lumine.xikage.mythicmobs.MythicMobs",
-                "io.lumine.mythic.MythicMobs"
-        };
+        String[] possibleMainClasses = {"io.lumine.mythic.bukkit.MythicBukkit", "io.lumine.mythic.core.MythicMobs", "io.lumine.xikage.mythicmobs.MythicMobs", "io.lumine.mythic.MythicMobs"};
 
         for (String mainClass : possibleMainClasses) {
             try {

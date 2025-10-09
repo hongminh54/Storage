@@ -17,6 +17,12 @@ public class ConvertOreCommand extends BaseCommand {
         }
 
         Player player = (Player) sender;
+
+        if (isStorageWorldBlacklisted(player)) {
+            sendWorldBlacklisted(sender, "Storage", player.getWorld().getName());
+            return;
+        }
+
         player.openInventory(new ConvertOreGUI(player).getInventory());
     }
 
