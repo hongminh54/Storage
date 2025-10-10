@@ -56,11 +56,13 @@ public class MythicDeposit {
                     deposited += canDeposit;
                     toDeposit -= canDeposit;
                 } else {
+                    String displayName = helper.getItemDisplayName(itemName);
+                    if (displayName == null || displayName.trim().isEmpty()) displayName = itemName;
                     String message = File.getMessage().getString("mythicstorage.action.deposit.full_storage", "")
                             .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                             .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)))
                             .replace("#amount#", String.valueOf(canDeposit))
-                            .replace("#material#", itemName);
+                            .replace("#material#", displayName);
                     if (!message.isEmpty()) {
                         player.sendMessage(Chat.colorize(message));
                     }
@@ -75,9 +77,11 @@ public class MythicDeposit {
                 player.updateInventory();
             }
 
+            String displayName = helper.getItemDisplayName(itemName);
+            if (displayName == null || displayName.trim().isEmpty()) displayName = itemName;
             String message = File.getMessage().getString("mythicstorage.action.deposit.deposit_item", "")
                     .replace("#amount#", String.valueOf(deposited))
-                    .replace("#material#", itemName)
+                    .replace("#material#", displayName)
                     .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                     .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
             if (!message.isEmpty()) {

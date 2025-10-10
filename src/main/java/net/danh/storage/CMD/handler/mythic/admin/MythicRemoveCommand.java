@@ -43,21 +43,23 @@ public class MythicRemoveCommand extends MythicCommand {
         }
 
         int currentAmount = MythicStorageManager.getPlayerItem(target, itemName);
+        String displayName = getItemDisplayName(itemName);
+
         if (currentAmount < amount) {
             String[] placeholders = {"#player#", "#item#"};
-            String[] replacements = {target.getName(), itemName};
+            String[] replacements = {target.getName(), displayName};
             sendMessage(sender, "admin.not_enough_items", placeholders, replacements);
             return;
         }
 
         if (MythicStorageManager.removeItemAmount(target, itemName, amount)) {
             String[] placeholders = {"#amount#", "#item#", "#player#"};
-            String[] replacements = {String.valueOf(amount), itemName, target.getName()};
+            String[] replacements = {String.valueOf(amount), displayName, target.getName()};
             sendMessage(sender, "admin.remove_success", placeholders, replacements);
 
             if (target.isOnline()) {
                 String[] notifyPlaceholders = {"#amount#", "#item#", "#player#"};
-                String[] notifyReplacements = {String.valueOf(amount), itemName, sender.getName()};
+                String[] notifyReplacements = {String.valueOf(amount), displayName, sender.getName()};
                 sendMessage(target, "admin.remove_notify", notifyPlaceholders, notifyReplacements);
             }
         }

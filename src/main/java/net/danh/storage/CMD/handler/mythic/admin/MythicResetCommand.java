@@ -34,13 +34,14 @@ public class MythicResetCommand extends MythicCommand {
 
             MythicStorageManager.setItemAmount(target, itemName, 0);
 
+            String displayName = getItemDisplayName(itemName);
             String[] placeholders = {"#item#", "#player#"};
-            String[] replacements = {itemName, target.getName()};
+            String[] replacements = {displayName, target.getName()};
             sendMessage(sender, "admin.reset_item_success", placeholders, replacements);
 
             if (target.isOnline()) {
                 String[] notifyPlaceholders = {"#item#", "#player#"};
-                String[] notifyReplacements = {itemName, sender.getName()};
+                String[] notifyReplacements = {displayName, sender.getName()};
                 sendMessage(target, "admin.reset_item_notify", notifyPlaceholders, notifyReplacements);
             }
         } else {

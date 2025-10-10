@@ -315,12 +315,12 @@ mythicstorage:
   action:
     withdraw:
       chat_number: "#prefix# &aHow many items do you want to withdraw?"
-      withdraw_item: "#prefix# &aYou withdrew &e#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      withdraw_item: "#prefix# &aYou withdrew &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
       not_enough: "#prefix# &cYou don't have enough items! You only have &e#amount#"
       inventory_full: "#prefix# &cYour inventory is full! Cannot withdraw more items"
     deposit:
       chat_number: "#prefix# &aHow many items do you want to deposit?"
-      deposit_item: "#prefix# &aYou deposited &e#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      deposit_item: "#prefix# &aYou deposited &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
       full_storage: "#prefix# &cStorage is full &8(#item_amount#/#max_storage#)&c, cannot deposit &e#amount# #material#"
       no_items: "#prefix# &cYou don't have this MythicMobs item in your inventory!"
   user:

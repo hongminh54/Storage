@@ -51,6 +51,14 @@ public abstract class MythicCommand extends BaseCommand {
         return num;
     }
 
+    protected String getItemDisplayName(String itemName) {
+        if (MythicStorageManager.getMythicMobsHelper() == null) {
+            return itemName;
+        }
+        String displayName = MythicStorageManager.getMythicMobsHelper().getItemDisplayName(itemName);
+        return (displayName != null && !displayName.trim().isEmpty()) ? displayName : itemName;
+    }
+
     protected void sendInvalidItem(CommandSender sender, String itemName) {
         sendMessage(sender, "invalid_item", "#item#", itemName);
     }

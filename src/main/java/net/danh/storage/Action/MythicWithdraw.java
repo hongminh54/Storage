@@ -47,8 +47,10 @@ public class MythicWithdraw {
 
         ItemStack mythicItem = helper.getMythicItem(itemName);
         if (mythicItem == null) {
+            String displayName = helper.getItemDisplayName(itemName);
+            if (displayName == null || displayName.trim().isEmpty()) displayName = itemName;
             String message = File.getMessage().getString("mythicstorage.invalid_item", "")
-                    .replace("#item#", itemName);
+                    .replace("#item#", displayName);
             if (!message.isEmpty()) {
                 player.sendMessage(Chat.colorize(message));
             }
@@ -78,9 +80,11 @@ public class MythicWithdraw {
 
         if (given > 0) {
             MythicStorageManager.removeItemAmount(player, itemName, (int) given);
+            String displayName = helper.getItemDisplayName(itemName);
+            if (displayName == null || displayName.trim().isEmpty()) displayName = itemName;
             String message = File.getMessage().getString("mythicstorage.action.withdraw.withdraw_item", "")
                     .replace("#amount#", String.valueOf(given))
-                    .replace("#material#", itemName)
+                    .replace("#material#", displayName)
                     .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                     .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
             if (!message.isEmpty()) {

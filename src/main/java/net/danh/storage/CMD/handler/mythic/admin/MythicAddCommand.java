@@ -43,13 +43,14 @@ public class MythicAddCommand extends MythicCommand {
         }
 
         if (MythicStorageManager.addItemAmount(target, itemName, amount)) {
+            String displayName = getItemDisplayName(itemName);
             String[] placeholders = {"#amount#", "#item#", "#player#"};
-            String[] replacements = {String.valueOf(amount), itemName, target.getName()};
+            String[] replacements = {String.valueOf(amount), displayName, target.getName()};
             sendMessage(sender, "admin.add_success", placeholders, replacements);
 
             if (target.isOnline()) {
                 String[] notifyPlaceholders = {"#amount#", "#item#", "#player#"};
-                String[] notifyReplacements = {String.valueOf(amount), itemName, sender.getName()};
+                String[] notifyReplacements = {String.valueOf(amount), displayName, sender.getName()};
                 sendMessage(target, "admin.add_notify", notifyPlaceholders, notifyReplacements);
             }
         } else {
