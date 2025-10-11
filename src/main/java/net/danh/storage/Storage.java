@@ -98,7 +98,7 @@ public final class Storage extends JavaPlugin {
         EnchantManager.loadEnchants();
         SpecialMaterialManager.loadSpecialMaterials();
 
-        // Initialize MythicStorage with delayed loading support
+        // Initialize MythicStorage if MythicMobs is available
         initializeMythicStorage();
 
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
@@ -131,20 +131,18 @@ public final class Storage extends JavaPlugin {
     }
 
     private void initializeMythicStorage() {
-        // Check if MythicMobs is already loaded
-        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null && Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
-
-            getLogger().info("[MythicStorage] MythicMobs is already loaded, initializing immediately...");
+        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null &&
+            Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
+            
+            getLogger().info("[MythicStorage] MythicMobs already loaded, initializing immediately...");
             MythicStorageManager.initialize();
 
             if (MythicStorageManager.isSystemEnabled()) {
                 MythicMobDeath.registerListener(this);
             }
         } else {
-            // MythicMobs not loaded yet, register listener to wait
-            getLogger().info("[MythicStorage] MythicMobs not loaded yet, waiting for it to enable...");
-            MythicMobsLoadListener loadListener = new MythicMobsLoadListener();
-            registerEvents(loadListener);
+            getLogger().info("[MythicStorage] MythicMobs not loaded yet, waiting for plugin enable...");
+            registerEvents(new MythicMobsLoadListener());
         }
     }
 }

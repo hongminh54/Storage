@@ -55,8 +55,7 @@ public class MythicStorageGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
-        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
-                .replace("#player#", player.getName()));
+        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", player.getName()));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
@@ -83,9 +82,9 @@ public class MythicStorageGUI implements IGUI {
 
         // Notify admin if there are invalid items
         if (MythicStorageManager.hasInvalidItems() && player.hasPermission("storage.mythicstorage.admin")) {
-            player.sendMessage(Chat.colorize("&c&l[!] MythicStorage Warning:"));
-            player.sendMessage(Chat.colorize("&e" + MythicStorageManager.getInvalidItems().size() + " &7invalid item(s) detected: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
-            player.sendMessage(Chat.colorize("&7Use &e/mythicstorage reload &7to see detailed errors"));
+            player.sendMessage(Chat.colorizewp("&c&l[!] MythicStorage Warning:"));
+            player.sendMessage(Chat.colorizewp("&e" + MythicStorageManager.getInvalidItems().size() + " &7invalid item(s) detected: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
+            player.sendMessage(Chat.colorizewp("&7Use &e/mythicstorage reload &7to see detailed errors"));
         }
 
         for (String itemTag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
@@ -111,19 +110,20 @@ public class MythicStorageGUI implements IGUI {
                                     int amount = MythicStorageManager.getPlayerItem(player, itemName);
                                     int maxStorage = MythicStorageManager.getMaxStorage(player);
 
+                                    if (meta.hasDisplayName()) {
+                                        meta.setDisplayName(Chat.colorizewp(meta.getDisplayName()));
+                                    }
+
                                     List<String> lore = new ArrayList<>();
                                     for (String line : config.getStringList("items.mythic_item.lore")) {
-                                        lore.add(Chat.colorize(line
-                                                .replace("#item_amount#", String.valueOf(amount))
-                                                .replace("#max_storage#", String.valueOf(maxStorage))));
+                                        lore.add(Chat.colorizewp(line.replace("#item_amount#", String.valueOf(amount)).replace("#max_storage#", String.valueOf(maxStorage))));
                                     }
 
                                     meta.setLore(lore);
                                     displayItem.setItemMeta(meta);
                                 }
 
-                                InteractiveItem interactiveItem = new InteractiveItem(displayItem, Number.getInteger(slotList.get(slotIndex)))
-                                        .onClick((p, clickType) -> handleItemClick(p, itemName, clickType));
+                                InteractiveItem interactiveItem = new InteractiveItem(displayItem, Number.getInteger(slotList.get(slotIndex))).onClick((p, clickType) -> handleItemClick(p, itemName, clickType));
                                 inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                             }
                         }
@@ -133,12 +133,11 @@ public class MythicStorageGUI implements IGUI {
                 if (hasMultiplePages && currentPage > 0) {
                     ItemStack prevItem = getNavigationItem(itemTag, currentPage, totalPages);
                     if (prevItem != null) {
-                        InteractiveItem item = new InteractiveItem(prevItem, Number.getInteger(slot))
-                                .onClick((p, clickType) -> {
-                                    SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                                    SoundManager.setShouldPlayCloseSound(p, false);
-                                    p.openInventory(new MythicStorageGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
-                                });
+                        InteractiveItem item = new InteractiveItem(prevItem, Number.getInteger(slot)).onClick((p, clickType) -> {
+                            SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new MythicStorageGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                        });
                         inventory.setItem(item.getSlot(), item);
                     }
                 }
@@ -146,12 +145,11 @@ public class MythicStorageGUI implements IGUI {
                 if (hasMultiplePages && currentPage < totalPages - 1) {
                     ItemStack nextItem = getNavigationItem(itemTag, currentPage, totalPages);
                     if (nextItem != null) {
-                        InteractiveItem item = new InteractiveItem(nextItem, Number.getInteger(slot))
-                                .onClick((p, clickType) -> {
-                                    SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                                    SoundManager.setShouldPlayCloseSound(p, false);
-                                    p.openInventory(new MythicStorageGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
-                                });
+                        InteractiveItem item = new InteractiveItem(nextItem, Number.getInteger(slot)).onClick((p, clickType) -> {
+                            SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new MythicStorageGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                        });
                         inventory.setItem(item.getSlot(), item);
                     }
                 }
@@ -164,10 +162,7 @@ public class MythicStorageGUI implements IGUI {
                         }
                         ConfigurationSection section = config.getConfigurationSection("items." + itemTag);
                         if (section != null) {
-                            InteractiveItem item = new InteractiveItem(
-                                    ItemManager.getItemConfig(Objects.requireNonNull(section)),
-                                    slotNumber
-                            );
+                            InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(Objects.requireNonNull(section)), slotNumber);
                             inventory.setItem(item.getSlot(), item);
                         }
                     }
@@ -180,12 +175,9 @@ public class MythicStorageGUI implements IGUI {
 
                             if (itemTag.equalsIgnoreCase("toggle_item")) {
                                 boolean toggleStatus = MythicStorageManager.getToggleStatus(player);
-                                String status = toggleStatus ?
-                                        Chat.colorize(File.getMessage().getString("mythicstorage.status_enabled", "&aEnabled")) :
-                                        Chat.colorize(File.getMessage().getString("mythicstorage.status_disabled", "&cDisabled"));
+                                String status = toggleStatus ? Chat.colorizewp(File.getMessage().getString("mythicstorage.status_enabled", "&aEnabled")) : Chat.colorizewp(File.getMessage().getString("mythicstorage.status_disabled", "&cDisabled"));
 
-                                itemStack = ItemManager.getItemConfigWithPlaceholders(player, section,
-                                        "#status#", status);
+                                itemStack = ItemManager.getItemConfigWithPlaceholders(player, section, "#status#", status);
                             } else {
                                 itemStack = ItemManager.getItemConfig(Objects.requireNonNull(section));
                             }
@@ -205,10 +197,8 @@ public class MythicStorageGUI implements IGUI {
                                     boolean newStatus = !currentStatus;
                                     MythicStorageManager.setToggleStatus(p, newStatus);
 
-                                    String message = newStatus ?
-                                            File.getMessage().getString("mythicstorage.toggle_enabled", "&aAuto-pickup enabled!") :
-                                            File.getMessage().getString("mythicstorage.toggle_disabled", "&cAuto-pickup disabled!");
-                                    p.sendMessage(Chat.colorize(message));
+                                    String message = newStatus ? File.getMessage().getString("mythicstorage.toggle_enabled", "&aAuto-pickup enabled!") : File.getMessage().getString("mythicstorage.toggle_disabled", "&cAuto-pickup disabled!");
+                                    p.sendMessage(Chat.colorizewp(message));
 
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.openInventory(new MythicStorageGUI(p, currentPage).getInventory(SoundContext.SILENT));
@@ -231,13 +221,13 @@ public class MythicStorageGUI implements IGUI {
         if (clickType == ClickType.LEFT) {
             net.danh.storage.Listeners.Chat.chat_mythic_withdraw.put(player, itemName);
             net.danh.storage.Listeners.Chat.chat_return_page.put(player, currentPage);
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.withdraw.chat_number")));
+            player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.action.withdraw.chat_number")));
             SoundManager.setShouldPlayCloseSound(player, false);
             player.closeInventory();
 
         } else if (clickType == ClickType.SHIFT_LEFT) {
             if (currentAmount <= 0) {
-                player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.withdraw.not_enough")));
+                player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.action.withdraw.not_enough")));
                 return;
             }
 
@@ -249,7 +239,7 @@ public class MythicStorageGUI implements IGUI {
         } else if (clickType == ClickType.RIGHT) {
             net.danh.storage.Listeners.Chat.chat_mythic_deposit.put(player, itemName);
             net.danh.storage.Listeners.Chat.chat_return_page.put(player, currentPage);
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.action.deposit.chat_number")));
+            player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.action.deposit.chat_number")));
             SoundManager.setShouldPlayCloseSound(player, false);
             player.closeInventory();
 
@@ -265,9 +255,7 @@ public class MythicStorageGUI implements IGUI {
         ConfigurationSection section = config.getConfigurationSection("items." + itemTag);
         if (section == null) return null;
 
-        return ItemManager.getItemConfigWithPlaceholders(player, section,
-                "#current_page#", String.valueOf(currentPage + 1),
-                "#total_pages#", String.valueOf(totalPages));
+        return ItemManager.getItemConfigWithPlaceholders(player, section, "#current_page#", String.valueOf(currentPage + 1), "#total_pages#", String.valueOf(totalPages));
     }
 
     public Player getPlayer() {

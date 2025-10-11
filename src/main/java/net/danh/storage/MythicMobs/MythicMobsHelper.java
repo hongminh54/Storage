@@ -136,6 +136,8 @@ public class MythicMobsHelper {
 
     private String stripAllColors(String text) {
         if (text == null) return null;
+        text = text.replaceAll("&#[0-9a-fA-F]{6}", "");
+        text = text.replaceAll("<#[0-9a-fA-F]{6}>", "");
         text = text.replaceAll("§x(§[0-9a-fA-F]){6}", "");
         text = text.replaceAll("§[0-9a-fk-orA-FK-OR]", "");
         text = text.replaceAll("&x(&[0-9a-fA-F]){6}", "");

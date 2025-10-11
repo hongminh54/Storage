@@ -27,7 +27,7 @@ public class MythicDeposit {
 
         MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
         if (helper == null || !helper.isInitialized()) {
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.system_disabled", "")));
+            player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.system_disabled", "")));
             return;
         }
 
@@ -64,7 +64,7 @@ public class MythicDeposit {
                             .replace("#amount#", String.valueOf(canDeposit))
                             .replace("#material#", displayName);
                     if (!message.isEmpty()) {
-                        player.sendMessage(Chat.colorize(message));
+                        player.sendMessage(Chat.colorizewp(message));
                     }
                     break;
                 }
@@ -85,12 +85,12 @@ public class MythicDeposit {
                     .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                     .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorize(message));
+                player.sendMessage(Chat.colorizewp(message));
             }
         } else {
             String message = File.getMessage().getString("mythicstorage.action.deposit.no_items", "");
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorize(message));
+                player.sendMessage(Chat.colorizewp(message));
             }
         }
     }

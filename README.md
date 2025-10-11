@@ -5,6 +5,7 @@
 ##  Features
 
 - **Virtual Storage System** - Automatically store mined blocks in a virtual inventory
+- **MythicMobs Storage** - Store and manage MythicMobs items with auto-pickup, GUI management, and full hex color support
 - **Convert System** - Convert materials between different forms (ingots ↔ blocks) with configurable ratios
 - **Transfer System** - Send items to other players with single or multi-item transfers
 - **Event System** - Participate in server-wide mining contests and special events
@@ -18,6 +19,20 @@
 > **Note**: This is a complete rework from v1. Please reset all configuration files when updating from v1 to v2.
 > 
 > **Reworked by**: hongminh54
+
+## MythicMobs Storage System (*New Feature)
+
+A dedicated storage system for MythicMobs items that automatically stores drops from MythicMobs kills.
+
+### How It Works
+
+- Automatically stores configured MythicMobs items when players kill MythicMobs
+- Toggle auto-pickup with `/mythicstorage toggle`
+- Configure which MythicMobs items can be stored in `mythicstorage.yml`
+- Works with all MythicMobs versions (4.x, 5.x, and newer)
+- You can withdraw and deposit MythicMobs items with doing actions in MythicStorage Gui
+### This feature is still a work in progress and will be completed in the next update: Inventory Storage
+
 
 ## Commands
 
@@ -71,6 +86,19 @@
 | `/storage specialmaterial info <material>` | Show detailed material information | `storage.admin.specialmaterial` |
 | `/storage specialmaterial give <player> <material> <amount>` | Give special material to player | `storage.admin.specialmaterial` |
 
+### MythicMobs Storage Commands
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/mythicstorage` | Open MythicStorage GUI | `storage.mythicstorage.use` |
+| `/mythicstorage toggle` | Toggle auto-pickup for MythicMobs items | `storage.mythicstorage.toggle` |
+| `/mythicstorage view <player>` | View player's MythicStorage | `storage.mythicstorage.view` |
+| `/mythicstorage add <player> <item> <amount>` | Add MythicMobs items to player storage | `storage.mythicstorage.admin` |
+| `/mythicstorage remove <player> <item> <amount>` | Remove MythicMobs items from player storage | `storage.mythicstorage.admin` |
+| `/mythicstorage set <player> <item> <amount>` | Set MythicMobs item amount for player | `storage.mythicstorage.admin` |
+| `/mythicstorage reset <player> [item]` | Reset player's MythicStorage | `storage.mythicstorage.admin` |
+| `/mythicstorage reload` | Reload MythicStorage configuration | `storage.mythicstorage.admin` |
+| `/mythicstorage help` | Show MythicStorage help | - |
+
 **Material Format**: For 1.12.2 and below use `MATERIAL;DATA` (e.g., `COAL;0`). For 1.13+ use `MATERIAL;0`.
 
 ## Permissions
@@ -86,6 +114,9 @@
 | `storage.transfer.log.others` | View other players' transfer logs | `true` |
 | `storage.event.view` | View event status | `true` |
 | `storage.enchant.use` | Use enchanted items | `true` |
+| `storage.mythicstorage.use` | Use MythicStorage GUI | `true` |
+| `storage.mythicstorage.toggle` | Toggle MythicMobs auto-pickup | `true` |
+| `storage.mythicstorage.view` | View other players' MythicStorage | `op` |
 
 ### Admin Permissions
 | Permission                     | Description           | Default |
@@ -101,6 +132,7 @@
 | `storage.transfer.admin`       | Bypass transfer cooldowns and limits | `op` |
 | `storage.event.admin`          | Manage server events  | `op` |
 | `storage.enchant.admin`        | Manage custom enchants| `op` |
+| `storage.mythicstorage.admin`  | Manage MythicStorage system | `op` |
 
 ## Placeholders
 
@@ -222,6 +254,7 @@ if (StorageAPI.isInitialized()) {
 
 [![placeholderapi](https://img.shields.io/badge/PlaceholderAPI-2.11.6-blue?style=badge)](https://www.spigotmc.org/resources/6245/)
 [![worldguard](https://img.shields.io/badge/WorldGuard-v6/v7-blue?style=badge)](https://dev.bukkit.org/projects/worldguard)
+[![mythicmobs](https://img.shields.io/badge/MythicMobs-4.x.x/5.x.x-orange?style=badge)](https://www.spigotmc.org/resources/5702/)
 
 ## Contributing
 

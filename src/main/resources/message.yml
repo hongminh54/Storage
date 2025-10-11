@@ -37,7 +37,7 @@ admin:
     error: "#prefix# &cError during &eauto-save: #error#"
     manual_executed: "#prefix# &7Manual save executed"
   help:
-    - "&6=== &eStorage &7v2.3.2 &6==="
+    - "&6=== &eStorage Admin Commands &6v2.3.3 &6==="
     - "&e/Storage reload &f- &7Reload Files"
     - "&e/Storage max &a<player> &6<amount> &f- &7Set max item player can storage"
     - "&e/Storage add &b<material;data> &a<player> &6<amount> &f- &7Add item to player (data for 1.12.2 and below, if you use 1.13+ use <material>;0"
@@ -83,7 +83,7 @@ user:
     status_off: "&cOff"
     toggle: "#prefix# &bYour storage has been toggled: #status#"
   help:
-    - "&6=== &eStorage &7v2.3.2 &6==="
+    - "&6=== &eStorage Commands &6v2.3.3 &6==="
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
     - "&e/Storage convert &f- &7Open convert materials GUI (require permission)"
@@ -325,7 +325,7 @@ mythicstorage:
       no_items: "#prefix# &cYou don't have this MythicMobs item in your inventory!"
   user:
     help:
-      - "&6=== &eMythicStorage &7v2.3.2 &6==="
+      - "&6=== &eMythicStorage Commands &6==="
       - "&e/mythicstorage &f- &7Open MythicStorage GUI"
       - "&e/mythicstorage toggle &f- &7Toggle auto-pickup"
       - "&e/mythicstorage view &a<player> &f- &7View player's storage (require permission)"
@@ -353,7 +353,7 @@ mythicstorage:
     not_enough_slot: "#prefix# &cYou need to add more slot in GUI/mythicstorage.yml -> mythic_item to open this gui. Slot isn't enough for item you had been config"
     invalid_usage: "#prefix# &cInvalid usage! &eUsage: #usage#"
     help:
-      - "&6=== &eMythicStorage Admin &7v2.3.2 &6==="
+      - "&6=== &eMythicStorage Admin Commands &6==="
       - "&e/mythicstorage add &a<player> &b<item> &6<amount> &f- &7Add items to player's storage"
       - "&e/mythicstorage remove &a<player> &b<item> &6<amount> &f- &7Remove items from player's storage"
       - "&e/mythicstorage set &a<player> &b<item> &6<amount> &f- &7Set item amount for player"
