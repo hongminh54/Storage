@@ -2,16 +2,16 @@ package net.danh.storage.Manager;
 
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.logging.Level;
 
 public class AutoSaveManager {
 
-    private static BukkitTask autoSaveTask;
+    private static TaskWrapper autoSaveTask;
     private static boolean isEnabled = false;
     private static int intervalMinutes = 5;
     private static boolean async = true;
@@ -42,12 +42,9 @@ public class AutoSaveManager {
 
         long intervalTicks = intervalMinutes * 60L * 20L;
 
-        autoSaveTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                saveAllPlayerData();
-            }
-        }.runTaskTimer(Storage.getStorage(), intervalTicks, intervalTicks);
+        autoSaveTask = TaskWrapper.runTaskTimer(Storage.getStorage(), () -> {
+            saveAllPlayerData();
+        }, intervalTicks, intervalTicks);
 
         if (logActivity) {
             String message = File.getMessage().getString("admin.autosave.started", "Auto-save started with interval: #minutes# minutes");
@@ -78,7 +75,7 @@ public class AutoSaveManager {
 
     private static void saveAllPlayerData() {
         if (async) {
-            Bukkit.getScheduler().runTaskAsynchronously(Storage.getStorage(), () -> {
+            SchedulerUtil.runTaskAsynchronously(Storage.getStorage(), () -> {
                 performSave();
             });
         } else {

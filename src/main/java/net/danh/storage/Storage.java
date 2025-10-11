@@ -10,6 +10,7 @@ import net.danh.storage.Manager.*;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Placeholder.PAPI;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.UpdateChecker;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.Bukkit;
@@ -53,6 +54,13 @@ public final class Storage extends JavaPlugin {
     @Override
     public void onEnable() {
         getLogger().log(Level.INFO, "Loading...");
+
+        if (SchedulerUtil.isFolia()) {
+            getLogger().log(Level.INFO, "Detected Folia server - Using regionized scheduler");
+        } else {
+            getLogger().log(Level.INFO, "Detected Bukkit/Spigot/Paper server - Using standard scheduler");
+        }
+
         GUI.register(storage);
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
@@ -124,8 +132,7 @@ public final class Storage extends JavaPlugin {
 
     private void initializeMythicStorage() {
         // Check if MythicMobs is already loaded
-        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null
-                && Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
+        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null && Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
 
             getLogger().info("[MythicStorage] MythicMobs is already loaded, initializing immediately...");
             MythicStorageManager.initialize();

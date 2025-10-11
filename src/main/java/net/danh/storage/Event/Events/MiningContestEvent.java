@@ -5,15 +5,15 @@ import net.danh.storage.Event.EventType;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MiningContestEvent extends BaseEvent {
-    private BukkitRunnable chatProgressTask;
+    private TaskWrapper chatProgressTask;
 
     public MiningContestEvent() {
         super(EventType.MINING_CONTEST);
@@ -86,18 +86,13 @@ public class MiningContestEvent extends BaseEvent {
         int interval = File.getEventConfig().getInt("notifications.chat_progress.interval", 300);
         long intervalTicks = interval * 20L;
 
-        chatProgressTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!eventData.isActive()) {
-                    cancel();
-                    return;
-                }
-                broadcastChatProgress();
+        chatProgressTask = TaskWrapper.runTaskTimer(Storage.getStorage(), () -> {
+            if (!eventData.isActive()) {
+                if (chatProgressTask != null) chatProgressTask.cancel();
+                return;
             }
-        };
-
-        chatProgressTask.runTaskTimer(Storage.getStorage(), intervalTicks, intervalTicks);
+            broadcastChatProgress();
+        }, intervalTicks, intervalTicks);
     }
 
     private void stopChatProgressUpdates() {

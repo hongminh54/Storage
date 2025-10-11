@@ -6,12 +6,12 @@ import com.cryptomorin.xseries.particles.XParticle;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,49 +86,44 @@ public class HasteEnchant {
 
         playerLastHaste.put(playerId, currentTime);
 
-        createCustomEffects(player.getLocation(), enchantData);
     }
 
     private static void createCustomEffects(Location location, EnchantManager.EnchantData enchantData) {
         if (!enchantData.particlesEnabled) return;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (location.getWorld() == null) return;
+        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+            if (location.getWorld() == null) return;
 
-                if (enchantData.particlesEnabled) {
-                    try {
-                        XParticle particle = XParticle.of(enchantData.particleType).orElse(null);
-                        if (particle != null) {
-                            ParticleDisplay.of(particle)
-                                    .withLocation(location.add(0, 1, 0))
-                                    .withCount(enchantData.particleCount)
-                                    .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
-                                    .withExtra(enchantData.particleExtra)
-                                    .spawn();
-                        }
-                    } catch (Exception e) {
-                        Storage.getStorage().getLogger().warning("Failed to spawn Haste enchant particles: " + e.getMessage());
+            if (enchantData.particlesEnabled) {
+                try {
+                    XParticle particle = XParticle.of(enchantData.particleType).orElse(null);
+                    if (particle != null) {
+                        ParticleDisplay.of(particle)
+                                .withLocation(location.add(0, 1, 0))
+                                .withCount(enchantData.particleCount)
+                                .offset(enchantData.particleOffsetX, enchantData.particleOffsetY, enchantData.particleOffsetZ)
+                                .withExtra(enchantData.particleExtra)
+                                .spawn();
                     }
-                }
-
-                if (enchantData.soundsEnabled) {
-                    try {
-                        XSound sound = XSound.matchXSound(enchantData.explosionSound).orElse(XSound.ENTITY_GENERIC_EXPLODE);
-                        sound.play(location, enchantData.soundVolume, enchantData.soundPitch);
-                    } catch (Exception e) {
-                        Storage.getStorage().getLogger().warning("Failed to play Haste enchant sound: " + e.getMessage());
-                    }
+                } catch (Exception e) {
+                    Storage.getStorage().getLogger().warning("Failed to spawn Haste enchant particles: " + e.getMessage());
                 }
             }
-        }.runTaskLater(Storage.getStorage(), enchantData.soundDelayTicks);
+
+            if (enchantData.soundsEnabled) {
+                try {
+                    XSound sound = XSound.matchXSound(enchantData.explosionSound).orElse(XSound.BLOCK_NOTE_BLOCK_PLING);
+                    sound.play(location, enchantData.soundVolume, enchantData.soundPitch);
+                } catch (Exception e) {
+                    Storage.getStorage().getLogger().warning("Failed to play Haste enchant sound: " + e.getMessage());
+                }
+            }
+        }, enchantData.soundDelayTicks);
     }
 
     public static void cleanupOldEntries() {
         long currentTime = System.currentTimeMillis();
         long cleanupThreshold = 300000; // 5 minutes
-
         playerCooldowns.entrySet().removeIf(entry ->
                 currentTime - entry.getValue() > cleanupThreshold);
 

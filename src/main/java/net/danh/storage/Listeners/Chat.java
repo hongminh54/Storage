@@ -9,8 +9,8 @@ import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.SoundContext;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,7 +41,7 @@ public class Chat implements Listener {
                 new Deposit(p, chat_deposit.get(p), (long) Number.getInteger(message)).doAction();
                 SoundManager.playChatDepositSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -55,7 +55,7 @@ public class Chat implements Listener {
                 new Withdraw(p, chat_withdraw.get(p), Number.getInteger(message)).doAction();
                 SoundManager.playChatWithdrawSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -69,7 +69,7 @@ public class Chat implements Listener {
                 new Sell(p, chat_sell.get(p), Number.getInteger(message)).doAction();
                 SoundManager.playChatSellSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -84,7 +84,7 @@ public class Chat implements Listener {
                 new MythicWithdraw(p, chat_mythic_withdraw.get(p), Number.getInteger(message)).doAction();
                 SoundManager.playChatDepositSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -99,7 +99,7 @@ public class Chat implements Listener {
                 new MythicDeposit(p, chat_mythic_deposit.get(p), Number.getInteger(message)).doAction();
                 SoundManager.playChatDepositSound(p);
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -119,7 +119,7 @@ public class Chat implements Listener {
 
                 new ConvertOre(p, fromMaterial, toMaterial, amount).doAction();
                 SoundManager.playItemSound(p, net.danh.storage.Utils.File.getConvertOreConfig(), "option_items.convert_option", SoundContext.INITIAL_OPEN);
-                Bukkit.getScheduler().runTask(Storage.getStorage(), () -> p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -137,7 +137,7 @@ public class Chat implements Listener {
                 if (activeGUI != null) {
                     int amount = Number.getInteger(message);
                     activeGUI.setTransferAmount(amount);
-                    Bukkit.getScheduler().runTask(Storage.getStorage(), () -> {
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
                         activeGUI.updateGUI();
                         p.sendMessage(net.danh.storage.Utils.Chat.colorize("&aTransfer amount set to " + amount));
                     });

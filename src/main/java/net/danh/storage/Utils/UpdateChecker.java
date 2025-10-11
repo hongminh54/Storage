@@ -35,7 +35,7 @@ public class UpdateChecker implements Listener {
     }
 
     public void fetch() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsynchronously(plugin, () -> {
             if (File.getConfig().getBoolean("check_update")) {
                 try {
                     HttpsURLConnection con = (HttpsURLConnection) new URL("https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID).openConnection();
@@ -53,7 +53,7 @@ public class UpdateChecker implements Listener {
                 updateAvailable = spigotIsNewer();
                 devBuildVersion = devBuildIsNewer();
 
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                SchedulerUtil.runTask(plugin, () -> {
                     if (devBuildVersion) {
                         plugin.getLogger().warning("You are using DevBuild version of Storage Plugin");
                         plugin.getLogger().warning("Most of things in DevBuild has fix bug and new features for the next version and it can be include another issues");

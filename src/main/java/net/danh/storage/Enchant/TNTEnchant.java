@@ -12,6 +12,7 @@ import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -19,7 +20,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -82,12 +82,9 @@ public class TNTEnchant {
 
         if (enchantData.soundsEnabled) {
             if (enchantData.soundDelayTicks > 0) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playCustomSound(location, enchantData);
-                    }
-                }.runTaskLater(Storage.getStorage(), enchantData.soundDelayTicks);
+                SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+                    playCustomSound(location, enchantData);
+                }, enchantData.soundDelayTicks);
             } else {
                 playCustomSound(location, enchantData);
             }
@@ -95,12 +92,9 @@ public class TNTEnchant {
 
         if (enchantData.particlesEnabled) {
             if (enchantData.particleDelayTicks > 0) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        spawnCustomParticles(location, enchantData);
-                    }
-                }.runTaskLater(Storage.getStorage(), enchantData.particleDelayTicks);
+                SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+                    spawnCustomParticles(location, enchantData);
+                }, enchantData.particleDelayTicks);
             } else {
                 spawnCustomParticles(location, enchantData);
             }

@@ -5,17 +5,17 @@ import net.danh.storage.Database.TransferDatabase;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TransferManager {
 
-    private static final Map<String, BukkitRunnable> activeTransfers = new HashMap<>();
+    private static final Map<String, TaskWrapper> activeTransfers = new HashMap<>();
     private static TransferDatabase transferDatabase;
 
     public static void initialize() {
@@ -212,18 +212,14 @@ public class TransferManager {
         ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
 
         // Create and start the transfer task
-        BukkitRunnable transferTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Stop processing animation
-                ParticleManager.stopTransferProcessingAnimation(sender);
-                completeTransfer(sender, receiver, material, amount);
-                activeTransfers.remove(sender.getName());
-            }
-        };
+        TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            // Stop processing animation
+            ParticleManager.stopTransferProcessingAnimation(sender);
+            completeTransfer(sender, receiver, material, amount);
+            activeTransfers.remove(sender.getName());
+        }, transferDelay * 20L);
 
         activeTransfers.put(sender.getName(), transferTask);
-        transferTask.runTaskLater(Storage.getStorage(), transferDelay * 20L); // Convert seconds to ticks
     }
 
     private static void startMultiTransferProcess(Player sender, Player receiver, Map<String, Integer> materials) {
@@ -261,18 +257,14 @@ public class TransferManager {
         ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
 
         // Create and start the multi transfer task
-        BukkitRunnable transferTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Stop processing animation
-                ParticleManager.stopTransferProcessingAnimation(sender);
-                completeMultiTransfer(sender, receiver, materials);
-                activeTransfers.remove(sender.getName());
-            }
-        };
+        TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            // Stop processing animation
+            ParticleManager.stopTransferProcessingAnimation(sender);
+            completeMultiTransfer(sender, receiver, materials);
+            activeTransfers.remove(sender.getName());
+        }, transferDelay * 20L);
 
         activeTransfers.put(sender.getName(), transferTask);
-        transferTask.runTaskLater(Storage.getStorage(), transferDelay * 20L); // Convert seconds to ticks
     }
 
     private static void completeMultiTransfer(Player sender, Player receiver, Map<String, Integer> materials) {
@@ -457,7 +449,7 @@ public class TransferManager {
     }
 
     public static void cancelTransfer(Player player) {
-        BukkitRunnable task = activeTransfers.remove(player.getName());
+        TaskWrapper task = activeTransfers.remove(player.getName());
         if (task != null) {
             task.cancel();
             player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.cancelled")));
@@ -467,7 +459,7 @@ public class TransferManager {
     }
 
     public static void cancelAllTransfers() {
-        for (BukkitRunnable task : activeTransfers.values()) {
+        for (TaskWrapper task : activeTransfers.values()) {
             task.cancel();
         }
         activeTransfers.clear();

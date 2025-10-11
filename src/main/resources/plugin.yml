@@ -4,6 +4,7 @@ main: net.danh.storage.Storage
 author: VoChiDanh, hongminh54
 description: "${project.description}"
 api-version: '1.13'
+folia-supported: true
 load: STARTUP
 softdepend:
   - WorldGuard
