@@ -47,7 +47,11 @@ admin:
     - "&e/Storage autosave &f- &7Show auto-save status"
     - "&e/Storage save &f- &7Force save all player data"
     - "&e/Storage event &b<start|stop|list> &f- &7Manage events"
-    - "&e/Storage enchant &b<give|remove|list|info|setmaxlevel> &f- &7Manage custom enchantments"
+    - "&e/Storage enchant give &b<enchant> &6<level> &f- &7Give enchant to item in hand"
+    - "&e/Storage enchant remove &b<enchant> &f- &7Remove enchant from item in hand"
+    - "&e/Storage enchant list &f- &7List all available enchants"
+    - "&e/Storage enchant info &b<enchant> &f- &7Show enchant information"
+    - "&e/Storage enchant setmaxlevel &b<enchant> &6<level> &f- &7Set max level for enchant"
     - "&e/Storage specialmaterial &b<list|info|give> &f- &7Manage special materials"
   transfer_commands:
     error_opening_gui: "#prefix# &cError opening transfer GUI, please specify a valid player and material (if transfer is multi, specify player only)."

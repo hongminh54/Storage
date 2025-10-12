@@ -70,11 +70,11 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 ### Enchant Commands
 | Command | Description | Permission              |
 |---------|-------------|-------------------------|
-| `/storage enchant give <player> <enchant> <level>` | Give custom enchant to player's held item | `storage.enchant.admin` |
-| `/storage enchant remove <player> <enchant>` | Remove custom enchant from player's held item | `storage.enchant.admin`       |
-| `/storage enchant list [player]` | List available enchants or player's item enchants | `storage.enchant.admin` |
-| `/storage enchant info <enchant>` | Show detailed enchant information | `storage.enchant.admin` |
-| `/storage enchant setmaxlevel <enchant> <level>` | Set maximum level for enchant | `storage.enchant.admin` |
+| `/storage enchant give <enchant> <level>` | Give custom enchant to item in hand | `storage.admin.enchant` |
+| `/storage enchant remove <enchant>` | Remove custom enchant from item in hand | `storage.admin.enchant` |
+| `/storage enchant list` | List all available enchants | `storage.admin.enchant` |
+| `/storage enchant info <enchant>` | Show detailed enchant information | `storage.admin.enchant` |
+| `/storage enchant setmaxlevel <enchant> <level>` | Set maximum level for enchant | `storage.admin.enchant` |
 
 **Available Enchants**: `tnt`, `haste`, `multiplier`, `veinminer`
 
