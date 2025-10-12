@@ -5,7 +5,7 @@
 ##  Features
 
 - **Virtual Storage System** - Automatically store mined blocks in a virtual inventory
-- **MythicMobs Storage** - Automatically store in virtual inventory with MythicMobs items when players kill MythicMobs
+- **MythicMobs Storage** - Automatically store in virtual inventory with MythicMobs items when players kill Mobs
 - **Convert System** - Convert materials between different forms (ingots ↔ blocks) with configurable ratios
 - **Transfer System** - Send items to other players with single or multi-item transfers
 - **Event System** - Participate in server-wide mining contests and special events
@@ -22,11 +22,11 @@
 
 ## MythicMobs Storage System (*New Feature)
 
-A dedicated storage system for MythicMobs items that automatically stores drops from MythicMobs kills.
+A dedicated storage system for MythicMobs items that automatically stores drops from Mobs.
 
 ### How It Works
 
-- Automatically stores configured MythicMobs items when players kill MythicMobs
+- Automatically stores configured MythicMobs items when players kill Mobs
 - All command in `/mythicstorage`
 - Configure which MythicMobs items can be stored in `mythicstorage.yml`
 - Works with all MythicMobs versions (4.x, 5.x, and newer)
