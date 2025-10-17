@@ -5,11 +5,14 @@ import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.List;
 import java.util.Optional;
@@ -185,5 +188,33 @@ public class ItemManager {
         if (meta == null) return item;
 
         return applyPlaceholders(item, meta.getLore(), meta.getDisplayName(), replacements);
+    }
+
+    public static ItemStack setPlayerSkull(ItemStack item, String playerName) {
+        if (item == null || playerName == null || playerName.isEmpty()) return item;
+
+        ItemMeta meta = item.getItemMeta();
+        if (!(meta instanceof SkullMeta)) return item;
+
+        SkullMeta skullMeta = (SkullMeta) meta;
+
+        try {
+            if (NMS.isVersionGreaterThanOrEqualTo(12)) {
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+                skullMeta.setOwningPlayer(offlinePlayer);
+            } else {
+                skullMeta.setOwner(playerName);
+            }
+            item.setItemMeta(skullMeta);
+        } catch (Exception ignored) {
+            try {
+                skullMeta.setOwner(playerName);
+                item.setItemMeta(skullMeta);
+            } catch (Exception e) {
+                // Silent fail - return original item
+            }
+        }
+
+        return item;
     }
 }

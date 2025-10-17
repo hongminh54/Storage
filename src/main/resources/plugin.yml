@@ -78,7 +78,19 @@ permissions:
     default: true
   storage.mythicstorage.view:
     description: View other players' MythicMobs storage
-    default: op
+    default: true
   storage.mythicstorage.admin:
-    description: Admin commands for MythicMobs storage (add, remove, set, reset, reload)
+    description: Admin commands for MythicMobs storage
     default: op
+  storage.mythicstorage.transfer:
+    description: Transfer MythicMobs items to other players
+    default: true
+  storage.mythicstorage.transfer.multi:
+    description: Transfer multiple MythicMobs items at once
+    default: true
+  storage.mythicstorage.transfer.log:
+    description: View own MythicMobs transfer logs
+    default: true
+  storage.mythicstorage.transfer.log.others:
+    description: View other players MythicMobs transfer logs
+    default: true

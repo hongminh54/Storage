@@ -227,7 +227,8 @@ public class MythicStorageGUI implements IGUI {
 
         } else if (clickType == ClickType.SHIFT_LEFT) {
             if (currentAmount <= 0) {
-                player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.action.withdraw.not_enough")));
+                player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.action.withdraw.not_enough", "")
+                        .replace("#amount#", String.valueOf(currentAmount))));
                 return;
             }
 

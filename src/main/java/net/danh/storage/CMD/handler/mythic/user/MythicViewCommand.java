@@ -2,6 +2,7 @@ package net.danh.storage.CMD.handler.mythic.user;
 
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
 import net.danh.storage.GUI.ViewMythicStorageGUI;
+import net.danh.storage.Manager.MythicStorageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -27,6 +28,12 @@ public class MythicViewCommand extends MythicCommand {
         Player target = getPlayer(args[0]);
         if (target == null || !target.isOnline()) {
             sendPlayerNotFound(sender, args[0]);
+            return;
+        }
+
+        // Check if target player has any items in MythicStorage
+        if (!MythicStorageManager.hasAnyItems(target)) {
+            sendMessage(sender, "no_items");
             return;
         }
 

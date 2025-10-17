@@ -3,9 +3,10 @@ package net.danh.storage.GUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
-import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.MythicTransferManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Manager.TransferManager;
+import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
@@ -20,19 +21,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TransferGUI implements IGUI {
-    private static final Map<Player, TransferGUI> activeGUIs = new HashMap<>();
+public class MythicTransferGUI implements IGUI {
+    private static final Map<Player, MythicTransferGUI> activeGUIs = new HashMap<>();
     private static final Map<Player, Boolean> waitingForInput = new HashMap<>();
     private final Player player;
     private final String targetPlayer;
-    private final String material;
+    private final String itemName;
     private final Inventory inventory;
     private int transferAmount;
 
-    public TransferGUI(Player player, String targetPlayer, String material) {
+    public MythicTransferGUI(Player player, String targetPlayer, String itemName) {
         this.player = player;
         this.targetPlayer = targetPlayer;
-        this.material = material;
+        this.itemName = itemName;
         this.transferAmount = 1;
 
         FileConfiguration guiConfig = getTransferConfig();
@@ -44,8 +45,12 @@ public class TransferGUI implements IGUI {
         activeGUIs.put(player, this);
     }
 
-    public static TransferGUI getActiveGUI(Player player) {
+    public static MythicTransferGUI getActiveGUI(Player player) {
         return activeGUIs.get(player);
+    }
+
+    public static void removeActiveGUI(Player player) {
+        activeGUIs.remove(player);
     }
 
     public static boolean isWaitingForInput(Player player) {
@@ -109,8 +114,8 @@ public class TransferGUI implements IGUI {
 
     private InteractiveItem createInteractiveItem(String itemKey, ConfigurationSection section, int slot) {
         switch (itemKey) {
-            case "material_display":
-                return createMaterialDisplayItem(section, slot);
+            case "item_display":
+                return createItemDisplayItem(section, slot);
             case "player_info":
                 return createPlayerInfoItem(section, slot);
             case "confirm_transfer":
@@ -130,38 +135,41 @@ public class TransferGUI implements IGUI {
         }
     }
 
-    private InteractiveItem createMaterialDisplayItem(ConfigurationSection section, int slot) {
-        int currentAmount = MineManager.getPlayerBlock(player, material);
-        String materialName = getMaterialDisplayName();
+    private InteractiveItem createItemDisplayItem(ConfigurationSection section, int slot) {
+        int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+        String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, player);
 
         try {
-            ItemStack baseItem = ItemManager.getItemConfig(player, material, materialName, section);
-            baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
-                    "#material_name#", materialName,
-                    "#current_amount#", String.valueOf(currentAmount),
-                    "#transfer_amount#", String.valueOf(transferAmount));
+            MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
+            ItemStack mythicItem = helper.getMythicItem(itemName);
 
-            InteractiveItem item = new InteractiveItem(baseItem, slot);
-            item.onLeftClick(p -> {
-                SoundManager.playItemSound(p, getTransferConfig(), "items.material_display", SoundContext.INITIAL_OPEN);
-                handleClick("material_display");
-            });
-            return item;
-        } catch (Exception e) {
-            // Fallback to basic item if material creation fails
-            ItemStack fallbackItem = ItemManager.getItemConfig(player, section);
-            fallbackItem = ItemManager.replaceLore(fallbackItem, section.getStringList("lore"),
-                    "#material_name#", materialName,
-                    "#current_amount#", String.valueOf(currentAmount),
-                    "#transfer_amount#", String.valueOf(transferAmount));
+            if (mythicItem != null) {
+                mythicItem = ItemManager.replaceLore(mythicItem, section.getStringList("lore"),
+                        "#item_name#", displayName,
+                        "#current_amount#", String.valueOf(currentAmount),
+                        "#transfer_amount#", String.valueOf(transferAmount));
 
-            InteractiveItem item = new InteractiveItem(fallbackItem, slot);
-            item.onLeftClick(p -> {
-                SoundManager.playItemSound(p, getTransferConfig(), "items.material_display", SoundContext.INITIAL_OPEN);
-                handleClick("material_display");
-            });
-            return item;
+                InteractiveItem item = new InteractiveItem(mythicItem, slot);
+                item.onLeftClick(p -> {
+                    SoundManager.playItemSound(p, getTransferConfig(), "items.item_display", SoundContext.INITIAL_OPEN);
+                });
+                return item;
+            }
+        } catch (Exception ignored) {
         }
+
+        // Fallback to config item
+        ItemStack fallbackItem = ItemManager.getItemConfig(player, section);
+        fallbackItem = ItemManager.replaceLore(fallbackItem, section.getStringList("lore"),
+                "#item_name#", displayName,
+                "#current_amount#", String.valueOf(currentAmount),
+                "#transfer_amount#", String.valueOf(transferAmount));
+
+        InteractiveItem item = new InteractiveItem(fallbackItem, slot);
+        item.onLeftClick(p -> {
+            SoundManager.playItemSound(p, getTransferConfig(), "items.item_display", SoundContext.INITIAL_OPEN);
+        });
+        return item;
     }
 
     private InteractiveItem createPlayerInfoItem(ConfigurationSection section, int slot) {
@@ -175,15 +183,15 @@ public class TransferGUI implements IGUI {
     }
 
     private InteractiveItem createConfirmItem(ConfigurationSection section, int slot) {
-        String materialName = getMaterialDisplayName();
+        String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, player);
         ItemStack baseItem = ItemManager.getItemConfig(player, section);
         baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
                 "#transfer_amount#", String.valueOf(transferAmount),
-                "#material_name#", materialName,
+                "#item_name#", displayName,
                 "#player#", targetPlayer);
         baseItem = ItemManager.replacePlaceholders(baseItem,
                 "#transfer_amount#", String.valueOf(transferAmount),
-                "#material_name#", materialName,
+                "#item_name#", displayName,
                 "#player#", targetPlayer);
 
         InteractiveItem item = new InteractiveItem(baseItem, slot);
@@ -241,7 +249,7 @@ public class TransferGUI implements IGUI {
     }
 
     private InteractiveItem createAmountMaxItem(ConfigurationSection section, int slot) {
-        int currentAmount = MineManager.getPlayerBlock(player, material);
+        int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
         ItemStack baseItem = ItemManager.getItemConfig(player, section);
         baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
                 "#current_amount#", String.valueOf(currentAmount));
@@ -290,10 +298,8 @@ public class TransferGUI implements IGUI {
     }
 
     private void increaseAmount() {
-        int currentAmount = MineManager.getPlayerBlock(player, material);
-        int optimalAmount = TransferManager.getOptimalTransferAmount(player, targetPlayer, material, currentAmount);
-
-        if (transferAmount < optimalAmount) {
+        int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+        if (transferAmount < currentAmount) {
             transferAmount++;
             updateGUI();
         }
@@ -301,21 +307,20 @@ public class TransferGUI implements IGUI {
 
     private void requestCustomAmount() {
         player.closeInventory();
-        player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.gui_enter_amount")));
+        player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.gui_enter_amount")));
         waitingForInput.put(player, true);
     }
 
     private void setMaxAmount() {
-        int currentAmount = MineManager.getPlayerBlock(player, material);
-        int optimalAmount = TransferManager.getOptimalTransferAmount(player, targetPlayer, material, currentAmount);
-        transferAmount = optimalAmount;
+        int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+        transferAmount = currentAmount;
         updateGUI();
     }
 
     private void confirmTransfer() {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
-        TransferManager.executeTransfer(player, targetPlayer, material, transferAmount);
+        MythicTransferManager.executeTransfer(player, targetPlayer, itemName, transferAmount);
         activeGUIs.remove(player);
     }
 
@@ -324,8 +329,7 @@ public class TransferGUI implements IGUI {
         player.closeInventory();
         activeGUIs.remove(player);
         try {
-            int currentPage = PersonalStorage.getPlayerCurrentPage(player);
-            player.openInventory(new PersonalStorage(player, currentPage).getInventory());
+            player.openInventory(new MythicStorageGUI(player).getInventory());
         } catch (Exception e) {
             player.sendMessage(Chat.colorize("&cError opening storage GUI"));
         }
@@ -347,18 +351,12 @@ public class TransferGUI implements IGUI {
         }
     }
 
-    private String getMaterialDisplayName() {
-        FileConfiguration config = File.getConfig();
-        String displayName = config.getString("items." + material);
-        return displayName != null ? displayName : material.replace(";0", "").replace("_", " ");
-    }
-
     private FileConfiguration getTransferConfig() {
-        return File.getFileSetting().get("GUI/transfer.yml");
+        return File.getFileSetting().get("GUI/mythictransfer.yml");
     }
 
     public void setTransferAmount(int amount) {
-        int currentAmount = MineManager.getPlayerBlock(player, material);
+        int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
         this.transferAmount = Math.min(Math.max(1, amount), currentAmount);
     }
 
@@ -371,7 +369,7 @@ public class TransferGUI implements IGUI {
         return targetPlayer;
     }
 
-    public String getMaterial() {
-        return material;
+    public String getItemName() {
+        return itemName;
     }
 }

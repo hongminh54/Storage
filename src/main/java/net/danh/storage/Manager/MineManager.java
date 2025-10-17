@@ -333,4 +333,13 @@ public class MineManager {
         return null;
     }
 
+    public static boolean hasAnyItems(@NotNull Player player) {
+        for (String material : getPluginBlocks()) {
+            if (getPlayerBlock(player, material) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -5,6 +5,7 @@ import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.mythic.admin.*;
 import net.danh.storage.CMD.handler.mythic.user.MythicHelpCommand;
 import net.danh.storage.CMD.handler.mythic.user.MythicToggleCommand;
+import net.danh.storage.CMD.handler.mythic.user.MythicTransferCommand;
 import net.danh.storage.CMD.handler.mythic.user.MythicViewCommand;
 import net.danh.storage.Manager.MythicStorageManager;
 import org.bukkit.command.CommandSender;
@@ -26,6 +27,7 @@ public class MythicStorageCommandManager extends BaseCommand {
         // User commands
         registerCommand("toggle", new MythicToggleCommand());
         registerCommand("view", new MythicViewCommand());
+        registerCommand("transfer", new MythicTransferCommand());
         registerCommand("help", new MythicHelpCommand());
 
         // Admin commands

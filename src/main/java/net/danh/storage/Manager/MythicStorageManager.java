@@ -365,4 +365,13 @@ public class MythicStorageManager {
 
         return items;
     }
+
+    public static boolean hasAnyItems(@NotNull Player player) {
+        for (String itemName : configuredDrops) {
+            if (getPlayerItem(player, itemName) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -1,4 +1,4 @@
-# Storage [1.8.x - 1.21.9]
+# Storage [1.8.x - 1.21.10]
 
 > A comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined blocks, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
 
@@ -266,7 +266,7 @@ We welcome contributions from the community! Here's how you can help:
 
 ## Special Thanks
 
-- **VoChiDanh** - Original plugin creator ❤️
+- **VoChiDanh** - Original plugin creator, thank you for allowing continued development
 - **Community Contributors** - Thank you for your feedback and suggestions!
 - **Plugin Developers** - Thanks for integrating with our API!
 

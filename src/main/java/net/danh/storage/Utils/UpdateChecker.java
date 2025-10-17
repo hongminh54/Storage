@@ -123,7 +123,7 @@ public class UpdateChecker implements Listener {
         if (updateAvailable) {
             if (e.getPlayer().hasPermission("storage.admin")) {
                 Player player = e.getPlayer();
-                player.sendMessage(ChatColor.GREEN + String.format("An update is available for Storage at %s", "https://www.spigotmc.org/resources/100516/"));
+                player.sendMessage(ChatColor.GREEN + String.format("An update is available for Storage at %s", "https://www.spigotmc.org/resources/127776/"));
                 player.sendMessage(ChatColor.GREEN + String.format("You are using version %s", pluginVersion));
                 player.sendMessage(ChatColor.GREEN + "If your plugin version higher than spigotmc version, you can ignore this notice");
             }

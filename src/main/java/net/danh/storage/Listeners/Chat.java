@@ -1,10 +1,7 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Action.*;
-import net.danh.storage.GUI.ConvertOptionGUI;
-import net.danh.storage.GUI.MythicStorageGUI;
-import net.danh.storage.GUI.PersonalStorage;
-import net.danh.storage.GUI.TransferGUI;
+import net.danh.storage.GUI.*;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -147,6 +144,32 @@ public class Chat implements Listener {
                 p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             TransferGUI.setWaitingForInput(p, false);
+            e.setCancelled(true);
+        }
+
+        // Handle MythicStorage transfer amount input
+        if (MythicTransferGUI.isWaitingForInput(p)) {
+            if (message.equalsIgnoreCase("cancel")) {
+                MythicTransferGUI.setWaitingForInput(p, false);
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(File.getMessage().getString("mythicstorage.transfer.cancelled")));
+                e.setCancelled(true);
+                return;
+            }
+
+            if (Number.getInteger(message) > 0) {
+                MythicTransferGUI activeGUI = MythicTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    int amount = Number.getInteger(message);
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                        activeGUI.setTransferAmountAndUpdate(amount);
+                        p.sendMessage(net.danh.storage.Utils.Chat.colorize("&aTransfer amount set to " + amount));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+            }
+            MythicTransferGUI.setWaitingForInput(p, false);
             e.setCancelled(true);
         }
     }

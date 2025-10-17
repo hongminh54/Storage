@@ -53,3 +53,56 @@ notification:
 #      KnockbackResistance: 10
 items_drop:
   - test
+
+# MythicStorage Transfer settings
+transfer:
+  enabled: true
+  delay: 3
+  max_history_display: 10
+  particles:
+    enabled: true
+    processing:
+      animation: "circle"
+      type: "ENCHANTMENT_TABLE"
+      count: 8
+      speed: 0.1
+      radius: 1.5
+      duration: 3
+    beam:
+      animation: "line"
+      type: "FIREWORKS_SPARK"
+      count: 3
+      speed: 0.2
+      duration: 3
+    success:
+      animation: "burst"
+      type: "VILLAGER_HAPPY"
+      count: 15
+      speed: 0.1
+      radius: 2.0
+    receive:
+      animation: "circle"
+      type: "HEART"
+      count: 8
+      speed: 0.1
+      radius: 1.2
+    failed:
+      animation: "burst"
+      type: "SMOKE_NORMAL"
+      count: 12
+      speed: 0.15
+      radius: 1.8
+  sounds:
+    enabled: true
+    success:
+      name: "ORB_PICKUP"
+      volume: 1.0
+      pitch: 1.2
+    receive:
+      name: "ITEM_PICKUP"
+      volume: 0.8
+      pitch: 1.0
+    failed:
+      name: "VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8

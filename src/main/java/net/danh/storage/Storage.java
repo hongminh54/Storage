@@ -113,11 +113,12 @@ public final class Storage extends JavaPlugin {
         getLogger().log(Level.INFO, "Shutting down...");
         EventManager.shutdown();
         AutoSaveManager.stopAutoSave();
-        for (Player p : getServer().getOnlinePlayers()) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MythicStorageManager.savePlayerData(p);
         }
         TransferManager.cancelAllTransfers();
+        MythicTransferManager.cancelAllTransfers();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");
@@ -125,17 +126,17 @@ public final class Storage extends JavaPlugin {
         getLogger().log(Level.INFO, "Shutting down completed. See you again!");
     }
 
-
     public void registerEvents(Listener... listeners) {
         Arrays.asList(listeners).forEach(listener -> getServer().getPluginManager().registerEvents(listener, storage));
     }
 
     private void initializeMythicStorage() {
         if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null &&
-            Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
-            
+                Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
+
             getLogger().info("[MythicStorage] MythicMobs already loaded, initializing immediately...");
             MythicStorageManager.initialize();
+            MythicTransferManager.initialize();
 
             if (MythicStorageManager.isSystemEnabled()) {
                 MythicMobDeath.registerListener(this);

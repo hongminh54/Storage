@@ -1,6 +1,7 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.MythicTransferManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
@@ -43,6 +44,7 @@ public class MythicMobsLoadListener implements Listener {
     private void initializeMythicStorage() {
         try {
             MythicStorageManager.initialize();
+            MythicTransferManager.initialize();
 
             if (MythicStorageManager.isSystemEnabled()) {
                 MythicMobDeath.registerListener(Storage.getStorage());

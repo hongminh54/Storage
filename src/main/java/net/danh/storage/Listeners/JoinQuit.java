@@ -1,10 +1,7 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Enchant.TNTEnchant;
-import net.danh.storage.GUI.MythicStorageGUI;
-import net.danh.storage.GUI.PersonalStorage;
-import net.danh.storage.GUI.TransferGUI;
-import net.danh.storage.GUI.ViewMythicStorageGUI;
+import net.danh.storage.GUI.*;
 import net.danh.storage.Manager.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,7 +36,22 @@ public class JoinQuit implements Listener {
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);
+        MythicTransferGUI.setWaitingForInput(p, false);
         TransferManager.cancelTransfer(p);
+        MythicTransferManager.cancelTransfer(p);
+
+        // Cleanup transfer GUI data
+        if (TransferMultiGUI.getActiveGUI(p) != null) {
+            // GUI will be auto-closed by inventory close event
+        }
+
+        if (MythicTransferGUI.getActiveGUI(p) != null) {
+            MythicTransferGUI.removeActiveGUI(p);
+        }
+
+        if (MythicTransferMultiGUI.getActiveGUI(p) != null) {
+            MythicTransferMultiGUI.removeActiveGUI(p);
+        }
 
         // Cleanup storage full notification data
         StorageFullNotificationManager.removePlayer(p);
