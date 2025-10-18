@@ -217,33 +217,5 @@
 			<version>8.0.33</version>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-            <groupId>mythicmobs</groupId>
-            <artifactId>0</artifactId>
-            <version>5.5.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/mythiclib/MythicMobs-5.5.1.jar</systemPath>
-        </dependency>
-		<dependency>
-            <groupId>mythicmobs</groupId>
-            <artifactId>0</artifactId>
-            <version>4.6.5</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/mythiclib/MythicMobs-4.6.5.jar</systemPath>
-        </dependency>
-		<dependency>
-            <groupId>mythicmobs</groupId>
-            <artifactId>0</artifactId>
-            <version>5.2.6</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/mythiclib/MythicMobs-5.2.6.jar</systemPath>
-        </dependency>
-		<dependency>
-            <groupId>mythicmobs</groupId>
-            <artifactId>0</artifactId>
-            <version>5.10</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/mythiclib/MythicMobs-5.10.jar</systemPath>
-        </dependency>
 	</dependencies>
 </project>
