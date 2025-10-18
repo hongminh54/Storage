@@ -4,6 +4,7 @@ import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Storage;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -25,6 +26,19 @@ import java.util.UUID;
 
 public class GUIClickListener implements Listener {
     private static final HashMap<UUID, Long> interactTimeout = new HashMap<>();
+    private static boolean nbtWarningLogged = false;
+
+    private static void logNBTWarning(Exception e) {
+        if (!nbtWarningLogged) {
+            Storage.getStorage().getLogger().warning("NBT-API error detected in GUI interactions. Interactive items may not work properly.");
+            Storage.getStorage().getLogger().warning("Your Minecraft version may not be fully supported by NBT-API.");
+            Storage.getStorage().getLogger().warning("Error: " + e.getMessage());
+            Storage.getStorage().getLogger().warning("Please consider updating to a newer version of NBT-API or Minecraft.");
+            Storage.getStorage().getLogger().warning("If you are using a custom NBT-API version, please ensure it is compatible with your Minecraft version.");
+            Storage.getStorage().getLogger().warning("If an error occurs, please report it to me at https://github.com/hongminh54/Storage/issues.");
+            nbtWarningLogged = true;
+        }
+    }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
@@ -41,6 +55,7 @@ public class GUIClickListener implements Listener {
                 isInteractiveItem = nbtItem.hasTag("storage:id");
             } catch (Exception ex) {
                 isInteractiveItem = false;
+                logNBTWarning(ex);
             }
         }
 
@@ -60,7 +75,7 @@ public class GUIClickListener implements Listener {
                             GUI.getItemMapper().get(uuid).handleClick(player, e.getClick());
                     }
                 } catch (Exception ex) {
-                    // Silent fail to prevent console spam
+                    logNBTWarning(ex);
                 }
             }
         }
@@ -87,7 +102,7 @@ public class GUIClickListener implements Listener {
 
             e.setCancelled(true);
         } catch (Exception ex) {
-            // Silent fail to prevent console spam
+            logNBTWarning(ex);
         }
     }
 
@@ -118,7 +133,7 @@ public class GUIClickListener implements Listener {
 
             e.setCancelled(true);
         } catch (Exception ex) {
-            // Silent fail to prevent console spam
+            logNBTWarning(ex);
         }
     }
 
@@ -131,7 +146,7 @@ public class GUIClickListener implements Listener {
                 if (nbtItem.hasTag("storage:id"))
                     e.setCancelled(true);
             } catch (Exception ex) {
-                // Silent fail to prevent console spam
+                logNBTWarning(ex);
             }
         }
     }
@@ -144,6 +159,7 @@ public class GUIClickListener implements Listener {
                     NBTItem nbtItem = new NBTItem(item);
                     return nbtItem.hasTag("storage:id");
                 } catch (Exception ex) {
+                    logNBTWarning(ex);
                     return false;
                 }
             }

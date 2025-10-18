@@ -169,6 +169,7 @@ public class TransferGUI implements IGUI {
         baseItem = ItemManager.replaceLore(baseItem, section.getStringList("lore"),
                 "#player#", targetPlayer);
         baseItem = ItemManager.replacePlaceholders(baseItem, "#player#", targetPlayer);
+        baseItem = ItemManager.setPlayerSkull(baseItem, targetPlayer);
 
         return new InteractiveItem(baseItem, slot);
     }

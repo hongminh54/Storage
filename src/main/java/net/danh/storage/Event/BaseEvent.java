@@ -5,9 +5,10 @@ import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,8 @@ import java.util.List;
 public abstract class BaseEvent {
     protected final EventType eventType;
     protected final EventData eventData;
-    protected final List<BukkitRunnable> reminderTasks;
-    protected BukkitRunnable eventTask;
+    protected final List<TaskWrapper> reminderTasks;
+    protected TaskWrapper eventTask;
 
     public BaseEvent(EventType eventType) {
         this.eventType = eventType;
@@ -56,13 +57,9 @@ public abstract class BaseEvent {
         int duration = File.getEventConfig().getInt("events." + eventType.getConfigKey() + ".duration", 1800);
         eventData.setEndTime(System.currentTimeMillis() + (duration * 1000L));
 
-        eventTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                end();
-            }
-        };
-        eventTask.runTaskLater(Storage.getStorage(), duration * 20L);
+        eventTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            end();
+        }, duration * 20L);
 
         scheduleEndReminders(duration);
         broadcastEventStart();
@@ -234,26 +231,20 @@ public abstract class BaseEvent {
         for (String cmd : sellCommands) {
             String processedCmd = cmd.replace("#money#", String.valueOf(money))
                     .replace("#player#", player.getName());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Storage.getStorage().getServer().dispatchCommand(
-                            Storage.getStorage().getServer().getConsoleSender(), processedCmd);
-                }
-            }.runTask(Storage.getStorage());
+            SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                Storage.getStorage().getServer().dispatchCommand(
+                        Storage.getStorage().getServer().getConsoleSender(), processedCmd);
+            });
         }
     }
 
     protected void runCommands(Player player, List<String> commands) {
         for (String cmd : commands) {
             String processedCmd = cmd.replace("#player#", player.getName());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Storage.getStorage().getServer().dispatchCommand(
-                            Storage.getStorage().getServer().getConsoleSender(), processedCmd);
-                }
-            }.runTask(Storage.getStorage());
+            SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                Storage.getStorage().getServer().dispatchCommand(
+                        Storage.getStorage().getServer().getConsoleSender(), processedCmd);
+            });
         }
     }
 
@@ -287,16 +278,12 @@ public abstract class BaseEvent {
             if (reminderTime < duration) {
                 long delayTicks = (duration - reminderTime) * 20L;
 
-                BukkitRunnable reminderTask = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (eventData.isActive()) {
-                            broadcastEndReminder(reminderTime);
-                        }
+                TaskWrapper reminderTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+                    if (eventData.isActive()) {
+                        broadcastEndReminder(reminderTime);
                     }
-                };
+                }, delayTicks);
 
-                reminderTask.runTaskLater(Storage.getStorage(), delayTicks);
                 reminderTasks.add(reminderTask);
             }
         }
@@ -313,7 +300,7 @@ public abstract class BaseEvent {
     }
 
     protected void cancelAllReminders() {
-        for (BukkitRunnable task : reminderTasks) {
+        for (TaskWrapper task : reminderTasks) {
             if (task != null && !task.isCancelled()) {
                 task.cancel();
             }

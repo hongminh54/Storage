@@ -1,17 +1,16 @@
 package net.danh.storage;
 
 import net.danh.storage.API.StorageAPI;
+import net.danh.storage.CMD.MythicStorageCMD;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
 import net.danh.storage.GUI.GUI;
-import net.danh.storage.Listeners.BlockBreak;
-import net.danh.storage.Listeners.BlockPlace;
-import net.danh.storage.Listeners.Chat;
-import net.danh.storage.Listeners.JoinQuit;
+import net.danh.storage.Listeners.*;
 import net.danh.storage.Manager.*;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Placeholder.PAPI;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.UpdateChecker;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.Bukkit;
@@ -55,6 +54,13 @@ public final class Storage extends JavaPlugin {
     @Override
     public void onEnable() {
         getLogger().log(Level.INFO, "Loading...");
+
+        if (SchedulerUtil.isFolia()) {
+            getLogger().log(Level.INFO, "Detected Folia server - Using regionized scheduler");
+        } else {
+            getLogger().log(Level.INFO, "Detected Bukkit/Spigot/Paper server - Using standard scheduler");
+        }
+
         GUI.register(storage);
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
@@ -62,13 +68,16 @@ public final class Storage extends JavaPlugin {
         File.updateConfig();
         File.updateMessage();
         File.updateEventConfig();
+        File.updateEnchantConfig();
         File.updateSpecialMaterialConfig();
+        File.updateMythicStorageConfig();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
         }
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat(), new BlockPlace());
         new UpdateChecker(storage).fetch();
         new StorageCMD("storage");
+        new MythicStorageCMD("mythicstorage");
 
         dataStorage = DatabaseFactory.createDatabase(this);
         dataStorage.load();
@@ -88,6 +97,10 @@ public final class Storage extends JavaPlugin {
         EventManager.initialize();
         EnchantManager.loadEnchants();
         SpecialMaterialManager.loadSpecialMaterials();
+
+        // Initialize MythicStorage if MythicMobs is available
+        initializeMythicStorage();
+
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
@@ -100,10 +113,12 @@ public final class Storage extends JavaPlugin {
         getLogger().log(Level.INFO, "Shutting down...");
         EventManager.shutdown();
         AutoSaveManager.stopAutoSave();
-        for (Player p : getServer().getOnlinePlayers()) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
+            MythicStorageManager.savePlayerData(p);
         }
         TransferManager.cancelAllTransfers();
+        MythicTransferManager.cancelAllTransfers();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");
@@ -111,8 +126,24 @@ public final class Storage extends JavaPlugin {
         getLogger().log(Level.INFO, "Shutting down completed. See you again!");
     }
 
-
     public void registerEvents(Listener... listeners) {
         Arrays.asList(listeners).forEach(listener -> getServer().getPluginManager().registerEvents(listener, storage));
+    }
+
+    private void initializeMythicStorage() {
+        if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null &&
+                Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
+
+            getLogger().info("[MythicStorage] MythicMobs already loaded, initializing immediately...");
+            MythicStorageManager.initialize();
+            MythicTransferManager.initialize();
+
+            if (MythicStorageManager.isSystemEnabled()) {
+                MythicMobDeath.registerListener(this);
+            }
+        } else {
+            getLogger().info("[MythicStorage] MythicMobs not loaded yet, waiting for plugin enable...");
+            registerEvents(new MythicMobsLoadListener());
+        }
     }
 }

@@ -3,6 +3,7 @@ package net.danh.storage.Utils;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Storage;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -13,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EnchantUtils {
-
     private static final String NBT_KEY = "StorageEnchants";
+    private static boolean nbtWarningLogged = false;
 
     public static boolean isPickaxe(ItemStack item) {
         if (item == null || item.getType().name().equals("AIR")) {
@@ -28,11 +29,22 @@ public class EnchantUtils {
     public static ItemStack addCustomEnchant(ItemStack item, String enchantName, int level) {
         if (item == null || item.getType().name().equals("AIR") || item.getAmount() <= 0) return null;
 
-        NBTItem nbtItem = new NBTItem(item);
-        nbtItem.setInteger(NBT_KEY + "." + enchantName, level);
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            nbtItem.setInteger(NBT_KEY + "." + enchantName, level);
+            item = nbtItem.getItem();
+        } catch (Exception e) {
+            if (!nbtWarningLogged) {
+                Storage.getStorage().getLogger().warning("Failed to add custom enchant NBT data. Enchants will work via lore only.");
+                Storage.getStorage().getLogger().warning("Your Minecraft version may not be fully supported. Error: " + e.getMessage());
+                Storage.getStorage().getLogger().warning("Please consider updating to a newer version of NBT-API or Minecraft.");
+                Storage.getStorage().getLogger().warning("If you are using a custom NBT-API version, please ensure it is compatible with your Minecraft version.");
+                Storage.getStorage().getLogger().warning("If an error occurs, please report it to me at https://github.com/hongminh54/Storage/issues.");
+                nbtWarningLogged = true;
+            }
+        }
 
-        ItemStack result = nbtItem.getItem();
-        result = addGlowEffect(result);
+        ItemStack result = addGlowEffect(item);
         result = updateLore(result, enchantName, level);
 
         return result;
@@ -41,12 +53,24 @@ public class EnchantUtils {
     public static ItemStack removeCustomEnchant(ItemStack item, String enchantName) {
         if (item == null || item.getType().name().equals("AIR") || item.getAmount() <= 0) return null;
 
-        NBTItem nbtItem = new NBTItem(item);
-        if (nbtItem.hasKey(NBT_KEY + "." + enchantName)) {
-            nbtItem.removeKey(NBT_KEY + "." + enchantName);
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            if (nbtItem.hasKey(NBT_KEY + "." + enchantName)) {
+                nbtItem.removeKey(NBT_KEY + "." + enchantName);
+            }
+            item = nbtItem.getItem();
+        } catch (Exception e) {
+            if (!nbtWarningLogged) {
+                Storage.getStorage().getLogger().warning("Failed to remove custom enchant NBT data. Enchants will work via lore only.");
+                Storage.getStorage().getLogger().warning("Your Minecraft version may not be fully supported. Error: " + e.getMessage());
+                Storage.getStorage().getLogger().warning("Please consider updating to a newer version of NBT-API or Minecraft.");
+                Storage.getStorage().getLogger().warning("If you are using a custom NBT-API version, please ensure it is compatible with your Minecraft version.");
+                Storage.getStorage().getLogger().warning("If an error occurs, please report it to me at https://github.com/hongminh54/Storage/issues.");
+                nbtWarningLogged = true;
+            }
         }
 
-        ItemStack result = nbtItem.getItem();
+        ItemStack result = item;
 
         if (!hasAnyCustomEnchant(result)) {
             result = removeGlowEffect(result);
@@ -60,22 +84,34 @@ public class EnchantUtils {
     public static boolean hasCustomEnchant(ItemStack item, String enchantName) {
         if (item == null || item.getType().name().equals("AIR") || item.getAmount() <= 0) return false;
 
-        NBTItem nbtItem = new NBTItem(item);
-        return nbtItem.hasKey(NBT_KEY + "." + enchantName);
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            return nbtItem.hasKey(NBT_KEY + "." + enchantName);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static int getCustomEnchantLevel(ItemStack item, String enchantName) {
         if (item == null || item.getType().name().equals("AIR") || item.getAmount() <= 0) return 0;
 
-        NBTItem nbtItem = new NBTItem(item);
-        return nbtItem.getInteger(NBT_KEY + "." + enchantName);
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            return nbtItem.getInteger(NBT_KEY + "." + enchantName);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     public static boolean hasAnyCustomEnchant(ItemStack item) {
         if (item == null || item.getType().name().equals("AIR") || item.getAmount() <= 0) return false;
 
-        NBTItem nbtItem = new NBTItem(item);
-        return nbtItem.hasKey(NBT_KEY);
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            return nbtItem.hasKey(NBT_KEY);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static ItemStack addGlowEffect(ItemStack item) {

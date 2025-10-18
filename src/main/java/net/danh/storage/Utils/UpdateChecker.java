@@ -35,7 +35,7 @@ public class UpdateChecker implements Listener {
     }
 
     public void fetch() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsynchronously(plugin, () -> {
             if (File.getConfig().getBoolean("check_update")) {
                 try {
                     HttpsURLConnection con = (HttpsURLConnection) new URL("https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID).openConnection();
@@ -53,7 +53,7 @@ public class UpdateChecker implements Listener {
                 updateAvailable = spigotIsNewer();
                 devBuildVersion = devBuildIsNewer();
 
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                SchedulerUtil.runTask(plugin, () -> {
                     if (devBuildVersion) {
                         plugin.getLogger().warning("You are using DevBuild version of Storage Plugin");
                         plugin.getLogger().warning("Most of things in DevBuild has fix bug and new features for the next version and it can be include another issues");
@@ -123,7 +123,7 @@ public class UpdateChecker implements Listener {
         if (updateAvailable) {
             if (e.getPlayer().hasPermission("storage.admin")) {
                 Player player = e.getPlayer();
-                player.sendMessage(ChatColor.GREEN + String.format("An update is available for Storage at %s", "https://www.spigotmc.org/resources/100516/"));
+                player.sendMessage(ChatColor.GREEN + String.format("An update is available for Storage at %s", "https://www.spigotmc.org/resources/127776/"));
                 player.sendMessage(ChatColor.GREEN + String.format("You are using version %s", pluginVersion));
                 player.sendMessage(ChatColor.GREEN + "If your plugin version higher than spigotmc version, you can ignore this notice");
             }

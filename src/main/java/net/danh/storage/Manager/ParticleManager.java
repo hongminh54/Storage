@@ -5,11 +5,10 @@ import com.cryptomorin.xseries.particles.XParticle;
 import net.danh.storage.Particles.ParticleAnimation;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ParticleManager {
 
     private static final Map<Player, Map<String, Long>> particleCooldowns = new HashMap<>();
-    private static final Map<String, BukkitTask> activeAnimations = new ConcurrentHashMap<>();
+    private static final Map<String, TaskWrapper> activeAnimations = new ConcurrentHashMap<>();
     private static final long PARTICLE_COOLDOWN_MS = 500;
     private static final double MAX_PARTICLE_DISTANCE = 32.0;
 
@@ -207,22 +206,21 @@ public class ParticleManager {
         String animationKey = particleType.name().toLowerCase() + "_" + player.getName();
         stopAnimation(animationKey);
 
-        BukkitTask task = new BukkitRunnable() {
-            private final int maxTicks = 20;
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
             public void run() {
-                if (!player.isOnline() || ticks >= maxTicks) {
-                    cancel();
-                    activeAnimations.remove(animationKey);
+                if (!player.isOnline() || ticks >= 20) {
+                    TaskWrapper t = activeAnimations.remove(animationKey);
+                    if (t != null) t.cancel();
                     return;
                 }
 
                 playAnimationFrame(player, animation, ticks, configPath);
                 ticks++;
             }
-        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+        }, 0L, 1L);
 
         activeAnimations.put(animationKey, task);
     }
@@ -239,22 +237,22 @@ public class ParticleManager {
 
         if (animation == ParticleAnimation.NONE) return;
 
-        BukkitTask task = new BukkitRunnable() {
-            private final int maxTicks = durationSeconds * 20;
+        final int maxTicks = durationSeconds * 20;
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
             public void run() {
                 if (!player.isOnline() || ticks >= maxTicks) {
-                    cancel();
-                    activeAnimations.remove(animationKey);
+                    TaskWrapper t = activeAnimations.remove(animationKey);
+                    if (t != null) t.cancel();
                     return;
                 }
 
                 playAnimationFrame(player, animation, ticks, "transfer.particles.processing");
                 ticks++;
             }
-        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+        }, 0L, 1L);
 
         activeAnimations.put(animationKey, task);
     }
@@ -268,15 +266,15 @@ public class ParticleManager {
         String animationKey = "beam_" + sender.getName() + "_" + receiver.getName();
         stopAnimation(animationKey);
 
-        BukkitTask task = new BukkitRunnable() {
-            private final int maxTicks = config.getInt("transfer.particles.beam.duration", 20);
+        final int maxTicks = config.getInt("transfer.particles.beam.duration", 20);
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
             public void run() {
                 if (!sender.isOnline() || !receiver.isOnline() || ticks >= maxTicks) {
-                    cancel();
-                    activeAnimations.remove(animationKey);
+                    TaskWrapper t = activeAnimations.remove(animationKey);
+                    if (t != null) t.cancel();
                     return;
                 }
 
@@ -285,7 +283,7 @@ public class ParticleManager {
                         ticks, maxTicks, "transfer.particles.beam");
                 ticks++;
             }
-        }.runTaskTimer(Storage.getStorage(), 0L, 2L);
+        }, 0L, 2L);
 
         activeAnimations.put(animationKey, task);
     }
@@ -310,22 +308,21 @@ public class ParticleManager {
         String animationKey = "special_material_" + location.hashCode();
         stopAnimation(animationKey);
 
-        BukkitTask task = new BukkitRunnable() {
-            private final int maxTicks = 20; // 1 second animation
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
             public void run() {
-                if (ticks >= maxTicks) {
-                    cancel();
-                    activeAnimations.remove(animationKey);
+                if (ticks >= 20) {
+                    TaskWrapper t = activeAnimations.remove(animationKey);
+                    if (t != null) t.cancel();
                     return;
                 }
 
                 playSpecialMaterialAnimationFrame(location, particleAnimation, ticks, particleType, count, speed, radius);
                 ticks++;
             }
-        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+        }, 0L, 1L);
 
         activeAnimations.put(animationKey, task);
     }
@@ -431,28 +428,28 @@ public class ParticleManager {
         }
 
         int duration = config.getInt("convert.particles.duration", 2);
-        BukkitTask task = new BukkitRunnable() {
-            private final int maxTicks = duration * 20;
+        final int maxTicks = duration * 20;
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
             public void run() {
                 if (!player.isOnline() || ticks >= maxTicks) {
-                    cancel();
-                    activeAnimations.remove(animationKey);
+                    TaskWrapper t = activeAnimations.remove(animationKey);
+                    if (t != null) t.cancel();
                     return;
                 }
 
                 playAnimationFrame(player, animation, ticks, "convert.particles");
                 ticks++;
             }
-        }.runTaskTimer(Storage.getStorage(), 0L, 1L);
+        }, 0L, 1L);
 
         activeAnimations.put(animationKey, task);
     }
 
     private static void stopAnimation(String animationKey) {
-        BukkitTask task = activeAnimations.remove(animationKey);
+        TaskWrapper task = activeAnimations.remove(animationKey);
         if (task != null && !task.isCancelled()) {
             task.cancel();
         }

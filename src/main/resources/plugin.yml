@@ -4,17 +4,22 @@ main: net.danh.storage.Storage
 author: VoChiDanh, hongminh54
 description: "${project.description}"
 api-version: '1.13'
+folia-supported: true
 load: STARTUP
-provides:
-  - StorageAPI
 softdepend:
   - WorldGuard
   - PlaceholderAPI
+  - MythicMobs
 commands:
   storage:
     description: Main command
     aliases:
       - kho
+  mythicstorage:
+    description: MythicMobs storage command
+    aliases:
+      - mstorage
+      - mythics
 permissions:
   storage.toggle:
     description: Toggle permission
@@ -62,3 +67,30 @@ permissions:
   storage.convert:
     description: Use convert materials feature
     default: op
+  storage.view:
+    description: View other players' storage
+    default: true
+  storage.mythicstorage.use:
+    description: Use MythicMobs storage feature
+    default: true
+  storage.mythicstorage.toggle:
+    description: Toggle MythicMobs auto-pickup
+    default: true
+  storage.mythicstorage.view:
+    description: View other players' MythicMobs storage
+    default: true
+  storage.mythicstorage.admin:
+    description: Admin commands for MythicMobs storage
+    default: op
+  storage.mythicstorage.transfer:
+    description: Transfer MythicMobs items to other players
+    default: true
+  storage.mythicstorage.transfer.multi:
+    description: Transfer multiple MythicMobs items at once
+    default: true
+  storage.mythicstorage.transfer.log:
+    description: View own MythicMobs transfer logs
+    default: true
+  storage.mythicstorage.transfer.log.others:
+    description: View other players MythicMobs transfer logs
+    default: true

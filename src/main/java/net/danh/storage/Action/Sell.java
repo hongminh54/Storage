@@ -6,10 +6,10 @@ import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
@@ -102,12 +102,9 @@ public class Sell {
     public void runCommand(Double money) {
         config.getStringList("sell").forEach(cmd -> {
             String cmd_2 = cmd.replace("#money#", roundWithDecimalFormat(money)).replace("#player#", p.getName());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Storage.getStorage().getServer().dispatchCommand(Storage.getStorage().getServer().getConsoleSender(), cmd_2);
-                }
-            }.runTask(Storage.getStorage());
+            SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                Storage.getStorage().getServer().dispatchCommand(Storage.getStorage().getServer().getConsoleSender(), cmd_2);
+            });
         });
     }
 

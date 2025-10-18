@@ -44,6 +44,18 @@ public class File {
         return getFileSetting().get("GUI/convert-ore.yml");
     }
 
+    public static FileConfiguration getViewStorageConfig() {
+        return getFileSetting().get("GUI/view-storage.yml");
+    }
+
+    public static FileConfiguration getMythicStorageGUIConfig() {
+        return getFileSetting().get("GUI/mythicstorage.yml");
+    }
+
+    public static FileConfiguration getViewMythicStorageGUIConfig() {
+        return getFileSetting().get("GUI/view-mythicstorage.yml");
+    }
+
     public static FileConfiguration getEventConfig() {
         return getFileSetting().get("events.yml");
     }
@@ -56,13 +68,17 @@ public class File {
         return getFileSetting().get("special_material.yml");
     }
 
+    public static FileConfiguration getMythicStorageConfig() {
+        return getFileSetting().get("mythicstorage.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -72,7 +88,7 @@ public class File {
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml");
     }
 
     public static void updateConfig() {
@@ -81,25 +97,33 @@ public class File {
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         int default_configVersion = defaultConfig.getInt("config_version");
         int current_configVersion = currentConfig.contains("config_version") ? currentConfig.getInt("config_version") : 0;
-        if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
+
+        if (default_configVersion > current_configVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating from v" + current_configVersion + " to v" + default_configVersion + "...");
+
             List<String> default_whitelist_fortune = defaultConfig.getStringList("whitelist_fortune");
             List<String> current_whitelist_fortune = currentConfig.getStringList("whitelist_fortune");
             List<String> default_blacklist_world = defaultConfig.getStringList("blacklist_world");
             List<String> current_blacklist_world = currentConfig.getStringList("blacklist_world");
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating...");
-            if (current_whitelist_fortune.isEmpty()) {
-                getConfig().set("whitelist_fortune", default_whitelist_fortune);
+
+            if (current_whitelist_fortune.isEmpty() && !default_whitelist_fortune.isEmpty()) {
+                currentConfig.set("whitelist_fortune", default_whitelist_fortune);
             }
-            if (current_blacklist_world.isEmpty()) {
-                getConfig().set("blacklist_world", default_blacklist_world);
+            if (current_blacklist_world.isEmpty() && !default_blacklist_world.isEmpty()) {
+                currentConfig.set("blacklist_world", default_blacklist_world);
             }
+
             try {
+                currentConfig.save(configFile);
+
                 ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile, "items", "blocks", "worth");
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful");
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful to v" + default_configVersion);
             } catch (IOException e) {
                 Storage.getStorage().getLogger().log(Level.WARNING, "Can not update config by it self, please backup and rename your config then restart to get newest config!!");
                 e.printStackTrace();
             }
+
             getFileSetting().reload("config.yml");
         }
     }
@@ -110,25 +134,33 @@ public class File {
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         int default_configVersion = defaultConfig.getInt("message_version");
         int current_configVersion = currentConfig.contains("message_version") ? currentConfig.getInt("message_version") : 0;
-        if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your message is updating...");
+
+        if (default_configVersion > current_configVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your message is updating from v" + current_configVersion + " to v" + default_configVersion + "...");
+
             List<String> default_admin_help = defaultConfig.getStringList("admin.help");
             List<String> default_user_help = defaultConfig.getStringList("user.help");
             List<String> current_admin_help = currentConfig.getStringList("admin.help");
             List<String> current_user_help = currentConfig.getStringList("user.help");
+
             if (default_admin_help.size() != current_admin_help.size()) {
-                getMessage().set("admin.help", default_admin_help);
+                currentConfig.set("admin.help", default_admin_help);
             }
             if (default_user_help.size() != current_user_help.size()) {
-                getMessage().set("user.help", default_user_help);
+                currentConfig.set("user.help", default_user_help);
             }
+
             try {
+                currentConfig.save(configFile);
+
                 ConfigUpdater.update(Storage.getStorage(), "message.yml", configFile);
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your message have been updated successful");
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your message have been updated successful to v" + default_configVersion);
             } catch (IOException e) {
                 Storage.getStorage().getLogger().log(Level.WARNING, "Can not update message by it self, please backup and rename your message then restart to get newest message!!");
                 e.printStackTrace();
             }
+
             getFileSetting().reload("message.yml");
         }
     }
@@ -139,15 +171,19 @@ public class File {
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         int default_configVersion = defaultConfig.getInt("config_version");
         int current_configVersion = currentConfig.contains("config_version") ? currentConfig.getInt("config_version") : 0;
-        if (default_configVersion > current_configVersion || default_configVersion < current_configVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your events config is updating...");
+
+        if (default_configVersion > current_configVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your events config is updating from v" + current_configVersion + " to v" + default_configVersion + "...");
+
             try {
                 ConfigUpdater.update(Storage.getStorage(), "events.yml", configFile);
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your events config have been updated successful");
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your events config have been updated successful to v" + default_configVersion);
             } catch (IOException e) {
                 Storage.getStorage().getLogger().log(Level.WARNING, "Can not update events config by it self, please backup and rename your events config then restart to get newest config!!");
                 e.printStackTrace();
             }
+
             getFileSetting().reload("events.yml");
         }
     }
@@ -158,15 +194,19 @@ public class File {
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
         int default_enchantVersion = defaultConfig.getInt("enchant_version");
         int current_enchantVersion = currentConfig.contains("enchant_version") ? currentConfig.getInt("enchant_version") : 0;
-        if (default_enchantVersion > current_enchantVersion || default_enchantVersion < current_enchantVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config is updating...");
+
+        if (default_enchantVersion > current_enchantVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config is updating from v" + current_enchantVersion + " to v" + default_enchantVersion + "...");
+
             try {
                 ConfigUpdater.update(Storage.getStorage(), "enchants.yml", configFile);
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config have been updated successful");
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config have been updated successful to v" + default_enchantVersion);
             } catch (IOException e) {
                 Storage.getStorage().getLogger().log(Level.WARNING, "Can not update enchants config by it self, please backup and rename your enchants config then restart to get newest config!!");
                 e.printStackTrace();
             }
+
             getFileSetting().reload("enchants.yml");
         }
     }
@@ -175,19 +215,55 @@ public class File {
         java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "special_material.yml");
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("special_material.yml")), StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_specialMaterialVersion = defaultConfig.getInt("special_materials_version");
-        int current_specialMaterialVersion = currentConfig.contains("special_materials_version") ? currentConfig.getInt("special_materials_version") : 0;
-        if (default_specialMaterialVersion > current_specialMaterialVersion || default_specialMaterialVersion < current_specialMaterialVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config is updating...");
+        int default_specialMaterialVersion = defaultConfig.getInt("special_material_version");
+        int current_specialMaterialVersion = currentConfig.contains("special_material_version") ? currentConfig.getInt("special_material_version") : 0;
+
+        if (default_specialMaterialVersion > current_specialMaterialVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config is updating from v" + current_specialMaterialVersion + " to v" + default_specialMaterialVersion + "...");
+
             try {
                 ConfigUpdater.update(Storage.getStorage(), "special_material.yml", configFile);
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config have been updated successful");
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config have been updated successful to v" + default_specialMaterialVersion);
             } catch (IOException e) {
                 Storage.getStorage().getLogger().log(Level.WARNING, "Can not update special materials config by it self, please backup and rename your special materials config then restart to get newest config!!");
                 e.printStackTrace();
             }
+
             getFileSetting().reload("special_material.yml");
             SpecialMaterialManager.loadSpecialMaterials();
+        }
+    }
+
+    public static void updateMythicStorageConfig() {
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "mythicstorage.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("mythicstorage.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_mythicStorageVersion = defaultConfig.getInt("mythicstorage_version");
+        int current_mythicStorageVersion = currentConfig.contains("mythicstorage_version") ? currentConfig.getInt("mythicstorage_version") : 0;
+
+        if (default_mythicStorageVersion > current_mythicStorageVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config is updating from v" + current_mythicStorageVersion + " to v" + default_mythicStorageVersion + "...");
+
+            List<String> default_blacklist_world = defaultConfig.getStringList("blacklist_world");
+            List<String> current_blacklist_world = currentConfig.getStringList("blacklist_world");
+
+            if (current_blacklist_world.isEmpty() && !default_blacklist_world.isEmpty()) {
+                currentConfig.set("blacklist_world", default_blacklist_world);
+            }
+
+            try {
+                currentConfig.save(configFile);
+
+                ConfigUpdater.update(Storage.getStorage(), "mythicstorage.yml", configFile);
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config have been updated successful to v" + default_mythicStorageVersion);
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update mythicstorage config by it self, please backup and rename your mythicstorage config then restart to get newest config!!");
+                e.printStackTrace();
+            }
+
+            getFileSetting().reload("mythicstorage.yml");
         }
     }
 

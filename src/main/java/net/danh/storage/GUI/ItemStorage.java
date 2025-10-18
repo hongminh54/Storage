@@ -8,15 +8,12 @@ import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -109,12 +106,9 @@ public class ItemStorage implements IGUI {
                                 if (action_left.equalsIgnoreCase("storage")) {
                                     player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 } else {
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            Storage.getStorage().getServer().dispatchCommand(p, action_left);
-                                        }
-                                    }.runTask(Storage.getStorage());
+                                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                                        Storage.getStorage().getServer().dispatchCommand(p, action_left);
+                                    });
                                 }
                             }
                         });
@@ -168,12 +162,9 @@ public class ItemStorage implements IGUI {
                                 if (action_right.equalsIgnoreCase("storage")) {
                                     player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                                 } else {
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            Storage.getStorage().getServer().dispatchCommand(p, action_right);
-                                        }
-                                    }.runTask(Storage.getStorage());
+                                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                                        Storage.getStorage().getServer().dispatchCommand(p, action_right);
+                                    });
                                 }
                             }
                         });
@@ -235,12 +226,9 @@ public class ItemStorage implements IGUI {
                             if (action_left.equalsIgnoreCase("storage")) {
                                 player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             } else {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Storage.getStorage().getServer().dispatchCommand(p, action_left);
-                                    }
-                                }.runTask(Storage.getStorage());
+                                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                                    Storage.getStorage().getServer().dispatchCommand(p, action_left);
+                                });
                             }
                         }
                     });
@@ -294,12 +282,9 @@ public class ItemStorage implements IGUI {
                             if (action_right.equalsIgnoreCase("storage")) {
                                 player.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
                             } else {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Storage.getStorage().getServer().dispatchCommand(p, action_right);
-                                    }
-                                }.runTask(Storage.getStorage());
+                                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                                    Storage.getStorage().getServer().dispatchCommand(p, action_right);
+                                });
                             }
                         }
                     });

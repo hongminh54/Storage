@@ -2,10 +2,7 @@ package net.danh.storage.CMD;
 
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.admin.*;
-import net.danh.storage.CMD.handler.user.ConvertOreCommand;
-import net.danh.storage.CMD.handler.user.HelpCommand;
-import net.danh.storage.CMD.handler.user.ToggleCommand;
-import net.danh.storage.CMD.handler.user.TransferCommand;
+import net.danh.storage.CMD.handler.user.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -23,6 +20,7 @@ public class CommandManager {
     private void registerCommands() {
         registerCommand("help", new HelpCommand());
         registerCommand("toggle", new ToggleCommand());
+        registerCommand("view", new ViewCommand());
         registerCommand("transfer", new TransferCommand());
         registerCommand("convert", new ConvertOreCommand());
 
@@ -67,8 +65,19 @@ public class CommandManager {
 
     private void handleDefaultCommand(CommandSender sender) {
         if (sender instanceof org.bukkit.entity.Player) {
+            org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+
+            if (net.danh.storage.Utils.File.getConfig().contains("blacklist_world")) {
+                if (net.danh.storage.Utils.File.getConfig().getStringList("blacklist_world").contains(player.getWorld().getName())) {
+                    String message = net.danh.storage.Utils.File.getMessage().getString("admin.world_blacklisted")
+                            .replace("#feature#", "Storage")
+                            .replace("#world#", player.getWorld().getName());
+                    sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+                    return;
+                }
+            }
+
             try {
-                org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
                 int currentPage = net.danh.storage.GUI.PersonalStorage.getPlayerCurrentPage(player);
                 player.openInventory(new net.danh.storage.GUI.PersonalStorage(player, currentPage).getInventory());
             } catch (IndexOutOfBoundsException e) {

@@ -40,5 +40,5 @@ jobs:
           embed-description: |
             ${{ github.event.head_commit.message }}
             
-            SpigotMC: [Storage](https://www.spigotmc.org/resources/100516/)
+            SpigotMC: [Storage](https://www.spigotmc.org/resources/127776/)
           filename: "./target/Storage.jar"

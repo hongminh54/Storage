@@ -153,4 +153,24 @@ public abstract class BaseCommand implements CommandHandler {
     protected void sendNumberTooLow(CommandSender sender) {
         sendMessage(sender, "admin.number_too_low");
     }
+
+    protected boolean isStorageWorldBlacklisted(Player player) {
+        if (player == null) return false;
+        String worldName = player.getWorld().getName();
+        return File.getConfig().contains("blacklist_world") &&
+                File.getConfig().getStringList("blacklist_world").contains(worldName);
+    }
+
+    protected boolean isMythicStorageWorldBlacklisted(Player player) {
+        if (player == null) return false;
+        String worldName = player.getWorld().getName();
+        return File.getMythicStorageConfig().contains("blacklist_world") &&
+                File.getMythicStorageConfig().getStringList("blacklist_world").contains(worldName);
+    }
+
+    protected void sendWorldBlacklisted(CommandSender sender, String featureName, String worldName) {
+        String[] placeholders = {"#feature#", "#world#"};
+        String[] replacements = {featureName, worldName};
+        sendMessage(sender, "admin.world_blacklisted", placeholders, replacements);
+    }
 }
