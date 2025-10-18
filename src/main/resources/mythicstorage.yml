@@ -1,0 +1,107 @@
+mythicstorage_version: 1
+
+# Worlds that will not be affected by MythicStorage feature
+blacklist_world:
+  - defaultworld
+  - exampleworld
+
+settings:
+  enabled: true
+  default_max_storage: 5000
+  default_auto_pickup: false
+
+storage_full_notification:
+  enabled: true
+  cooldown_seconds: 10
+
+notification:
+  title:
+    enable: false
+    item_added:
+      title: "&a+ #amount# #item#"
+      subtitle: "&7Storage: &a#storage#&7/&a#max#"
+    storage_full:
+      title: "&cStorage Full!"
+      subtitle: "&7(&c#storage#&7/&c#max#&7)"
+  actionbar:
+    enable: true
+    # Placeholders: #item#, #amount#, #storage#, #max#
+    item_added: "&a+ #amount# #item# &7| &a#storage#&7/&a#max#"
+    storage_full: "&cStorage Full! &7(&c#storage#&7/&c#max#&7)"
+
+# Items that can be added to the storage (MythicMobs/Items/<item>.yml)
+# example:
+# In MM 5.X.X
+#test: <--- ID item mythicmobs will be used on configuration items_drop
+#  Id: diamond
+#  Display: '&dabc'
+#  Lore:
+#    - '&6A kingly crowl that grants'
+#    - '&6the wearer unwavering power!'
+#  Enchantments:
+#    - PROTECTION_ENVIRONMENTAL:2
+#    - PROTECTION_PROJECTILE:2
+#    - PROTECTION_FIRE:2
+#    - PROTECTION_EXPLOSIONS:2
+#  Hide:
+#    - ATTRIBUTES
+#    - ENCHANTS
+#  Attributes:
+#    Head:
+#      Health: 10
+#      KnockbackResistance: 10
+items_drop:
+  - test
+
+# MythicStorage Transfer settings
+transfer:
+  enabled: true
+  delay: 3
+  max_history_display: 10
+  particles:
+    enabled: true
+    processing:
+      animation: "circle"
+      type: "ENCHANTMENT_TABLE"
+      count: 8
+      speed: 0.1
+      radius: 1.5
+      duration: 3
+    beam:
+      animation: "line"
+      type: "FIREWORKS_SPARK"
+      count: 3
+      speed: 0.2
+      duration: 3
+    success:
+      animation: "burst"
+      type: "VILLAGER_HAPPY"
+      count: 15
+      speed: 0.1
+      radius: 2.0
+    receive:
+      animation: "circle"
+      type: "HEART"
+      count: 8
+      speed: 0.1
+      radius: 1.2
+    failed:
+      animation: "burst"
+      type: "SMOKE_NORMAL"
+      count: 12
+      speed: 0.15
+      radius: 1.8
+  sounds:
+    enabled: true
+    success:
+      name: "ORB_PICKUP"
+      volume: 1.0
+      pitch: 1.2
+    receive:
+      name: "ITEM_PICKUP"
+      volume: 0.8
+      pitch: 1.0
+    failed:
+      name: "VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8

@@ -4,18 +4,19 @@ import net.danh.storage.Data.TransferData;
 import net.danh.storage.Database.TransferDatabase;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatNavigationHelper;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TransferManager {
 
-    private static final Map<String, BukkitRunnable> activeTransfers = new HashMap<>();
+    private static final Map<String, TaskWrapper> activeTransfers = new HashMap<>();
     private static TransferDatabase transferDatabase;
 
     public static void initialize() {
@@ -212,18 +213,14 @@ public class TransferManager {
         ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
 
         // Create and start the transfer task
-        BukkitRunnable transferTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Stop processing animation
-                ParticleManager.stopTransferProcessingAnimation(sender);
-                completeTransfer(sender, receiver, material, amount);
-                activeTransfers.remove(sender.getName());
-            }
-        };
+        TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            // Stop processing animation
+            ParticleManager.stopTransferProcessingAnimation(sender);
+            completeTransfer(sender, receiver, material, amount);
+            activeTransfers.remove(sender.getName());
+        }, transferDelay * 20L);
 
         activeTransfers.put(sender.getName(), transferTask);
-        transferTask.runTaskLater(Storage.getStorage(), transferDelay * 20L); // Convert seconds to ticks
     }
 
     private static void startMultiTransferProcess(Player sender, Player receiver, Map<String, Integer> materials) {
@@ -261,18 +258,14 @@ public class TransferManager {
         ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
 
         // Create and start the multi transfer task
-        BukkitRunnable transferTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Stop processing animation
-                ParticleManager.stopTransferProcessingAnimation(sender);
-                completeMultiTransfer(sender, receiver, materials);
-                activeTransfers.remove(sender.getName());
-            }
-        };
+        TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            // Stop processing animation
+            ParticleManager.stopTransferProcessingAnimation(sender);
+            completeMultiTransfer(sender, receiver, materials);
+            activeTransfers.remove(sender.getName());
+        }, transferDelay * 20L);
 
         activeTransfers.put(sender.getName(), transferTask);
-        transferTask.runTaskLater(Storage.getStorage(), transferDelay * 20L); // Convert seconds to ticks
     }
 
     private static void completeMultiTransfer(Player sender, Player receiver, Map<String, Integer> materials) {
@@ -457,7 +450,7 @@ public class TransferManager {
     }
 
     public static void cancelTransfer(Player player) {
-        BukkitRunnable task = activeTransfers.remove(player.getName());
+        TaskWrapper task = activeTransfers.remove(player.getName());
         if (task != null) {
             task.cancel();
             player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.cancelled")));
@@ -467,7 +460,7 @@ public class TransferManager {
     }
 
     public static void cancelAllTransfers() {
-        for (BukkitRunnable task : activeTransfers.values()) {
+        for (TaskWrapper task : activeTransfers.values()) {
             task.cancel();
         }
         activeTransfers.clear();
@@ -568,298 +561,13 @@ public class TransferManager {
     private static void sendNavigationComponents(Player player, String targetPlayer, int currentPage, int totalPages, FileConfiguration messageConfig) {
         boolean hasPrev = currentPage > 1;
         boolean hasNext = currentPage < totalPages;
+        int prevPage = hasPrev ? currentPage - 1 : 0;
+        int nextPage = hasNext ? currentPage + 1 : 0;
 
-        // Try using tellraw command for clickable text
-        if (hasPrev && hasNext) {
-            // Both buttons active
-            String prevCommand = buildNavigationCommand(targetPlayer, player.getName(), currentPage - 1);
-            String nextCommand = buildNavigationCommand(targetPlayer, player.getName(), currentPage + 1);
-            sendTellrawNavigation(player, prevCommand, nextCommand, true, true, currentPage - 1, currentPage + 1);
-        } else if (hasPrev) {
-            // Only previous active
-            String prevCommand = buildNavigationCommand(targetPlayer, player.getName(), currentPage - 1);
-            sendTellrawNavigation(player, prevCommand, "", true, false, currentPage - 1, 0);
-        } else if (hasNext) {
-            // Only next active
-            String nextCommand = buildNavigationCommand(targetPlayer, player.getName(), currentPage + 1);
-            sendTellrawNavigation(player, "", nextCommand, false, true, 0, currentPage + 1);
-        } else {
-            // Both disabled
-            sendTellrawNavigation(player, "", "", false, false, 0, 0);
-        }
+        ChatNavigationHelper.sendStorageTransferNavigation(player, targetPlayer, currentPage, totalPages,
+                prevPage, nextPage, hasPrev, hasNext);
     }
 
-    private static void sendTellrawNavigation(Player player, String prevCommand, String nextCommand, boolean hasPrev, boolean hasNext, int prevPage, int nextPage) {
-        try {
-            FileConfiguration messageConfig = File.getMessage();
-
-            // Get configurable texts and colors - strip color codes for JSON
-            String prevText = stripColorCodes(messageConfig.getString("transfer.log_nav_previous"));
-            String prevDisabledText = stripColorCodes(messageConfig.getString("transfer.log_nav_previous_disabled"));
-            String prevHover = stripColorCodes(messageConfig.getString("transfer.log_nav_hover")
-                    .replace("#page#", String.valueOf(prevPage)));
-
-            String nextText = stripColorCodes(messageConfig.getString("transfer.log_nav_next"));
-            String nextDisabledText = stripColorCodes(messageConfig.getString("transfer.log_nav_next_disabled"));
-            String nextHover = stripColorCodes(messageConfig.getString("transfer.log_nav_hover")
-                    .replace("#page#", String.valueOf(nextPage)));
-
-            String spacing = stripColorCodes(messageConfig.getString("transfer.log_nav_spacing"));
-
-            // Convert colors to JSON format (support both named colors and hex)
-            String activeColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.active"));
-            String disabledColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.disabled"));
-            String spacingColor = convertToJsonColor(messageConfig.getString("transfer.log_nav_colors.spacing"));
-
-            // Build JSON for tellraw command
-            StringBuilder json = new StringBuilder();
-            json.append("[\"\"");
-
-            // Previous button
-            if (hasPrev) {
-                json.append(",{\"text\":\"").append(escapeJson(prevText)).append("\",\"color\":\"").append(activeColor)
-                        .append("\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"").append(escapeJson(prevCommand))
-                        .append("\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"").append(escapeJson(prevHover)).append("\"}}");
-            } else {
-                json.append(",{\"text\":\"").append(escapeJson(prevDisabledText)).append("\",\"color\":\"").append(disabledColor).append("\"}");
-            }
-
-            // Spacing
-            json.append(",{\"text\":\"").append(escapeJson(spacing)).append("\",\"color\":\"").append(spacingColor).append("\"}");
-
-            // Next button
-            if (hasNext) {
-                json.append(",{\"text\":\"").append(escapeJson(nextText)).append("\",\"color\":\"").append(activeColor)
-                        .append("\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"").append(escapeJson(nextCommand))
-                        .append("\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"").append(escapeJson(nextHover)).append("\"}}");
-            } else {
-                json.append(",{\"text\":\"").append(escapeJson(nextDisabledText)).append("\",\"color\":\"").append(disabledColor).append("\"}");
-            }
-
-            json.append("]");
-
-            // Execute tellraw command
-            String tellrawCommand = "tellraw " + player.getName() + " " + json;
-            player.getServer().dispatchCommand(player.getServer().getConsoleSender(), tellrawCommand);
-
-        } catch (Exception e) {
-            // Fallback to simple text using config
-            useFallbackNavigation(player, prevCommand, nextCommand, hasPrev, hasNext);
-        }
-    }
-
-    private static void useFallbackNavigation(Player player, String prevCommand, String nextCommand, boolean hasPrev, boolean hasNext) {
-        FileConfiguration messageConfig = File.getMessage();
-
-        // Get colors from config and convert to Minecraft format
-        String activeColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.active"));
-        String disabledColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.disabled"));
-        String spacingColorCode = convertToMinecraftColor(messageConfig.getString("transfer.log_nav_colors.spacing"));
-
-        // Get clean text without color codes
-        String prevText = messageConfig.getString("transfer.log_nav_previous");
-        String prevDisabledText = messageConfig.getString("transfer.log_nav_previous_disabled");
-        String nextText = messageConfig.getString("transfer.log_nav_next");
-        String nextDisabledText = messageConfig.getString("transfer.log_nav_next_disabled");
-        String spacing = messageConfig.getString("transfer.log_nav_spacing");
-
-        StringBuilder fallback = new StringBuilder();
-
-        if (hasPrev) {
-            fallback.append(activeColorCode).append(prevText);
-        } else {
-            fallback.append(disabledColorCode).append(prevDisabledText);
-        }
-
-        fallback.append(spacingColorCode).append(spacing);
-
-        if (hasNext) {
-            fallback.append(activeColorCode).append(nextText);
-        } else {
-            fallback.append(disabledColorCode).append(nextDisabledText);
-        }
-
-        player.sendMessage(Chat.colorizewp(fallback.toString()));
-
-        // Show help message and manual commands since clickable navigation failed
-        String helpMessage = messageConfig.getString("transfer.log_nav_help");
-        player.sendMessage(Chat.colorizewp(helpMessage));
-
-        // Show available commands for manual navigation
-        if (hasPrev) {
-            player.sendMessage(Chat.colorizewp("&7Previous: &e" + prevCommand));
-        }
-        if (hasNext) {
-            player.sendMessage(Chat.colorizewp("&7Next: &e" + nextCommand));
-        }
-    }
-
-    private static String convertToJsonColor(String color) {
-        if (color == null) return "white";
-
-        // If it's already a hex color in JSON format (#RRGGBB), return as is
-        if (color.matches("#[0-9a-fA-F]{6}")) {
-            return color;
-        }
-
-        // Convert Minecraft hex format to JSON format
-        if (color.matches("&#[0-9a-fA-F]{6}")) {
-            return color.substring(1); // Remove & to get #RRGGBB
-        }
-
-        if (color.matches("<#[0-9a-fA-F]{6}>")) {
-            return color.substring(1, color.length() - 1); // Remove < > to get #RRGGBB
-        }
-
-        // Convert legacy color codes to named colors
-        switch (color.toLowerCase()) {
-            case "&0":
-            case "black":
-                return "black";
-            case "&1":
-            case "dark_blue":
-                return "dark_blue";
-            case "&2":
-            case "dark_green":
-                return "dark_green";
-            case "&3":
-            case "dark_aqua":
-                return "dark_aqua";
-            case "&4":
-            case "dark_red":
-                return "dark_red";
-            case "&5":
-            case "dark_purple":
-                return "dark_purple";
-            case "&6":
-            case "gold":
-                return "gold";
-            case "&7":
-            case "gray":
-                return "gray";
-            case "&8":
-            case "dark_gray":
-                return "dark_gray";
-            case "&9":
-            case "blue":
-                return "blue";
-            case "&a":
-            case "green":
-                return "green";
-            case "&b":
-            case "aqua":
-                return "aqua";
-            case "&c":
-            case "red":
-                return "red";
-            case "&d":
-            case "light_purple":
-                return "light_purple";
-            case "&e":
-            case "yellow":
-                return "yellow";
-            case "&f":
-            case "white":
-                return "white";
-            default:
-                return color; // Return as is if it's already a valid JSON color name
-        }
-    }
-
-    private static String convertToMinecraftColor(String color) {
-        if (color == null) return "&f";
-
-        // If it's already a Minecraft hex format (&#RRGGBB), return as is
-        if (color.matches("&#[0-9a-fA-F]{6}")) {
-            return color;
-        }
-
-        // Convert other hex formats to Minecraft format
-        if (color.matches("#[0-9a-fA-F]{6}")) {
-            return "&" + color; // Add & to get &#RRGGBB
-        }
-
-        if (color.matches("<#[0-9a-fA-F]{6}>")) {
-            return "&" + color.substring(1, color.length() - 1); // Convert <#RRGGBB> to &#RRGGBB
-        }
-
-        // Convert named colors to legacy color codes
-        switch (color.toLowerCase()) {
-            case "black":
-                return "&0";
-            case "dark_blue":
-                return "&1";
-            case "dark_green":
-                return "&2";
-            case "dark_aqua":
-                return "&3";
-            case "dark_red":
-                return "&4";
-            case "dark_purple":
-                return "&5";
-            case "gold":
-                return "&6";
-            case "gray":
-                return "&7";
-            case "dark_gray":
-                return "&8";
-            case "blue":
-                return "&9";
-            case "green":
-                return "&a";
-            case "aqua":
-                return "&b";
-            case "red":
-                return "&c";
-            case "light_purple":
-                return "&d";
-            case "yellow":
-                return "&e";
-            case "white":
-                return "&f";
-            default:
-                // If it's already a legacy color code, return as is
-                if (color.matches("&[0-9a-fA-F]")) {
-                    return color;
-                }
-                return "&f"; // Default to white
-        }
-    }
-
-    private static String stripColorCodes(String text) {
-        if (text == null) return "";
-
-        // Remove legacy color codes (&x)
-        String result = text.replaceAll("&[0-9a-fA-F]", "");
-
-        // Remove hex color codes (&#xxxxxx and <#xxxxxx>)
-        result = result.replaceAll("&#[0-9a-fA-F]{6}", "");
-        result = result.replaceAll("<#[0-9a-fA-F]{6}>", "");
-
-        // Remove formatting codes (&l, &o, &n, &m, &k, &r)
-        result = result.replaceAll("&[lLnNmMoOkKrR]", "");
-
-        return result;
-    }
-
-    private static String escapeJson(String text) {
-        if (text == null) return "";
-        return text.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
-
-    private static String buildNavigationCommand(String targetPlayer, String currentPlayerName, int page) {
-        if (targetPlayer == null || targetPlayer.equals(currentPlayerName)) {
-            // Own log: /storage transfer log <page>
-            return "/storage transfer log " + page;
-        } else {
-            // Other player's log: /storage transfer log <player> <page>
-            return "/storage transfer log " + targetPlayer + " " + page;
-        }
-    }
 
     private static String getDisplayName(String material) {
         FileConfiguration config = File.getConfig();

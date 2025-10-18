@@ -5,15 +5,15 @@ import net.danh.storage.Event.EventType;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
 public class CommunityEvent extends BaseEvent {
-    private BukkitRunnable progressUpdateTask;
-    private BukkitRunnable chatProgressTask;
+    private TaskWrapper progressUpdateTask;
+    private TaskWrapper chatProgressTask;
 
     public CommunityEvent() {
         super(EventType.COMMUNITY_EVENT);
@@ -74,19 +74,14 @@ public class CommunityEvent extends BaseEvent {
     }
 
     private void startProgressUpdates() {
-        progressUpdateTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!eventData.isActive()) {
-                    cancel();
-                    return;
-                }
-
-                broadcastProgress();
+        progressUpdateTask = TaskWrapper.runTaskTimer(Storage.getStorage(), () -> {
+            if (!eventData.isActive()) {
+                if (progressUpdateTask != null) progressUpdateTask.cancel();
+                return;
             }
-        };
 
-        progressUpdateTask.runTaskTimer(Storage.getStorage(), 200L, 200L);
+            broadcastProgress();
+        }, 200L, 200L);
     }
 
     private void stopProgressUpdates() {
@@ -104,18 +99,13 @@ public class CommunityEvent extends BaseEvent {
         int interval = File.getEventConfig().getInt("notifications.chat_progress.interval", 300);
         long intervalTicks = interval * 20L;
 
-        chatProgressTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!eventData.isActive()) {
-                    cancel();
-                    return;
-                }
-                broadcastChatProgress();
+        chatProgressTask = TaskWrapper.runTaskTimer(Storage.getStorage(), () -> {
+            if (!eventData.isActive()) {
+                if (chatProgressTask != null) chatProgressTask.cancel();
+                return;
             }
-        };
-
-        chatProgressTask.runTaskTimer(Storage.getStorage(), intervalTicks, intervalTicks);
+            broadcastChatProgress();
+        }, intervalTicks, intervalTicks);
     }
 
     private void stopChatProgressUpdates() {

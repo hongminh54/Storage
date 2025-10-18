@@ -253,6 +253,7 @@ public class TransferMultiGUI implements IGUI {
     private InteractiveItem createPlayerInfoItem(ConfigurationSection section, int slot) {
         ItemStack baseItem = ItemManager.getItemConfigWithPlaceholders(player, section,
                 "#player#", targetPlayer);
+        baseItem = ItemManager.setPlayerSkull(baseItem, targetPlayer);
 
         return new InteractiveItem(baseItem, slot);
     }

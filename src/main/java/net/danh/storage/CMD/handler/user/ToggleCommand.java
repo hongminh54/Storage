@@ -18,6 +18,12 @@ public class ToggleCommand extends BaseCommand {
         }
 
         Player player = (Player) sender;
+
+        if (isStorageWorldBlacklisted(player)) {
+            sendWorldBlacklisted(sender, "Storage", player.getWorld().getName());
+            return;
+        }
+
         boolean currentStatus = MineManager.getToggleStatus(player);
         boolean newStatus = !currentStatus;
 

@@ -49,20 +49,18 @@ public class EnchantCommand extends BaseCommand {
     }
 
     private void handleGive(CommandSender sender, String[] args) {
-        if (args.length < 4) {
-            sendMessage(sender, "admin.invalid_usage", "#usage#", "/storage enchant give <player> <enchant> <level>");
+        if (!requirePlayer(sender)) {
             return;
         }
 
-        String playerName = args[1];
-        String enchantName = args[2];
-        String levelStr = args[3];
-
-        Player target = getPlayer(playerName);
-        if (target == null) {
-            sendInvalidPlayer(sender, playerName);
+        if (args.length < 3) {
+            sendMessage(sender, "admin.invalid_usage", "#usage#", "/storage enchant give <enchant> <level>");
             return;
         }
+
+        Player player = (Player) sender;
+        String enchantName = args[1];
+        String levelStr = args[2];
 
         if (!EnchantManager.isValidEnchant(enchantName)) {
             sendMessage(sender, "enchant.invalid_enchant", "#enchant#", enchantName);
@@ -81,7 +79,7 @@ public class EnchantCommand extends BaseCommand {
             return;
         }
 
-        ItemStack item = target.getInventory().getItemInMainHand();
+        ItemStack item = player.getInventory().getItemInMainHand();
         if (item == null || item.getType().name().equals("AIR")) {
             sendMessage(sender, "enchant.no_item_in_hand");
             return;
@@ -93,35 +91,31 @@ public class EnchantCommand extends BaseCommand {
         }
 
         ItemStack enchantedItem = EnchantManager.addEnchant(item, enchantName, level);
-        target.getInventory().setItemInMainHand(enchantedItem);
+        player.getInventory().setItemInMainHand(enchantedItem);
 
-        sendMessage(sender, "enchant.give_success", new String[]{"#player#", "#enchant#", "#level#"},
-                new String[]{target.getName(), enchantName, String.valueOf(level)});
-        sendMessage(target, "enchant.receive_enchant", new String[]{"#enchant#", "#level#"},
+        sendMessage(sender, "enchant.receive_enchant", new String[]{"#enchant#", "#level#"},
                 new String[]{enchantName, String.valueOf(level)});
     }
 
     private void handleRemove(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            sendMessage(sender, "admin.invalid_usage", "#usage#", "/storage enchant remove <player> <enchant>");
+        if (!requirePlayer(sender)) {
             return;
         }
 
-        String playerName = args[1];
-        String enchantName = args[2];
-
-        Player target = getPlayer(playerName);
-        if (target == null) {
-            sendInvalidPlayer(sender, playerName);
+        if (args.length < 2) {
+            sendMessage(sender, "admin.invalid_usage", "#usage#", "/storage enchant remove <enchant>");
             return;
         }
+
+        Player player = (Player) sender;
+        String enchantName = args[1];
 
         if (!EnchantManager.isValidEnchant(enchantName)) {
             sendMessage(sender, "enchant.invalid_enchant", "#enchant#", enchantName);
             return;
         }
 
-        ItemStack item = target.getInventory().getItemInMainHand();
+        ItemStack item = player.getInventory().getItemInMainHand();
         if (item == null || item.getType().name().equals("AIR")) {
             sendMessage(sender, "enchant.no_item_in_hand");
             return;
@@ -133,48 +127,17 @@ public class EnchantCommand extends BaseCommand {
         }
 
         ItemStack unenchantedItem = EnchantManager.removeEnchant(item, enchantName);
-        target.getInventory().setItemInMainHand(unenchantedItem);
+        player.getInventory().setItemInMainHand(unenchantedItem);
 
-        sendMessage(sender, "enchant.remove_success", new String[]{"#player#", "#enchant#"},
-                new String[]{target.getName(), enchantName});
-        sendMessage(target, "enchant.enchant_removed", "#enchant#", enchantName);
+        sendMessage(sender, "enchant.enchant_removed", "#enchant#", enchantName);
     }
 
     private void handleList(CommandSender sender, String[] args) {
-        if (args.length >= 2) {
-            String playerName = args[1];
-            Player target = getPlayer(playerName);
-            if (target == null) {
-                sendInvalidPlayer(sender, playerName);
-                return;
-            }
-
-            ItemStack item = target.getInventory().getItemInMainHand();
-            if (item == null || item.getType().name().equals("AIR")) {
-                sendMessage(sender, "enchant.no_item_in_hand");
-                return;
-            }
-
-            sendMessage(sender, "enchant.item_enchants_header", "#player#", target.getName());
-            boolean hasEnchants = false;
-            for (String enchantName : EnchantManager.getAvailableEnchants()) {
-                if (EnchantManager.hasEnchant(item, enchantName)) {
-                    int level = EnchantManager.getEnchantLevel(item, enchantName);
-                    sendMessage(sender, "enchant.item_enchant_entry", new String[]{"#enchant#", "#level#"},
-                            new String[]{enchantName, String.valueOf(level)});
-                    hasEnchants = true;
-                }
-            }
-            if (!hasEnchants) {
-                sendMessage(sender, "enchant.no_enchants_on_item");
-            }
-        } else {
-            sendMessage(sender, "enchant.available_enchants_header");
-            for (String enchantName : EnchantManager.getAvailableEnchants()) {
-                EnchantManager.EnchantData data = EnchantManager.getEnchantData(enchantName);
-                sendMessage(sender, "enchant.available_enchant_entry", new String[]{"#enchant#", "#name#", "#max_level#"},
-                        new String[]{enchantName, data.name, String.valueOf(data.maxLevel)});
-            }
+        sendMessage(sender, "enchant.available_enchants_header");
+        for (String enchantName : EnchantManager.getAvailableEnchants()) {
+            EnchantManager.EnchantData data = EnchantManager.getEnchantData(enchantName);
+            sendMessage(sender, "enchant.available_enchant_entry", new String[]{"#enchant#", "#name#", "#max_level#"},
+                    new String[]{enchantName, data.name, String.valueOf(data.maxLevel)});
         }
     }
 
@@ -240,29 +203,24 @@ public class EnchantCommand extends BaseCommand {
             completions.addAll(Arrays.asList("give", "remove", "list", "info", "setmaxlevel"));
         } else if (args.length == 2) {
             String subCommand = args[0].toLowerCase();
-            if (subCommand.equals("give") || subCommand.equals("remove") || subCommand.equals("list")) {
-                completions.addAll(getOnlinePlayerNames());
+            if (subCommand.equals("give") || subCommand.equals("remove")) {
+                completions.addAll(EnchantManager.getAvailableEnchants());
             } else if (subCommand.equals("info") || subCommand.equals("setmaxlevel")) {
                 completions.addAll(EnchantManager.getAvailableEnchants());
             }
         } else if (args.length == 3) {
             String subCommand = args[0].toLowerCase();
-            if (subCommand.equals("give") || subCommand.equals("remove")) {
-                completions.addAll(EnchantManager.getAvailableEnchants());
-            } else if (subCommand.equals("setmaxlevel")) {
-                for (int i = 1; i <= EnchantManager.getMaxAllowedLevel(); i++) {
-                    completions.add(String.valueOf(i));
-                }
-            }
-        } else if (args.length == 4) {
-            String subCommand = args[0].toLowerCase();
             if (subCommand.equals("give")) {
-                String enchantName = args[2];
+                String enchantName = args[1];
                 if (EnchantManager.isValidEnchant(enchantName)) {
                     EnchantManager.EnchantData data = EnchantManager.getEnchantData(enchantName);
                     for (int i = 1; i <= data.maxLevel; i++) {
                         completions.add(String.valueOf(i));
                     }
+                }
+            } else if (subCommand.equals("setmaxlevel")) {
+                for (int i = 1; i <= EnchantManager.getMaxAllowedLevel(); i++) {
+                    completions.add(String.valueOf(i));
                 }
             }
         }

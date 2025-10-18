@@ -3,6 +3,7 @@ package net.danh.storage.GUI.manager;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Storage;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -18,6 +19,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class InteractiveItem extends ItemStack {
+    private static boolean nbtWarningLogged = false;
+
     /**
      * The slot of the item in the GUI. Optional, but recommended. Default to -1.
      */
@@ -72,9 +75,21 @@ public class InteractiveItem extends ItemStack {
         UUID uuid = UUID.randomUUID();
         GUI.getItemMapper().put(uuid, this);
 
-        NBTItem nbtItem = new NBTItem(this);
-        nbtItem.setUUID("storage:id", uuid);
-        this.setItemMeta(nbtItem.getItem().getItemMeta());
+        try {
+            NBTItem nbtItem = new NBTItem(this);
+            nbtItem.setUUID("storage:id", uuid);
+            this.setItemMeta(nbtItem.getItem().getItemMeta());
+        } catch (Exception e) {
+            if (!nbtWarningLogged) {
+                Storage.getStorage().getLogger().warning("Your Minecraft version may not be fully supported by NBT-API.");
+                Storage.getStorage().getLogger().warning("GUI will work with limited functionality. Some features may not work as expected.");
+                Storage.getStorage().getLogger().warning("Error: " + e.getMessage());
+                Storage.getStorage().getLogger().warning("Please consider updating to a newer version of NBT-API or Minecraft.");
+                Storage.getStorage().getLogger().warning("If you are using a custom NBT-API version, please ensure it is compatible with your Minecraft version.");
+                Storage.getStorage().getLogger().warning("If an error occurs, please report it to me at https://github.com/hongminh54/Storage/issues.");
+                nbtWarningLogged = true;
+            }
+        }
     }
 
     public String getDisplayName() {

@@ -4,9 +4,9 @@ import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.Chat;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class EventScheduler {
-    private final Map<EventType, BukkitRunnable> scheduledTasks;
+    private final Map<EventType, TaskWrapper> scheduledTasks;
 
     public EventScheduler() {
         this.scheduledTasks = new HashMap<>();
@@ -48,24 +48,20 @@ public class EventScheduler {
         long nextScheduledTime = System.currentTimeMillis() + (finalInterval * 1000L);
         event.getEventData().setNextScheduledTime(nextScheduledTime);
 
-        BukkitRunnable task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    if (File.getEventConfig().getBoolean("events." + eventType.getConfigKey() + ".enabled", true) &&
-                            !event.isActive()) {
-                        event.start();
-                        // Update next scheduled time after starting
-                        long nextTime = System.currentTimeMillis() + (finalInterval * 1000L);
-                        event.getEventData().setNextScheduledTime(nextTime);
-                    }
-                } catch (Exception e) {
-                    Storage.getStorage().getLogger().warning("Error starting scheduled event " + eventType.getDisplayName() + ": " + e.getMessage());
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), () -> {
+            try {
+                if (File.getEventConfig().getBoolean("events." + eventType.getConfigKey() + ".enabled", true) &&
+                        !event.isActive()) {
+                    event.start();
+                    // Update next scheduled time after starting
+                    long nextTime = System.currentTimeMillis() + (finalInterval * 1000L);
+                    event.getEventData().setNextScheduledTime(nextTime);
                 }
+            } catch (Exception e) {
+                Storage.getStorage().getLogger().warning("Error starting scheduled event " + eventType.getDisplayName() + ": " + e.getMessage());
             }
-        };
+        }, intervalTicks, intervalTicks);
 
-        task.runTaskTimer(Storage.getStorage(), intervalTicks, intervalTicks);
         scheduledTasks.put(eventType, task);
     }
 
@@ -105,24 +101,20 @@ public class EventScheduler {
             if (delayTicks > 0) {
                 scheduleStartReminders(eventType, delayTicks);
 
-                BukkitRunnable task = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            if (File.getEventConfig().getBoolean("events." + eventType.getConfigKey() + ".enabled", true) &&
-                                    !event.isActive()) {
-                                event.start();
-                            }
-                        } catch (Exception e) {
-                            Storage.getStorage().getLogger().warning("Error starting scheduled event " + eventType.getDisplayName() + ": " + e.getMessage());
-                        } finally {
-                            // Schedule the next occurrence after this event starts
-                            scheduleNextEarliestOccurrence(eventType, event, scheduleString);
+                TaskWrapper task = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+                    try {
+                        if (File.getEventConfig().getBoolean("events." + eventType.getConfigKey() + ".enabled", true) &&
+                                !event.isActive()) {
+                            event.start();
                         }
+                    } catch (Exception e) {
+                        Storage.getStorage().getLogger().warning("Error starting scheduled event " + eventType.getDisplayName() + ": " + e.getMessage());
+                    } finally {
+                        // Schedule the next occurrence after this event starts
+                        scheduleNextEarliestOccurrence(eventType, event, scheduleString);
                     }
-                };
+                }, delayTicks);
 
-                task.runTaskLater(Storage.getStorage(), delayTicks);
                 scheduledTasks.put(eventType, task);
             } else {
                 // If delay is 0 or negative, schedule for next occurrence immediately
@@ -216,12 +208,9 @@ public class EventScheduler {
             if (reminderTime < eventDelaySeconds) {
                 long reminderDelayTicks = eventDelayTicks - (reminderTime * 20L);
 
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        broadcastStartReminder(eventType, reminderTime);
-                    }
-                }.runTaskLater(Storage.getStorage(), reminderDelayTicks);
+                TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+                    broadcastStartReminder(eventType, reminderTime);
+                }, reminderDelayTicks);
             }
         }
     }
@@ -245,14 +234,14 @@ public class EventScheduler {
     }
 
     public void cancelScheduledEvent(EventType eventType) {
-        BukkitRunnable task = scheduledTasks.remove(eventType);
+        TaskWrapper task = scheduledTasks.remove(eventType);
         if (task != null && !task.isCancelled()) {
             task.cancel();
         }
     }
 
     public void cancelAllScheduledEvents() {
-        for (BukkitRunnable task : scheduledTasks.values()) {
+        for (TaskWrapper task : scheduledTasks.values()) {
             if (task != null && !task.isCancelled()) {
                 task.cancel();
             }
@@ -261,7 +250,7 @@ public class EventScheduler {
     }
 
     public boolean isEventScheduled(EventType eventType) {
-        BukkitRunnable task = scheduledTasks.get(eventType);
+        TaskWrapper task = scheduledTasks.get(eventType);
         return task != null && !task.isCancelled();
     }
 
