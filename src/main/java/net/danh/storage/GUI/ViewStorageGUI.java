@@ -23,6 +23,7 @@ public class ViewStorageGUI implements IGUI {
     public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
     private final Player viewer; // Player viewing the storage
     private final Player target;  // Player whose storage is being viewed
+    private final String targetName;
     private final FileConfiguration config;
     private final int currentPage;
 
@@ -33,6 +34,20 @@ public class ViewStorageGUI implements IGUI {
     public ViewStorageGUI(Player viewer, Player target, int page) {
         this.viewer = viewer;
         this.target = target;
+        this.targetName = target.getName();
+        this.currentPage = Math.max(0, page);
+        config = File.getViewStorageConfig();
+        playerCurrentPage.put(viewer, this.currentPage);
+    }
+
+    public ViewStorageGUI(Player viewer, String targetName) {
+        this(viewer, targetName, 0);
+    }
+
+    public ViewStorageGUI(Player viewer, String targetName, int page) {
+        this.viewer = viewer;
+        this.target = null;
+        this.targetName = targetName;
         this.currentPage = Math.max(0, page);
         config = File.getViewStorageConfig();
         playerCurrentPage.put(viewer, this.currentPage);
@@ -55,7 +70,7 @@ public class ViewStorageGUI implements IGUI {
 
         // Create inventory with target player's name
         String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
-                .replace("#player#", target.getName()));
+                .replace("#player#", targetName));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
@@ -130,7 +145,7 @@ public class ViewStorageGUI implements IGUI {
                     String name = File.getConfig().getString("items." + item_list.get(i));
 
                     // Use target player's data for item amount
-                    ItemStack itemStack = ItemManager.getItemConfig(target, material,
+                    ItemStack itemStack = ItemManager.getItemConfig(targetName, material,
                             name != null ? name : item_list.get(i).split(";")[0],
                             config.getConfigurationSection("items.storage_item"));
 
@@ -151,7 +166,7 @@ public class ViewStorageGUI implements IGUI {
                         .onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
                             SoundManager.setShouldPlayCloseSound(player, false);
-                            player.openInventory(new ViewStorageGUI(viewer, target, currentPage - 1)
+                            player.openInventory(new ViewStorageGUI(viewer, targetName, currentPage - 1)
                                     .getInventory(SoundContext.SILENT));
                         });
                 inventory.setItem(item.getSlot(), item);
@@ -167,7 +182,7 @@ public class ViewStorageGUI implements IGUI {
                         .onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
                             SoundManager.setShouldPlayCloseSound(player, false);
-                            player.openInventory(new ViewStorageGUI(viewer, target, currentPage + 1)
+                            player.openInventory(new ViewStorageGUI(viewer, targetName, currentPage + 1)
                                     .getInventory(SoundContext.SILENT));
                         });
                 inventory.setItem(item.getSlot(), item);

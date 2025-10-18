@@ -2,7 +2,8 @@ package net.danh.storage.CMD.handler.user;
 
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.GUI.ViewStorageGUI;
-import net.danh.storage.Manager.MineManager;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -29,17 +30,22 @@ public class ViewCommand extends BaseCommand {
         Player targetPlayer = getPlayer(targetPlayerName);
 
         if (targetPlayer == null) {
-            sendInvalidPlayer(sender, targetPlayerName);
+            OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(targetPlayerName);
+
+            if (!offlineTarget.hasPlayedBefore()) {
+                sendInvalidPlayer(sender, targetPlayerName);
+                return;
+            }
+
+            try {
+                player.openInventory(new ViewStorageGUI(player, offlineTarget.getName()).getInventory());
+                sendMessage(sender, "view.viewing_storage", "#player#", offlineTarget.getName());
+            } catch (IndexOutOfBoundsException e) {
+                sendMessage(sender, "admin.not_enough_slot");
+            }
             return;
         }
 
-        // Check if target player has any items in storage
-        if (!MineManager.hasAnyItems(targetPlayer)) {
-            sendMessage(sender, "view.storage_empty", "#player#", targetPlayer.getName());
-            return;
-        }
-
-        // Open ViewStorageGUI for target player
         try {
             player.openInventory(new ViewStorageGUI(player, targetPlayer).getInventory());
             sendMessage(sender, "view.viewing_storage", "#player#", targetPlayer.getName());

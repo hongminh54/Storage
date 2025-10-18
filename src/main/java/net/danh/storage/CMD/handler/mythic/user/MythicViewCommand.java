@@ -2,7 +2,8 @@ package net.danh.storage.CMD.handler.mythic.user;
 
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
 import net.danh.storage.GUI.ViewMythicStorageGUI;
-import net.danh.storage.Manager.MythicStorageManager;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -25,15 +26,26 @@ public class MythicViewCommand extends MythicCommand {
             return;
         }
 
-        Player target = getPlayer(args[0]);
-        if (target == null || !target.isOnline()) {
-            sendPlayerNotFound(sender, args[0]);
-            return;
-        }
+        String targetName = args[0];
 
-        // Check if target player has any items in MythicStorage
-        if (!MythicStorageManager.hasAnyItems(target)) {
-            sendMessage(sender, "no_items");
+        Player target = getPlayer(targetName);
+
+        if (target == null) {
+            OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(targetName);
+
+            if (!offlineTarget.hasPlayedBefore()) {
+                sendPlayerNotFound(sender, targetName);
+                return;
+            }
+
+            try {
+                viewer.openInventory(new ViewMythicStorageGUI(viewer, offlineTarget.getName()).getInventory());
+                sendMessage(sender, "viewing_storage", "#player#", offlineTarget.getName());
+            } catch (IndexOutOfBoundsException e) {
+                sendMessage(sender, "admin.not_enough_slot");
+            } catch (Exception e) {
+                sendMessage(sender, "admin.error_opening_gui");
+            }
             return;
         }
 

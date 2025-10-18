@@ -25,6 +25,7 @@ public class ViewMythicStorageGUI implements IGUI {
     public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
     private final Player viewer;
     private final Player target;
+    private final String targetName;
     private final FileConfiguration config;
     private final int currentPage;
 
@@ -35,6 +36,20 @@ public class ViewMythicStorageGUI implements IGUI {
     public ViewMythicStorageGUI(Player viewer, Player target, int page) {
         this.viewer = viewer;
         this.target = target;
+        this.targetName = target.getName();
+        this.currentPage = Math.max(0, page);
+        this.config = File.getViewMythicStorageGUIConfig();
+        playerCurrentPage.put(viewer, this.currentPage);
+    }
+
+    public ViewMythicStorageGUI(Player viewer, String targetName) {
+        this(viewer, targetName, 0);
+    }
+
+    public ViewMythicStorageGUI(Player viewer, String targetName, int page) {
+        this.viewer = viewer;
+        this.target = null;
+        this.targetName = targetName;
         this.currentPage = Math.max(0, page);
         this.config = File.getViewMythicStorageGUIConfig();
         playerCurrentPage.put(viewer, this.currentPage);
@@ -55,7 +70,7 @@ public class ViewMythicStorageGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(viewer, config, "gui_open_sound", context);
 
-        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", target.getName()));
+        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", targetName));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
@@ -143,8 +158,8 @@ public class ViewMythicStorageGUI implements IGUI {
                         ItemMeta meta = displayItem.getItemMeta();
 
                         if (meta != null) {
-                            int amount = MythicStorageManager.getPlayerItem(target, itemName);
-                            int maxStorage = MythicStorageManager.getMaxStorage(target);
+                            int amount = MythicStorageManager.getPlayerItem(targetName, itemName);
+                            int maxStorage = MythicStorageManager.getMaxStorage(targetName);
 
                             if (meta.hasDisplayName()) {
                                 meta.setDisplayName(Chat.colorizewp(meta.getDisplayName()));

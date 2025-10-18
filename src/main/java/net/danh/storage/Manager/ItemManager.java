@@ -161,6 +161,15 @@ public class ItemManager {
                 "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)));
     }
 
+    public static ItemStack getItemConfig(String playerName, String material, String name, ConfigurationSection section) {
+        ItemStack item = createBaseItem(section, material.split(";")[0]);
+        if (item == null) return null;
+
+        return applyPlaceholders(item, section.getStringList("lore"), name,
+                "#item_amount#", String.valueOf(MineManager.getPlayerBlock(playerName, material)),
+                "#max_storage#", String.valueOf(MineManager.getMaxStorage(playerName)));
+    }
+
     public static ItemStack getItemConfigWithPlaceholders(Player p, ConfigurationSection section, String... placeholders) {
         ItemStack item = createBaseItem(section, null);
         if (item == null) return null;

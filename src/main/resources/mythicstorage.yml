@@ -20,7 +20,6 @@ notification:
     item_added:
       title: "&a+ #amount# #item#"
       subtitle: "&7Storage: &a#storage#&7/&a#max#"
-    # Storage full notifications
     storage_full:
       title: "&cStorage Full!"
       subtitle: "&7(&c#storage#&7/&c#max#&7)"

@@ -333,13 +333,12 @@ public class MineManager {
         return null;
     }
 
-    public static boolean hasAnyItems(@NotNull Player player) {
-        for (String material : getPluginBlocks()) {
-            if (getPlayerBlock(player, material) > 0) {
-                return true;
-            }
-        }
-        return false;
+    public static int getPlayerBlock(@NotNull String playerName, @NotNull String material) {
+        return playerdata.getOrDefault(playerName + "_" + material, 0);
+    }
+
+    public static int getMaxStorage(@NotNull String playerName) {
+        return File.getConfig().getInt("settings.default_max_storage", 100000);
     }
 
 }

@@ -48,46 +48,46 @@ public class MythicMobDeath implements Listener {
 
         String packageName = helper.getPackageName();
 
-        String[] possibleEventPaths = {
+        String[] deathEventPaths = {
                 packageName + ".events.MythicMobDeathEvent",
                 "io.lumine.mythic.api.bukkit.events.MythicMobDeathEvent",
                 "io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent",
                 "io.lumine.mythic.bukkit.events.MythicMobDeathEvent"
         };
 
-        Class<?> eventClass = null;
-        for (String eventPath : possibleEventPaths) {
+        Class<?> deathEventClass = null;
+        for (String eventPath : deathEventPaths) {
             try {
-                eventClass = Class.forName(eventPath);
-                plugin.getLogger().info("[MythicStorage] Found event class: " + eventPath);
+                deathEventClass = Class.forName(eventPath);
+                plugin.getLogger().info("[MythicStorage] Found death event class: " + eventPath);
                 break;
             } catch (ClassNotFoundException e) {
             }
         }
 
-        if (eventClass == null) {
+        if (deathEventClass == null) {
             plugin.getLogger().warning("[MythicStorage] Failed to find MythicMobDeathEvent class");
             return;
         }
 
         try {
             MythicMobDeath listener = new MythicMobDeath();
-            final Class<?> finalEventClass = eventClass;
+            final Class<?> finalDeathEventClass = deathEventClass;
 
-            EventExecutor executor = (listenerInstance, event) -> {
-                if (finalEventClass.isInstance(event)) {
+            EventExecutor deathExecutor = (listenerInstance, event) -> {
+                if (finalDeathEventClass.isInstance(event)) {
                     listener.handleMythicMobDeath(event);
                 }
             };
 
             @SuppressWarnings("unchecked")
-            Class<? extends org.bukkit.event.Event> eventType = (Class<? extends org.bukkit.event.Event>) eventClass;
+            Class<? extends org.bukkit.event.Event> deathEventType = (Class<? extends org.bukkit.event.Event>) deathEventClass;
 
             plugin.getServer().getPluginManager().registerEvent(
-                    eventType,
+                    deathEventType,
                     listener,
                     EventPriority.HIGHEST,
-                    executor,
+                    deathExecutor,
                     plugin,
                     true
             );
@@ -116,6 +116,15 @@ public class MythicMobDeath implements Listener {
             Player killer = (Player) getKiller.invoke(event);
 
             if (killer == null || !killer.isOnline()) return;
+
+            MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
+            if (helper == null || !helper.isInitialized()) return;
+
+            @SuppressWarnings("unchecked")
+            Collection<ItemStack> entityDrops = (Collection<ItemStack>) getDrops.invoke(event);
+            if (entityDrops == null) return;
+
+            // Auto-pickup logic - only runs if toggle is enabled
             if (!MythicStorageManager.getToggleStatus(killer)) return;
 
             if (File.getMythicStorageConfig().contains("blacklist_world")) {
@@ -124,12 +133,7 @@ public class MythicMobDeath implements Listener {
                 }
             }
 
-            MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
-            if (helper == null || !helper.isInitialized()) return;
-
-            @SuppressWarnings("unchecked")
-            Collection<ItemStack> entityDrops = (Collection<ItemStack>) getDrops.invoke(event);
-            if (entityDrops == null || entityDrops.isEmpty()) return;
+            if (entityDrops.isEmpty()) return;
 
             List<ItemStack> dropsToProcess = new ArrayList<>(entityDrops);
 

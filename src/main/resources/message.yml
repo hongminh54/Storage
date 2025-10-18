@@ -301,8 +301,8 @@ mythicstorage:
   no_items: "#prefix# &cYou don't have this item in storage!"
   status_enabled: "&aEnabled"
   status_disabled: "&cDisabled"
-  toggle_enabled: "#prefix# &aAuto-pickup enabled!"
-  toggle_disabled: "#prefix# &cAuto-pickup disabled!"
+  toggle_enabled: "#prefix# &dMythicStorage &aAuto-pickup enabled!"
+  toggle_disabled: "#prefix# &dMythicStorage &cAuto-pickup disabled!"
   action:
     withdraw:
       chat_number: "#prefix# &aHow many items do you want to withdraw?"

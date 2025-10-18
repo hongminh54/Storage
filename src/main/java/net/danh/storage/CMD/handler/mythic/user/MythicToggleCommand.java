@@ -28,7 +28,7 @@ public class MythicToggleCommand extends MythicCommand {
 
         MythicStorageManager.setToggleStatus(player, newStatus);
 
-        String messageKey = newStatus ? "enabled" : "disabled";
+        String messageKey = newStatus ? "toggle_enabled" : "toggle_disabled";
         sendMessage(sender, messageKey);
     }
 
