@@ -47,7 +47,7 @@ public class BlockBreak implements Listener {
         if (File.getConfig().contains("blacklist_world")) {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
-        // Handle autopickup functionality
+
         if (MineManager.getToggleStatus(p)) {
             if (inv_full) {
                 processInventoryItems(p);
