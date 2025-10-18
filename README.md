@@ -201,6 +201,58 @@ You can customize these messages by editing the `message.yml` file.
 
 Storage provides a comprehensive API for developers to integrate with the storage system. Perfect for creating economy plugins, custom GUIs, or extending functionality.
 
+### Adding Storage to Your Project
+
+#### Maven
+
+Add repository Storage to your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.github.hongminh54</groupId>
+        <artifactId>Storage</artifactId>
+        <version>2.3.3</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+#### Gradle
+
+Add repository Storage to your `build.gradle`:
+
+```gradle
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly 'com.github.hongminh54:Storage:2.3.3'
+}
+```
+
+#### Gradle (Kotlin DSL)
+
+For `build.gradle.kts`:
+
+```kotlin
+repositories {
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    compileOnly("com.github.hongminh54:Storage:2.3.3")
+}
+```
+
 ### Quick Start
 
 ```yml
@@ -209,15 +261,18 @@ depend: [Storage]
 # softdepend if you want to make your plugin optional
 softdepend: [Storage]
 ```
+
+### Core API Examples
+
+#### Basic Storage Operations
 ```java
-// Import the API
 import net.danh.storage.API.StorageAPI;
 import net.danh.storage.API.StoragePlayer;
 import net.danh.storage.API.events.StorageDepositEvent;
 
 // Check API availability
 if (StorageAPI.isInitialized()) {
-    // Get player storage
+    // Get player storage wrapper
     StoragePlayer player = StorageAPI.getStoragePlayer(bukkitPlayer);
 
     // Add items to storage
@@ -226,25 +281,343 @@ if (StorageAPI.isInitialized()) {
     // Transfer items between players
     player.transferTo(otherPlayer, "DIAMOND;0", 10);
 
-    // Work with enchants
-    ItemStack item = bukkitPlayer.getItemInHand();
-    if (StorageAPI.hasEnchant(item, "tnt")) {
-        int level = StorageAPI.getEnchantLevel(item, "tnt");
-        // Custom logic for enchanted items
-    }
+    // Check storage status
+    int totalItems = player.getTotalStoredItems();
+    boolean isFull = player.isStorageFull();
+    double usagePercent = player.getStorageUsagePercentage();
+}
+```
 
-    // Manage special materials
-    if (StorageAPI.hasSpecialMaterial("rare_gem")) {
-        StorageAPI.giveSpecialMaterial(bukkitPlayer, "rare_gem", 1);
-    }
+#### MythicMobs Storage API
+```java
+import net.danh.storage.API.MythicStorageAPI;
 
-    // Listen to storage events
+// Check if MythicStorage is enabled
+if (MythicStorageAPI.isSystemEnabled()) {
+    // Add MythicMobs items
+    MythicStorageAPI.addMythicItem(player, "crown", 5);
+    
+    // Get item amount
+    int amount = MythicStorageAPI.getMythicItemAmount(player, "crown");
+    
+    // Toggle auto-pickup
+    MythicStorageAPI.setMythicAutoPickup(player, true);
+    
+    // Get all stored items
+    Map<String, Integer> items = MythicStorageAPI.getPlayerMythicItems(player);
+}
+```
+
+#### Event System API
+```java
+import net.danh.storage.API.StorageEventAPI;
+import net.danh.storage.Event.EventType;
+
+// Start/Stop events
+StorageEventAPI.startEvent(EventType.MINING_CONTEST);
+StorageEventAPI.stopEvent(EventType.DOUBLE_DROP);
+
+// Check event status
+boolean isActive = StorageEventAPI.isEventActive(EventType.MINING_CONTEST);
+long remainingTime = StorageEventAPI.getEventRemainingTime(EventType.MINING_CONTEST);
+
+// Get Mining Contest data
+int score = StorageEventAPI.getMiningContestScore(player);
+int rank = StorageEventAPI.getMiningContestRank(player);
+Map<String, Integer> leaderboard = StorageEventAPI.getMiningContestLeaderboard();
+
+// Get Community Event progress
+int progress = StorageEventAPI.getCommunityEventProgress();
+double percentage = StorageEventAPI.getCommunityEventPercentage();
+```
+
+#### Batch Operations API
+```java
+import net.danh.storage.API.StorageBatchAPI;
+
+// Add multiple items at once
+Map<String, Integer> itemsToAdd = new HashMap<>();
+itemsToAdd.put("DIAMOND;0", 64);
+itemsToAdd.put("EMERALD;0", 32);
+Map<String, Boolean> results = StorageBatchAPI.addItems(player, itemsToAdd);
+
+// Transfer multiple items
+Map<String, Boolean> transferResults = StorageBatchAPI.transferMultipleItems(
+    sender, receiver, itemsToAdd);
+
+// Async operations for better performance
+CompletableFuture<Map<String, Boolean>> future = 
+    StorageBatchAPI.addItemsAsync(player, itemsToAdd);
+future.thenAccept(result -> {
+    // Handle results asynchronously
+});
+```
+
+#### Hook System API
+```java
+import net.danh.storage.API.StorageHookAPI;
+import net.danh.storage.API.StorageHookAPI.*;
+
+// Register deposit hook
+StorageHookAPI.registerDepositHook(new DepositHook() {
+    @Override
+    public boolean onBeforeDeposit(Player player, String material, int amount) {
+        // Return false to cancel deposit
+        return true;
+    }
+    
+    @Override
+    public void onAfterDeposit(Player player, String material, int amount) {
+        // Custom logic after deposit
+        player.sendMessage("Deposited " + amount + " " + material);
+    }
+}, HookPriority.HIGH);
+
+// Register transfer hook
+StorageHookAPI.registerTransferHook(new TransferHook() {
+    @Override
+    public boolean onBeforeTransfer(Player sender, Player receiver, 
+                                    String material, int amount) {
+        // Custom validation
+        return true;
+    }
+    
+    @Override
+    public void onAfterTransfer(Player sender, Player receiver, 
+                                String material, int amount) {
+        // Log transfer or custom logic
+    }
+});
+```
+
+#### Event Listeners
+```java
+import net.danh.storage.API.events.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+public class StorageListener implements Listener {
+    
     @EventHandler
-    public void onStorageDeposit(StorageDepositEvent event) {
-        // Custom logic when players deposit items
+    public void onDeposit(StorageDepositEvent event) {
+        Player player = event.getPlayer();
+        String material = event.getMaterial();
+        int amount = event.getAmount();
+        
+        // Modify amount or cancel
+        event.setAmount(amount * 2); // Double deposit
+        // event.setCancelled(true); // Cancel deposit
+    }
+    
+    @EventHandler
+    public void onMythicDeposit(MythicStorageDepositEvent event) {
+        // Handle MythicMobs item deposits
+    }
+    
+    @EventHandler
+    public void onTransfer(StorageTransferEvent event) {
+        Player sender = event.getSender();
+        Player receiver = event.getReceiver();
+        // Custom transfer logic
     }
 }
 ```
+
+#### Material Conversion API
+```java
+import net.danh.storage.API.ConvertAPI;
+
+// Check if material can be converted
+boolean canConvert = ConvertAPI.isConvertibleMaterial("IRON_INGOT;0");
+
+// Get conversion options
+List<ConvertOption> options = ConvertAPI.getConversionOptions("IRON_INGOT;0");
+
+// Convert materials
+boolean success = ConvertAPI.convertMaterial(player, "IRON_INGOT;0", "IRON_BLOCK;0", 9);
+
+// Get max conversions possible
+int maxConversions = ConvertAPI.getMaxConversions(player, "IRON_INGOT;0", "IRON_BLOCK;0");
+
+// Calculate result amount
+int resultAmount = ConvertAPI.calculateResultAmount("IRON_INGOT;0", "IRON_BLOCK;0", 18);
+
+// Batch convert multiple materials
+Map<String, ConversionRequest> conversions = new HashMap<>();
+conversions.put("IRON_INGOT;0", new ConversionRequest("IRON_BLOCK;0", 9));
+conversions.put("GOLD_INGOT;0", new ConversionRequest("GOLD_BLOCK;0", 9));
+Map<String, Boolean> results = ConvertAPI.batchConvert(player, conversions);
+```
+
+#### Special Materials API
+```java
+import net.danh.storage.API.SpecialMaterialAPI;
+
+// Check if special material exists
+boolean exists = SpecialMaterialAPI.hasSpecialMaterial("rare_gem");
+
+// Get all special materials
+Set<String> materials = SpecialMaterialAPI.getAllSpecialMaterials();
+
+// Give special material to player
+SpecialMaterialAPI.giveSpecialMaterial(player, "rare_gem", 5);
+
+// Get material info
+String info = SpecialMaterialAPI.getMaterialInfo("rare_gem");
+
+// Check for drops when block is broken
+SpecialMaterialAPI.checkSpecialMaterialDrop(player, block);
+
+// With enchant modifier
+SpecialMaterialAPI.checkSpecialMaterialDrop(player, block, "multiplier");
+```
+
+#### Async Operations API
+```java
+import net.danh.storage.API.StorageAsyncAPI;
+
+// Async add item (non-blocking)
+CompletableFuture<Boolean> future = StorageAsyncAPI.addItemAsync(player, "DIAMOND;0", 64);
+future.thenAccept(success -> {
+    if (success) {
+        player.sendMessage("Items added successfully!");
+    }
+});
+
+// Async get with callback on main thread
+StorageAsyncAPI.executeWithCallback(
+    StorageAsyncAPI.getItemAmountAsync(player, "DIAMOND;0"),
+    new AsyncCallback<Integer>() {
+        @Override
+        public void onSuccess(Integer amount) {
+            player.sendMessage("You have " + amount + " diamonds");
+        }
+        
+        @Override
+        public void onError(Throwable error) {
+            player.sendMessage("Error: " + error.getMessage());
+        }
+    }
+);
+
+// Async top players
+StorageAsyncAPI.getTopPlayersByMaterialAsync("DIAMOND;0", 10)
+    .thenAccept(topPlayers -> {
+        // Display leaderboard
+    });
+
+// Async save all players
+StorageAsyncAPI.saveAllPlayersAsync()
+    .thenAccept(count -> {
+        System.out.println("Saved " + count + " players");
+    });
+```
+
+#### Statistics & Analytics API
+```java
+import net.danh.storage.API.StorageStatsAPI;
+
+// Get player statistics
+StorageStats stats = StorageStatsAPI.getPlayerStats(player);
+System.out.println(stats); // Formatted output
+
+// Get top stored materials for player
+Map<String, Integer> topMaterials = StorageStatsAPI.getTopStoredMaterials(player, 5);
+
+// Get player's most stored material
+Optional<String> topMaterial = StorageStatsAPI.getMostStoredMaterial(player);
+
+// Get server-wide statistics
+ServerStats serverStats = StorageStatsAPI.getServerStats();
+System.out.println("Total items: " + serverStats.totalItems);
+System.out.println("Average usage: " + (serverStats.averageUsage * 100) + "%");
+
+// Get top players by material
+Map<String, Integer> topPlayers = StorageStatsAPI.getTopPlayersByMaterial("DIAMOND;0", 10);
+
+// Get top players by total storage
+Map<String, Long> topByTotal = StorageStatsAPI.getTopPlayersByTotal(10);
+
+// Get player ranking
+int rank = StorageStatsAPI.getPlayerRank(player, "DIAMOND;0");
+int totalRank = StorageStatsAPI.getPlayerTotalRank(player);
+
+// Get material distribution
+Map<String, Integer> distribution = StorageStatsAPI.getMaterialDistribution("DIAMOND;0");
+```
+
+#### GUI Builder API
+```java
+import net.danh.storage.API.StorageGUIAPI;
+import net.danh.storage.API.StorageGUIAPI.GUIBuilder;
+
+// Create a simple GUI
+GUIBuilder gui = StorageGUIAPI.createGUI("&6My Custom Storage", 3)
+    .setFillerPanel(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+    .setBorderPanel(new ItemStack(Material.BLACK_STAINED_GLASS_PANE))
+    .addItem(13, new ItemStack(Material.DIAMOND), (player, clickType) -> {
+        player.sendMessage("You clicked a diamond!");
+    });
+
+// Open for player
+gui.open(player);
+
+// Create storage viewer GUI
+Inventory storageView = StorageGUIAPI.createStorageViewer(player, "&ePlayer Storage");
+player.openInventory(storageView);
+
+// Create material selector
+StorageGUIAPI.createMaterialSelector("&aSelect Material", (material) -> {
+    player.sendMessage("You selected: " + material);
+}).open(player);
+
+// Advanced GUI with navigation
+GUIBuilder advancedGUI = StorageGUIAPI.createGUI("&6Advanced GUI", 6)
+    .addStorageItem(10, player, "DIAMOND;0")
+    .addStorageItem(11, player, "EMERALD;0")
+    .addNavigation(45, 53, 
+        (p) -> p.sendMessage("Previous page"),
+        (p) -> p.sendMessage("Next page")
+    );
+
+// Pagination helper
+List<ItemStack> items = new ArrayList<>();
+// ... add items
+PaginationHelper pagination = new PaginationHelper(items, 45);
+List<ItemStack> page1 = pagination.getPage(0);
+boolean hasNext = pagination.hasNextPage(0);
+```
+
+### Available APIs
+
+| API Class | Description |
+|-----------|-------------|
+| `StorageAPI` | Core storage operations (add, remove, transfer) |
+| `StoragePlayer` | Player-specific storage wrapper |
+| `StorageItem` | Item wrapper with storage utilities |
+| `MythicStorageAPI` | MythicMobs item storage operations |
+| `StorageEventAPI` | Server event management (contests, double drop) |
+| `StorageBatchAPI` | Bulk operations for better performance |
+| `StorageHookAPI` | Plugin integration hooks |
+| `ConvertAPI` | Material conversion system (ingots ↔ blocks) |
+| `SpecialMaterialAPI` | Rare materials with custom effects |
+| `StorageAsyncAPI` | Asynchronous operations (non-blocking) |
+| `StorageStatsAPI` | Statistics and analytics |
+| `StorageGUIAPI` | GUI builder for custom interfaces |
+
+### Events
+
+| Event | Description |
+|-------|-------------|
+| `StorageDepositEvent` | Fired when player deposits items |
+| `StorageWithdrawEvent` | Fired when player withdraws items |
+| `StorageTransferEvent` | Fired when items are transferred |
+| `StorageToggleEvent` | Fired when auto-pickup is toggled |
+| `MythicStorageDepositEvent` | Fired when MythicMobs items are deposited |
+| `MythicStorageWithdrawEvent` | Fired when MythicMobs items are withdrawn |
+| `MaterialConvertEvent` | Fired when materials are converted |
+| `SpecialMaterialDropEvent` | Fired when checking for special material drops |
+
 ### Documentation
 
 - **[JavaDoc](src/main/java/net/danh/storage/API/)** - Detailed method documentation

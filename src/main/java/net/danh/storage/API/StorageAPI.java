@@ -96,6 +96,11 @@ public class StorageAPI {
             throw new IllegalArgumentException("Amount must be positive");
         }
 
+        // Call before hooks
+        if (!StorageHookAPI.callBeforeDeposit(player, material, amount)) {
+            return false;
+        }
+
         // Fire event
         StorageDepositEvent event = new StorageDepositEvent(player, material, amount);
         Bukkit.getPluginManager().callEvent(event);
@@ -108,6 +113,9 @@ public class StorageAPI {
         if (!result) {
             throw new StorageFullException("Storage is full or invalid material");
         }
+
+        // Call after hooks
+        StorageHookAPI.callAfterDeposit(player, material, event.getAmount());
 
         return true;
     }
@@ -131,6 +139,11 @@ public class StorageAPI {
             throw new IllegalArgumentException("Amount must be positive");
         }
 
+        // Call before hooks
+        if (!StorageHookAPI.callBeforeWithdraw(player, material, amount)) {
+            return false;
+        }
+
         // Fire event
         StorageWithdrawEvent event = new StorageWithdrawEvent(player, material, amount);
         Bukkit.getPluginManager().callEvent(event);
@@ -139,7 +152,14 @@ public class StorageAPI {
             return false;
         }
 
-        return MineManager.removeBlockAmount(player, material, event.getAmount());
+        boolean result = MineManager.removeBlockAmount(player, material, event.getAmount());
+
+        // Call after hooks if successful
+        if (result) {
+            StorageHookAPI.callAfterWithdraw(player, material, event.getAmount());
+        }
+
+        return result;
     }
 
     /**
@@ -206,12 +226,19 @@ public class StorageAPI {
             return;
         }
 
+        // Call before hooks
+        if (!StorageHookAPI.callBeforeToggle(player, enabled)) {
+            return;
+        }
+
         // Fire event
         StorageToggleEvent event = new StorageToggleEvent(player, enabled);
         Bukkit.getPluginManager().callEvent(event);
 
         if (!event.isCancelled()) {
             MineManager.toggle.put(player, event.getNewState());
+            // Call after hooks
+            StorageHookAPI.callAfterToggle(player, event.getNewState());
         }
     }
 
@@ -244,6 +271,11 @@ public class StorageAPI {
             throw new IllegalStateException("StorageAPI not initialized");
         }
 
+        // Call before hooks
+        if (!StorageHookAPI.callBeforeTransfer(sender, receiver, material, amount)) {
+            return false;
+        }
+
         // Fire event
         StorageTransferEvent event = new StorageTransferEvent(sender, receiver, material, amount);
         Bukkit.getPluginManager().callEvent(event);
@@ -252,7 +284,14 @@ public class StorageAPI {
             return false;
         }
 
-        return TransferManager.executeTransfer(sender, receiver.getName(), material, event.getAmount());
+        boolean result = TransferManager.executeTransfer(sender, receiver.getName(), material, event.getAmount());
+
+        // Call after hooks if successful
+        if (result) {
+            StorageHookAPI.callAfterTransfer(sender, receiver, material, event.getAmount());
+        }
+
+        return result;
     }
 
     /**
