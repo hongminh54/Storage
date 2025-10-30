@@ -27,6 +27,10 @@ public class MythicTransferManager {
         transferDatabase.createTransferTable();
     }
 
+    public static MythicTransferDatabase getTransferDatabase() {
+        return transferDatabase;
+    }
+
     public static boolean canTransfer(Player sender, String receiverName, String itemName, int amount) {
         if (sender == null || receiverName == null || itemName == null) {
             return false;

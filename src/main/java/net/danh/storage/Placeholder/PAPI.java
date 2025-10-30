@@ -1,6 +1,8 @@
 package net.danh.storage.Placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import net.danh.storage.Data.MythicTransferData;
+import net.danh.storage.Database.MythicTransferDatabase;
 import net.danh.storage.Event.BaseEvent;
 import net.danh.storage.Event.EventType;
 import net.danh.storage.Event.Events.CommunityEvent;
@@ -9,6 +11,7 @@ import net.danh.storage.Event.Events.MiningContestEvent;
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
@@ -21,10 +24,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PAPI extends PlaceholderExpansion {
@@ -51,16 +51,44 @@ public class PAPI extends PlaceholderExpansion {
     @Override
     public @Nullable String onPlaceholderRequest(Player p, @NotNull String args) {
         if (p == null) return null;
+        
+        // Storage percentage
+        if (args.equalsIgnoreCase("percentage")) {
+            return String.valueOf(getStoragePercentage(p));
+        }
+        
+        // Storage statistics
+        if (args.startsWith("total_") || args.startsWith("available_") || args.startsWith("transfer_")) {
+            return handleStorageStatistics(p, args);
+        }
+        
         if (args.equalsIgnoreCase("status")) {
             return ItemManager.getStatus(p);
         }
+        
+        // Storage with formatted/percentage variants
         if (args.startsWith("storage_")) {
             String item = args.substring(8);
+            
+            // %storage_<material>_formatted%
+            if (item.endsWith("_formatted")) {
+                String material = item.substring(0, item.length() - 10);
+                return formatNumber(MineManager.getPlayerBlock(p, material));
+            }
+            
+            // %storage_<material>_percentage%
+            if (item.endsWith("_percentage")) {
+                String material = item.substring(0, item.length() - 11);
+                return String.valueOf(getMaterialPercentage(p, material));
+            }
+            
             return String.valueOf(MineManager.getPlayerBlock(p, item));
         }
+        
         if (args.equalsIgnoreCase("max_storage")) {
             return String.valueOf(MineManager.getMaxBlock(p));
         }
+        
         if (args.startsWith("price_")) {
             String material = args.substring(6);
             ConfigurationSection section = File.getConfig().getConfigurationSection("worth");
@@ -85,6 +113,16 @@ public class PAPI extends PlaceholderExpansion {
         }
         if (args.startsWith("double_drop_")) {
             return handleDoubleDropPlaceholders(p, args);
+        }
+
+        // MythicStorage Placeholders
+        if (args.startsWith("mythic_")) {
+            return handleMythicStoragePlaceholders(p, args);
+        }
+
+        // Storage Leaderboard Placeholders
+        if (args.startsWith("top_")) {
+            return handleStorageLeaderboardPlaceholders(args);
         }
 
         return null;
@@ -478,4 +516,422 @@ public class PAPI extends PlaceholderExpansion {
             return "N/A";
         }
     }
+
+    // MythicStorage Placeholder Handlers
+    private String handleMythicStoragePlaceholders(Player p, String args) {
+        if (!MythicStorageManager.isSystemEnabled()) {
+            return "0";
+        }
+
+        String placeholder = args.substring(7); // Remove "mythic_"
+
+        // %storage_mythic_percentage% - MythicStorage percentage
+        if (placeholder.equals("percentage")) {
+            return String.valueOf(getMythicStoragePercentage(p));
+        }
+
+        // %storage_mythic_total_items% - Total unique items
+        if (placeholder.equals("total_items")) {
+            Map<String, Integer> items = MythicStorageManager.getPlayerAllItems(p);
+            return String.valueOf(items.size());
+        }
+
+        // %storage_mythic_total_amount% - Total amount of all items
+        if (placeholder.equals("total_amount")) {
+            Map<String, Integer> items = MythicStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            return String.valueOf(total);
+        }
+
+        // %storage_mythic_total_amount_formatted%
+        if (placeholder.equals("total_amount_formatted")) {
+            Map<String, Integer> items = MythicStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            return formatNumber(total);
+        }
+
+        // %storage_mythic_max_storage% - Max storage capacity
+        if (placeholder.equals("max_storage")) {
+            return String.valueOf(MythicStorageManager.getMaxStorage(p));
+        }
+
+        // %storage_mythic_available_space%
+        if (placeholder.equals("available_space")) {
+            Map<String, Integer> items = MythicStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            int max = MythicStorageManager.getMaxStorage(p);
+            return String.valueOf(Math.max(0, max - total));
+        }
+
+        // %storage_mythic_autopickup_status% - Auto-pickup status
+        if (placeholder.equals("autopickup_status")) {
+            boolean status = MythicStorageManager.getToggleStatus(p);
+            return status ? 
+                File.getMessage().getString("mythicstorage.status_enabled", "Enabled") :
+                File.getMessage().getString("mythicstorage.status_disabled", "Disabled");
+        }
+
+        // Transfer statistics placeholders
+        if (placeholder.startsWith("transfer_")) {
+            return handleMythicTransferPlaceholders(p, placeholder.substring(9));
+        }
+
+        // Leaderboard placeholders
+        if (placeholder.startsWith("top_")) {
+            return handleMythicLeaderboardPlaceholders(placeholder.substring(4));
+        }
+
+        // %storage_mythic_<item>_amount_formatted% - Check formatted first (longer suffix)
+        if (placeholder.endsWith("_amount_formatted")) {
+            String itemName = placeholder.substring(0, placeholder.length() - 17);
+            if (MythicStorageManager.isConfiguredDrop(itemName)) {
+                return formatNumber(MythicStorageManager.getPlayerItem(p, itemName));
+            }
+            return "0";
+        }
+
+        // %storage_mythic_<item>_amount% - Get specific item amount
+        if (placeholder.endsWith("_amount")) {
+            String itemName = placeholder.substring(0, placeholder.length() - 7); // Remove "_amount"
+            if (MythicStorageManager.isConfiguredDrop(itemName)) {
+                return String.valueOf(MythicStorageManager.getPlayerItem(p, itemName));
+            }
+            return "0";
+        }
+
+        // %storage_mythic_<item>% - Get specific item display name
+        if (!placeholder.startsWith("total_") && !placeholder.startsWith("autopickup_") && 
+            !placeholder.startsWith("max_") && !placeholder.startsWith("transfer_") && 
+            !placeholder.startsWith("top_") && !placeholder.startsWith("available_") &&
+            !placeholder.equals("percentage")) {
+            String itemName = placeholder;
+            if (MythicStorageManager.isConfiguredDrop(itemName)) {
+                return MythicStorageManager.getItemDisplayNameOrId(itemName, p);
+            }
+            return itemName;
+        }
+
+        return "0";
+    }
+
+    private String handleMythicTransferPlaceholders(Player p, String placeholder) {
+        MythicTransferDatabase transferDb = net.danh.storage.Manager.MythicTransferManager.getTransferDatabase();
+        if (transferDb == null) {
+            return "0";
+        }
+
+        // %storage_mythic_transfer_sent_total% - Total items sent
+        if (placeholder.equals("sent_total")) {
+            List<MythicTransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
+            int total = transfers.stream()
+                .filter(t -> t.getSender().equalsIgnoreCase(p.getName()))
+                .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                .mapToInt(MythicTransferData::getAmount)
+                .sum();
+            return String.valueOf(total);
+        }
+
+        // %storage_mythic_transfer_received_total% - Total items received
+        if (placeholder.equals("received_total")) {
+            List<MythicTransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
+            int total = transfers.stream()
+                .filter(t -> t.getReceiver().equalsIgnoreCase(p.getName()))
+                .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                .mapToInt(MythicTransferData::getAmount)
+                .sum();
+            return String.valueOf(total);
+        }
+
+        // %storage_mythic_transfer_count% - Total transfer count
+        if (placeholder.equals("count")) {
+            return String.valueOf(transferDb.getTotalTransferCount(p.getName()));
+        }
+
+        return "0";
+    }
+
+    private String handleMythicLeaderboardPlaceholders(String placeholder) {
+        // %storage_mythic_top_<item>_<position>_name% or %storage_mythic_top_<item>_<position>_amount%
+        String[] parts = placeholder.split("_");
+        if (parts.length < 3) {
+            return "N/A";
+        }
+
+        try {
+            int position = Integer.parseInt(parts[parts.length - 2]);
+            String type = parts[parts.length - 1]; // "name" or "amount"
+            
+            // Extract item name (everything between "top_" and "_<position>_<type>")
+            StringBuilder itemNameBuilder = new StringBuilder();
+            for (int i = 0; i < parts.length - 2; i++) {
+                if (i > 0) itemNameBuilder.append("_");
+                itemNameBuilder.append(parts[i]);
+            }
+            String itemName = itemNameBuilder.toString();
+
+            if (!MythicStorageManager.isConfiguredDrop(itemName)) {
+                return "N/A";
+            }
+
+            // Get all players' data for this item
+            Map<String, Integer> leaderboard = new HashMap<>();
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                int amount = MythicStorageManager.getPlayerItem(online, itemName);
+                if (amount > 0) {
+                    leaderboard.put(online.getName(), amount);
+                }
+            }
+
+            // Sort by amount descending
+            List<Map.Entry<String, Integer>> sortedList = leaderboard.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .collect(Collectors.toList());
+
+            if (position > 0 && position <= sortedList.size()) {
+                Map.Entry<String, Integer> entry = sortedList.get(position - 1);
+                if (type.equals("name")) {
+                    return entry.getKey();
+                } else if (type.equals("amount")) {
+                    return String.valueOf(entry.getValue());
+                }
+            }
+
+        } catch (NumberFormatException ignored) {
+        }
+
+        return "N/A";
+    }
+
+    // Utility Methods for Formatting and Calculations
+    private String formatNumber(int number) {
+        if (number >= 1_000_000_000) {
+            return String.format("%.1fB", number / 1_000_000_000.0);
+        } else if (number >= 1_000_000) {
+            return String.format("%.1fM", number / 1_000_000.0);
+        } else if (number >= 1_000) {
+            return String.format("%.1fK", number / 1_000.0);
+        }
+        return String.valueOf(number);
+    }
+
+    private int getStoragePercentage(Player p) {
+        int total = 0;
+        List<String> allBlocks = MineManager.getPluginBlocks();
+        for (String block : allBlocks) {
+            total += MineManager.getPlayerBlock(p, block);
+        }
+        int max = MineManager.getMaxBlock(p);
+        if (max <= 0) return 0;
+        return Math.min(100, (int) ((total * 100.0) / max));
+    }
+
+    private int getMaterialPercentage(Player p, String material) {
+        int amount = MineManager.getPlayerBlock(p, material);
+        int max = MineManager.getMaxBlock(p);
+        if (max <= 0) return 0;
+        return Math.min(100, (int) ((amount * 100.0) / max));
+    }
+
+    private int getMythicStoragePercentage(Player p) {
+        Map<String, Integer> items = MythicStorageManager.getPlayerAllItems(p);
+        int total = items.values().stream().mapToInt(Integer::intValue).sum();
+        int max = MythicStorageManager.getMaxStorage(p);
+        if (max <= 0) return 0;
+        return Math.min(100, (int) ((total * 100.0) / max));
+    }
+
+    // Storage Statistics Handler
+    private String handleStorageStatistics(Player p, String args) {
+        // %storage_total_materials%
+        if (args.equals("total_materials")) {
+            int count = 0;
+            List<String> allBlocks = MineManager.getPluginBlocks();
+            for (String block : allBlocks) {
+                if (MineManager.getPlayerBlock(p, block) > 0) {
+                    count++;
+                }
+            }
+            return String.valueOf(count);
+        }
+
+        // %storage_total_blocks%
+        if (args.equals("total_blocks")) {
+            int total = 0;
+            List<String> allBlocks = MineManager.getPluginBlocks();
+            for (String block : allBlocks) {
+                total += MineManager.getPlayerBlock(p, block);
+            }
+            return String.valueOf(total);
+        }
+
+        // %storage_total_blocks_formatted%
+        if (args.equals("total_blocks_formatted")) {
+            int total = 0;
+            List<String> allBlocks = MineManager.getPluginBlocks();
+            for (String block : allBlocks) {
+                total += MineManager.getPlayerBlock(p, block);
+            }
+            return formatNumber(total);
+        }
+
+        // %storage_available_space%
+        if (args.equals("available_space")) {
+            int total = 0;
+            List<String> allBlocks = MineManager.getPluginBlocks();
+            for (String block : allBlocks) {
+                total += MineManager.getPlayerBlock(p, block);
+            }
+            int max = MineManager.getMaxBlock(p);
+            return String.valueOf(Math.max(0, max - total));
+        }
+
+        // %storage_available_space_formatted%
+        if (args.equals("available_space_formatted")) {
+            int total = 0;
+            List<String> allBlocks = MineManager.getPluginBlocks();
+            for (String block : allBlocks) {
+                total += MineManager.getPlayerBlock(p, block);
+            }
+            int max = MineManager.getMaxBlock(p);
+            return formatNumber(Math.max(0, max - total));
+        }
+
+        // Transfer statistics (if TransferManager exists)
+        if (args.startsWith("transfer_")) {
+            return handleTransferStatistics(p, args.substring(9));
+        }
+
+        return "0";
+    }
+
+    private String handleTransferStatistics(Player p, String placeholder) {
+        net.danh.storage.Database.TransferDatabase transferDb = net.danh.storage.Manager.TransferManager.getTransferDatabase();
+        if (transferDb == null) {
+            return "0";
+        }
+
+        // %storage_transfer_sent_total%
+        if (placeholder.equals("sent_total")) {
+            List<net.danh.storage.Data.TransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
+            int total = transfers.stream()
+                .filter(t -> t.getSender().equalsIgnoreCase(p.getName()))
+                .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                .mapToInt(net.danh.storage.Data.TransferData::getAmount)
+                .sum();
+            return String.valueOf(total);
+        }
+
+        // %storage_transfer_received_total%
+        if (placeholder.equals("received_total")) {
+            List<net.danh.storage.Data.TransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
+            int total = transfers.stream()
+                .filter(t -> t.getReceiver().equalsIgnoreCase(p.getName()))
+                .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                .mapToInt(net.danh.storage.Data.TransferData::getAmount)
+                .sum();
+            return String.valueOf(total);
+        }
+
+        // %storage_transfer_count%
+        if (placeholder.equals("count")) {
+            return String.valueOf(transferDb.getTotalTransferCount(p.getName()));
+        }
+
+        return "0";
+    }
+
+    // Storage Leaderboard Placeholder Handler
+    private String handleStorageLeaderboardPlaceholders(String args) {
+        // %storage_top_<material>_<position>_name% or %storage_top_<material>_<position>_amount%
+        // %storage_top_all_<position>_name% or %storage_top_all_<position>_amount%
+        String placeholder = args.substring(4); // Remove "top_"
+        String[] parts = placeholder.split("_");
+        
+        if (parts.length < 3) {
+            return "N/A";
+        }
+
+        try {
+            int position = Integer.parseInt(parts[parts.length - 2]);
+            String type = parts[parts.length - 1]; // "name" or "amount"
+            
+            // Extract material name (everything between "top_" and "_<position>_<type>")
+            StringBuilder materialBuilder = new StringBuilder();
+            for (int i = 0; i < parts.length - 2; i++) {
+                if (i > 0) materialBuilder.append("_");
+                materialBuilder.append(parts[i]);
+            }
+            String material = materialBuilder.toString();
+
+            // Handle "all" - total of all blocks
+            if (material.equalsIgnoreCase("all")) {
+                return handleAllBlocksLeaderboard(position, type);
+            }
+
+            // Handle specific material
+            return handleSpecificMaterialLeaderboard(material, position, type);
+
+        } catch (NumberFormatException ignored) {
+        }
+
+        return "N/A";
+    }
+
+    private String handleAllBlocksLeaderboard(int position, String type) {
+        // Calculate total blocks for all online players
+        Map<String, Integer> leaderboard = new HashMap<>();
+        
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            int totalBlocks = 0;
+            List<String> allBlocks = MineManager.getPluginBlocks();
+            
+            for (String block : allBlocks) {
+                totalBlocks += MineManager.getPlayerBlock(online, block);
+            }
+            
+            if (totalBlocks > 0) {
+                leaderboard.put(online.getName(), totalBlocks);
+            }
+        }
+
+        return getLeaderboardResult(leaderboard, position, type);
+    }
+
+    private String handleSpecificMaterialLeaderboard(String material, int position, String type) {
+        // Validate material exists in config
+        if (!MineManager.getPluginBlocks().contains(material)) {
+            return "N/A";
+        }
+
+        // Get all online players' data for this material
+        Map<String, Integer> leaderboard = new HashMap<>();
+        
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            int amount = MineManager.getPlayerBlock(online, material);
+            if (amount > 0) {
+                leaderboard.put(online.getName(), amount);
+            }
+        }
+
+        return getLeaderboardResult(leaderboard, position, type);
+    }
+
+    private String getLeaderboardResult(Map<String, Integer> leaderboard, int position, String type) {
+        // Sort by amount descending
+        List<Map.Entry<String, Integer>> sortedList = leaderboard.entrySet().stream()
+            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            .collect(Collectors.toList());
+
+        if (position > 0 && position <= sortedList.size()) {
+            Map.Entry<String, Integer> entry = sortedList.get(position - 1);
+            if (type.equals("name")) {
+                return entry.getKey();
+            } else if (type.equals("amount")) {
+                return String.valueOf(entry.getValue());
+            }
+        }
+
+        return "N/A";
+    }
+
 }

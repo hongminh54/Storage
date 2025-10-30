@@ -139,9 +139,38 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 | Placeholder | Description | Example |
 |-------------|-------------|---------|
 | `%storage_storage_<MATERIAL>%` | Show amount of material in storage | `%storage_storage_COAL;0%` |
+| `%storage_storage_<MATERIAL>_formatted%` | Show formatted amount | `15.2K` |
+| `%storage_storage_<MATERIAL>_percentage%` | Show percentage of material vs max | `45` |
 | `%storage_max_storage%` | Show max storage capacity | `100000` |
+| `%storage_percentage%` | Show total storage percentage used | `67` |
 | `%storage_price_<MATERIAL>%` | Show material's sell price | `%storage_price_COAL;0%` |
 | `%storage_status%` | Show auto-pickup status (On/Off) | `On` |
+
+#### Storage Statistics
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storage_total_materials%` | Number of different materials stored | `12` |
+| `%storage_total_blocks%` | Total blocks in storage | `50000` |
+| `%storage_total_blocks_formatted%` | Total blocks formatted | `50.0K` |
+| `%storage_available_space%` | Available storage space | `50000` |
+| `%storage_available_space_formatted%` | Available space formatted | `50.0K` |
+| `%storage_transfer_sent_total%` | Total blocks sent via transfer | `1500` |
+| `%storage_transfer_received_total%` | Total blocks received | `800` |
+| `%storage_transfer_count%` | Total number of transfers | `25` |
+
+#### Storage Leaderboard Placeholders
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storage_top_<material>_<position>_name%` | Player name at rank for specific material | `%storage_top_DIAMOND;0_1_name%` |
+| `%storage_top_<material>_<position>_amount%` | Player amount at rank for specific material | `%storage_top_DIAMOND;0_1_amount%` |
+| `%storage_top_all_<position>_name%` | Player name at rank for total blocks | `%storage_top_all_1_name%` |
+| `%storage_top_all_<position>_amount%` | Player total blocks at rank | `%storage_top_all_1_amount%` |
+
+**Note**: 
+- Replace `<material>` with material format from config (e.g., `DIAMOND;0`, `COAL;0`)
+- Replace `<position>` with rank number (1, 2, 3, etc.)
+- Use `all` to show total of all blocks combined
+- Leaderboard only shows online players (for performance)
 
 ### Event System Placeholders
 
@@ -196,6 +225,43 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 - `events.status.disabled` = "Disabled"
 
 You can customize these messages by editing the `message.yml` file.
+
+### MythicStorage Placeholders
+
+#### Basic MythicStorage Placeholders
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storage_mythic_<item>%` | Display name of specific MythicMobs item | `&6Royal Crown` |
+| `%storage_mythic_<item>_amount%` | Amount of specific MythicMobs item | `150` |
+| `%storage_mythic_<item>_amount_formatted%` | Formatted amount | `15.2K` |
+| `%storage_mythic_total_items%` | Total number of unique items stored | `5` |
+| `%storage_mythic_total_amount%` | Total amount of all items combined | `1250` |
+| `%storage_mythic_total_amount_formatted%` | Total amount formatted | `1.3K` |
+| `%storage_mythic_max_storage%` | Maximum MythicStorage capacity | `5000` |
+| `%storage_mythic_percentage%` | MythicStorage percentage used | `25` |
+| `%storage_mythic_available_space%` | Available MythicStorage space | `3750` |
+| `%storage_mythic_autopickup_status%` | Auto-pickup status (Enabled/Disabled) | `Enabled` |
+
+#### MythicStorage Transfer Statistics
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storage_mythic_transfer_sent_total%` | Total items sent to other players | `500` |
+| `%storage_mythic_transfer_received_total%` | Total items received from others | `300` |
+| `%storage_mythic_transfer_count%` | Total number of transfers | `25` |
+
+#### MythicStorage Leaderboard
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storage_mythic_top_<item>_<position>_name%` | Name of player at position for specific item | `%storage_mythic_top_crown_1_name%` |
+| `%storage_mythic_top_<item>_<position>_amount%` | Amount of player at position for specific item | `%storage_mythic_top_crown_1_amount%` |
+
+**Note**: 
+- Replace `<item>` with your MythicMobs item ID (e.g., `crown`, `rare_gem`)
+- Replace `<position>` with rank number (1, 2, 3, etc.)
+- Leaderboard placeholders only show online players
+- Status placeholders use message keys from `message.yml`:
+  - `mythicstorage.status_enabled` = "Enabled"
+  - `mythicstorage.status_disabled` = "Disabled"
 
 ## Developer API
 

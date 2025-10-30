@@ -242,7 +242,11 @@ public class MineManager {
     }
 
     public static String getDrop(@NotNull Block block) {
-        return blocksdrop.get(block.getType() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
+        String blockType = block.getType().name();
+        if (blockType.equals("GLOWING_REDSTONE_ORE")) {
+            blockType = "REDSTONE_ORE";
+        }
+        return blocksdrop.get(blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
     }
 
     public static void loadBlocks() {
@@ -276,10 +280,14 @@ public class MineManager {
     }
 
     public static boolean checkBreak(@NotNull Block block) {
-        if (File.getConfig().contains("blocks." + block.getType().name() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop")) {
-            return File.getConfig().getString("blocks." + block.getType().name() + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop") != null;
-        } else if (File.getConfig().contains("blocks." + block.getType().name() + ".drop")) {
-            return File.getConfig().getString("blocks." + block.getType().name() + ".drop") != null;
+        String blockType = block.getType().name();
+        if (blockType.equals("GLOWING_REDSTONE_ORE")) {
+            blockType = "REDSTONE_ORE";
+        }
+        if (File.getConfig().contains("blocks." + blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop")) {
+            return File.getConfig().getString("blocks." + blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop") != null;
+        } else if (File.getConfig().contains("blocks." + blockType + ".drop")) {
+            return File.getConfig().getString("blocks." + blockType + ".drop") != null;
         }
         return false;
     }

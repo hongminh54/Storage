@@ -19,7 +19,7 @@ notification:
     enable: false
     item_added:
       title: "&a+ #amount# #item#"
-      subtitle: "&7Storage: &a#storage#&7/&a#max#"
+      subtitle: "&a#storage#&7/&a#max#"
     storage_full:
       title: "&cStorage Full!"
       subtitle: "&7(&c#storage#&7/&c#max#&7)"
