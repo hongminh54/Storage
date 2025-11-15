@@ -6,7 +6,7 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
@@ -70,7 +70,7 @@ public class ViewMythicStorageGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(viewer, config, "gui_open_sound", context);
 
-        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", targetName));
+        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", targetName));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
@@ -91,9 +91,9 @@ public class ViewMythicStorageGUI implements IGUI {
 
         // Notify admin if there are invalid items
         if (MythicStorageManager.hasInvalidItems() && viewer.hasPermission("storage.mythicstorage.admin")) {
-            viewer.sendMessage(Chat.colorizewp("&c&l[!] MythicStorage Warning:"));
-            viewer.sendMessage(Chat.colorizewp("&e" + MythicStorageManager.getInvalidItems().size() + " &7invalid item(s) detected: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
-            viewer.sendMessage(Chat.colorizewp("&7Use &e/mythicstorage reload &7to see detailed errors"));
+            viewer.sendMessage(ChatUtils.colorizewp("&c&l[!] MythicStorage Warning:"));
+            viewer.sendMessage(ChatUtils.colorizewp("&e" + MythicStorageManager.getInvalidItems().size() + " &7invalid item(s) detected: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
+            viewer.sendMessage(ChatUtils.colorizewp("&7Use &e/mythicstorage reload &7to see detailed errors"));
         }
 
         for (String itemTag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
@@ -162,12 +162,12 @@ public class ViewMythicStorageGUI implements IGUI {
                             int maxStorage = MythicStorageManager.getMaxStorage(targetName);
 
                             if (meta.hasDisplayName()) {
-                                meta.setDisplayName(Chat.colorizewp(meta.getDisplayName()));
+                                meta.setDisplayName(ChatUtils.colorizewp(meta.getDisplayName()));
                             }
 
                             List<String> lore = new ArrayList<>();
                             for (String line : config.getStringList("items.mythic_item.lore")) {
-                                lore.add(Chat.colorizewp(line.replace("#item_amount#", String.valueOf(amount)).replace("#max_storage#", String.valueOf(maxStorage))));
+                                lore.add(ChatUtils.colorizewp(line.replace("#item_amount#", String.valueOf(amount)).replace("#max_storage#", String.valueOf(maxStorage))));
                             }
 
                             meta.setLore(lore);

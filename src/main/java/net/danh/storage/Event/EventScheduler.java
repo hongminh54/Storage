@@ -2,7 +2,7 @@ package net.danh.storage.Event;
 
 import net.danh.storage.Manager.EventManager;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
@@ -222,7 +222,7 @@ public class EventScheduler {
                 .replace("#time#", formatTime(secondsLeft));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 

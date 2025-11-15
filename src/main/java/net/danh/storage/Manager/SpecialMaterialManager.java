@@ -5,7 +5,7 @@ import com.cryptomorin.xseries.XSound;
 import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -88,7 +88,7 @@ public class SpecialMaterialManager {
         // Set display name
         String name = itemSection.getString("name");
         if (name != null) {
-            meta.setDisplayName(Chat.colorizewp(name));
+            meta.setDisplayName(ChatUtils.colorizewp(name));
         }
 
         // Set lore
@@ -96,7 +96,7 @@ public class SpecialMaterialManager {
         if (!lore.isEmpty()) {
             List<String> coloredLore = new ArrayList<>();
             for (String line : lore) {
-                coloredLore.add(Chat.colorizewp(line));
+                coloredLore.add(ChatUtils.colorizewp(line));
             }
             meta.setLore(coloredLore);
         }
@@ -242,7 +242,7 @@ public class SpecialMaterialManager {
         // Send message
         String message = File.getMessage().getString("special_material.found", "#prefix# &aYou found a special material: &e#material#!");
         message = message.replace("#material#", material.getItem().getItemMeta().getDisplayName());
-        player.sendMessage(Chat.colorizewp(message.replace("#prefix#", File.getConfig().getString("prefix", ""))));
+        player.sendMessage(ChatUtils.colorizewp(message.replace("#prefix#", File.getConfig().getString("prefix", ""))));
     }
 
     private static void playEffects(Player player, Location location, SpecialMaterialEffects effects) {

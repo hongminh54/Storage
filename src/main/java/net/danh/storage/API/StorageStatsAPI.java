@@ -1,6 +1,5 @@
 package net.danh.storage.API;
 
-import net.danh.storage.Manager.MineManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -277,7 +276,7 @@ public class StorageStatsAPI {
     @NotNull
     public static StorageStats getPlayerStats(@NotNull Player player) {
         StoragePlayer storagePlayer = StorageAPI.getStoragePlayer(player);
-        
+
         return new StorageStats(
                 player.getName(),
                 storagePlayer.getTotalStoredItems(),
@@ -333,7 +332,7 @@ public class StorageStatsAPI {
         public final int rank;
 
         public StorageStats(String playerName, long totalItems, int maxCapacity, double usagePercentage,
-                           int uniqueMaterials, String topMaterial, int rank) {
+                            int uniqueMaterials, String topMaterial, int rank) {
             this.playerName = playerName;
             this.totalItems = totalItems;
             this.maxCapacity = maxCapacity;
@@ -361,7 +360,7 @@ public class StorageStatsAPI {
         public final int uniqueMaterials;
 
         public ServerStats(long totalItems, long totalCapacity, double averageUsage,
-                          int totalPlayers, int uniqueMaterials) {
+                           int totalPlayers, int uniqueMaterials) {
             this.totalItems = totalItems;
             this.totalCapacity = totalCapacity;
             this.averageUsage = averageUsage;

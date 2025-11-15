@@ -3,7 +3,7 @@ package net.danh.storage.Manager;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.NMS.NMSAssistant;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -99,7 +99,7 @@ public class ItemManager {
             for (int i = 0; i < replacements.length - 1; i += 2) {
                 displayName = displayName.replace(replacements[i], replacements[i + 1]);
             }
-            meta.setDisplayName(Chat.colorizewp(displayName));
+            meta.setDisplayName(ChatUtils.colorizewp(displayName));
         }
 
         if (loreTemplate != null) {
@@ -112,7 +112,7 @@ public class ItemManager {
                         return result;
                     })
                     .collect(Collectors.toList());
-            meta.setLore(Chat.colorizewp(newLore));
+            meta.setLore(ChatUtils.colorizewp(newLore));
         }
 
         item.setItemMeta(meta);
@@ -140,8 +140,8 @@ public class ItemManager {
 
     public static String getStatus(Player p) {
         if (MineManager.getToggleStatus(p)) {
-            return Chat.colorizewp(File.getMessage().getString("user.status.status_on"));
-        } else return Chat.colorizewp(File.getMessage().getString("user.status.status_off"));
+            return ChatUtils.colorizewp(File.getMessage().getString("user.status.status_on"));
+        } else return ChatUtils.colorizewp(File.getMessage().getString("user.status.status_off"));
     }
 
     public static ItemStack getItemConfig(Player p, ConfigurationSection section) {

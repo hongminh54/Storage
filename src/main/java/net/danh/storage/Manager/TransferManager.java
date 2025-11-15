@@ -3,7 +3,7 @@ package net.danh.storage.Manager;
 import net.danh.storage.Data.TransferData;
 import net.danh.storage.Database.TransferDatabase;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.ChatNavigationHelper;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.TaskWrapper;
@@ -36,23 +36,23 @@ public class TransferManager {
         }
 
         if (!sender.hasPermission("storage.transfer.use")) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.no_permission")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.no_permission")));
             return false;
         }
 
         if (sender.getName().equalsIgnoreCase(receiverName)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_same_player")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_same_player")));
             return false;
         }
 
         Player receiver = Bukkit.getPlayer(receiverName);
         if (receiver == null || !receiver.isOnline()) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_offline").replace("#player#", receiverName)));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_offline").replace("#player#", receiverName)));
             return false;
         }
 
         if (amount <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.number_too_low")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.number_too_low")));
             return false;
         }
 
@@ -62,19 +62,19 @@ public class TransferManager {
             if (MineManager.getPluginBlocks().size() > 10) {
                 materialsStr += "...";
             }
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.invalid_material")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.invalid_material")
                     .replace("#material#", material).replace("#materials#", materialsStr)));
             return false;
         }
 
         int currentAmount = MineManager.getPlayerBlock(sender, material);
         if (currentAmount < amount) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_insufficient").replace("#material#", getDisplayName(material)).replace("#current#", String.valueOf(currentAmount))));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_insufficient").replace("#material#", getDisplayName(material)).replace("#current#", String.valueOf(currentAmount))));
             return false;
         }
 
         if (isTransferInProgress(sender)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_in_progress")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_in_progress")));
             return false;
         }
 
@@ -93,23 +93,23 @@ public class TransferManager {
         }
 
         if (!sender.hasPermission("storage.transfer.multi")) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.no_permission")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.no_permission")));
             return false;
         }
 
         if (sender.getName().equalsIgnoreCase(receiverName)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_same_player")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_same_player")));
             return false;
         }
 
         Player receiver = Bukkit.getPlayer(receiverName);
         if (receiver == null || !receiver.isOnline()) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_offline").replace("#player#", receiverName)));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_offline").replace("#player#", receiverName)));
             return false;
         }
 
         if (amount <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.number_too_low")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.number_too_low")));
             return false;
         }
 
@@ -119,14 +119,14 @@ public class TransferManager {
             if (MineManager.getPluginBlocks().size() > 10) {
                 materialsStr += "...";
             }
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.invalid_material")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.invalid_material")
                     .replace("#material#", material).replace("#materials#", materialsStr)));
             return false;
         }
 
         int currentAmount = MineManager.getPlayerBlock(sender, material);
         if (currentAmount < amount) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_insufficient")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_insufficient")
                     .replace("#material#", getDisplayName(material))
                     .replace("#current#", String.valueOf(currentAmount))));
             return false;
@@ -134,7 +134,7 @@ public class TransferManager {
 
         int maxTransferable = MineManager.getMaxTransferableAmount(sender, receiver, material);
         if (maxTransferable <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_receiver_full")
                     .replace("#player#", receiverName)));
             return false;
         }
@@ -180,7 +180,7 @@ public class TransferManager {
         Map<String, Integer> optimizedMaterials = MineManager.calculateOptimalMultiTransfer(sender, receiver, materials);
 
         if (optimizedMaterials.isEmpty()) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_receiver_full")
                     .replace("#player#", receiverName)));
             return false;
         }
@@ -202,9 +202,9 @@ public class TransferManager {
         String displayName = getDisplayName(material);
 
         // Notify players that transfer is starting
-        sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.processing_send").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", receiver.getName()).replace("#time#", String.valueOf(transferDelay))));
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.processing_send").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", receiver.getName()).replace("#time#", String.valueOf(transferDelay))));
 
-        receiver.sendMessage(Chat.colorize(File.getMessage().getString("transfer.processing_receive").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", sender.getName()).replace("#time#", String.valueOf(transferDelay))));
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.processing_receive").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", sender.getName()).replace("#time#", String.valueOf(transferDelay))));
 
         // Cancel any existing transfer for this player
         cancelTransfer(sender);
@@ -241,12 +241,12 @@ public class TransferManager {
         }
 
         // Notify players that multi transfer is starting
-        sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.processing_multi_send_detailed")
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.processing_multi_send_detailed")
                 .replace("#materials#", materialsList.toString())
                 .replace("#player#", receiver.getName())
                 .replace("#time#", String.valueOf(transferDelay))));
 
-        receiver.sendMessage(Chat.colorize(File.getMessage().getString("transfer.processing_multi_receive_detailed")
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.processing_multi_receive_detailed")
                 .replace("#materials#", materialsList.toString())
                 .replace("#player#", sender.getName())
                 .replace("#time#", String.valueOf(transferDelay))));
@@ -272,7 +272,7 @@ public class TransferManager {
         // Double-check conditions before completing transfer
         if (!sender.isOnline() || !receiver.isOnline()) {
             if (sender.isOnline()) {
-                sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_offline_during").replace("#player#", receiver.getName())));
+                sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_offline_during").replace("#player#", receiver.getName())));
             }
             return;
         }
@@ -289,7 +289,7 @@ public class TransferManager {
             int currentAmount = MineManager.getPlayerBlock(sender, material);
             if (currentAmount < amount) {
                 String displayName = getDisplayName(material);
-                sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_insufficient_during")
+                sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_insufficient_during")
                         .replace("#material#", displayName)));
                 continue;
             }
@@ -317,7 +317,7 @@ public class TransferManager {
                 } else {
                     // Rollback if receiver couldn't receive
                     MineManager.addBlockAmount(sender, material, amount);
-                    sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_receiver_full")
+                    sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_receiver_full")
                             .replace("#player#", receiver.getName())));
                 }
             }
@@ -327,17 +327,17 @@ public class TransferManager {
         if (successCount > 0) {
             String transferList = successfulTransfers.toString();
 
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.success_multi_send_detailed")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.success_multi_send_detailed")
                     .replace("#materials#", transferList)
                     .replace("#player#", receiver.getName())));
 
-            receiver.sendMessage(Chat.colorize(File.getMessage().getString("transfer.success_multi_receive_detailed")
+            receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.success_multi_receive_detailed")
                     .replace("#materials#", transferList)
                     .replace("#player#", sender.getName())));
 
             playTransferEffects(sender, receiver);
         } else {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.failed_multi_all")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_multi_all")));
         }
     }
 
@@ -375,9 +375,9 @@ public class TransferManager {
 
         String displayName = getDisplayName(material);
 
-        sender.sendMessage(Chat.colorize(File.getMessage().getString("transfer.success_send").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", receiver.getName())));
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.success_send").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", receiver.getName())));
 
-        receiver.sendMessage(Chat.colorize(File.getMessage().getString("transfer.success_receive").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", sender.getName())));
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.success_receive").replace("#amount#", String.valueOf(amount)).replace("#material#", displayName).replace("#player#", sender.getName())));
 
         playTransferEffects(sender, receiver);
     }
@@ -390,7 +390,7 @@ public class TransferManager {
         String errorMessage = getErrorMessage(reason, displayName, receiverName);
 
         if (sender.isOnline()) {
-            sender.sendMessage(Chat.colorize(errorMessage));
+            sender.sendMessage(ChatUtils.colorize(errorMessage));
             ParticleManager.playTransferFailedParticle(sender);
         }
     }
@@ -453,7 +453,7 @@ public class TransferManager {
         TaskWrapper task = activeTransfers.remove(player.getName());
         if (task != null) {
             task.cancel();
-            player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.cancelled")));
+            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.cancelled")));
         }
         // Stop any processing animation
         ParticleManager.stopTransferProcessingAnimation(player);
@@ -474,12 +474,12 @@ public class TransferManager {
         String playerToCheck = targetPlayerName != null ? targetPlayerName : player.getName();
 
         if (!player.getName().equalsIgnoreCase(playerToCheck) && !player.hasPermission("storage.transfer.log.others")) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.no_permission")));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
         if (!player.hasPermission("storage.transfer.log")) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.no_permission")));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
@@ -501,7 +501,7 @@ public class TransferManager {
         List<TransferData> transfers = transferDatabase.getTransferHistory(playerToCheck, itemsPerPage, offset);
 
         if (transfers.isEmpty()) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("transfer.log_no_history").replace("#player#", playerToCheck)));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("transfer.log_no_history").replace("#player#", playerToCheck)));
             return;
         }
 
@@ -510,7 +510,7 @@ public class TransferManager {
                 .replace("#player#", playerToCheck)
                 .replace("#current_page#", String.valueOf(page))
                 .replace("#total_pages#", String.valueOf(totalPages));
-        player.sendMessage(Chat.colorizewp(headerMessage));
+        player.sendMessage(ChatUtils.colorizewp(headerMessage));
 
         // Add empty line for better spacing
         player.sendMessage("");
@@ -523,10 +523,10 @@ public class TransferManager {
 
             if (transfer.getSender().equalsIgnoreCase(playerToCheck)) {
                 String message = File.getMessage().getString("transfer.log_entry_sent").replace("#time#", timeStr).replace("#amount#", String.valueOf(transfer.getAmount())).replace("#material#", displayName).replace("#receiver#", transfer.getReceiver());
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             } else {
                 String message = File.getMessage().getString("transfer.log_entry_received").replace("#time#", timeStr).replace("#amount#", String.valueOf(transfer.getAmount())).replace("#material#", displayName).replace("#sender#", transfer.getSender());
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         }
 
@@ -540,14 +540,14 @@ public class TransferManager {
         // Add empty line and separator
         player.sendMessage("");
         String separator = messageConfig.getString("transfer.log_nav_separator");
-        player.sendMessage(Chat.colorizewp(separator));
+        player.sendMessage(ChatUtils.colorizewp(separator));
 
         // Show total count and page info on same line
         String footerInfo = messageConfig.getString("transfer.log_footer_info")
                 .replace("#total#", String.valueOf(totalTransfers))
                 .replace("#current#", String.valueOf(currentPage))
                 .replace("#total_pages#", String.valueOf(totalPages));
-        player.sendMessage(Chat.colorizewp(footerInfo));
+        player.sendMessage(ChatUtils.colorizewp(footerInfo));
 
         // If only one page, don't show navigation
         if (totalPages <= 1) {

@@ -4,10 +4,8 @@ import net.danh.storage.Action.*;
 import net.danh.storage.GUI.*;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SchedulerUtil;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class Chat implements Listener {
+public class ChatListener implements Listener {
     public static HashMap<Player, String> chat_deposit = new HashMap<>();
     public static HashMap<Player, String> chat_withdraw = new HashMap<>();
     public static HashMap<Player, String> chat_sell = new HashMap<>();
@@ -41,7 +39,7 @@ public class Chat implements Listener {
                 SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_deposit.remove(p);
             chat_return_page.remove(p);
@@ -55,7 +53,7 @@ public class Chat implements Listener {
                 SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_withdraw.remove(p);
             chat_return_page.remove(p);
@@ -69,7 +67,7 @@ public class Chat implements Listener {
                 SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_sell.remove(p);
             chat_return_page.remove(p);
@@ -84,7 +82,7 @@ public class Chat implements Listener {
                 SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_mythic_withdraw.remove(p);
             chat_return_page.remove(p);
@@ -99,7 +97,7 @@ public class Chat implements Listener {
                 SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_mythic_deposit.remove(p);
             chat_return_page.remove(p);
@@ -119,7 +117,7 @@ public class Chat implements Listener {
                 SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT)));
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             chat_convert_from.remove(p);
             chat_convert_to.remove(p);
@@ -136,12 +134,12 @@ public class Chat implements Listener {
                     activeGUI.setTransferAmount(amount);
                     SchedulerUtil.runTask(Storage.getStorage(), () -> {
                         activeGUI.updateGUI();
-                        p.sendMessage(net.danh.storage.Utils.Chat.colorize("&aTransfer amount set to " + amount));
+                        p.sendMessage(ChatUtils.colorize("&aTransfer amount set to " + amount));
                     });
                 }
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             TransferGUI.setWaitingForInput(p, false);
             e.setCancelled(true);
@@ -151,7 +149,7 @@ public class Chat implements Listener {
         if (MythicTransferGUI.isWaitingForInput(p)) {
             if (message.equalsIgnoreCase("cancel")) {
                 MythicTransferGUI.setWaitingForInput(p, false);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(File.getMessage().getString("mythicstorage.transfer.cancelled")));
+                p.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.cancelled")));
                 e.setCancelled(true);
                 return;
             }
@@ -162,12 +160,12 @@ public class Chat implements Listener {
                     int amount = Number.getInteger(message);
                     SchedulerUtil.runTask(Storage.getStorage(), () -> {
                         activeGUI.setTransferAmountAndUpdate(amount);
-                        p.sendMessage(net.danh.storage.Utils.Chat.colorize("&aTransfer amount set to " + amount));
+                        p.sendMessage(ChatUtils.colorize("&aTransfer amount set to " + amount));
                     });
                 }
             } else {
                 SoundManager.playChatErrorSound(p);
-                p.sendMessage(net.danh.storage.Utils.Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
             MythicTransferGUI.setWaitingForInput(p, false);
             e.setCancelled(true);

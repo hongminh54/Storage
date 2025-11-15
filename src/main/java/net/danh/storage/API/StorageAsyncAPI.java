@@ -118,7 +118,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Boolean> transferItemAsync(@NotNull Player sender, @NotNull Player receiver,
-                                                                @NotNull String material, int amount) {
+                                                               @NotNull String material, int amount) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return StorageAPI.transferItem(sender, receiver, material, amount);
@@ -139,7 +139,7 @@ public class StorageAsyncAPI {
     public static CompletableFuture<Map<String, Integer>> getTopPlayersByMaterialAsync(@NotNull String material, int limit) {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Integer> topPlayers = new HashMap<>();
-            
+
             for (Player player : Bukkit.getOnlinePlayers()) {
                 int amount = StorageAPI.getItemAmount(player, material);
                 if (amount > 0) {
@@ -226,7 +226,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Boolean> hasAllMaterialsAsync(@NotNull Player player,
-                                                                   @NotNull Map<String, Integer> materials) {
+                                                                  @NotNull Map<String, Integer> materials) {
         return CompletableFuture.supplyAsync(() -> {
             for (Map.Entry<String, Integer> entry : materials.entrySet()) {
                 int playerAmount = StorageAPI.getItemAmount(player, entry.getKey());

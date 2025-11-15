@@ -74,7 +74,7 @@ public final class Storage extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
         }
-        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new Chat(), new BlockPlace());
+        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace());
         new UpdateChecker(storage).fetch();
         new StorageCMD("storage");
         new MythicStorageCMD("mythicstorage");

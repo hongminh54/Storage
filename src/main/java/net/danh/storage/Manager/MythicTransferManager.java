@@ -3,7 +3,7 @@ package net.danh.storage.Manager;
 import net.danh.storage.Data.MythicTransferData;
 import net.danh.storage.Database.MythicTransferDatabase;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.ChatNavigationHelper;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.TaskWrapper;
@@ -37,47 +37,47 @@ public class MythicTransferManager {
         }
 
         if (!MythicStorageManager.isSystemEnabled()) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.system_disabled")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.system_disabled")));
             return false;
         }
 
         if (!sender.hasPermission("storage.mythicstorage.transfer")) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.no_permission")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.no_permission")));
             return false;
         }
 
         if (sender.getName().equalsIgnoreCase(receiverName)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_same_player")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_same_player")));
             return false;
         }
 
         Player receiver = Bukkit.getPlayer(receiverName);
         if (receiver == null || !receiver.isOnline()) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_offline").replace("#player#", receiverName)));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_offline").replace("#player#", receiverName)));
             return false;
         }
 
         if (amount <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.number_too_low")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.number_too_low")));
             return false;
         }
 
         if (!MythicStorageManager.isConfiguredDrop(itemName)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.invalid_item").replace("#item#", itemName)));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.invalid_item").replace("#item#", itemName)));
             return false;
         }
 
         int currentAmount = MythicStorageManager.getPlayerItem(sender, itemName);
         if (currentAmount < amount) {
             String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_insufficient")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_insufficient")
                     .replace("#item#", displayName)
                     .replace("#current#", String.valueOf(currentAmount))));
             return false;
         }
 
         if (isTransferInProgress(sender)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_in_progress")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_in_progress")));
             return false;
         }
 
@@ -94,35 +94,35 @@ public class MythicTransferManager {
         }
 
         if (!sender.hasPermission("storage.mythicstorage.transfer.multi")) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.no_permission")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.no_permission")));
             return false;
         }
 
         if (sender.getName().equalsIgnoreCase(receiverName)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_same_player")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_same_player")));
             return false;
         }
 
         Player receiver = Bukkit.getPlayer(receiverName);
         if (receiver == null || !receiver.isOnline()) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_offline").replace("#player#", receiverName)));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_offline").replace("#player#", receiverName)));
             return false;
         }
 
         if (amount <= 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("admin.number_too_low")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.number_too_low")));
             return false;
         }
 
         if (!MythicStorageManager.isConfiguredDrop(itemName)) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.invalid_item").replace("#item#", itemName)));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.invalid_item").replace("#item#", itemName)));
             return false;
         }
 
         int currentAmount = MythicStorageManager.getPlayerItem(sender, itemName);
         if (currentAmount < amount) {
             String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_insufficient")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_insufficient")
                     .replace("#item#", displayName)
                     .replace("#current#", String.valueOf(currentAmount))));
             return false;
@@ -171,13 +171,13 @@ public class MythicTransferManager {
 
         String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
 
-        sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.processing_send")
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.processing_send")
                 .replace("#amount#", String.valueOf(amount))
                 .replace("#item#", displayName)
                 .replace("#player#", receiver.getName())
                 .replace("#time#", String.valueOf(transferDelay))));
 
-        receiver.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.processing_receive")
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.processing_receive")
                 .replace("#amount#", String.valueOf(amount))
                 .replace("#item#", displayName)
                 .replace("#player#", sender.getName())
@@ -213,12 +213,12 @@ public class MythicTransferManager {
             count++;
         }
 
-        sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.processing_multi_send_detailed")
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.processing_multi_send_detailed")
                 .replace("#items#", itemsList.toString())
                 .replace("#player#", receiver.getName())
                 .replace("#time#", String.valueOf(transferDelay))));
 
-        receiver.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.processing_multi_receive_detailed")
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.processing_multi_receive_detailed")
                 .replace("#items#", itemsList.toString())
                 .replace("#player#", sender.getName())
                 .replace("#time#", String.valueOf(transferDelay))));
@@ -277,12 +277,12 @@ public class MythicTransferManager {
 
         String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
 
-        sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.success_send")
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.success_send")
                 .replace("#amount#", String.valueOf(amount))
                 .replace("#item#", displayName)
                 .replace("#player#", receiver.getName())));
 
-        receiver.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.success_receive")
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.success_receive")
                 .replace("#amount#", String.valueOf(amount))
                 .replace("#item#", displayName)
                 .replace("#player#", sender.getName())));
@@ -293,7 +293,7 @@ public class MythicTransferManager {
     private static void completeMultiTransfer(Player sender, Player receiver, Map<String, Integer> items) {
         if (!sender.isOnline() || !receiver.isOnline()) {
             if (sender.isOnline()) {
-                sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_offline_during").replace("#player#", receiver.getName())));
+                sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_offline_during").replace("#player#", receiver.getName())));
             }
             return;
         }
@@ -309,7 +309,7 @@ public class MythicTransferManager {
             int currentAmount = MythicStorageManager.getPlayerItem(sender, itemName);
             if (currentAmount < amount) {
                 String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
-                sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_insufficient_during")
+                sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_insufficient_during")
                         .replace("#item#", displayName)));
                 continue;
             }
@@ -338,7 +338,7 @@ public class MythicTransferManager {
                 } else {
                     MythicStorageManager.addItemAmount(sender, itemName, amount);
                     String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
-                    sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_receiver_full_during")
+                    sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_receiver_full_during")
                             .replace("#item#", displayName)
                             .replace("#player#", receiver.getName())));
                 }
@@ -346,13 +346,13 @@ public class MythicTransferManager {
         }
 
         if (successCount > 0) {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.success_multi_send")
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.success_multi_send")
                     .replace("#count#", String.valueOf(successCount))
                     .replace("#total#", String.valueOf(totalCount))
                     .replace("#items#", successfulTransfers.toString())
                     .replace("#player#", receiver.getName())));
 
-            receiver.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.success_multi_receive")
+            receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.success_multi_receive")
                     .replace("#count#", String.valueOf(successCount))
                     .replace("#total#", String.valueOf(totalCount))
                     .replace("#items#", successfulTransfers.toString())
@@ -360,7 +360,7 @@ public class MythicTransferManager {
 
             playTransferEffects(sender, receiver);
         } else {
-            sender.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.failed_all_items")));
+            sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_all_items")));
         }
     }
 
@@ -381,7 +381,7 @@ public class MythicTransferManager {
         String errorMessage = getErrorMessage(reason, displayName, receiverName);
 
         if (sender.isOnline()) {
-            sender.sendMessage(Chat.colorize(errorMessage));
+            sender.sendMessage(ChatUtils.colorize(errorMessage));
             playMythicTransferFailedParticle(sender);
         }
     }
@@ -480,7 +480,7 @@ public class MythicTransferManager {
         TaskWrapper task = activeTransfers.remove(player.getName());
         if (task != null) {
             task.cancel();
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.cancelled")));
+            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.cancelled")));
         }
         stopMythicTransferProcessingAnimation(player);
     }
@@ -496,12 +496,12 @@ public class MythicTransferManager {
         String playerToCheck = targetPlayerName != null ? targetPlayerName : player.getName();
 
         if (!player.getName().equalsIgnoreCase(playerToCheck) && !player.hasPermission("storage.mythicstorage.transfer.log.others")) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.no_permission")));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
         if (!player.hasPermission("storage.mythicstorage.transfer.log")) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("admin.no_permission")));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
@@ -509,7 +509,7 @@ public class MythicTransferManager {
         int itemsPerPage = config.getInt("transfer.max_history_display", 10);
 
         if (transferDatabase == null) {
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.system_disabled")));
+            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.system_disabled")));
             return;
         }
 
@@ -525,7 +525,7 @@ public class MythicTransferManager {
         List<MythicTransferData> transfers = transferDatabase.getTransferHistory(playerToCheck, itemsPerPage, offset);
 
         if (transfers.isEmpty()) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.transfer.log_no_history").replace("#player#", playerToCheck)));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.transfer.log_no_history").replace("#player#", playerToCheck)));
             return;
         }
 
@@ -533,7 +533,7 @@ public class MythicTransferManager {
                 .replace("#player#", playerToCheck)
                 .replace("#current_page#", String.valueOf(page))
                 .replace("#total_pages#", String.valueOf(totalPages));
-        player.sendMessage(Chat.colorizewp(headerMessage));
+        player.sendMessage(ChatUtils.colorizewp(headerMessage));
 
         player.sendMessage("");
 
@@ -549,14 +549,14 @@ public class MythicTransferManager {
                         .replace("#amount#", String.valueOf(transfer.getAmount()))
                         .replace("#item#", displayName)
                         .replace("#receiver#", transfer.getReceiver());
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             } else {
                 String message = File.getMessage().getString("mythicstorage.transfer.log_entry_received")
                         .replace("#time#", timeStr)
                         .replace("#amount#", String.valueOf(transfer.getAmount()))
                         .replace("#item#", displayName)
                         .replace("#sender#", transfer.getSender());
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         }
 
@@ -568,13 +568,13 @@ public class MythicTransferManager {
 
         player.sendMessage("");
         String separator = messageConfig.getString("mythicstorage.transfer.log_nav_separator");
-        player.sendMessage(Chat.colorizewp(separator));
+        player.sendMessage(ChatUtils.colorizewp(separator));
 
         String footerInfo = messageConfig.getString("mythicstorage.transfer.log_footer_info")
                 .replace("#total#", String.valueOf(totalTransfers))
                 .replace("#current#", String.valueOf(currentPage))
                 .replace("#total_pages#", String.valueOf(totalPages));
-        player.sendMessage(Chat.colorizewp(footerInfo));
+        player.sendMessage(ChatUtils.colorizewp(footerInfo));
 
         if (totalPages <= 1) {
             return;

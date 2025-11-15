@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Chat {
+public class ChatUtils {
 
     private static final Pattern HEX_PATTERN_1 = Pattern.compile("&#([A-Fa-f0-9]{6})");
     private static final Pattern HEX_PATTERN_2 = Pattern.compile("<#([A-Fa-f0-9]{6})>");
@@ -26,15 +26,15 @@ public class Chat {
     }
 
     public static List<String> colorize(String... message) {
-        return Arrays.stream(message).map(Chat::colorize).collect(Collectors.toList());
+        return Arrays.stream(message).map(ChatUtils::colorize).collect(Collectors.toList());
     }
 
     public static List<String> colorize(@NotNull List<String> message) {
-        return message.stream().map(Chat::colorize).collect(Collectors.toList());
+        return message.stream().map(ChatUtils::colorize).collect(Collectors.toList());
     }
 
     public static List<String> colorizewp(@NotNull List<String> message) {
-        return message.stream().map(Chat::colorizewp).collect(Collectors.toList());
+        return message.stream().map(ChatUtils::colorizewp).collect(Collectors.toList());
     }
 
     private static @NotNull String replacePlaceholders(String message) {

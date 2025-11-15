@@ -3,7 +3,7 @@ package net.danh.storage.Action;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.NMS.NMSAssistant;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -27,7 +27,7 @@ public class MythicDeposit {
 
         MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
         if (helper == null || !helper.isInitialized()) {
-            player.sendMessage(Chat.colorizewp(File.getMessage().getString("mythicstorage.system_disabled", "")));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.system_disabled", "")));
             return;
         }
 
@@ -64,7 +64,7 @@ public class MythicDeposit {
                             .replace("#amount#", String.valueOf(canDeposit))
                             .replace("#material#", displayName);
                     if (!message.isEmpty()) {
-                        player.sendMessage(Chat.colorizewp(message));
+                        player.sendMessage(ChatUtils.colorizewp(message));
                     }
                     break;
                 }
@@ -85,12 +85,12 @@ public class MythicDeposit {
                     .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                     .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         } else {
             String message = File.getMessage().getString("mythicstorage.action.deposit.no_items", "");
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         }
     }

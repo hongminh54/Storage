@@ -3,7 +3,7 @@ package net.danh.storage.Event.Events;
 import net.danh.storage.Event.BaseEvent;
 import net.danh.storage.Event.EventType;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
@@ -131,7 +131,7 @@ public class CommunityEvent extends BaseEvent {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!participantsOnly || eventData.getParticipants().contains(player.getUniqueId())) {
-                player.sendMessage(Chat.colorizewp(progressMessage));
+                player.sendMessage(ChatUtils.colorizewp(progressMessage));
             }
         }
     }
@@ -151,7 +151,7 @@ public class CommunityEvent extends BaseEvent {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (eventData.getParticipants().contains(player.getUniqueId())) {
                 player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                        net.md_5.bungee.api.chat.TextComponent.fromLegacyText(Chat.colorizewp(progressMessage)));
+                        net.md_5.bungee.api.chat.TextComponent.fromLegacyText(ChatUtils.colorizewp(progressMessage)));
             }
         }
     }
@@ -166,7 +166,7 @@ public class CommunityEvent extends BaseEvent {
         int fadeOut = File.getEventConfig().getInt("notifications.titles.fade_out", 20);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            player.sendTitle(ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle), fadeIn, stay, fadeOut);
         }
     }
 
@@ -182,7 +182,7 @@ public class CommunityEvent extends BaseEvent {
         int fadeOut = File.getEventConfig().getInt("notifications.titles.fade_out", 20);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            player.sendTitle(ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle), fadeIn, stay, fadeOut);
         }
     }
 
@@ -195,7 +195,7 @@ public class CommunityEvent extends BaseEvent {
 
                 String rewardMessage = File.getMessage().getString("events.common.chat.reward_received");
 
-                participant.sendMessage(Chat.colorizewp(rewardMessage));
+                participant.sendMessage(ChatUtils.colorizewp(rewardMessage));
             }
         }
     }
@@ -261,7 +261,7 @@ public class CommunityEvent extends BaseEvent {
                 .replace("#goal#", String.valueOf(goal));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -273,7 +273,7 @@ public class CommunityEvent extends BaseEvent {
         String message = File.getMessage().getString("events.community_event.chat.first_contribution");
         if (message == null || message.isEmpty()) return;
 
-        player.sendMessage(Chat.colorizewp(message));
+        player.sendMessage(ChatUtils.colorizewp(message));
     }
 
     private void checkMilestones(double previousPercentage, double currentPercentage) {
@@ -301,7 +301,7 @@ public class CommunityEvent extends BaseEvent {
                 .replace("#goal#", String.valueOf(eventData.getCommunityGoal()));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 }

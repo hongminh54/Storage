@@ -3,7 +3,7 @@ package net.danh.storage.API;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -13,7 +13,10 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -56,7 +59,7 @@ public class StorageGUIAPI {
         int rows = Math.min(6, (materials.size() + 8) / 9);
         if (rows == 0) rows = 1;
 
-        Inventory inv = Bukkit.createInventory(null, rows * 9, Chat.colorize(title));
+        Inventory inv = Bukkit.createInventory(null, rows * 9, ChatUtils.colorize(title));
 
         int slot = 0;
         for (Map.Entry<String, Integer> entry : materials.entrySet()) {
@@ -86,7 +89,7 @@ public class StorageGUIAPI {
      */
     @NotNull
     public static GUIBuilder createMaterialSelector(@NotNull String title,
-                                                     @NotNull Consumer<String> callback) {
+                                                    @NotNull Consumer<String> callback) {
         List<String> materials = StorageAPI.getStorableMaterials();
         int rows = Math.min(6, (materials.size() + 8) / 9);
         if (rows == 0) rows = 1;
@@ -150,9 +153,9 @@ public class StorageGUIAPI {
                                              @NotNull String displayName, @NotNull String... lore) {
         String[] coloredLore = new String[lore.length];
         for (int i = 0; i < lore.length; i++) {
-            coloredLore[i] = Chat.colorize(lore[i]);
+            coloredLore[i] = ChatUtils.colorize(lore[i]);
         }
-        return new InteractiveItem(material, slot, Chat.colorize(displayName), coloredLore);
+        return new InteractiveItem(material, slot, ChatUtils.colorize(displayName), coloredLore);
     }
 
     /**
@@ -207,9 +210,9 @@ public class StorageGUIAPI {
         /**
          * Add an interactive item with click handler
          *
-         * @param slot     Slot position
-         * @param item     ItemStack to add
-         * @param onClick  Click handler
+         * @param slot    Slot position
+         * @param item    ItemStack to add
+         * @param onClick Click handler
          * @return This builder
          */
         @NotNull
@@ -332,7 +335,7 @@ public class StorageGUIAPI {
          */
         @NotNull
         public Inventory build() {
-            Inventory inv = Bukkit.createInventory(null, rows * 9, Chat.colorize(title));
+            Inventory inv = Bukkit.createInventory(null, rows * 9, ChatUtils.colorize(title));
 
             // Fill with panels
             if (fillerPanel != null || borderPanel != null) {

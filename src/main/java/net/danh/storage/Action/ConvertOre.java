@@ -4,7 +4,7 @@ import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.ParticleManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.Player;
 
@@ -113,7 +113,7 @@ public class ConvertOre {
             for (int i = 0; i < replacements.length - 1; i += 2) {
                 message = message.replace(replacements[i], replacements[i + 1]);
             }
-            player.sendMessage(Chat.colorize(message));
+            player.sendMessage(ChatUtils.colorize(message));
         }
     }
 }

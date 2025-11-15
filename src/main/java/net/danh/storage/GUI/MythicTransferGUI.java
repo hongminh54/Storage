@@ -7,7 +7,7 @@ import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.MythicTransferManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
@@ -37,7 +37,7 @@ public class MythicTransferGUI implements IGUI {
         this.transferAmount = 1;
 
         FileConfiguration guiConfig = getTransferConfig();
-        String title = Chat.colorizewp(guiConfig.getString("title", "&0Transfer to #player#")
+        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Transfer to #player#")
                 .replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
@@ -307,7 +307,7 @@ public class MythicTransferGUI implements IGUI {
 
     private void requestCustomAmount() {
         player.closeInventory();
-        player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.gui_enter_amount")));
+        player.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.gui_enter_amount")));
         waitingForInput.put(player, true);
     }
 
@@ -331,7 +331,7 @@ public class MythicTransferGUI implements IGUI {
         try {
             player.openInventory(new MythicStorageGUI(player).getInventory());
         } catch (Exception e) {
-            player.sendMessage(Chat.colorize("&cError opening storage GUI"));
+            player.sendMessage(ChatUtils.colorize("&cError opening storage GUI"));
         }
     }
 

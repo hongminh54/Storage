@@ -28,6 +28,11 @@ public class MythicStorageDepositEvent extends Event implements Cancellable {
     }
 
     @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -58,11 +63,6 @@ public class MythicStorageDepositEvent extends Event implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
         return handlers;
     }
 }

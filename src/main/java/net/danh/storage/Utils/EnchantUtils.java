@@ -169,7 +169,7 @@ public class EnchantUtils {
         String enchantLore = EnchantManager.getEnchantLoreFormat(enchantName, level);
         if (enchantLore != null) {
             removeLoreEnchantFromList(lore, enchantName);
-            lore.add(Chat.colorize(enchantLore));
+            lore.add(ChatUtils.colorize(enchantLore));
         }
 
         meta.setLore(lore);

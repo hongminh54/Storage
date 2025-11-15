@@ -6,7 +6,7 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.TransferManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
@@ -38,7 +38,7 @@ public class TransferMultiGUI implements IGUI {
         this.reservedSlots = new HashSet<>();
 
         FileConfiguration guiConfig = getTransferMultiConfig();
-        String title = Chat.colorizewp(guiConfig.getString("title", "&0Multi Transfer to #player#")
+        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Multi Transfer to #player#")
                 .replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
@@ -427,7 +427,7 @@ public class TransferMultiGUI implements IGUI {
 
     private void confirmTransfer() {
         if (selectedAmounts.isEmpty()) {
-            player.sendMessage(Chat.colorize("&cNo materials selected for transfer!"));
+            player.sendMessage(ChatUtils.colorize("&cNo materials selected for transfer!"));
             return;
         }
 
@@ -438,7 +438,7 @@ public class TransferMultiGUI implements IGUI {
         if (TransferManager.executeMultiTransfer(player, targetPlayer, selectedAmounts)) {
             // Transfer initiated successfully
         } else {
-            player.sendMessage(Chat.colorize("&cFailed to initiate multi transfer!"));
+            player.sendMessage(ChatUtils.colorize("&cFailed to initiate multi transfer!"));
         }
 
         activeGUIs.remove(player);
@@ -452,7 +452,7 @@ public class TransferMultiGUI implements IGUI {
             int currentPage = PersonalStorage.getPlayerCurrentPage(player);
             player.openInventory(new PersonalStorage(player, currentPage).getInventory());
         } catch (Exception e) {
-            player.sendMessage(Chat.colorize("&cError opening storage GUI"));
+            player.sendMessage(ChatUtils.colorize("&cError opening storage GUI"));
         }
     }
 

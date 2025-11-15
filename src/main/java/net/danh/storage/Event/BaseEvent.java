@@ -3,7 +3,7 @@ package net.danh.storage.Event;
 import net.danh.storage.Data.EventData;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.TaskWrapper;
@@ -96,7 +96,7 @@ public abstract class BaseEvent {
         int fadeOut = File.getEventConfig().getInt("notifications.titles.fade_out", 20);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            player.sendTitle(ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle), fadeIn, stay, fadeOut);
             SoundManager.playEventStartSound(player);
         }
 
@@ -120,7 +120,7 @@ public abstract class BaseEvent {
         int fadeOut = File.getEventConfig().getInt("notifications.titles.fade_out", 20);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            player.sendTitle(ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle), fadeIn, stay, fadeOut);
             SoundManager.playEventEndSound(player);
         }
 
@@ -140,7 +140,7 @@ public abstract class BaseEvent {
         for (Player player : targetPlayers) {
             if (player != null && player.isOnline()) {
                 player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                        net.md_5.bungee.api.chat.TextComponent.fromLegacyText(Chat.colorizewp(message)));
+                        net.md_5.bungee.api.chat.TextComponent.fromLegacyText(ChatUtils.colorizewp(message)));
             }
         }
     }
@@ -150,7 +150,7 @@ public abstract class BaseEvent {
         if (message == null || message.isEmpty()) return;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -167,7 +167,7 @@ public abstract class BaseEvent {
                 .replace("#duration#", String.valueOf(duration / 60));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -182,7 +182,7 @@ public abstract class BaseEvent {
         message = message.replace("#event#", getEventName());
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -196,7 +196,7 @@ public abstract class BaseEvent {
         if (message == null || message.isEmpty()) return;
 
         message = message.replace("#event#", getEventName());
-        player.sendMessage(Chat.colorizewp(message));
+        player.sendMessage(ChatUtils.colorizewp(message));
     }
 
     protected void giveRewards(Player player, String rewardPath) {
@@ -252,7 +252,7 @@ public abstract class BaseEvent {
         if (message != null && !message.isEmpty()) {
             String processedMessage = message.replace("#player#", player.getName());
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                onlinePlayer.sendMessage(Chat.colorizewp(processedMessage));
+                onlinePlayer.sendMessage(ChatUtils.colorizewp(processedMessage));
             }
         }
     }
@@ -295,7 +295,7 @@ public abstract class BaseEvent {
                 .replace("#time#", formatTime(secondsLeft));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 

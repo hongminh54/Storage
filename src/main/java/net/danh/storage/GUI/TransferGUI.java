@@ -6,7 +6,7 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.TransferManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
@@ -36,7 +36,7 @@ public class TransferGUI implements IGUI {
         this.transferAmount = 1;
 
         FileConfiguration guiConfig = getTransferConfig();
-        String title = Chat.colorizewp(guiConfig.getString("title", "&0Transfer to #player#")
+        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Transfer to #player#")
                 .replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
@@ -301,7 +301,7 @@ public class TransferGUI implements IGUI {
 
     private void requestCustomAmount() {
         player.closeInventory();
-        player.sendMessage(Chat.colorize(File.getMessage().getString("transfer.gui_enter_amount")));
+        player.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.gui_enter_amount")));
         waitingForInput.put(player, true);
     }
 
@@ -327,7 +327,7 @@ public class TransferGUI implements IGUI {
             int currentPage = PersonalStorage.getPlayerCurrentPage(player);
             player.openInventory(new PersonalStorage(player, currentPage).getInventory());
         } catch (Exception e) {
-            player.sendMessage(Chat.colorize("&cError opening storage GUI"));
+            player.sendMessage(ChatUtils.colorize("&cError opening storage GUI"));
         }
     }
 

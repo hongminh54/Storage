@@ -5,7 +5,7 @@ import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
@@ -69,7 +69,7 @@ public class ViewStorageGUI implements IGUI {
         SoundManager.playItemSound(viewer, config, "gui_open_sound", context);
 
         // Create inventory with target player's name
-        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
+        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title"))
                 .replace("#player#", targetName));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);

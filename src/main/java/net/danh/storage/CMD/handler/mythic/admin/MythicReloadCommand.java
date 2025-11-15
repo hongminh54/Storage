@@ -2,7 +2,7 @@ package net.danh.storage.CMD.handler.mythic.admin;
 
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
 import net.danh.storage.Manager.MythicStorageManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.command.CommandSender;
 
@@ -19,12 +19,12 @@ public class MythicReloadCommand extends MythicCommand {
         sendMessage(sender, "admin.reload_success");
 
         if (MythicStorageManager.hasInvalidItems()) {
-            sender.sendMessage(Chat.colorizewp("&c&l[!] WARNING: Invalid items detected!"));
-            sender.sendMessage(Chat.colorizewp("&e" + MythicStorageManager.getInvalidItems().size() + " &7item(s) failed to load: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
-            sender.sendMessage(Chat.colorizewp("&7These items will &cNOT &7appear in the GUI!"));
-            sender.sendMessage(Chat.colorizewp("&7Check console for detailed error messages and fixes"));
+            sender.sendMessage(ChatUtils.colorizewp("&c&l[!] WARNING: Invalid items detected!"));
+            sender.sendMessage(ChatUtils.colorizewp("&e" + MythicStorageManager.getInvalidItems().size() + " &7item(s) failed to load: &c" + String.join(", ", MythicStorageManager.getInvalidItems())));
+            sender.sendMessage(ChatUtils.colorizewp("&7These items will &cNOT &7appear in the GUI!"));
+            sender.sendMessage(ChatUtils.colorizewp("&7Check console for detailed error messages and fixes"));
         } else {
-            sender.sendMessage(Chat.colorizewp("&a✓ All items loaded successfully!"));
+            sender.sendMessage(ChatUtils.colorizewp("&a✓ All items loaded successfully!"));
         }
     }
 

@@ -3,6 +3,7 @@ package net.danh.storage.CMD;
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.admin.*;
 import net.danh.storage.CMD.handler.user.*;
+import net.danh.storage.Utils.ChatUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -72,7 +73,7 @@ public class CommandManager {
                     String message = net.danh.storage.Utils.File.getMessage().getString("admin.world_blacklisted")
                             .replace("#feature#", "Storage")
                             .replace("#world#", player.getWorld().getName());
-                    sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+                    sender.sendMessage(ChatUtils.colorize(message));
                     return;
                 }
             }
@@ -81,7 +82,7 @@ public class CommandManager {
                 int currentPage = net.danh.storage.GUI.PersonalStorage.getPlayerCurrentPage(player);
                 player.openInventory(new net.danh.storage.GUI.PersonalStorage(player, currentPage).getInventory());
             } catch (IndexOutOfBoundsException e) {
-                sender.sendMessage(net.danh.storage.Utils.Chat.colorize(net.danh.storage.Utils.File.getMessage().getString("admin.not_enough_slot")));
+                sender.sendMessage(ChatUtils.colorize(net.danh.storage.Utils.File.getMessage().getString("admin.not_enough_slot")));
             }
         }
     }
@@ -140,7 +141,7 @@ public class CommandManager {
         String message = net.danh.storage.Utils.File.getMessage().getString("admin.unknown_command");
         if (message != null) {
             message = message.replace("#command#", commandName);
-            sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+            sender.sendMessage(ChatUtils.colorize(message));
         }
 
         List<String> availableCommands = getAvailableCommands(sender);
@@ -149,7 +150,7 @@ public class CommandManager {
             String availableMessage = net.danh.storage.Utils.File.getMessage().getString("admin.available_commands");
             if (availableMessage != null) {
                 availableMessage = availableMessage.replace("#commands#", commandsStr);
-                sender.sendMessage(net.danh.storage.Utils.Chat.colorize(availableMessage));
+                sender.sendMessage(ChatUtils.colorize(availableMessage));
             }
         }
     }
@@ -157,7 +158,7 @@ public class CommandManager {
     private void sendNoPermissionMessage(CommandSender sender) {
         String message = net.danh.storage.Utils.File.getMessage().getString("admin.no_permission");
         if (message != null) {
-            sender.sendMessage(net.danh.storage.Utils.Chat.colorize(message));
+            sender.sendMessage(ChatUtils.colorize(message));
         }
     }
 

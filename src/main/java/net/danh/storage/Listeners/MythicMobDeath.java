@@ -5,7 +5,7 @@ import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -162,7 +162,7 @@ public class MythicMobDeath implements Listener {
                                 .replace("#item#", displayName)
                                 .replace("#storage#", String.valueOf(currentStorage))
                                 .replace("#max#", String.valueOf(maxStorage));
-                        ActionBar.sendActionBar(Storage.getStorage(), killer, Chat.colorizewp(actionBarMessage));
+                        ActionBar.sendActionBar(Storage.getStorage(), killer, ChatUtils.colorizewp(actionBarMessage));
                     }
 
                     // Send Title notification
@@ -177,7 +177,7 @@ public class MythicMobDeath implements Listener {
                                 .replace("#item#", displayName)
                                 .replace("#storage#", String.valueOf(currentStorage))
                                 .replace("#max#", String.valueOf(maxStorage));
-                        Titles.sendTitle(killer, Chat.colorizewp(title), Chat.colorizewp(subtitle));
+                        Titles.sendTitle(killer, ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle));
                     }
                 } else {
                     // Storage is full
@@ -196,7 +196,7 @@ public class MythicMobDeath implements Listener {
                                         .replace("#item#", displayNameFull)
                                         .replace("#storage#", String.valueOf(currentStorage))
                                         .replace("#max#", String.valueOf(maxStorage));
-                                ActionBar.sendActionBar(Storage.getStorage(), killer, Chat.colorizewp(actionBarMessage));
+                                ActionBar.sendActionBar(Storage.getStorage(), killer, ChatUtils.colorizewp(actionBarMessage));
                             }
 
                             // Send Title for storage full
@@ -209,7 +209,7 @@ public class MythicMobDeath implements Listener {
                                         .replace("#item#", displayNameFull)
                                         .replace("#storage#", String.valueOf(currentStorage))
                                         .replace("#max#", String.valueOf(maxStorage));
-                                Titles.sendTitle(killer, Chat.colorizewp(title), Chat.colorizewp(subtitle));
+                                Titles.sendTitle(killer, ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle));
                             }
                         }
                     }

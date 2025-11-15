@@ -3,7 +3,7 @@ package net.danh.storage.Event.Events;
 import net.danh.storage.Event.BaseEvent;
 import net.danh.storage.Event.EventType;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -46,7 +46,7 @@ public class DoubleDropEvent extends BaseEvent {
                 .replace("#amount#", String.valueOf(amount));
 
         player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                net.md_5.bungee.api.chat.TextComponent.fromLegacyText(Chat.colorizewp(actionBarMessage)));
+                net.md_5.bungee.api.chat.TextComponent.fromLegacyText(ChatUtils.colorizewp(actionBarMessage)));
     }
 
     public double getMultiplier() {
@@ -100,7 +100,7 @@ public class DoubleDropEvent extends BaseEvent {
                 .replace("#multiplier#", String.valueOf(multiplier));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -114,7 +114,7 @@ public class DoubleDropEvent extends BaseEvent {
         if (message == null || message.isEmpty()) return;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -157,6 +157,6 @@ public class DoubleDropEvent extends BaseEvent {
 
         message = message.replace("#multiplier#", String.valueOf(multiplier))
                 .replace("#time#", timeLeft);
-        player.sendMessage(Chat.colorizewp(message));
+        player.sendMessage(ChatUtils.colorizewp(message));
     }
 }

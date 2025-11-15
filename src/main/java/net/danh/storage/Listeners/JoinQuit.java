@@ -30,9 +30,9 @@ public class JoinQuit implements Listener {
         PersonalStorage.playerCurrentPage.remove(p);
         MythicStorageGUI.playerCurrentPage.remove(p);
         ViewMythicStorageGUI.playerCurrentPage.remove(p);
-        Chat.chat_return_page.remove(p);
-        Chat.chat_mythic_withdraw.remove(p);
-        Chat.chat_mythic_deposit.remove(p);
+        ChatListener.chat_return_page.remove(p);
+        ChatListener.chat_mythic_withdraw.remove(p);
+        ChatListener.chat_mythic_deposit.remove(p);
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);

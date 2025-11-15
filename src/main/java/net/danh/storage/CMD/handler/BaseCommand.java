@@ -1,6 +1,6 @@
 package net.danh.storage.CMD.handler;
 
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.Bukkit;
@@ -20,14 +20,14 @@ public abstract class BaseCommand implements CommandHandler {
     protected void sendMessage(CommandSender sender, String messageKey) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(Chat.colorize(message));
+            sender.sendMessage(ChatUtils.colorize(message));
         }
     }
 
     protected void sendMessage(CommandSender sender, String messageKey, String placeholder, String replacement) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(Chat.colorize(message.replace(placeholder, replacement)));
+            sender.sendMessage(ChatUtils.colorize(message.replace(placeholder, replacement)));
         }
     }
 
@@ -37,21 +37,21 @@ public abstract class BaseCommand implements CommandHandler {
             for (int i = 0; i < placeholders.length && i < replacements.length; i++) {
                 message = message.replace(placeholders[i], replacements[i]);
             }
-            sender.sendMessage(Chat.colorize(message));
+            sender.sendMessage(ChatUtils.colorize(message));
         }
     }
 
     protected void sendColorizedMessage(CommandSender sender, String messageKey) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(Chat.colorizewp(message));
+            sender.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
     protected void sendColorizedMessage(CommandSender sender, String messageKey, String placeholder, String replacement) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(Chat.colorizewp(message.replace(placeholder, replacement)));
+            sender.sendMessage(ChatUtils.colorizewp(message.replace(placeholder, replacement)));
         }
     }
 
@@ -61,21 +61,21 @@ public abstract class BaseCommand implements CommandHandler {
             for (int i = 0; i < placeholders.length && i < replacements.length; i++) {
                 message = message.replace(placeholders[i], replacements[i]);
             }
-            sender.sendMessage(Chat.colorizewp(message));
+            sender.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
     protected void sendMessageList(CommandSender sender, String messageKey) {
         List<String> messages = File.getMessage().getStringList(messageKey);
         for (String message : messages) {
-            sender.sendMessage(Chat.colorize(message));
+            sender.sendMessage(ChatUtils.colorize(message));
         }
     }
 
     protected void sendColorizedMessageList(CommandSender sender, String messageKey) {
         List<String> messages = File.getMessage().getStringList(messageKey);
         for (String message : messages) {
-            sender.sendMessage(Chat.colorizewp(message));
+            sender.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 

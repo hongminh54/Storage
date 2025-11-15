@@ -51,44 +51,44 @@ public class PAPI extends PlaceholderExpansion {
     @Override
     public @Nullable String onPlaceholderRequest(Player p, @NotNull String args) {
         if (p == null) return null;
-        
+
         // Storage percentage
         if (args.equalsIgnoreCase("percentage")) {
             return String.valueOf(getStoragePercentage(p));
         }
-        
+
         // Storage statistics
         if (args.startsWith("total_") || args.startsWith("available_") || args.startsWith("transfer_")) {
             return handleStorageStatistics(p, args);
         }
-        
+
         if (args.equalsIgnoreCase("status")) {
             return ItemManager.getStatus(p);
         }
-        
+
         // Storage with formatted/percentage variants
         if (args.startsWith("storage_")) {
             String item = args.substring(8);
-            
+
             // %storage_<material>_formatted%
             if (item.endsWith("_formatted")) {
                 String material = item.substring(0, item.length() - 10);
                 return formatNumber(MineManager.getPlayerBlock(p, material));
             }
-            
+
             // %storage_<material>_percentage%
             if (item.endsWith("_percentage")) {
                 String material = item.substring(0, item.length() - 11);
                 return String.valueOf(getMaterialPercentage(p, material));
             }
-            
+
             return String.valueOf(MineManager.getPlayerBlock(p, item));
         }
-        
+
         if (args.equalsIgnoreCase("max_storage")) {
             return String.valueOf(MineManager.getMaxBlock(p));
         }
-        
+
         if (args.startsWith("price_")) {
             String material = args.substring(6);
             ConfigurationSection section = File.getConfig().getConfigurationSection("worth");
@@ -566,9 +566,9 @@ public class PAPI extends PlaceholderExpansion {
         // %storage_mythic_autopickup_status% - Auto-pickup status
         if (placeholder.equals("autopickup_status")) {
             boolean status = MythicStorageManager.getToggleStatus(p);
-            return status ? 
-                File.getMessage().getString("mythicstorage.status_enabled", "Enabled") :
-                File.getMessage().getString("mythicstorage.status_disabled", "Disabled");
+            return status ?
+                    File.getMessage().getString("mythicstorage.status_enabled", "Enabled") :
+                    File.getMessage().getString("mythicstorage.status_disabled", "Disabled");
         }
 
         // Transfer statistics placeholders
@@ -600,10 +600,10 @@ public class PAPI extends PlaceholderExpansion {
         }
 
         // %storage_mythic_<item>% - Get specific item display name
-        if (!placeholder.startsWith("total_") && !placeholder.startsWith("autopickup_") && 
-            !placeholder.startsWith("max_") && !placeholder.startsWith("transfer_") && 
-            !placeholder.startsWith("top_") && !placeholder.startsWith("available_") &&
-            !placeholder.equals("percentage")) {
+        if (!placeholder.startsWith("total_") && !placeholder.startsWith("autopickup_") &&
+                !placeholder.startsWith("max_") && !placeholder.startsWith("transfer_") &&
+                !placeholder.startsWith("top_") && !placeholder.startsWith("available_") &&
+                !placeholder.equals("percentage")) {
             String itemName = placeholder;
             if (MythicStorageManager.isConfiguredDrop(itemName)) {
                 return MythicStorageManager.getItemDisplayNameOrId(itemName, p);
@@ -624,10 +624,10 @@ public class PAPI extends PlaceholderExpansion {
         if (placeholder.equals("sent_total")) {
             List<MythicTransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
             int total = transfers.stream()
-                .filter(t -> t.getSender().equalsIgnoreCase(p.getName()))
-                .filter(t -> t.getStatus().startsWith("SUCCESS"))
-                .mapToInt(MythicTransferData::getAmount)
-                .sum();
+                    .filter(t -> t.getSender().equalsIgnoreCase(p.getName()))
+                    .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                    .mapToInt(MythicTransferData::getAmount)
+                    .sum();
             return String.valueOf(total);
         }
 
@@ -635,10 +635,10 @@ public class PAPI extends PlaceholderExpansion {
         if (placeholder.equals("received_total")) {
             List<MythicTransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
             int total = transfers.stream()
-                .filter(t -> t.getReceiver().equalsIgnoreCase(p.getName()))
-                .filter(t -> t.getStatus().startsWith("SUCCESS"))
-                .mapToInt(MythicTransferData::getAmount)
-                .sum();
+                    .filter(t -> t.getReceiver().equalsIgnoreCase(p.getName()))
+                    .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                    .mapToInt(MythicTransferData::getAmount)
+                    .sum();
             return String.valueOf(total);
         }
 
@@ -660,7 +660,7 @@ public class PAPI extends PlaceholderExpansion {
         try {
             int position = Integer.parseInt(parts[parts.length - 2]);
             String type = parts[parts.length - 1]; // "name" or "amount"
-            
+
             // Extract item name (everything between "top_" and "_<position>_<type>")
             StringBuilder itemNameBuilder = new StringBuilder();
             for (int i = 0; i < parts.length - 2; i++) {
@@ -684,8 +684,8 @@ public class PAPI extends PlaceholderExpansion {
 
             // Sort by amount descending
             List<Map.Entry<String, Integer>> sortedList = leaderboard.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .collect(Collectors.toList());
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .collect(Collectors.toList());
 
             if (position > 0 && position <= sortedList.size()) {
                 Map.Entry<String, Integer> entry = sortedList.get(position - 1);
@@ -814,10 +814,10 @@ public class PAPI extends PlaceholderExpansion {
         if (placeholder.equals("sent_total")) {
             List<net.danh.storage.Data.TransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
             int total = transfers.stream()
-                .filter(t -> t.getSender().equalsIgnoreCase(p.getName()))
-                .filter(t -> t.getStatus().startsWith("SUCCESS"))
-                .mapToInt(net.danh.storage.Data.TransferData::getAmount)
-                .sum();
+                    .filter(t -> t.getSender().equalsIgnoreCase(p.getName()))
+                    .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                    .mapToInt(net.danh.storage.Data.TransferData::getAmount)
+                    .sum();
             return String.valueOf(total);
         }
 
@@ -825,10 +825,10 @@ public class PAPI extends PlaceholderExpansion {
         if (placeholder.equals("received_total")) {
             List<net.danh.storage.Data.TransferData> transfers = transferDb.getTransferHistory(p.getName(), Integer.MAX_VALUE, 0);
             int total = transfers.stream()
-                .filter(t -> t.getReceiver().equalsIgnoreCase(p.getName()))
-                .filter(t -> t.getStatus().startsWith("SUCCESS"))
-                .mapToInt(net.danh.storage.Data.TransferData::getAmount)
-                .sum();
+                    .filter(t -> t.getReceiver().equalsIgnoreCase(p.getName()))
+                    .filter(t -> t.getStatus().startsWith("SUCCESS"))
+                    .mapToInt(net.danh.storage.Data.TransferData::getAmount)
+                    .sum();
             return String.valueOf(total);
         }
 
@@ -846,7 +846,7 @@ public class PAPI extends PlaceholderExpansion {
         // %storage_top_all_<position>_name% or %storage_top_all_<position>_amount%
         String placeholder = args.substring(4); // Remove "top_"
         String[] parts = placeholder.split("_");
-        
+
         if (parts.length < 3) {
             return "N/A";
         }
@@ -854,7 +854,7 @@ public class PAPI extends PlaceholderExpansion {
         try {
             int position = Integer.parseInt(parts[parts.length - 2]);
             String type = parts[parts.length - 1]; // "name" or "amount"
-            
+
             // Extract material name (everything between "top_" and "_<position>_<type>")
             StringBuilder materialBuilder = new StringBuilder();
             for (int i = 0; i < parts.length - 2; i++) {
@@ -880,15 +880,15 @@ public class PAPI extends PlaceholderExpansion {
     private String handleAllBlocksLeaderboard(int position, String type) {
         // Calculate total blocks for all online players
         Map<String, Integer> leaderboard = new HashMap<>();
-        
+
         for (Player online : Bukkit.getOnlinePlayers()) {
             int totalBlocks = 0;
             List<String> allBlocks = MineManager.getPluginBlocks();
-            
+
             for (String block : allBlocks) {
                 totalBlocks += MineManager.getPlayerBlock(online, block);
             }
-            
+
             if (totalBlocks > 0) {
                 leaderboard.put(online.getName(), totalBlocks);
             }
@@ -905,7 +905,7 @@ public class PAPI extends PlaceholderExpansion {
 
         // Get all online players' data for this material
         Map<String, Integer> leaderboard = new HashMap<>();
-        
+
         for (Player online : Bukkit.getOnlinePlayers()) {
             int amount = MineManager.getPlayerBlock(online, material);
             if (amount > 0) {
@@ -919,8 +919,8 @@ public class PAPI extends PlaceholderExpansion {
     private String getLeaderboardResult(Map<String, Integer> leaderboard, int position, String type) {
         // Sort by amount descending
         List<Map.Entry<String, Integer>> sortedList = leaderboard.entrySet().stream()
-            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-            .collect(Collectors.toList());
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .collect(Collectors.toList());
 
         if (position > 0 && position <= sortedList.size()) {
             Map.Entry<String, Integer> entry = sortedList.get(position - 1);

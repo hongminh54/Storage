@@ -71,7 +71,7 @@ public class ConvertAPI {
      */
     @Nullable
     public static ConvertOreManager.ConvertOption getConversionOption(@NotNull String fromMaterial,
-                                                                       @NotNull String toMaterial) {
+                                                                      @NotNull String toMaterial) {
         return ConvertOreManager.getConvertOption(fromMaterial, toMaterial);
     }
 
@@ -219,7 +219,7 @@ public class ConvertAPI {
      */
     @NotNull
     public static Map<String, Boolean> batchConvert(@NotNull Player player,
-                                                     @NotNull Map<String, ConversionRequest> conversions) {
+                                                    @NotNull Map<String, ConversionRequest> conversions) {
         Map<String, Boolean> results = new HashMap<>();
 
         for (Map.Entry<String, ConversionRequest> entry : conversions.entrySet()) {

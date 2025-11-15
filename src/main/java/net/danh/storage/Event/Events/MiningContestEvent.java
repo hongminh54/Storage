@@ -3,7 +3,7 @@ package net.danh.storage.Event.Events;
 import net.danh.storage.Event.BaseEvent;
 import net.danh.storage.Event.EventType;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
@@ -64,7 +64,7 @@ public class MiningContestEvent extends BaseEvent {
         int fadeOut = File.getEventConfig().getInt("notifications.titles.fade_out", 20);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendTitle(Chat.colorizewp(title), Chat.colorizewp(subtitle), fadeIn, stay, fadeOut);
+            player.sendTitle(ChatUtils.colorizewp(title), ChatUtils.colorizewp(subtitle), fadeIn, stay, fadeOut);
         }
     }
 
@@ -74,7 +74,7 @@ public class MiningContestEvent extends BaseEvent {
         String message = File.getMessage().getString("events.mining_contest.chat.manual_stop_complete");
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -127,7 +127,7 @@ public class MiningContestEvent extends BaseEvent {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!participantsOnly || eventData.getParticipants().contains(player.getUniqueId())) {
-                player.sendMessage(Chat.colorizewp(progressMessage));
+                player.sendMessage(ChatUtils.colorizewp(progressMessage));
             }
         }
     }
@@ -172,7 +172,7 @@ public class MiningContestEvent extends BaseEvent {
                 .replace("#time#", formatTime(remainingTime));
 
         player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                net.md_5.bungee.api.chat.TextComponent.fromLegacyText(Chat.colorizewp(actionBarMessage)));
+                net.md_5.bungee.api.chat.TextComponent.fromLegacyText(ChatUtils.colorizewp(actionBarMessage)));
     }
 
 
@@ -185,7 +185,7 @@ public class MiningContestEvent extends BaseEvent {
         if (sortedPlayers.isEmpty()) {
             String noWinnersMessage = File.getMessage().getString("events.mining_contest.chat.no_participants_detailed");
             for (Player player : Bukkit.getOnlinePlayers()) {
-                player.sendMessage(Chat.colorizewp(noWinnersMessage));
+                player.sendMessage(ChatUtils.colorizewp(noWinnersMessage));
             }
             return;
         }
@@ -211,7 +211,7 @@ public class MiningContestEvent extends BaseEvent {
                         .replace("#amount#", String.valueOf(entry.getValue()));
 
                 for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                    onlinePlayer.sendTitle(Chat.colorizewp(winnerTitle), Chat.colorizewp(winnerSubtitle), 10, 70, 20);
+                    onlinePlayer.sendTitle(ChatUtils.colorizewp(winnerTitle), ChatUtils.colorizewp(winnerSubtitle), 10, 70, 20);
                 }
             }
         }
@@ -241,7 +241,7 @@ public class MiningContestEvent extends BaseEvent {
 
                 String rewardMessage = File.getMessage().getString("events.common.chat.reward_received");
 
-                player.sendMessage(Chat.colorizewp(rewardMessage));
+                player.sendMessage(ChatUtils.colorizewp(rewardMessage));
             }
         }
     }
@@ -272,11 +272,11 @@ public class MiningContestEvent extends BaseEvent {
 
         // Header
         String header = File.getMessage().getString("events.mining_contest.chat.leaderboard_header");
-        leaderboard.append(Chat.colorizewp(header)).append("\n");
+        leaderboard.append(ChatUtils.colorizewp(header)).append("\n");
 
         // Separator
         String separator = File.getMessage().getString("events.mining_contest.chat.leaderboard_separator");
-        leaderboard.append(Chat.colorizewp(separator)).append("\n");
+        leaderboard.append(ChatUtils.colorizewp(separator)).append("\n");
 
         // Get display count from config
         int displayCount = File.getEventConfig().getInt("events.mining_contest.leaderboard.display_count", 10);
@@ -301,19 +301,19 @@ public class MiningContestEvent extends BaseEvent {
                         .replace("#player#", player.getName())
                         .replace("#amount#", String.valueOf(entry.getValue()));
 
-                leaderboard.append(Chat.colorizewp(entryMessage)).append("\n");
+                leaderboard.append(ChatUtils.colorizewp(entryMessage)).append("\n");
             }
         }
 
         // Show statistics if enabled
         if (File.getEventConfig().getBoolean("events.mining_contest.leaderboard.show_statistics", true)) {
-            leaderboard.append(Chat.colorizewp(separator)).append("\n");
+            leaderboard.append(ChatUtils.colorizewp(separator)).append("\n");
             leaderboard.append(getEventStatistics()).append("\n");
         }
 
         // Footer
         String footer = File.getMessage().getString("events.mining_contest.chat.leaderboard_footer");
-        leaderboard.append(Chat.colorizewp(footer));
+        leaderboard.append(ChatUtils.colorizewp(footer));
 
         return leaderboard.toString();
     }
@@ -328,7 +328,7 @@ public class MiningContestEvent extends BaseEvent {
                 .replace("#total_blocks#", String.valueOf(totalBlocks))
                 .replace("#duration#", formatTime(eventDuration));
 
-        return Chat.colorizewp(statistics);
+        return ChatUtils.colorizewp(statistics);
     }
 
     public int getPlayerRank(Player player) {
@@ -363,7 +363,7 @@ public class MiningContestEvent extends BaseEvent {
         message = message.replace("#duration#", String.valueOf(duration / 60));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -375,7 +375,7 @@ public class MiningContestEvent extends BaseEvent {
         String message = File.getMessage().getString("events.mining_contest.chat.first_mine");
         if (message == null || message.isEmpty()) return;
 
-        player.sendMessage(Chat.colorizewp(message));
+        player.sendMessage(ChatUtils.colorizewp(message));
     }
 
     private void checkMilestones(Player player, int previousTotal, int currentTotal, int rank) {
@@ -401,7 +401,7 @@ public class MiningContestEvent extends BaseEvent {
         message = message.replace("#amount#", String.valueOf(amount))
                 .replace("#rank#", rank > 0 ? String.valueOf(rank) : "N/A");
 
-        player.sendMessage(Chat.colorizewp(message));
+        player.sendMessage(ChatUtils.colorizewp(message));
     }
 
     private void sendRankImprovedMessage(Player player, int rank, int amount) {
@@ -411,6 +411,6 @@ public class MiningContestEvent extends BaseEvent {
         message = message.replace("#rank#", String.valueOf(rank))
                 .replace("#amount#", String.valueOf(amount));
 
-        player.sendMessage(Chat.colorizewp(message));
+        player.sendMessage(ChatUtils.colorizewp(message));
     }
 }

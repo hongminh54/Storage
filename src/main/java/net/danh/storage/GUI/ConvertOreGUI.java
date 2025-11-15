@@ -6,7 +6,7 @@ import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
@@ -53,7 +53,7 @@ public class ConvertOreGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
-        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("title"))
+        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title"))
                 .replace("#player#", player.getName()));
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 

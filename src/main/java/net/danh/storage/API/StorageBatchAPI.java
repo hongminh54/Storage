@@ -183,7 +183,7 @@ public class StorageBatchAPI {
      */
     @NotNull
     public static Map<String, Boolean> transferMultipleItems(@NotNull Player sender, @NotNull Player receiver,
-                                                              @NotNull Map<String, Integer> items) {
+                                                             @NotNull Map<String, Integer> items) {
         Map<String, Boolean> results = new HashMap<>();
 
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
@@ -215,7 +215,7 @@ public class StorageBatchAPI {
      */
     @NotNull
     public static CompletableFuture<Map<String, Boolean>> addItemsAsync(@NotNull Player player,
-                                                                          @NotNull Map<String, Integer> items) {
+                                                                        @NotNull Map<String, Integer> items) {
         return CompletableFuture.supplyAsync(() -> addItems(player, items));
     }
 
@@ -228,7 +228,7 @@ public class StorageBatchAPI {
      */
     @NotNull
     public static CompletableFuture<Map<String, Boolean>> removeItemsAsync(@NotNull Player player,
-                                                                             @NotNull Map<String, Integer> items) {
+                                                                           @NotNull Map<String, Integer> items) {
         return CompletableFuture.supplyAsync(() -> removeItems(player, items));
     }
 

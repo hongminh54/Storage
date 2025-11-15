@@ -3,7 +3,7 @@ package net.danh.storage.Action;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.NMS.NMSAssistant;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -32,7 +32,7 @@ public class MythicWithdraw {
             String message = File.getMessage().getString("mythicstorage.action.withdraw.not_enough", "")
                     .replace("#amount#", String.valueOf(currentAmount));
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
             return;
         }
@@ -41,7 +41,7 @@ public class MythicWithdraw {
         if (helper == null || !helper.isInitialized()) {
             String message = File.getMessage().getString("mythicstorage.system_disabled", "");
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
             return;
         }
@@ -54,7 +54,7 @@ public class MythicWithdraw {
             String message = File.getMessage().getString("mythicstorage.invalid_item", "")
                     .replace("#item#", displayName);
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
             return;
         }
@@ -71,7 +71,7 @@ public class MythicWithdraw {
             if (!notFit.isEmpty()) {
                 String message = File.getMessage().getString("mythicstorage.action.withdraw.inventory_full", "");
                 if (!message.isEmpty()) {
-                    player.sendMessage(Chat.colorizewp(message));
+                    player.sendMessage(ChatUtils.colorizewp(message));
                 }
                 break;
             }
@@ -92,7 +92,7 @@ public class MythicWithdraw {
                     .replace("#item_amount#", String.valueOf(MythicStorageManager.getPlayerItem(player, itemName)))
                     .replace("#max_storage#", String.valueOf(MythicStorageManager.getMaxStorage(player)));
             if (!message.isEmpty()) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         }
     }

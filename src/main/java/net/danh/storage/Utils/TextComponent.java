@@ -14,10 +14,10 @@ public class TextComponent {
             try {
                 sendSpigotTextComponent(player, message, hoverText, command);
             } catch (Exception e) {
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         } else {
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -27,11 +27,11 @@ public class TextComponent {
                 sendSpigotHoverComponent(player, message, hoverText);
             } catch (Exception e) {
                 // Fallback to regular message
-                player.sendMessage(Chat.colorizewp(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         } else {
             // For very old versions, just send regular message
-            player.sendMessage(Chat.colorizewp(message));
+            player.sendMessage(ChatUtils.colorizewp(message));
         }
     }
 
@@ -44,7 +44,7 @@ public class TextComponent {
 
         // Create main text component
         Constructor<?> textConstructor = textComponentClass.getConstructor(String.class);
-        Object textComponent = textConstructor.newInstance(Chat.colorizewp(message));
+        Object textComponent = textConstructor.newInstance(ChatUtils.colorizewp(message));
 
         // Create hover event if hover text is provided
         if (hoverText != null && !hoverText.isEmpty()) {
@@ -52,7 +52,7 @@ public class TextComponent {
                 // Try new HoverEvent constructor (1.16+)
                 Class<?> contentClass = Class.forName("net.md_5.bungee.api.chat.hover.content.Text");
                 Constructor<?> contentConstructor = contentClass.getConstructor(String.class);
-                Object content = contentConstructor.newInstance(Chat.colorizewp(hoverText));
+                Object content = contentConstructor.newInstance(ChatUtils.colorizewp(hoverText));
 
                 Constructor<?> hoverConstructor = hoverEventClass.getConstructor(
                         Class.forName("net.md_5.bungee.api.chat.HoverEvent$Action"),
@@ -66,7 +66,7 @@ public class TextComponent {
                 // Fallback to old HoverEvent constructor (1.8-1.15)
                 try {
                     Constructor<?> hoverTextConstructor = textComponentClass.getConstructor(String.class);
-                    Object hoverTextComponent = hoverTextConstructor.newInstance(Chat.colorizewp(hoverText));
+                    Object hoverTextComponent = hoverTextConstructor.newInstance(ChatUtils.colorizewp(hoverText));
 
                     Constructor<?> hoverConstructor = hoverEventClass.getConstructor(
                             Class.forName("net.md_5.bungee.api.chat.HoverEvent$Action"),
@@ -114,17 +114,17 @@ public class TextComponent {
             } catch (Exception e) {
                 // Fallback to regular messages
                 if (hasPrev) {
-                    player.sendMessage(Chat.colorizewp(prevText + "     " + (hasNext ? nextText : "&8Next ▶")));
+                    player.sendMessage(ChatUtils.colorizewp(prevText + "     " + (hasNext ? nextText : "&8Next ▶")));
                 } else {
-                    player.sendMessage(Chat.colorizewp("&8◀ Previous     " + (hasNext ? nextText : "&8Next ▶")));
+                    player.sendMessage(ChatUtils.colorizewp("&8◀ Previous     " + (hasNext ? nextText : "&8Next ▶")));
                 }
             }
         } else {
             // For very old versions, just send regular message
             if (hasPrev) {
-                player.sendMessage(Chat.colorizewp(prevText + "     " + (hasNext ? nextText : "&8Next ▶")));
+                player.sendMessage(ChatUtils.colorizewp(prevText + "     " + (hasNext ? nextText : "&8Next ▶")));
             } else {
-                player.sendMessage(Chat.colorizewp("&8◀ Previous     " + (hasNext ? nextText : "&8Next ▶")));
+                player.sendMessage(ChatUtils.colorizewp("&8◀ Previous     " + (hasNext ? nextText : "&8Next ▶")));
             }
         }
     }
@@ -145,21 +145,21 @@ public class TextComponent {
         Object prevComponent;
         if (hasPrev) {
             prevComponent = createClickableComponent(textComponentClass, hoverEventClass, clickEventClass, baseComponentClass,
-                    Chat.colorizewp(prevText), Chat.colorizewp(prevHover), prevCommand);
+                    ChatUtils.colorizewp(prevText), ChatUtils.colorizewp(prevHover), prevCommand);
         } else {
-            prevComponent = textConstructor.newInstance(Chat.colorizewp("&8◀ Previous"));
+            prevComponent = textConstructor.newInstance(ChatUtils.colorizewp("&8◀ Previous"));
         }
 
         // Add spacing
-        Object spacingComponent = textConstructor.newInstance(Chat.colorizewp("     "));
+        Object spacingComponent = textConstructor.newInstance(ChatUtils.colorizewp("     "));
 
         // Add next component
         Object nextComponent;
         if (hasNext) {
             nextComponent = createClickableComponent(textComponentClass, hoverEventClass, clickEventClass, baseComponentClass,
-                    Chat.colorizewp(nextText), Chat.colorizewp(nextHover), nextCommand);
+                    ChatUtils.colorizewp(nextText), ChatUtils.colorizewp(nextHover), nextCommand);
         } else {
-            nextComponent = textConstructor.newInstance(Chat.colorizewp("&8Next ▶"));
+            nextComponent = textConstructor.newInstance(ChatUtils.colorizewp("&8Next ▶"));
         }
 
         // Combine components

@@ -6,7 +6,7 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.MythicTransferManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
@@ -39,7 +39,7 @@ public class MythicTransferMultiGUI implements IGUI {
         this.reservedSlots = new HashSet<>();
 
         FileConfiguration guiConfig = getMythicTransferMultiConfig();
-        String title = Chat.colorizewp(guiConfig.getString("title", "&0Multi Transfer MythicMobs to #player#").replace("#player#", targetPlayer));
+        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Multi Transfer MythicMobs to #player#").replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
         this.inventory = Bukkit.createInventory(this, size, title);
@@ -385,7 +385,7 @@ public class MythicTransferMultiGUI implements IGUI {
 
     private void confirmTransfer() {
         if (selectedAmounts.isEmpty()) {
-            player.sendMessage(Chat.colorize(File.getMessage().getString("mythicstorage.transfer.no_items_selected")));
+            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.no_items_selected")));
             return;
         }
 

@@ -3,11 +3,12 @@ package net.danh.storage.GUI;
 import net.danh.storage.Action.ConvertOre;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
@@ -48,7 +49,7 @@ public class ConvertOptionGUI implements IGUI {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
         String materialName = File.getConfig().getString("items." + material, material.split(";")[0]);
-        String title = Chat.colorizewp(Objects.requireNonNull(config.getString("option_title"))
+        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("option_title"))
                 .replace("#player#", player.getName())
                 .replace("#material#", materialName));
 
@@ -152,10 +153,10 @@ public class ConvertOptionGUI implements IGUI {
             SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, returnPage).getInventory(SoundContext.SILENT));
         } else {
-            net.danh.storage.Listeners.Chat.chat_convert_from.put(clickPlayer, option.getFromMaterial());
-            net.danh.storage.Listeners.Chat.chat_convert_to.put(clickPlayer, option.getToMaterial());
-            net.danh.storage.Listeners.Chat.chat_return_page.put(clickPlayer, returnPage);
-            clickPlayer.sendMessage(Chat.colorize(File.getMessage().getString("convert.chat_amount")));
+            ChatListener.chat_convert_from.put(clickPlayer, option.getFromMaterial());
+            ChatListener.chat_convert_to.put(clickPlayer, option.getToMaterial());
+            ChatListener.chat_return_page.put(clickPlayer, returnPage);
+            clickPlayer.sendMessage(ChatUtils.colorize(File.getMessage().getString("convert.chat_amount")));
             SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.closeInventory();
         }
@@ -254,7 +255,7 @@ public class ConvertOptionGUI implements IGUI {
             for (int i = 0; i < replacements.length - 1; i += 2) {
                 message = message.replace(replacements[i], replacements[i + 1]);
             }
-            player.sendMessage(Chat.colorize(message));
+            player.sendMessage(ChatUtils.colorize(message));
         }
     }
 }

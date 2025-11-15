@@ -1,6 +1,6 @@
 package net.danh.storage.Manager;
 
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.Player;
 
@@ -23,7 +23,7 @@ public class StorageFullNotificationManager {
         if (lastTime == null || (currentTime - lastTime) >= cooldownMs) {
             String message = File.getMessage().getString("user.full_storage");
             if (message != null) {
-                player.sendMessage(Chat.colorize(message));
+                player.sendMessage(ChatUtils.colorize(message));
             }
             lastNotificationTime.put(player, currentTime);
         }

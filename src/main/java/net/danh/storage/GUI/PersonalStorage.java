@@ -5,7 +5,7 @@ import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.Chat;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
@@ -51,7 +51,7 @@ public class PersonalStorage implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(p, config, "gui_open_sound", context);
-        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, Chat.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
         List<String> item_list = new ArrayList<>(MineManager.getOrderedPluginBlocks());
         int itemsPerPage = Objects.requireNonNull(config.getString("items.storage_item.slot")).split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) item_list.size() / itemsPerPage));
@@ -96,7 +96,7 @@ public class PersonalStorage implements IGUI {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                             boolean currentStatus = MineManager.getToggleStatus(p);
                             MineManager.toggle.put(p, !currentStatus);
-                            p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
+                            p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                             SoundManager.setShouldPlayCloseSound(p, false);
                             p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
                         });
@@ -107,7 +107,7 @@ public class PersonalStorage implements IGUI {
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                         boolean currentStatus = MineManager.getToggleStatus(p);
                         MineManager.toggle.put(p, !currentStatus);
-                        p.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
+                        p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                         SoundManager.setShouldPlayCloseSound(p, false);
                         p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
                     });
@@ -118,7 +118,7 @@ public class PersonalStorage implements IGUI {
                     for (String slot_string : slot.split(",")) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
                             if (!player.hasPermission("storage.convert")) {
-                                player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+                                player.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
                                 player.closeInventory();
                                 return;
                             }
@@ -131,7 +131,7 @@ public class PersonalStorage implements IGUI {
                 } else {
                     InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot)).onClick((player, clickType) -> {
                         if (!player.hasPermission("storage.convert")) {
-                            player.sendMessage(Chat.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
+                            player.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
                             player.closeInventory();
                             return;
                         }

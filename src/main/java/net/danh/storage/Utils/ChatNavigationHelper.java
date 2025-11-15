@@ -132,18 +132,18 @@ public class ChatNavigationHelper {
             fallback.append(disabledColorCode).append(nextDisabledText);
         }
 
-        player.sendMessage(Chat.colorizewp(fallback.toString()));
+        player.sendMessage(ChatUtils.colorizewp(fallback.toString()));
 
         String helpMessage = messageConfig.getString(colorsKey.replace(".log_nav_colors", ".log_nav_help"));
         if (helpMessage != null) {
-            player.sendMessage(Chat.colorizewp(helpMessage));
+            player.sendMessage(ChatUtils.colorizewp(helpMessage));
         }
 
         if (hasPrev) {
-            player.sendMessage(Chat.colorizewp("&7Previous: &e" + prevCommand));
+            player.sendMessage(ChatUtils.colorizewp("&7Previous: &e" + prevCommand));
         }
         if (hasNext) {
-            player.sendMessage(Chat.colorizewp("&7Next: &e" + nextCommand));
+            player.sendMessage(ChatUtils.colorizewp("&7Next: &e" + nextCommand));
         }
     }
 
