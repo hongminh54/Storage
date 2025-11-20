@@ -292,6 +292,22 @@ public class MineManager {
         return false;
     }
 
+    public static String normalizeMaterial(String material) {
+        if (material == null || material.isEmpty()) {
+            return material;
+        }
+
+        if (material.contains(";")) {
+            return material;
+        }
+
+        if (material.contains(":")) {
+            return material.replace(":", ";");
+        }
+
+        return material + ";0";
+    }
+
     public static String getMaterial(String material) {
         String material_data = material.replace(":", ";");
         NMSAssistant nms = new NMSAssistant();

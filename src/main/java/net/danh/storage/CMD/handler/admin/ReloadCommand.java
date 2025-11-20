@@ -1,10 +1,7 @@
 package net.danh.storage.CMD.handler.admin;
 
 import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.Manager.AutoSaveManager;
-import net.danh.storage.Manager.EnchantManager;
-import net.danh.storage.Manager.EventManager;
-import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.*;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.command.CommandSender;
@@ -22,6 +19,7 @@ public class ReloadCommand extends BaseCommand {
         AutoSaveManager.restartAutoSave();
         EventManager.reloadEvents();
         EnchantManager.loadEnchants();
+        CraftingManager.loadRecipes();
 
         for (Player player : Storage.getStorage().getServer().getOnlinePlayers()) {
             MineManager.convertOfflineData(player);

@@ -288,6 +288,78 @@ public class ParticleManager {
         stopAnimation("processing_" + player.getName());
     }
 
+    public static void playCraftingProcessingAnimation(Player player, int durationSeconds) {
+        String animationKey = "crafting_processing_" + player.getName();
+        stopAnimation(animationKey);
+
+        FileConfiguration config = File.getCraftingConfig();
+        if (!config.getBoolean("settings.particles.enabled", true)) return;
+
+        ParticleAnimation animation = ParticleAnimation.fromString(
+                config.getString("settings.particles.processing.animation", "circle"));
+
+        if (animation == ParticleAnimation.NONE) return;
+
+        final int maxTicks = durationSeconds * 20;
+        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+            private int ticks = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || ticks >= maxTicks) {
+                    TaskWrapper t = activeAnimations.remove(animationKey);
+                    if (t != null) t.cancel();
+                    return;
+                }
+
+                playAnimationFrame(player, animation, ticks, "settings.particles.processing");
+                ticks++;
+            }
+        }, 0L, 1L);
+
+        activeAnimations.put(animationKey, task);
+    }
+
+    public static void stopCraftingProcessingAnimation(Player player) {
+        stopAnimation("crafting_processing_" + player.getName());
+    }
+
+    public static void playCraftingSuccessParticle(Player player) {
+        if (player == null || !player.isOnline()) return;
+
+        FileConfiguration config = File.getCraftingConfig();
+        if (!config.getBoolean("settings.particles.enabled", true)) return;
+
+        String particleName = config.getString("settings.particles.success.type", "TOTEM");
+        int count = config.getInt("settings.particles.success.count", 20);
+        double speed = config.getDouble("settings.particles.success.speed", 0.1);
+
+        try {
+            Location location = player.getLocation().add(0, 1, 0);
+            playParticleEffect(player, location, particleName, count, speed);
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Failed to play crafting success particle for: " + player.getName());
+        }
+    }
+
+    public static void playCraftingFailedParticle(Player player) {
+        if (player == null || !player.isOnline()) return;
+
+        FileConfiguration config = File.getCraftingConfig();
+        if (!config.getBoolean("settings.particles.enabled", true)) return;
+
+        String particleName = config.getString("settings.particles.failed.type", "SMOKE_NORMAL");
+        int count = config.getInt("settings.particles.failed.count", 10);
+        double speed = config.getDouble("settings.particles.failed.speed", 0.05);
+
+        try {
+            Location location = player.getLocation().add(0, 1, 0);
+            playParticleEffect(player, location, particleName, count, speed);
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Failed to play crafting failed particle for: " + player.getName());
+        }
+    }
+
     public static void playSpecialMaterialParticle(Location location, String particleType, int count,
                                                    double speed, String animation, double radius) {
         if (location == null || location.getWorld() == null) return;

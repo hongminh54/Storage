@@ -1,0 +1,121 @@
+# Crafting System Configuration
+# Version: 1.0
+
+settings:
+  # Enable/disable crafting system
+  enabled: true
+
+  # Crafting delay settings
+  delay:
+    enabled: true
+    seconds: 3
+
+  # Sound settings
+  sounds:
+    enabled: true
+    success:
+      name: "ENTITY_PLAYER_LEVELUP"
+      volume: 0.7
+      pitch: 1.2
+    failed:
+      name: "ENTITY_VILLAGER_NO"
+      volume: 0.8
+      pitch: 0.8
+
+  # Particle settings
+  particles:
+    enabled: true
+    processing:
+      type: "VILLAGER_HAPPY"
+      count: 5
+      speed: 0.1
+      animation: "circle"  # Options: none, circle, spiral, helix, wave
+    success:
+      type: "TOTEM"
+      count: 20
+      speed: 0.1
+    failed:
+      type: "SMOKE_NORMAL"
+      count: 10
+      speed: 0.05
+
+# Recipe categories
+categories:
+  default:
+    name: "&7Default"
+    description: "&7Uncategorized recipes"
+    icon: "CRAFTING_TABLE"
+  tools:
+    name: "&6Tools & Weapons"
+    description: "&7Craft powerful tools and weapons"
+    icon: "DIAMOND_SWORD"
+  blocks:
+    name: "&aBlocks & Building"
+    description: "&7Create decorative and functional blocks"
+    icon: "STONE"
+  misc:
+    name: "&bMiscellaneous"
+    description: "&7Various useful items"
+    icon: "CHEST"
+
+# Custom recipes
+recipes:
+  # Example recipe - Diamond Sword
+  example_diamond_sword:
+    name: "&b&lEnhanced Diamond Sword"
+    category: "tools"
+    enabled: true
+
+    # Result item configuration
+    result:
+      material: "DIAMOND_SWORD"
+      name: "&b&lEnhanced Diamond Sword"
+      lore:
+        - "&7A powerful sword forged"
+        - "&7from rare materials in your storage"
+        - ""
+        - "&6&lLEGENDARY WEAPON"
+      amount: 1
+      custom_model_data: 0
+      unbreakable: true
+      enchantments:
+        DAMAGE_ALL: 5
+        DURABILITY: 3
+        FIRE_ASPECT: 2
+      flags:
+        - "HIDE_ENCHANTS"
+        - "HIDE_ATTRIBUTES"
+
+    # Requirements from storage
+    requirements:
+      materials:
+        'DIAMOND': 10
+        'IRON_INGOT': 5
+        'GOLD_INGOT': 3
+      permissions:
+        - "storage.craft.enhanced"
+
+  # Example recipe - Compressed Stone
+  example_compressed_stone:
+    name: "&7Compressed Stone"
+    category: "blocks"
+    enabled: true
+
+    result:
+      material: "OBSIDIAN"
+      name: "&7&lCompressed Stone"
+      lore:
+        - "&7Stone compressed into"
+        - "&7a much denser form"
+        - ""
+        - "&7Equivalent to &e1000 &7stone"
+      amount: 1
+      custom_model_data: 0
+      unbreakable: false
+      enchantments: {}
+      flags: []
+
+    requirements:
+      materials:
+        'STONE': 1000
+      permissions: []

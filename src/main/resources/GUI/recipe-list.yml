@@ -1,0 +1,153 @@
+# Recipe List GUI Configuration
+title: "&0Crafting | #player#"
+size: 6
+
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_CHEST_OPEN"
+  volume: 0.8
+  pitch: 1.0
+
+items:
+  decorates:
+    slot: 0,1,2,3,4,5,6,7,8,9,17,18,26,27,35,36,44,45,46,47,48,50,51,52,53
+    name: "&7 "
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: false
+
+  recipe_item:
+    slot: 10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43
+    lore:
+      - "&7 "
+      - "&e&lRecipe: &f#recipe_name#"
+      - "&7Category: &f#category#"
+      - "&7Result: &f#result_amount#x #result_name#"
+      - "&7 "
+      - "&e&lRequirements:"
+      - "#requirements#"
+      - "&7 "
+      - "&a&lLeft-Click: &fCraft All"
+      - "&e&lRight-Click: &fCraft 1"
+      - "&6&lShift-Left: &fCustom Amount"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.0
+
+  no_recipes:
+    slot: 22
+    material: BARRIER
+    name: "&cNo Recipes Available"
+    lore:
+      - "&7 "
+      - "&7There are no recipes"
+      - "&7available for you."
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    flags:
+      ALL: true
+    sound:
+      enabled: false
+
+  category_filter:
+    slot: 49
+    material: COMPASS
+    name: "&e&lCategory Filter"
+    lore:
+      - "&7Current: &f#current_category#"
+      - "&7 "
+      - "&aClick to change category"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.0
+
+  previous_page:
+    slot: 45
+    material: ARROW
+    name: "&e&lPrevious Page"
+    lore:
+      - "&7Page: &f#current_page# &7/ &f#total_pages#"
+      - "&7 "
+      - "&aClick to go back"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.0
+
+  next_page:
+    slot: 53
+    material: ARROW
+    name: "&e&lNext Page"
+    lore:
+      - "&7Page: &f#current_page# &7/ &f#total_pages#"
+      - "&7 "
+      - "&aClick to continue"
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.0
+
+  close:
+    slot: 48
+    material: BARRIER
+    name: "&c&lClose"
+    lore:
+      - "&7 "
+      - "&7Click to close"
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 1
+    unbreakable: true
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "BLOCK_CHEST_CLOSE"
+      volume: 0.8
+      pitch: 1.0

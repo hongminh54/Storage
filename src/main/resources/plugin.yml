@@ -94,3 +94,9 @@ permissions:
   storage.mythicstorage.transfer.log.others:
     description: View other players MythicMobs transfer logs
     default: true
+  storage.craft.use:
+    description: Use crafting feature
+    default: true
+  storage.craft.admin:
+    description: Admin commands for crafting system
+    default: op

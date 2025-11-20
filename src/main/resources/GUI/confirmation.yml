@@ -1,0 +1,73 @@
+# Confirmation GUI Configuration
+title: "&0Confirm Action"
+size: 3
+
+# Sound when opening this GUI
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_NOTE_BLOCK_PLING"
+  volume: 0.8
+  pitch: 1.0
+
+items:
+  # Decorative items
+  decorates:
+    slot: 0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 19, 20, 21, 23, 24, 25, 26
+    name: "&7"
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}
+
+  # Message display (center)
+  message:
+    slot: 4
+    name: "&e&lConfirmation Required"
+    material: PAPER
+    lore:
+      - "&7#message#"
+      - "&7"
+      - "&cThis action cannot be undone!"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}
+
+  # Confirm button (green)
+  confirm:
+    slot: 11
+    name: "&a&lCONFIRM"
+    material: LIME_DYE
+    lore:
+      - "&7Click to confirm this action"
+      - "&7"
+      - "&a✓ Proceed with action"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}
+
+  # Cancel button (red)
+  cancel:
+    slot: 15
+    name: "&c&lCANCEL"
+    material: RED_DYE
+    lore:
+      - "&7Click to cancel this action"
+      - "&7"
+      - "&c✗ Go back safely"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}

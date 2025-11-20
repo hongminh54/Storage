@@ -1,0 +1,214 @@
+# Material Selection GUI Configuration
+# Used for selecting materials for recipe result or requirements
+
+title: "&0#category_name# | #player#"
+size: 6
+
+# Sound when opening this GUI
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_CHEST_OPEN"
+  volume: 0.7
+  pitch: 1.1
+
+items:
+  # Border decoration
+  border:
+    slot: 0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 50, 51, 52, 53
+    name: "&7 "
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  # Category info button (center top)
+  category_info:
+    slot: 4
+    name: "&6#category_name#"
+    material: BOOK
+    lore:
+      - "&7Category #category_number# of #total_categories#"
+      - "&7"
+      - "&eClick to cycle categories"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.2
+
+  # Previous category button
+  previous_category:
+    slot: 0
+    name: "&ePrevious Category"
+    material: ARROW
+    lore:
+      - "&7Current: &e#category_name#"
+      - "&7"
+      - "&eClick to go to previous category"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.0
+
+  # Next category button
+  next_category:
+    slot: 8
+    name: "&eNext Category"
+    material: ARROW
+    lore:
+      - "&7Current: &e#category_name#"
+      - "&7"
+      - "&eClick to go to next category"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.2
+
+  # Material item slots (dynamic)
+  material_item:
+    slot: 10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43
+    name: "&e#material_name#"
+    material: "#material_name#"
+    lore:
+      - "&7Click to select this material"
+      - "#selection_type_lore#"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: []
+    sound:
+      enabled: true
+      name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.8
+      pitch: 1.5
+
+  # Search button
+  search:
+    slot: 4
+    name: "&6Search Material"
+    material: COMPASS
+    lore:
+      - "&7Click to search for"
+      - "&7a specific material by name"
+      - "&7"
+      - "&eType material name in chat"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.3
+
+  # Previous page button
+  previous_page:
+    slot: 45
+    name: "&aPrevious Page"
+    material: ARROW
+    lore:
+      - "&7Page #current_page# / #total_pages#"
+      - "&7"
+      - "&eClick to go to previous page"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.0
+
+  # Next page button
+  next_page:
+    slot: 53
+    name: "&aNext Page"
+    material: ARROW
+    lore:
+      - "&7Page #current_page# / #total_pages#"
+      - "&7"
+      - "&eClick to go to next page"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.2
+
+  # Back button
+  back:
+    slot: 49
+    name: "&cBack"
+    material: BARRIER
+    lore:
+      - "&7Return to recipe editor"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 0.8
+
+# Selection type lore templates
+selection_lore:
+  result: "&7for the result item"
+  requirement: "&7as a requirement"

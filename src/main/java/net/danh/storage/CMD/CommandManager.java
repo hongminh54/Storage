@@ -24,6 +24,7 @@ public class CommandManager {
         registerCommand("view", new ViewCommand());
         registerCommand("transfer", new TransferCommand());
         registerCommand("convert", new ConvertOreCommand());
+        registerCommand("craft", new CraftCommand());
 
         registerCommand("reload", new ReloadCommand());
         registerCommand("autosave", new AutoSaveCommand());
@@ -36,6 +37,7 @@ public class CommandManager {
         registerCommand("reset", new ResetCommand());
         registerCommand("enchant", new EnchantCommand());
         registerCommand("specialmaterial", new SpecialMaterialCommand());
+        registerCommand("crafteditor", new CraftEditorCommand());
     }
 
     private void registerCommand(String name, CommandHandler handler) {

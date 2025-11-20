@@ -72,13 +72,57 @@ public class File {
         return getFileSetting().get("mythicstorage.yml");
     }
 
+    public static FileConfiguration getCraftingConfig() {
+        return getFileSetting().get("crafting.yml");
+    }
+
+    public static void saveCraftingConfig() {
+        getFileSetting().save("crafting.yml");
+    }
+
+    public static FileConfiguration getRecipeListGUIConfig() {
+        return getFileSetting().get("GUI/recipe-list.yml");
+    }
+
+    public static FileConfiguration getRecipeEditorGUIConfig() {
+        return getFileSetting().get("GUI/recipe-editor.yml");
+    }
+
+    public static FileConfiguration getRecipeEditorListGUIConfig() {
+        return getFileSetting().get("GUI/recipe-editor-list.yml");
+    }
+
+    public static FileConfiguration getMaterialSelectionGUIConfig() {
+        return getFileSetting().get("GUI/material-selection.yml");
+    }
+
+    public static FileConfiguration getPermissionRequirementsGUIConfig() {
+        return getFileSetting().get("GUI/permission-requirements.yml");
+    }
+
+    public static FileConfiguration getItemFlagsEditorGUIConfig() {
+        return getFileSetting().get("GUI/item-flags-editor.yml");
+    }
+
+    public static FileConfiguration getConfirmationGUIConfig() {
+        return getFileSetting().get("GUI/confirmation.yml");
+    }
+
+    public static FileConfiguration getEnchantmentsEditorGUIConfig() {
+        return getFileSetting().get("GUI/enchantments-editor.yml");
+    }
+
+    public static FileConfiguration getEnchantmentSelectionGUIConfig() {
+        return getFileSetting().get("GUI/enchantment-selection.yml");
+    }
+
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/permission-requirements.yml", "GUI/item-flags-editor.yml", "GUI/confirmation.yml", "GUI/enchantments-editor.yml", "GUI/enchantment-selection.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -88,7 +132,7 @@ public class File {
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/permission-requirements.yml", "GUI/item-flags-editor.yml", "GUI/confirmation.yml", "GUI/enchantments-editor.yml", "GUI/enchantment-selection.yml");
     }
 
     public static void updateConfig() {

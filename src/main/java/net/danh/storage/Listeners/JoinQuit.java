@@ -61,5 +61,12 @@ public class JoinQuit implements Listener {
 
         // Cleanup sound tracking data
         SoundManager.cleanupPlayer(p);
+
+        // Cleanup crafting data
+        CraftingManager.cancelCrafting(p);
+        ChatListener.craftingRequests.remove(p.getUniqueId());
+
+        // Cleanup recipe editing data
+        RecipeEditManager.cancelEdit(p);
     }
 }

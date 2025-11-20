@@ -8,6 +8,7 @@ import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.*;
 import net.danh.storage.Manager.*;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Placeholder.CraftingPlaceholder;
 import net.danh.storage.Placeholder.PAPI;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
@@ -73,6 +74,8 @@ public final class Storage extends JavaPlugin {
         File.updateMythicStorageConfig();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
+            new CraftingPlaceholder(this).register();
+            getLogger().info("Registered PlaceholderAPI expansions (Storage + Crafting)");
         }
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace());
         new UpdateChecker(storage).fetch();
@@ -97,6 +100,7 @@ public final class Storage extends JavaPlugin {
         EventManager.initialize();
         EnchantManager.loadEnchants();
         SpecialMaterialManager.loadSpecialMaterials();
+        CraftingManager.loadRecipes();
 
         // Initialize MythicStorage if MythicMobs is available
         initializeMythicStorage();
@@ -119,6 +123,7 @@ public final class Storage extends JavaPlugin {
         }
         TransferManager.cancelAllTransfers();
         MythicTransferManager.cancelAllTransfers();
+        CraftingManager.cancelAllCrafting();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");

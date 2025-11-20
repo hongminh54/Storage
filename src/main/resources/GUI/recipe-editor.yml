@@ -1,0 +1,318 @@
+# Recipe Editor GUI Configuration
+title: "&0Recipe Editor | &e#recipe_name#"
+size: 6
+
+# Sound when opening this GUI
+gui_open_sound:
+  enabled: true
+  name: "BLOCK_CHEST_OPEN"
+  volume: 0.7
+  pitch: 1.1
+
+items:
+  # Decorative items
+  decorates:
+    slot: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 47, 51, 52
+    name: "&7"
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7 "
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  # Result preview (center)
+  result_preview:
+    slot: 13
+    name: "&e&lResult Preview"
+    material: CRAFTING_TABLE
+    lore:
+      - "&7This is how the item will look"
+      - "&7when crafted by players"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: []
+
+  # Item Configuration Panel
+  edit_material:
+    slot: 10
+    name: "&6Edit Material"
+    material: STONE
+    lore:
+      - "&7Current: &e#current_material#"
+      - "&7"
+      - "&eClick to change material"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  edit_name:
+    slot: 11
+    name: "&6Edit Name"
+    material: NAME_TAG
+    lore:
+      - "&7Current: #current_name#"
+      - "&7"
+      - "&eClick to change name"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  edit_lore:
+    slot: 12
+    name: "&6Edit Lore"
+    material: WRITABLE_BOOK
+    lore:
+      - "&7Lines: &e#lore_count#"
+      - "&7"
+      - "&eLeft-click to add line"
+      - "&cRight-click to remove last line"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  edit_amount:
+    slot: 14
+    name: "&6Edit Amount"
+    material: GOLD_NUGGET
+    lore:
+      - "&7Current: &e#current_amount#"
+      - "&7"
+      - "&eLeft-click: +1"
+      - "&eRight-click: -1"
+      - "&eShift-click: Custom amount"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  edit_enchantments:
+    slot: 15
+    name: "&6Edit Enchantments"
+    material: ENCHANTED_BOOK
+    lore:
+      - "&7Count: &e#enchant_count#"
+      - "&7"
+      - "&eClick to add enchantment"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  edit_flags:
+    slot: 16
+    name: "&6Edit Item Flags"
+    material: BANNER
+    lore:
+      - "&7Flags: &e#flag_count#"
+      - "&7"
+      - "&eClick to toggle HIDE_ENCHANTS"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  edit_custom_model_data:
+    slot: 19
+    name: "&6Custom Model Data"
+    material: ARMOR_STAND
+    lore:
+      - "&7Current: &e#current_cmd#"
+      - "&7"
+      - "&eClick to set custom model data"
+      - "&7Used for resource packs"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  toggle_unbreakable:
+    slot: 20
+    name: "&6Toggle Unbreakable"
+    material: ANVIL
+    lore:
+      - "&7Status: #status#"
+      - "&7"
+      - "&eClick to toggle"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  # Requirements Panel
+  requirements_title:
+    slot: 28
+    name: "&e&lMaterial Requirements"
+    material: CHEST
+    lore:
+      - "&7Materials needed to craft"
+      - "&7this recipe"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  add_requirement:
+    slot: 37
+    name: "&a&lAdd Requirement"
+    material: LIME_DYE
+    lore:
+      - "&7Click to add a new"
+      - "&7material requirement"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}
+
+  permission_requirements:
+    slot: 46
+    name: "&d&lPermission Requirements"
+    material: PAPER
+    lore:
+      - "&7Permissions: &e#permission_count#"
+      - "&7"
+      - "&eClick to manage permissions"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  # Requirement slots (dynamic)
+  requirement_slot:
+    slot: 29, 30, 31, 32, 33, 34, 38, 39, 40, 41, 42, 43
+    name: "&e#material#"
+    material: "#material#"
+    lore:
+      - "&7Amount: &a#amount#"
+      - "&7"
+      - "&eLeft-click: +1"
+      - "&eRight-click: -1"
+      - "&eShift-Left: Custom amount"
+      - "&cShift-Right: Remove"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: []
+
+  # Control Buttons
+  recipe_settings:
+    slot: 48
+    name: "&b&lRecipe Settings"
+    material: COMPARATOR
+    lore:
+      - "&7Category: &e#category#"
+      - "&7Status: #status#"
+      - "&7"
+      - "&eClick to edit settings"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  back:
+    slot: 49
+    name: "&eBack to List"
+    material: ARROW
+    lore:
+      - "&7Return to recipe list"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  save:
+    slot: 50
+    name: "&a&lSave & Exit"
+    material: EMERALD_BLOCK
+    lore:
+      - "&7Save changes and return"
+      - "&7to recipe list"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  delete:
+    slot: 53
+    name: "&c&lDelete Recipe"
+    material: REDSTONE_BLOCK
+    lore:
+      - "&7Permanently delete"
+      - "&7this recipe"
+      - "&7"
+      - "&c&lWARNING: Cannot be undone!"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true

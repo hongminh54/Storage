@@ -2,6 +2,8 @@ package net.danh.storage.Listeners;
 
 import net.danh.storage.Action.*;
 import net.danh.storage.GUI.*;
+import net.danh.storage.Manager.CraftingManager;
+import net.danh.storage.Manager.RecipeEditManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.*;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.UUID;
 
 public class ChatListener implements Listener {
     public static HashMap<Player, String> chat_deposit = new HashMap<>();
@@ -26,6 +29,7 @@ public class ChatListener implements Listener {
     public static HashMap<Player, String> chat_convert_from = new HashMap<>();
     public static HashMap<Player, String> chat_convert_to = new HashMap<>();
     public static HashMap<Player, Integer> chat_return_page = new HashMap<>();
+    public static HashMap<UUID, String> craftingRequests = new HashMap<>();
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onChat(@NotNull AsyncPlayerChatEvent e) {
@@ -169,6 +173,21 @@ public class ChatListener implements Listener {
             }
             MythicTransferGUI.setWaitingForInput(p, false);
             e.setCancelled(true);
+        }
+
+        // Handle crafting amount input
+        if (craftingRequests.containsKey(p.getUniqueId())) {
+            String recipeId = craftingRequests.get(p.getUniqueId());
+            CraftingManager.handleCraftAmountInput(p, recipeId, message);
+            craftingRequests.remove(p.getUniqueId());
+            e.setCancelled(true);
+        }
+
+        // Handle recipe editing input
+        if (RecipeEditManager.isEditing(p)) {
+            if (RecipeEditManager.handleChatInput(p, message)) {
+                e.setCancelled(true);
+            }
         }
     }
 }
