@@ -279,7 +279,7 @@ public class CraftingManager {
 
     public static void handleCraftAmountInput(Player player, String recipeId, String input) {
         int amount = net.danh.storage.Utils.Number.getInteger(input.trim());
-        
+
         if (amount <= 0 || amount > 999) {
             sendMessage(player, "crafting.invalid_craft_amount");
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);

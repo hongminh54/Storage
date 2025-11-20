@@ -215,7 +215,7 @@ public class RecipeEditorGUI implements IGUI {
                         config.getConfigurationSection("items.requirement_slot"),
                         "#material#", materialName,
                         "#amount#", String.valueOf(requirement.getValue()));
-                
+
                 if (reqItem != null) {
                     reqItem.setAmount(Math.min(64, requirement.getValue()));
                     InteractiveItem interactiveItem = new InteractiveItem(reqItem, slot)
