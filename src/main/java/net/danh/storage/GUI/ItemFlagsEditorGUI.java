@@ -152,13 +152,6 @@ public class ItemFlagsEditorGUI implements IGUI {
         RecipeEditManager.toggleItemFlag(recipe, flag);
         CraftingManager.updateRecipe(recipe);
 
-        boolean isEnabled = recipe.getResultFlags().contains(flag);
-        String statusKey = isEnabled ? "crafting.status_enabled_lower" : "crafting.status_disabled_lower";
-        String status = File.getMessage().getString(statusKey);
-        player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.flag_toggled")
-                .replace("#flag#", flag.name())
-                .replace("#status#", status)));
-
         SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
         refreshGUI(player);
     }

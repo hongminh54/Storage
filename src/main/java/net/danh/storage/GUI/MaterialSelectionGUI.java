@@ -81,9 +81,8 @@ public class MaterialSelectionGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
-        String categoryName = currentCategory < CATEGORY_NAMES.length ? CATEGORY_NAMES[currentCategory] : "All Materials";
         String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title"))
-                .replace("#category_name#", categoryName)
+                .replace("#category_name#", "Available Materials")
                 .replace("#player#", player.getName()));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
@@ -94,7 +93,6 @@ public class MaterialSelectionGUI implements IGUI {
     private void setupItems(Inventory inventory) {
         setupBorderItems(inventory);
         setupMaterialItems(inventory);
-        addCategoryButtons(inventory);
         addBackButton(inventory);
         addSearchButton(inventory);
     }
@@ -114,8 +112,11 @@ public class MaterialSelectionGUI implements IGUI {
     }
 
     private void setupMaterialItems(Inventory inventory) {
-        String[] materialsToShow = currentCategory < MATERIAL_CATEGORIES.length ?
-                MATERIAL_CATEGORIES[currentCategory] : getAllMaterials();
+        List<String> configMaterials = getPlayerStorageMaterials();
+
+        if (configMaterials.isEmpty()) {
+            return;
+        }
 
         String materialSlots = config.getString("items.material_item.slot");
         if (materialSlots == null) return;
@@ -123,10 +124,10 @@ public class MaterialSelectionGUI implements IGUI {
         String[] slotArray = materialSlots.split(",");
         int itemsPerPage = slotArray.length;
         int startIndex = currentPage * itemsPerPage;
-        int endIndex = Math.min(startIndex + itemsPerPage, materialsToShow.length);
+        int endIndex = Math.min(startIndex + itemsPerPage, configMaterials.size());
 
         for (int i = startIndex; i < endIndex; i++) {
-            String materialName = materialsToShow[i];
+            String materialName = configMaterials.get(i);
             int slotIndex = i - startIndex;
             if (slotIndex < slotArray.length) {
                 int slot = Number.getInteger(slotArray[slotIndex].trim());
@@ -139,7 +140,7 @@ public class MaterialSelectionGUI implements IGUI {
             }
         }
 
-        addNavigationButtons(inventory, materialsToShow.length, itemsPerPage);
+        addNavigationButtons(inventory, configMaterials.size(), itemsPerPage);
     }
 
     private void addNavigationButtons(Inventory inventory, int totalItems, int itemsPerPage) {
@@ -153,7 +154,11 @@ public class MaterialSelectionGUI implements IGUI {
     }
 
     private ItemStack createMaterialItem(String materialName) {
-        Optional<XMaterial> xMaterialOpt = XMaterial.matchXMaterial(materialName);
+        String baseMaterial = materialName.contains(";") ? materialName.split(";")[0] : materialName;
+
+        String displayName = File.getConfig().getString("items." + materialName, baseMaterial);
+
+        Optional<XMaterial> xMaterialOpt = XMaterial.matchXMaterial(baseMaterial);
         if (!xMaterialOpt.isPresent()) {
             xMaterialOpt = Optional.of(XMaterial.STONE);
         }
@@ -163,7 +168,7 @@ public class MaterialSelectionGUI implements IGUI {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(ChatUtils.colorizewp(config.getString("items.material_item.name", "&e#material_name#")
-                    .replace("#material_name#", materialName)));
+                    .replace("#material_name#", displayName)));
 
             List<String> lore = new ArrayList<>();
             String selectionLore = config.getString("selection_lore." + selectionType, "");
@@ -176,11 +181,26 @@ public class MaterialSelectionGUI implements IGUI {
         return item;
     }
 
+    private List<String> getPlayerStorageMaterials() {
+        List<String> materials = new ArrayList<>();
+
+        FileConfiguration config = File.getConfig();
+        if (config.contains("items")) {
+            Set<String> itemKeys = config.getConfigurationSection("items").getKeys(false);
+            materials.addAll(itemKeys);
+        }
+
+        Collections.sort(materials);
+        return materials;
+    }
+
     private void selectMaterial(Player player, String materialName) {
         if (selectionType.equals("result")) {
             recipe.setResultMaterial(materialName);
             player.sendMessage(ChatUtils.colorize(
                     File.getMessage().getString("crafting.edit_material_success")));
+            CraftingManager.updateRecipe(recipe);
+            returnToRecipeEditor(player);
         } else if (selectionType.equals("requirement")) {
             String normalizedMaterial = MineManager.normalizeMaterial(materialName);
             recipe.getMaterialRequirements().put(normalizedMaterial, 1);
@@ -188,15 +208,19 @@ public class MaterialSelectionGUI implements IGUI {
                     File.getMessage().getString("crafting.requirement_added_gui")
                             .replace("#material#", materialName)
                             .replace("#amount#", "1")));
+            CraftingManager.updateRecipe(recipe);
+            returnToMaterialEditor(player);
         }
-
-        CraftingManager.updateRecipe(recipe);
-        returnToRecipeEditor(player);
     }
 
     private void returnToRecipeEditor(Player player) {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
+    }
+
+    private void returnToMaterialEditor(Player player) {
+        SoundManager.setShouldPlayCloseSound(player, false);
+        player.openInventory(new MaterialEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
     }
 
     private void addPreviousPageButton(Inventory inventory, int totalPages) {
@@ -209,7 +233,7 @@ public class MaterialSelectionGUI implements IGUI {
             InteractiveItem prevButton = new InteractiveItem(prevItem, config.getInt("items.previous_page.slot", 45))
                     .onLeftClick(p -> {
                         SoundManager.setShouldPlayCloseSound(p, false);
-                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage - 1, currentCategory).getInventory(SoundContext.SILENT));
+                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage - 1).getInventory(SoundContext.SILENT));
                     });
             inventory.setItem(prevButton.getSlot(), prevButton);
         }
@@ -225,7 +249,7 @@ public class MaterialSelectionGUI implements IGUI {
             InteractiveItem nextButton = new InteractiveItem(nextItem, config.getInt("items.next_page.slot", 53))
                     .onLeftClick(p -> {
                         SoundManager.setShouldPlayCloseSound(p, false);
-                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage + 1, currentCategory).getInventory(SoundContext.SILENT));
+                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage + 1).getInventory(SoundContext.SILENT));
                     });
             inventory.setItem(nextButton.getSlot(), nextButton);
         }
@@ -255,64 +279,4 @@ public class MaterialSelectionGUI implements IGUI {
         }
     }
 
-    private String[] getAllMaterials() {
-        List<String> allMaterials = new ArrayList<>();
-        for (String[] category : MATERIAL_CATEGORIES) {
-            allMaterials.addAll(Arrays.asList(category));
-        }
-        return allMaterials.toArray(new String[0]);
-    }
-
-    private void addCategoryButtons(Inventory inventory) {
-        String categoryName = CATEGORY_NAMES[currentCategory];
-
-        // Previous category button
-        if (currentCategory > 0) {
-            ItemStack prevCatItem = ItemManager.getItemConfigWithPlaceholders(player,
-                    config.getConfigurationSection("items.previous_category"),
-                    "#category_name#", categoryName);
-
-            if (prevCatItem != null) {
-                InteractiveItem prevCatButton = new InteractiveItem(prevCatItem, config.getInt("items.previous_category.slot", 0))
-                        .onLeftClick(p -> {
-                            SoundManager.setShouldPlayCloseSound(p, false);
-                            p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, 0, currentCategory - 1).getInventory(SoundContext.SILENT));
-                        });
-                inventory.setItem(prevCatButton.getSlot(), prevCatButton);
-            }
-        }
-
-        // Next category button
-        if (currentCategory < CATEGORY_NAMES.length - 1) {
-            ItemStack nextCatItem = ItemManager.getItemConfigWithPlaceholders(player,
-                    config.getConfigurationSection("items.next_category"),
-                    "#category_name#", categoryName);
-
-            if (nextCatItem != null) {
-                InteractiveItem nextCatButton = new InteractiveItem(nextCatItem, config.getInt("items.next_category.slot", 8))
-                        .onLeftClick(p -> {
-                            SoundManager.setShouldPlayCloseSound(p, false);
-                            p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, 0, currentCategory + 1).getInventory(SoundContext.SILENT));
-                        });
-                inventory.setItem(nextCatButton.getSlot(), nextCatButton);
-            }
-        }
-
-        // Category info button
-        ItemStack categoryInfoItem = ItemManager.getItemConfigWithPlaceholders(player,
-                config.getConfigurationSection("items.category_info"),
-                "#category_name#", categoryName,
-                "#category_number#", String.valueOf(currentCategory + 1),
-                "#total_categories#", String.valueOf(CATEGORY_NAMES.length));
-
-        if (categoryInfoItem != null) {
-            InteractiveItem categoryInfoButton = new InteractiveItem(categoryInfoItem, config.getInt("items.category_info.slot", 4))
-                    .onLeftClick(p -> {
-                        int nextCategory = (currentCategory + 1) % CATEGORY_NAMES.length;
-                        SoundManager.setShouldPlayCloseSound(p, false);
-                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, 0, nextCategory).getInventory(SoundContext.SILENT));
-                    });
-            inventory.setItem(categoryInfoButton.getSlot(), categoryInfoButton);
-        }
-    }
 }

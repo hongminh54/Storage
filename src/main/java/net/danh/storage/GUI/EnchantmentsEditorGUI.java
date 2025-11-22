@@ -153,9 +153,7 @@ public class EnchantmentsEditorGUI implements IGUI {
                 SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
                 refreshGUI(player);
             } else {
-                player.sendMessage(ChatUtils.colorize(
-                        File.getMessage().getString("crafting.enchant_max_level")
-                                .replace("#max#", String.valueOf(maxLevel))));
+                SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             }
         } else if (clickType == ClickType.RIGHT) {
             // Decrease level
@@ -174,11 +172,6 @@ public class EnchantmentsEditorGUI implements IGUI {
             enchantments.remove(enchantName);
             recipe.setResultEnchantments(enchantments);
             CraftingManager.updateRecipe(recipe);
-
-            String displayName = getEnchantmentDisplayName(enchantName);
-            player.sendMessage(ChatUtils.colorize(
-                    File.getMessage().getString("crafting.enchant_removed")
-                            .replace("#enchant#", displayName)));
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
             refreshGUI(player);
         }

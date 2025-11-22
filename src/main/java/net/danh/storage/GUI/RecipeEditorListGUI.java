@@ -298,7 +298,7 @@ public class RecipeEditorListGUI implements IGUI {
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close"))),
                 49
         ).onLeftClick(p -> {
-            SoundManager.setShouldPlayCloseSound(p, false);
+            SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
             p.closeInventory();
         });
         inventory.setItem(closeButton.getSlot(), closeButton);

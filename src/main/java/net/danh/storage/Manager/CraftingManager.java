@@ -2,12 +2,15 @@ package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import net.danh.storage.API.events.RecipeCraftEvent;
+import net.danh.storage.API.events.RecipeCreateEvent;
 import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -129,6 +132,13 @@ public class CraftingManager {
             return false;
         }
 
+        RecipeCraftEvent preEvent = new RecipeCraftEvent(player, recipe, actualAmount, resultItem, RecipeCraftEvent.CraftPhase.PRE_CRAFT);
+        Bukkit.getPluginManager().callEvent(preEvent);
+        if (preEvent.isCancelled()) {
+            return false;
+        }
+        actualAmount = preEvent.getAmount();
+
         int totalItemsNeeded = recipe.getResultAmount() * actualAmount;
         int availableSpace = calculateInventorySpace(player, resultItem);
 
@@ -209,16 +219,33 @@ public class CraftingManager {
             Storage.getStorage().getLogger().warning("Cannot add invalid recipe: " + recipe.getId());
             return;
         }
+        
+        RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.CREATE);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+        
         addRecipeToMaps(recipe);
         saveRecipes();
     }
 
-    public static void removeRecipe(String id) {
-        Recipe recipe = recipes.remove(id);
-        if (recipe != null) {
-            removeRecipeFromCategory(recipe);
-            saveRecipes();
+    public static boolean removeRecipe(String id) {
+        Recipe recipe = recipes.get(id);
+        if (recipe == null) {
+            return false;
         }
+        
+        RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.DELETE);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+        
+        recipes.remove(id);
+        removeRecipeFromCategory(recipe);
+        saveRecipes();
+        return true;
     }
 
     public static void updateRecipe(Recipe recipe) {
@@ -226,6 +253,13 @@ public class CraftingManager {
             Storage.getStorage().getLogger().warning("Cannot update invalid recipe: " + recipe.getId());
             return;
         }
+        
+        RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.UPDATE);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+        
         removeRecipeFromAllCategories(recipe.getId());
         addRecipeToMaps(recipe);
         saveRecipes();
@@ -408,13 +442,15 @@ public class CraftingManager {
         return activeCrafting.containsKey(player.getUniqueId().toString());
     }
 
-    public static void cancelCrafting(Player player) {
+    public static boolean cancelCrafting(Player player) {
         CraftingTask task = activeCrafting.remove(player.getUniqueId().toString());
         if (task != null) {
             task.cancel();
             sendMessage(player, "crafting.craft_cancelled");
+            ParticleManager.stopCraftingProcessingAnimation(player);
+            return true;
         }
-        ParticleManager.stopCraftingProcessingAnimation(player);
+        return false;
     }
 
     public static void cancelAllCrafting() {
@@ -479,11 +515,17 @@ public class CraftingManager {
             return false;
         }
 
+        RecipeCraftEvent postEvent = new RecipeCraftEvent(player, recipe, amount, resultItem, RecipeCraftEvent.CraftPhase.POST_CRAFT);
+        Bukkit.getPluginManager().callEvent(postEvent);
+
         if (!removeMaterials(player, recipe, amount)) {
             return false;
         }
 
         giveResultItems(player, resultItem, recipe.getResultAmount() * amount);
+
+        RecipeCraftEvent completeEvent = new RecipeCraftEvent(player, recipe, amount, resultItem, RecipeCraftEvent.CraftPhase.COMPLETE);
+        Bukkit.getPluginManager().callEvent(completeEvent);
 
         sendMessage(player, "crafting.craft_success",
                 new String[]{"#recipe#", "#amount#"},

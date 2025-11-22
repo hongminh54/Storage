@@ -12,7 +12,7 @@ gui_open_sound:
 items:
   # Decorative items
   decorates:
-    slot: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 47, 51, 52
+    slot: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 52
     name: "&7"
     material: BLACK_STAINED_GLASS_PANE
     lore:
@@ -183,38 +183,8 @@ items:
       ALL: true
 
   # Requirements Panel
-  requirements_title:
-    slot: 28
-    name: "&e&lMaterial Requirements"
-    material: CHEST
-    lore:
-      - "&7Materials needed to craft"
-      - "&7this recipe"
-    amount: 1
-    damage: 0
-    custom-model-data: 0
-    unbreakable: true
-    enchants:
-      DURABILITY: 1
-    flags:
-      ALL: true
-
-  add_requirement:
-    slot: 37
-    name: "&a&lAdd Requirement"
-    material: LIME_DYE
-    lore:
-      - "&7Click to add a new"
-      - "&7material requirement"
-    amount: 1
-    damage: 0
-    custom-model-data: 0
-    unbreakable: false
-    enchants: {}
-    flags: {}
-
   permission_requirements:
-    slot: 46
+    slot: 28
     name: "&d&lPermission Requirements"
     material: PAPER
     lore:
@@ -229,6 +199,32 @@ items:
       DURABILITY: 1
     flags:
       ALL: true
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.7
+      pitch: 1.0
+
+  add_material:
+    slot: 37
+    name: "&a&lAdd Material"
+    material: LIME_DYE
+    lore:
+      - "&7Click to open the"
+      - "&7material editor GUI"
+      - "&7"
+      - "&eManage material requirements"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.7
+      pitch: 1.2
 
   # Requirement slots (dynamic)
   requirement_slot:

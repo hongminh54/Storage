@@ -2,6 +2,7 @@ package net.danh.storage.GUI.listeners;
 
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.GUI;
+import net.danh.storage.GUI.RecipeEditorGUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
@@ -14,10 +15,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerAnimationEvent;
-import org.bukkit.event.player.PlayerAnimationType;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -181,5 +179,12 @@ public class GUIClickListener implements Listener {
             // Reset the flag for next time
             SoundManager.setShouldPlayCloseSound(player, true);
         }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        Player player = e.getPlayer();
+        RecipeEditorGUI.cleanupBackup(player.getUniqueId());
+        interactTimeout.remove(player.getUniqueId());
     }
 }

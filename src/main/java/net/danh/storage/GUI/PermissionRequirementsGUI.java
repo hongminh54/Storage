@@ -148,8 +148,6 @@ public class PermissionRequirementsGUI implements IGUI {
             permissions.add(permission);
             recipe.setPermissionRequirements(permissions);
             CraftingManager.updateRecipe(recipe);
-            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.permission_added")
-                    .replace("#permission#", permission)));
             refreshGUI(player);
         }
     }
@@ -159,8 +157,6 @@ public class PermissionRequirementsGUI implements IGUI {
         if (permissions.remove(permission)) {
             recipe.setPermissionRequirements(permissions);
             CraftingManager.updateRecipe(recipe);
-            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.permission_removed")
-                    .replace("#permission#", permission)));
             refreshGUI(player);
         }
     }

@@ -26,6 +26,8 @@ import java.util.*;
 
 public class RecipeEditorGUI implements IGUI {
 
+    private static final Map<UUID, RecipeBackup> recipeBackups = new HashMap<>();
+
     private final Player player;
     private final Recipe recipe;
     private final FileConfiguration config;
@@ -34,6 +36,54 @@ public class RecipeEditorGUI implements IGUI {
         this.player = player;
         this.recipe = recipe;
         this.config = File.getRecipeEditorGUIConfig();
+
+        createBackup();
+    }
+
+    public static void cleanupBackup(UUID playerUUID) {
+        recipeBackups.remove(playerUUID);
+    }
+
+    private void createBackup() {
+        RecipeBackup backup = new RecipeBackup(
+                recipe.getName(),
+                recipe.getCategory(),
+                recipe.isEnabled(),
+                recipe.getResultMaterial(),
+                recipe.getResultName(),
+                new ArrayList<>(recipe.getResultLore()),
+                new HashMap<>(recipe.getResultEnchantments()),
+                recipe.getResultAmount(),
+                recipe.getResultCustomModelData(),
+                recipe.isResultUnbreakable(),
+                new HashSet<>(recipe.getResultFlags()),
+                new HashMap<>(recipe.getMaterialRequirements()),
+                new ArrayList<>(recipe.getPermissionRequirements())
+        );
+        recipeBackups.put(player.getUniqueId(), backup);
+    }
+
+    private void restoreBackup() {
+        RecipeBackup backup = recipeBackups.get(player.getUniqueId());
+        if (backup != null) {
+            recipe.setName(backup.name);
+            recipe.setCategory(backup.category);
+            recipe.setEnabled(backup.enabled);
+            recipe.setResultMaterial(backup.resultMaterial);
+            recipe.setResultName(backup.resultName);
+            recipe.setResultLore(new ArrayList<>(backup.resultLore));
+            recipe.setResultEnchantments(new HashMap<>(backup.resultEnchantments));
+            recipe.setResultAmount(backup.resultAmount);
+            recipe.setResultCustomModelData(backup.resultCustomModelData);
+            recipe.setResultUnbreakable(backup.resultUnbreakable);
+            recipe.setResultFlags(new HashSet<>(backup.resultFlags));
+            recipe.setMaterialRequirements(new HashMap<>(backup.materialRequirements));
+            recipe.setPermissionRequirements(new ArrayList<>(backup.permissionRequirements));
+        }
+    }
+
+    private void clearBackup() {
+        recipeBackups.remove(player.getUniqueId());
     }
 
     @NotNull
@@ -165,30 +215,20 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void addRequirementsPanel(Inventory inventory) {
-        // Requirements title
-        InteractiveItem requirementsTitle = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.requirements_title"))),
-                28
-        );
-        inventory.setItem(requirementsTitle.getSlot(), requirementsTitle);
-
-        // Add requirement button
-        InteractiveItem addRequirement = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_requirement"))),
-                37
-        ).onLeftClick(p -> addRequirement(p));
-        inventory.setItem(addRequirement.getSlot(), addRequirement);
-
-        // Permission requirements button
         ItemStack permReqItem = createConfigItem("items.permission_requirements",
                 "#permission_count#", String.valueOf(recipe.getPermissionRequirements().size()));
         if (permReqItem != null) {
-            InteractiveItem permReqButton = new InteractiveItem(permReqItem, 46)
+            InteractiveItem permReqButton = new InteractiveItem(permReqItem, 28)
                     .onLeftClick(p -> openPermissionRequirementsGUI(p));
             inventory.setItem(permReqButton.getSlot(), permReqButton);
         }
 
-        // Display current requirements
+        InteractiveItem addMaterial = new InteractiveItem(
+                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_material"))),
+                37
+        ).onLeftClick(p -> openMaterialEditor(p));
+        inventory.setItem(addMaterial.getSlot(), addMaterial);
+
         displayRequirements(inventory);
     }
 
@@ -205,15 +245,17 @@ public class RecipeEditorGUI implements IGUI {
             try {
                 int slot = Integer.parseInt(slotArray[i].trim());
 
-                String materialName = requirement.getKey();
-                if (materialName.contains(";")) {
-                    materialName = materialName.split(";")[0];
+                String materialKey = requirement.getKey();
+                String materialName = materialKey;
+                if (materialKey.contains(";")) {
+                    materialName = materialKey.split(";")[0];
                 }
 
-                // Use config for requirement item
+                String displayName = File.getConfig().getString("items." + materialKey, materialName);
+
                 ItemStack reqItem = ItemManager.getItemConfigWithPlaceholders(player,
                         config.getConfigurationSection("items.requirement_slot"),
-                        "#material#", materialName,
+                        "#material#", displayName,
                         "#amount#", String.valueOf(requirement.getValue()));
 
                 if (reqItem != null) {
@@ -296,10 +338,8 @@ public class RecipeEditorGUI implements IGUI {
         return fallback;
     }
 
-    // Edit methods
     private void editMaterial(Player player) {
-        SoundManager.setShouldPlayCloseSound(player, false);
-        player.openInventory(new MaterialSelectionGUI(player, recipe, "result").getInventory(SoundContext.SILENT));
+        RecipeEditManager.requestMaterialEdit(player, recipe);
     }
 
     private void editName(Player player) {
@@ -317,9 +357,8 @@ public class RecipeEditorGUI implements IGUI {
                 RecipeEditManager.removeLoreLine(recipe, lore.size() - 1);
                 CraftingManager.updateRecipe(recipe);
                 refreshGUI(player);
-                player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.lore_removed")));
             } else {
-                player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.lore_no_lines")));
+                SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             }
         }
     }
@@ -364,9 +403,9 @@ public class RecipeEditorGUI implements IGUI {
                         .replace("#status#", status)));
     }
 
-    private void addRequirement(Player player) {
+    private void openMaterialEditor(Player player) {
         SoundManager.setShouldPlayCloseSound(player, false);
-        player.openInventory(new MaterialSelectionGUI(player, recipe, "requirement").getInventory(SoundContext.SILENT));
+        player.openInventory(new MaterialEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
     }
 
     private void editRequirement(Player player, String material, ClickType clickType) {
@@ -413,6 +452,8 @@ public class RecipeEditorGUI implements IGUI {
 
     private void saveRecipe(Player player) {
         CraftingManager.updateRecipe(recipe);
+        clearBackup(); // Clear backup after successful save
+
         player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_saved")
                 .replace("#recipe#", recipe.getName())));
 
@@ -421,6 +462,12 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void backToList(Player player) {
+        restoreBackup();
+        clearBackup();
+
+        player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_discarded")
+                .replace("#recipe#", recipe.getName())));
+
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.SILENT));
     }
@@ -431,15 +478,16 @@ public class RecipeEditorGUI implements IGUI {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new ConfirmationGUI(player, message,
                 () -> {
-                    // On confirm
+                    // On confirm - delete recipe and clear backup
                     CraftingManager.removeRecipe(recipe.getId());
+                    clearBackup();
                     player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_deleted")
                             .replace("#recipe#", recipe.getName())));
                     SoundManager.setShouldPlayCloseSound(player, false);
                     player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.SILENT));
                 },
                 () -> {
-                    // On cancel
+                    // On cancel - return to editor (backup still exists)
                     SoundManager.setShouldPlayCloseSound(player, false);
                     player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
                 }
@@ -449,5 +497,43 @@ public class RecipeEditorGUI implements IGUI {
     private void refreshGUI(Player player) {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
+    }
+
+    private static class RecipeBackup {
+        final String name;
+        final String category;
+        final boolean enabled;
+        final String resultMaterial;
+        final String resultName;
+        final List<String> resultLore;
+        final Map<String, Integer> resultEnchantments;
+        final int resultAmount;
+        final int resultCustomModelData;
+        final boolean resultUnbreakable;
+        final Set<org.bukkit.inventory.ItemFlag> resultFlags;
+        final Map<String, Integer> materialRequirements;
+        final List<String> permissionRequirements;
+
+        RecipeBackup(String name, String category, boolean enabled,
+                     String resultMaterial, String resultName, List<String> resultLore,
+                     Map<String, Integer> resultEnchantments, int resultAmount,
+                     int resultCustomModelData, boolean resultUnbreakable,
+                     Set<org.bukkit.inventory.ItemFlag> resultFlags,
+                     Map<String, Integer> materialRequirements,
+                     List<String> permissionRequirements) {
+            this.name = name;
+            this.category = category;
+            this.enabled = enabled;
+            this.resultMaterial = resultMaterial;
+            this.resultName = resultName;
+            this.resultLore = resultLore;
+            this.resultEnchantments = resultEnchantments;
+            this.resultAmount = resultAmount;
+            this.resultCustomModelData = resultCustomModelData;
+            this.resultUnbreakable = resultUnbreakable;
+            this.resultFlags = resultFlags;
+            this.materialRequirements = materialRequirements;
+            this.permissionRequirements = permissionRequirements;
+        }
     }
 }

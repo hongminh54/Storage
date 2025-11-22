@@ -97,7 +97,7 @@ items:
       volume: 0.5
       pitch: 1.2
 
-  # Material item slots (dynamic)
+  # Material item slots (dynamic) - Shows materials from config.yml items section
   material_item:
     slot: 10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43
     name: "&e#material_name#"

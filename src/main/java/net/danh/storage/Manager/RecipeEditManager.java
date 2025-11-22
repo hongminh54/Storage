@@ -1,5 +1,6 @@
 package net.danh.storage.Manager;
 
+import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.EnchantmentsEditorGUI;
 import net.danh.storage.GUI.RecipeEditorGUI;
 import net.danh.storage.Recipe.Recipe;
@@ -13,10 +14,22 @@ import java.util.*;
 
 public class RecipeEditManager {
 
-    // Chat input tracking maps
     private static final Map<UUID, String> editType = new HashMap<>();
     private static final Map<UUID, String> editRecipeId = new HashMap<>();
     private static final Map<UUID, String> editField = new HashMap<>();
+
+    public static void requestMaterialEdit(Player player, Recipe recipe) {
+        editType.put(player.getUniqueId(), "material");
+        editRecipeId.put(player.getUniqueId(), recipe.getId());
+        player.closeInventory();
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_material_prompt")));
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_material_current")
+                        .replace("#current#", recipe.getResultMaterial())));
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_material_hint")));
+    }
 
     public static void requestNameEdit(Player player, Recipe recipe) {
         editType.put(player.getUniqueId(), "name");
@@ -50,16 +63,6 @@ public class RecipeEditManager {
                 File.getMessage().getString("crafting.edit_lore_hint")));
     }
 
-    public static void requestMaterialEdit(Player player, Recipe recipe) {
-        editType.put(player.getUniqueId(), "material");
-        editRecipeId.put(player.getUniqueId(), recipe.getId());
-        player.closeInventory();
-        player.sendMessage(ChatUtils.colorize(
-                File.getMessage().getString("crafting.edit_material_prompt")));
-        player.sendMessage(ChatUtils.colorize(
-                File.getMessage().getString("crafting.edit_material_hint")));
-    }
-
     public static void requestRequirementAdd(Player player, Recipe recipe) {
         editType.put(player.getUniqueId(), "requirement_add");
         editRecipeId.put(player.getUniqueId(), recipe.getId());
@@ -74,10 +77,16 @@ public class RecipeEditManager {
         editType.put(player.getUniqueId(), "requirement_amount");
         editRecipeId.put(player.getUniqueId(), recipe.getId());
         editField.put(player.getUniqueId(), material);
+
+        String displayName = File.getConfig().getString("items." + material, material);
+        if (material.contains(";")) {
+            displayName = File.getConfig().getString("items." + material, material.split(";")[0]);
+        }
+
         player.closeInventory();
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_requirement_amount_prompt")
-                        .replace("#material#", material)));
+                        .replace("#material#", displayName)));
     }
 
     public static void requestPermissionAdd(Player player, Recipe recipe) {
@@ -154,7 +163,6 @@ public class RecipeEditManager {
         boolean success = processEdit(player, recipe, type, message);
         if (success) {
             CraftingManager.updateRecipe(recipe);
-            // Reopen GUI after successful edit
             reopenRecipeEditor(player, recipe, type);
         }
 
@@ -166,7 +174,6 @@ public class RecipeEditManager {
         SchedulerUtil.runTask(Storage.getStorage(), () -> {
             SoundManager.setShouldPlayCloseSound(player, false);
 
-            // Open appropriate GUI based on edit type
             if (editType.equals("enchant_level")) {
                 player.openInventory(new EnchantmentsEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
             } else {
@@ -178,6 +185,25 @@ public class RecipeEditManager {
     private static boolean processEdit(Player player, Recipe recipe, String type, String input) {
         try {
             switch (type) {
+                case "material":
+                    if (input.trim().isEmpty()) {
+                        player.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("crafting.edit_material_empty")));
+                        return false;
+                    }
+                    Optional<XMaterial> xMaterial = com.cryptomorin.xseries.XMaterial.matchXMaterial(input.toUpperCase());
+                    if (!xMaterial.isPresent()) {
+                        player.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("crafting.edit_material_invalid")
+                                        .replace("#material#", input)));
+                        return false;
+                    }
+                    recipe.setResultMaterial(xMaterial.get().name());
+                    player.sendMessage(ChatUtils.colorize(
+                            File.getMessage().getString("crafting.edit_material_success")
+                                    .replace("#material#", xMaterial.get().name())));
+                    return true;
+
                 case "name":
                     if (input.trim().isEmpty()) {
                         player.sendMessage(ChatUtils.colorize(
@@ -212,12 +238,6 @@ public class RecipeEditManager {
                     recipe.setResultLore(lore);
                     player.sendMessage(ChatUtils.colorize(
                             File.getMessage().getString("crafting.edit_lore_success")));
-                    return true;
-
-                case "material":
-                    recipe.setResultMaterial(MineManager.normalizeMaterial(input));
-                    player.sendMessage(ChatUtils.colorize(
-                            File.getMessage().getString("crafting.edit_material_success")));
                     return true;
 
                 case "requirement_add":

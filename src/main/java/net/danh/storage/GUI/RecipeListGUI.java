@@ -207,11 +207,17 @@ public class RecipeListGUI implements IGUI {
         List<String> requirementLines = new ArrayList<>();
 
         for (Map.Entry<String, Integer> req : recipe.getMaterialRequirements().entrySet()) {
-            String materialName = req.getKey();
-            String normalizedMaterial = MineManager.normalizeMaterial(materialName);
+            String materialKey = req.getKey();
+            String normalizedMaterial = MineManager.normalizeMaterial(materialKey);
             int playerAmount = MineManager.getPlayerBlock(player, normalizedMaterial);
+
+            String displayName = File.getConfig().getString("items." + materialKey, materialKey);
+            if (materialKey.contains(";")) {
+                displayName = File.getConfig().getString("items." + materialKey, materialKey.split(";")[0]);
+            }
+
             String color = playerAmount >= req.getValue() ? "&a" : "&c";
-            requirementLines.add("  " + color + req.getValue() + "x " + materialName + " &7(" + playerAmount + ")");
+            requirementLines.add("  " + color + req.getValue() + "x " + displayName + " &7(" + playerAmount + ")");
         }
 
         return requirementLines;
@@ -333,8 +339,7 @@ public class RecipeListGUI implements IGUI {
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close"))),
                 slot
         ).onLeftClick(p -> {
-            SoundManager.playItemSound(p, config, "items.close", SoundContext.SILENT);
-            SoundManager.setShouldPlayCloseSound(p, false);
+            SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
             p.closeInventory();
         });
         inventory.setItem(closeButton.getSlot(), closeButton);

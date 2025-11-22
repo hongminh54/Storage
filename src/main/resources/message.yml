@@ -395,7 +395,6 @@ mythicstorage:
       - "&e/mythicstorage reset &a<player> &b[item] &f- &7Reset player's storage (all or specific item)"
       - "&e/mythicstorage reload &f- &7Reload MythicStorage configuration"
 
-# Crafting System Messages
 crafting:
   no_permission: "#prefix# &cYou don't have permission to craft &e#recipe#"
   craft_in_progress: "#prefix# &cYou already have a crafting in progress!"
@@ -413,6 +412,7 @@ crafting:
   editor_specify_recipe: "#prefix# &cPlease specify a recipe ID to edit!"
   editor_created: "#prefix# &aCreated new recipe: &e#recipe#"
   editor_saved: "#prefix# &aSaved recipe: &e#recipe#"
+  editor_discarded: "#prefix# &7Changes discarded for recipe: &e#recipe#"
   editor_deleted: "#prefix# &cDeleted recipe: &e#recipe#"
   editor_enabled: "#prefix# &aEnabled recipe: &e#recipe#"
   editor_disabled: "#prefix# &cDisabled recipe: &e#recipe#"
@@ -423,16 +423,18 @@ crafting:
   import_empty_hand: "#prefix# &cYou must hold an item in your hand to import!"
   import_success: "#prefix# &aSuccessfully imported item as recipe: &e#recipe#"
   import_failed: "#prefix# &cFailed to import item! Please try again."
-  
-  # Recipe Editor Chat Input
+  edit_material_prompt: "&eEnter material name in chat:"
+  edit_material_current: "&7Current: #current#"
+  edit_material_hint: "&7Example: DIAMOND_SWORD, STONE, IRON_INGOT"
+  edit_material_empty: "&cMaterial name cannot be empty!"
+  edit_material_invalid: "&cInvalid material: &e#material#"
+  edit_material_success: "&aMaterial updated to: &e#material#"
   edit_name_prompt: "&eEnter new recipe name in chat:"
   edit_name_current: "&7Current: #current#"
   edit_amount_prompt: "&eEnter result amount (1-64):"
   edit_amount_current: "&7Current: #current#"
   edit_lore_prompt: "&eEnter lore line to add:"
   edit_lore_hint: "&7Supports color codes with &"
-  edit_material_prompt: "&eEnter material name:"
-  edit_material_hint: "&7Example: DIAMOND, IRON_INGOT, STONE"
   edit_requirement_prompt: "&eEnter material name for requirement:"
   edit_requirement_hint: "&7Example: DIAMOND, IRON_INGOT"
   edit_requirement_amount_prompt: "&eEnter new amount for #material#:"
@@ -447,14 +449,11 @@ crafting:
   edit_enchant_level_range: "&eEnter enchantment level (1-10):"
   edit_cmd_prompt: "&eEnter custom model data (number):"
   edit_cmd_current: "&7Current: #current#"
-  
-  # Recipe Editor Success Messages
   edit_recipe_not_found: "&cRecipe not found!"
   edit_name_success: "&aRecipe name updated!"
   edit_amount_success: "&aResult amount updated!"
   edit_amount_invalid: "&cAmount must be between 1 and 64!"
   edit_lore_success: "&aLore line added!"
-  edit_material_success: "&aResult material updated!"
   edit_requirement_success: "&aRequirement added: #material# x#amount#"
   edit_requirement_amount_success: "&aRequirement amount updated!"
   edit_requirement_amount_invalid: "&cAmount must be at least 1!"
@@ -467,8 +466,6 @@ crafting:
   edit_enchant_level_success: "&aEnchantment level updated!"
   edit_cmd_success: "&aCustom model data updated!"
   edit_cmd_invalid: "&cInvalid number!"
-  
-  # GUI Messages
   enchant_max_level: "&cMax level reached: #max#"
   enchant_added: "&aAdded enchantment: #enchant# #level#"
   enchant_removed: "&aRemoved enchantment: #enchant#"
@@ -476,29 +473,25 @@ crafting:
   enchant_cleared: "&aCleared all enchantments"
   requirement_added_gui: "&aAdded requirement: #material# x#amount#"
   requirement_removed: "&aRemoved requirement: #material#"
-  
-  # Validation Messages
+  requirement_removed_gui: "&aRemoved requirement: #material#"
+  material_amount_increased: "&aIncreased #material# amount to #amount#"
+  material_amount_decreased: "&aDecreased #material# amount to #amount#"
+  material_amount_min: "&cMaterial amount must be at least 1!"
+  material_removed: "&aRemoved material: #material#"
+  materials_cleared: "&aCleared all material requirements"
+  lore_removed: "&aRemoved last lore line"
+  lore_no_lines: "&cNo lore lines to remove!"
   edit_name_empty: "&cRecipe name cannot be empty!"
   edit_category_empty: "&cCategory cannot be empty!"
   edit_permission_empty: "&cPermission cannot be empty!"
   edit_lore_empty: "&cLore line cannot be empty!"
-  edit_material_invalid: "&cInvalid material name!"
-  
-  # Toggle Messages
   unbreakable_toggled: "&aUnbreakable toggled: #status#"
-  lore_removed: "&aRemoved last lore line"
-  lore_no_lines: "&cNo lore lines to remove!"
-  requirement_removed_gui: "&aRemoved requirement: #material#"
   flag_toggled: "&aToggled #flag#: #status#"
   permission_added: "&aAdded permission requirement: #permission#"
   permission_removed: "&cRemoved permission requirement: #permission#"
   permission_cleared: "&aCleared all permission requirements"
-  
-  # Error Messages
   config_error: "&cConfig Error"
   config_error_detail: "&7Cannot load: #path#"
-  
-  # Status Display Strings
   status_enabled: "&aEnabled"
   status_disabled: "&cDisabled"
   status_on: "ON"

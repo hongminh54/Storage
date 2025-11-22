@@ -670,6 +670,122 @@ boolean hasNext = pagination.hasNextPage(0);
 | `StorageAsyncAPI` | Asynchronous operations (non-blocking) |
 | `StorageStatsAPI` | Statistics and analytics |
 | `StorageGUIAPI` | GUI builder for custom interfaces |
+| `CraftingAPI` | Custom recipe crafting system |
+
+#### Crafting System API
+```java
+import net.danh.storage.API.CraftingAPI;
+import net.danh.storage.Recipe.Recipe;
+
+// Get recipe by ID
+Recipe recipe = CraftingAPI.getRecipe("custom_sword");
+
+// Get all recipes
+Collection<Recipe> allRecipes = CraftingAPI.getAllRecipes();
+
+// Get recipes by category
+List<Recipe> weapons = CraftingAPI.getRecipesByCategory("weapons");
+
+// Get available recipes for player
+List<Recipe> available = CraftingAPI.getAvailableRecipes(player);
+
+// Get craftable recipes (has materials)
+List<Recipe> craftable = CraftingAPI.getCraftableRecipes(player);
+
+// Check if player can craft
+if (CraftingAPI.canCraft(player, "custom_sword")) {
+    // Craft recipe
+    CraftingAPI.craftRecipe(player, "custom_sword");
+}
+
+// Craft with specific amount
+CraftingAPI.craftRecipe(player, "custom_sword", 5);
+
+// Get max craftable amount
+int maxAmount = CraftingAPI.getMaxCraftableAmount(player, recipe);
+
+// Check if crafting in progress
+boolean isCrafting = CraftingAPI.isCraftingInProgress(player);
+
+// Cancel current crafting
+CraftingAPI.cancelCrafting(player);
+
+// Create recipe programmatically
+Recipe customRecipe = new Recipe("legendary_sword");
+customRecipe.setResultMaterial("DIAMOND_SWORD");
+customRecipe.setName("&6Legendary Sword");
+customRecipe.setResultAmount(1);
+customRecipe.getMaterialRequirements().put("DIAMOND", 10);
+customRecipe.getMaterialRequirements().put("GOLD_INGOT", 5);
+CraftingAPI.addRecipe(customRecipe);
+
+// Update recipe
+recipe.setResultAmount(2);
+CraftingAPI.updateRecipe(recipe);
+
+// Remove recipe
+CraftingAPI.removeRecipe("old_recipe");
+
+// Duplicate recipe
+Recipe duplicate = CraftingAPI.duplicateRecipe("custom_sword", "custom_sword_v2");
+
+// Statistics
+int totalRecipes = CraftingAPI.getTotalRecipes();
+int enabledRecipes = CraftingAPI.getEnabledRecipesCount();
+int categoryCount = CraftingAPI.getRecipeCountByCategory("weapons");
+
+// Utility
+String uniqueId = CraftingAPI.generateUniqueId();
+CraftingAPI.reloadRecipes();
+CraftingAPI.saveRecipes();
+```
+
+#### Crafting Events
+```java
+import net.danh.storage.API.events.RecipeCraftEvent;
+import net.danh.storage.API.events.RecipeCreateEvent;
+import org.bukkit.event.EventHandler;
+
+// Listen to crafting events
+@EventHandler
+public void onCraft(RecipeCraftEvent event) {
+    Player player = event.getPlayer();
+    Recipe recipe = event.getRecipe();
+    int amount = event.getAmount();
+    
+    // PRE_CRAFT phase - can cancel or modify
+    if (event.getPhase() == RecipeCraftEvent.CraftPhase.PRE_CRAFT) {
+        // Modify amount
+        event.setAmount(amount * 2);
+        
+        // Cancel crafting
+        if (someCondition) {
+            event.setCancelled(true);
+        }
+    }
+    
+    // COMPLETE phase - after successful craft
+    if (event.getPhase() == RecipeCraftEvent.CraftPhase.COMPLETE) {
+        player.sendMessage("Successfully crafted " + recipe.getName());
+    }
+}
+
+// Listen to recipe management events
+@EventHandler
+public void onRecipeCreate(RecipeCreateEvent event) {
+    Recipe recipe = event.getRecipe();
+    
+    if (event.getAction() == RecipeCreateEvent.Action.CREATE) {
+        // Log recipe creation
+        Bukkit.getLogger().info("New recipe: " + recipe.getId());
+    }
+    
+    if (event.getAction() == RecipeCreateEvent.Action.DELETE) {
+        // Backup before deletion
+        backupRecipe(recipe);
+    }
+}
+```
 
 ### Events
 
@@ -683,10 +799,13 @@ boolean hasNext = pagination.hasNextPage(0);
 | `MythicStorageWithdrawEvent` | Fired when MythicMobs items are withdrawn |
 | `MaterialConvertEvent` | Fired when materials are converted |
 | `SpecialMaterialDropEvent` | Fired when checking for special material drops |
+| `RecipeCraftEvent` | Fired when player crafts custom recipe (3 phases) |
+| `RecipeCreateEvent` | Fired when recipe is created/updated/deleted |
 
 ### Documentation
 
 - **[JavaDoc](src/main/java/net/danh/storage/API/)** - Detailed method documentation
+- **[Crafting API Guide](CRAFTING_API.md)** - Complete crafting system documentation
 
 ## Dependencies
 
