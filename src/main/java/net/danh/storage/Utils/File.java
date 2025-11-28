@@ -100,10 +100,6 @@ public class File {
         return getFileSetting().get("GUI/material-editor.yml");
     }
 
-    public static FileConfiguration getPermissionRequirementsGUIConfig() {
-        return getFileSetting().get("GUI/permission-requirements.yml");
-    }
-
     public static FileConfiguration getItemFlagsEditorGUIConfig() {
         return getFileSetting().get("GUI/item-flags-editor.yml");
     }
@@ -112,21 +108,13 @@ public class File {
         return getFileSetting().get("GUI/confirmation.yml");
     }
 
-    public static FileConfiguration getEnchantmentsEditorGUIConfig() {
-        return getFileSetting().get("GUI/enchantments-editor.yml");
-    }
-
-    public static FileConfiguration getEnchantmentSelectionGUIConfig() {
-        return getFileSetting().get("GUI/enchantment-selection.yml");
-    }
-
     public static void loadFiles() {
         getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/permission-requirements.yml", "GUI/item-flags-editor.yml", "GUI/confirmation.yml", "GUI/enchantments-editor.yml", "GUI/enchantment-selection.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/item-flags-editor.yml", "GUI/confirmation.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -136,7 +124,7 @@ public class File {
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/permission-requirements.yml", "GUI/item-flags-editor.yml", "GUI/confirmation.yml", "GUI/enchantments-editor.yml", "GUI/enchantment-selection.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/item-flags-editor.yml", "GUI/confirmation.yml");
     }
 
     public static void updateConfig() {
@@ -168,8 +156,7 @@ public class File {
 
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful to v" + default_configVersion);
             } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update config by it self, please backup and rename your config then restart to get newest config!!");
-                e.printStackTrace();
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update config file", e);
             }
 
             getFileSetting().reload("config.yml");
@@ -205,8 +192,7 @@ public class File {
 
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your message have been updated successful to v" + default_configVersion);
             } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update message by it self, please backup and rename your message then restart to get newest message!!");
-                e.printStackTrace();
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update message file", e);
             }
 
             getFileSetting().reload("message.yml");
@@ -228,8 +214,7 @@ public class File {
 
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your events config have been updated successful to v" + default_configVersion);
             } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update events config by it self, please backup and rename your events config then restart to get newest config!!");
-                e.printStackTrace();
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update events config", e);
             }
 
             getFileSetting().reload("events.yml");
@@ -251,8 +236,7 @@ public class File {
 
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config have been updated successful to v" + default_enchantVersion);
             } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update enchants config by it self, please backup and rename your enchants config then restart to get newest config!!");
-                e.printStackTrace();
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update enchants config", e);
             }
 
             getFileSetting().reload("enchants.yml");
@@ -274,8 +258,7 @@ public class File {
 
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config have been updated successful to v" + default_specialMaterialVersion);
             } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update special materials config by it self, please backup and rename your special materials config then restart to get newest config!!");
-                e.printStackTrace();
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update special materials config", e);
             }
 
             getFileSetting().reload("special_material.yml");
@@ -307,11 +290,32 @@ public class File {
 
                 Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config have been updated successful to v" + default_mythicStorageVersion);
             } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Can not update mythicstorage config by it self, please backup and rename your mythicstorage config then restart to get newest config!!");
-                e.printStackTrace();
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update mythicstorage config", e);
             }
 
             getFileSetting().reload("mythicstorage.yml");
+        }
+    }
+
+    public static void updateCraftingConfig() {
+        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "crafting.yml");
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("crafting.yml")), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
+        int default_craftingVersion = defaultConfig.getInt("crafting_version");
+        int current_craftingVersion = currentConfig.contains("crafting_version") ? currentConfig.getInt("crafting_version") : 0;
+
+        if (default_craftingVersion > current_craftingVersion) {
+            Storage.getStorage().getLogger().log(Level.WARNING, "Your crafting config is updating from v" + current_craftingVersion + " to v" + default_craftingVersion + "...");
+
+            try {
+                ConfigUpdater.update(Storage.getStorage(), "crafting.yml", configFile);
+
+                Storage.getStorage().getLogger().log(Level.WARNING, "Your crafting config have been updated successful to v" + default_craftingVersion);
+            } catch (IOException e) {
+                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update crafting config", e);
+            }
+
+            getFileSetting().reload("crafting.yml");
         }
     }
 
@@ -320,8 +324,7 @@ public class File {
             java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "enchants.yml");
             getEnchantsConfig().save(configFile);
         } catch (IOException e) {
-            Storage.getStorage().getLogger().log(Level.SEVERE, "Could not save enchants.yml config: " + e.getMessage());
-            e.printStackTrace();
+            Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to save enchants.yml config", e);
         }
     }
 

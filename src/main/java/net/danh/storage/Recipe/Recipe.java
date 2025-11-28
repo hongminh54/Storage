@@ -5,10 +5,6 @@ import org.bukkit.inventory.ItemFlag;
 
 import java.util.*;
 
-/**
- * Recipe model for custom crafting system
- * Compatible with 1.8.x - 1.21.10
- */
 public class Recipe {
 
     private final String id;
@@ -26,7 +22,7 @@ public class Recipe {
     private Set<ItemFlag> resultFlags;
 
     private Map<String, Integer> materialRequirements;
-    private List<String> permissionRequirements;
+    private String permissionRequirement;
 
     public Recipe(String id) {
         this.id = id;
@@ -42,7 +38,7 @@ public class Recipe {
         this.resultUnbreakable = false;
         this.resultFlags = new HashSet<>();
         this.materialRequirements = new HashMap<>();
-        this.permissionRequirements = new ArrayList<>();
+        this.permissionRequirement = null;
     }
 
     public Recipe(String id, ConfigurationSection section) {
@@ -94,7 +90,14 @@ public class Recipe {
                 }
             }
 
-            this.permissionRequirements = reqSection.getStringList("permissions");
+            if (reqSection.contains("permissions")) {
+                List<String> oldPermissions = reqSection.getStringList("permissions");
+                this.permissionRequirement = oldPermissions.isEmpty() ? null : oldPermissions.get(0);
+            } else if (reqSection.contains("permission")) {
+                this.permissionRequirement = reqSection.getString("permission");
+            } else {
+                this.permissionRequirement = null;
+            }
         }
     }
 
@@ -134,8 +137,8 @@ public class Recipe {
             }
         }
 
-        if (!this.permissionRequirements.isEmpty()) {
-            reqSection.set("permissions", this.permissionRequirements);
+        if (this.permissionRequirement != null && !this.permissionRequirement.trim().isEmpty()) {
+            reqSection.set("permission", this.permissionRequirement);
         }
     }
 
@@ -240,11 +243,11 @@ public class Recipe {
         this.materialRequirements = materialRequirements;
     }
 
-    public List<String> getPermissionRequirements() {
-        return permissionRequirements;
+    public String getPermissionRequirement() {
+        return permissionRequirement;
     }
 
-    public void setPermissionRequirements(List<String> permissionRequirements) {
-        this.permissionRequirements = permissionRequirements;
+    public void setPermissionRequirement(String permissionRequirement) {
+        this.permissionRequirement = permissionRequirement;
     }
 }

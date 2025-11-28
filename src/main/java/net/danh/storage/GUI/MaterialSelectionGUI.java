@@ -21,31 +21,6 @@ import java.util.*;
 
 public class MaterialSelectionGUI implements IGUI {
 
-    // Comprehensive material categories
-    private static final String[][] MATERIAL_CATEGORIES = {
-            // Building Blocks
-            {"STONE", "COBBLESTONE", "DIRT", "GRASS_BLOCK", "SAND", "GRAVEL", "CLAY", "TERRACOTTA", "CONCRETE", "WOOL", "GLASS", "OBSIDIAN", "BEDROCK", "NETHERRACK", "END_STONE"},
-            // Ores & Ingots
-            {"COAL", "IRON_INGOT", "GOLD_INGOT", "DIAMOND", "EMERALD", "REDSTONE", "LAPIS_LAZULI", "QUARTZ", "NETHERITE_INGOT", "COPPER_INGOT", "IRON_ORE", "GOLD_ORE", "DIAMOND_ORE", "EMERALD_ORE", "COAL_ORE"},
-            // Wood & Plants
-            {"OAK_LOG", "BIRCH_LOG", "SPRUCE_LOG", "JUNGLE_LOG", "ACACIA_LOG", "DARK_OAK_LOG", "CRIMSON_STEM", "WARPED_STEM", "OAK_PLANKS", "BIRCH_PLANKS", "SPRUCE_PLANKS", "JUNGLE_PLANKS", "ACACIA_PLANKS", "DARK_OAK_PLANKS", "BAMBOO"},
-            // Food & Agriculture
-            {"WHEAT", "CARROT", "POTATO", "BEETROOT", "SUGAR_CANE", "CACTUS", "MELON", "PUMPKIN", "APPLE", "BREAD", "COOKED_BEEF", "COOKED_PORK", "COOKED_CHICKEN", "COOKED_MUTTON", "COOKED_RABBIT"},
-            // Combat & Tools
-            {"DIAMOND_SWORD", "IRON_SWORD", "GOLDEN_SWORD", "STONE_SWORD", "WOODEN_SWORD", "BOW", "CROSSBOW", "ARROW", "SHIELD", "DIAMOND_PICKAXE", "IRON_PICKAXE", "GOLDEN_PICKAXE", "STONE_PICKAXE", "WOODEN_PICKAXE"},
-            // Mob Drops
-            {"LEATHER", "BEEF", "PORK", "CHICKEN", "MUTTON", "RABBIT", "STRING", "FEATHER", "BONE", "GUNPOWDER", "BLAZE_POWDER", "ENDER_PEARL", "SLIME_BALL", "MAGMA_CREAM", "GHAST_TEAR"},
-            // Redstone & Mechanisms
-            {"REDSTONE", "REDSTONE_TORCH", "LEVER", "BUTTON", "PRESSURE_PLATE", "TRIPWIRE_HOOK", "PISTON", "STICKY_PISTON", "DISPENSER", "DROPPER", "HOPPER", "COMPARATOR", "REPEATER", "OBSERVER", "TARGET"},
-            // Nether & End
-            {"NETHERRACK", "SOUL_SAND", "SOUL_SOIL", "NETHER_BRICKS", "NETHER_WART", "BLAZE_ROD", "GHAST_TEAR", "MAGMA_CREAM", "NETHER_STAR", "END_STONE", "ENDER_PEARL", "CHORUS_FRUIT", "SHULKER_SHELL", "ELYTRA", "DRAGON_EGG"}
-    };
-
-    private static final String[] CATEGORY_NAMES = {
-            "Building Blocks", "Ores & Ingots", "Wood & Plants", "Food & Agriculture",
-            "Combat & Tools", "Mob Drops", "Redstone & Mechanisms", "Nether & End"
-    };
-
     private final Player player;
     private final Recipe recipe;
     private final String selectionType;
@@ -259,7 +234,13 @@ public class MaterialSelectionGUI implements IGUI {
         ItemStack backItem = ItemManager.getItemConfig(config.getConfigurationSection("items.back"));
         if (backItem != null) {
             InteractiveItem backButton = new InteractiveItem(backItem, config.getInt("items.back.slot", 49))
-                    .onLeftClick(this::returnToRecipeEditor);
+                    .onLeftClick(p -> {
+                        if (selectionType.equals("requirement")) {
+                            returnToMaterialEditor(p);
+                        } else {
+                            returnToRecipeEditor(p);
+                        }
+                    });
             inventory.setItem(backButton.getSlot(), backButton);
         }
     }

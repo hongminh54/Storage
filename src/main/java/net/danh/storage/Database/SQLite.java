@@ -64,7 +64,7 @@ public class SQLite extends Database {
 
             s.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to create SQLite tables", e);
         }
         initialize();
         Storage.getStorage().getLogger().info("Loaded SQLite Data");

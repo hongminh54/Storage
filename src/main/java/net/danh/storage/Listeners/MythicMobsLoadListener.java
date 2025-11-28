@@ -11,6 +11,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 
+import java.util.logging.Level;
+
 public class MythicMobsLoadListener implements Listener {
 
     private boolean initialized = false;
@@ -51,8 +53,7 @@ public class MythicMobsLoadListener implements Listener {
                 Storage.getStorage().getLogger().info("[MythicStorage] Successfully initialized after MythicMobs load");
             }
         } catch (Exception e) {
-            Storage.getStorage().getLogger().warning("[MythicStorage] Failed to initialize: " + e.getMessage());
-            e.printStackTrace();
+            Storage.getStorage().getLogger().log(Level.SEVERE, "[MythicStorage] Failed to initialize", e);
         }
     }
 

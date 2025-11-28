@@ -7,6 +7,7 @@ import net.danh.storage.Manager.CraftingManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class CraftEditorCommand extends BaseCommand {
 
@@ -109,7 +111,7 @@ public class CraftEditorCommand extends BaseCommand {
         } catch (Exception e) {
             sendMessage(player, "crafting.import_failed");
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
-            e.printStackTrace();
+            Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to import item as recipe", e);
         }
     }
 
@@ -133,6 +135,6 @@ public class CraftEditorCommand extends BaseCommand {
 
     @Override
     public String getDescription() {
-        return "Open recipe editor or import held item (Admin only)";
+        return "Open recipe editor or import held item";
     }
 }

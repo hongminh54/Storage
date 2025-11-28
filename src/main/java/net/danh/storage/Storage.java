@@ -72,6 +72,7 @@ public final class Storage extends JavaPlugin {
         File.updateEnchantConfig();
         File.updateSpecialMaterialConfig();
         File.updateMythicStorageConfig();
+        File.updateCraftingConfig();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
             new CraftingPlaceholder(this).register();

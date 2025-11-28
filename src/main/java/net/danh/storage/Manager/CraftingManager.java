@@ -219,15 +219,15 @@ public class CraftingManager {
             Storage.getStorage().getLogger().warning("Cannot add invalid recipe: " + recipe.getId());
             return;
         }
-        
+
         RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.CREATE);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            return;
-        }
-        
-        addRecipeToMaps(recipe);
-        saveRecipes();
+        SchedulerUtil.runTask(Storage.getStorage(), () -> {
+            Bukkit.getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                addRecipeToMaps(recipe);
+                saveRecipes();
+            }
+        });
     }
 
     public static boolean removeRecipe(String id) {
@@ -235,16 +235,16 @@ public class CraftingManager {
         if (recipe == null) {
             return false;
         }
-        
+
         RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.DELETE);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-        
-        recipes.remove(id);
-        removeRecipeFromCategory(recipe);
-        saveRecipes();
+        SchedulerUtil.runTask(Storage.getStorage(), () -> {
+            Bukkit.getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                recipes.remove(id);
+                removeRecipeFromCategory(recipe);
+                saveRecipes();
+            }
+        });
         return true;
     }
 
@@ -253,21 +253,21 @@ public class CraftingManager {
             Storage.getStorage().getLogger().warning("Cannot update invalid recipe: " + recipe.getId());
             return;
         }
-        
+
         RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.UPDATE);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            return;
-        }
-        
-        removeRecipeFromAllCategories(recipe.getId());
-        addRecipeToMaps(recipe);
-        saveRecipes();
+        SchedulerUtil.runTask(Storage.getStorage(), () -> {
+            Bukkit.getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                removeRecipeFromAllCategories(recipe.getId());
+                addRecipeToMaps(recipe);
+                saveRecipes();
+            }
+        });
     }
 
     public static boolean hasPermissions(Player player, Recipe recipe) {
-        return recipe.getPermissionRequirements().stream()
-                .allMatch(player::hasPermission);
+        String permission = recipe.getPermissionRequirement();
+        return permission == null || permission.trim().isEmpty() || player.hasPermission(permission);
     }
 
     public static boolean hasMaterials(Player player, Recipe recipe) {
@@ -380,7 +380,7 @@ public class CraftingManager {
         duplicate.setResultUnbreakable(source.isResultUnbreakable());
         duplicate.setResultFlags(new HashSet<>(source.getResultFlags()));
         duplicate.setMaterialRequirements(new HashMap<>(source.getMaterialRequirements()));
-        duplicate.setPermissionRequirements(new ArrayList<>(source.getPermissionRequirements()));
+        duplicate.setPermissionRequirement(source.getPermissionRequirement());
 
         return duplicate;
     }
@@ -604,13 +604,6 @@ public class CraftingManager {
         }
     }
 
-    /**
-     * Calculate available inventory space for specific item
-     *
-     * @param player    Target player
-     * @param itemStack Item template to check space for
-     * @return Total available space in items
-     */
     public static int calculateInventorySpace(Player player, ItemStack itemStack) {
         int availableSpace = 0;
         ItemStack template = itemStack.clone();

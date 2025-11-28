@@ -40,10 +40,7 @@ public class JoinQuit implements Listener {
         TransferManager.cancelTransfer(p);
         MythicTransferManager.cancelTransfer(p);
 
-        // Cleanup transfer GUI data
-        if (TransferMultiGUI.getActiveGUI(p) != null) {
-            // GUI will be auto-closed by inventory close event
-        }
+        // Cleanup transfer GUI data (TransferGUI and TransferMultiGUI auto-cleanup on close)
 
         if (MythicTransferGUI.getActiveGUI(p) != null) {
             MythicTransferGUI.removeActiveGUI(p);
@@ -58,6 +55,7 @@ public class JoinQuit implements Listener {
 
         // Cleanup enchant cooldown data
         TNTEnchant.clearPlayerCooldown(p);
+        // Other enchant classes handle their own cleanup or don't have public cleanup methods
 
         // Cleanup sound tracking data
         SoundManager.cleanupPlayer(p);
@@ -68,5 +66,20 @@ public class JoinQuit implements Listener {
 
         // Cleanup recipe editing data
         RecipeEditManager.cancelEdit(p);
+        RecipeEditorGUI.cleanupBackup(p.getUniqueId());
+
+        // Cleanup remaining chat data
+        ChatListener.chat_deposit.remove(p);
+        ChatListener.chat_withdraw.remove(p);
+        ChatListener.chat_sell.remove(p);
+        ChatListener.chat_convert_from.remove(p);
+        ChatListener.chat_convert_to.remove(p);
+
+        // Cleanup GUI page tracking
+        ViewStorageGUI.playerCurrentPage.remove(p);
+        ConvertOreGUI.playerCurrentPage.remove(p);
+
+        // Cleanup GUI item mapper
+        GUI.getItemMapper().remove(p.getUniqueId());
     }
 }

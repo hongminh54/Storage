@@ -17,33 +17,25 @@ import org.jetbrains.annotations.NotNull;
 public class RecipeCraftEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
-    private boolean cancelled = false;
-
     private final Player player;
     private final Recipe recipe;
-    private int amount;
     private final ItemStack result;
     private final CraftPhase phase;
+    private boolean cancelled = false;
+    private int amount;
 
-    /**
-     * Crafting phase enum
-     */
-    public enum CraftPhase {
-        /** Before crafting starts (can cancel) */
-        PRE_CRAFT,
-        /** After materials removed, before giving result */
-        POST_CRAFT,
-        /** After crafting completed successfully */
-        COMPLETE
-    }
-
-    public RecipeCraftEvent(@NotNull Player player, @NotNull Recipe recipe, 
-                           int amount, @NotNull ItemStack result, @NotNull CraftPhase phase) {
+    public RecipeCraftEvent(@NotNull Player player, @NotNull Recipe recipe,
+                            int amount, @NotNull ItemStack result, @NotNull CraftPhase phase) {
         this.player = player;
         this.recipe = recipe;
         this.amount = amount;
         this.result = result;
         this.phase = phase;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 
     /**
@@ -124,8 +116,21 @@ public class RecipeCraftEvent extends Event implements Cancellable {
         return handlers;
     }
 
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return handlers;
+    /**
+     * Crafting phase enum
+     */
+    public enum CraftPhase {
+        /**
+         * Before crafting starts (can cancel)
+         */
+        PRE_CRAFT,
+        /**
+         * After materials removed, before giving result
+         */
+        POST_CRAFT,
+        /**
+         * After crafting completed successfully
+         */
+        COMPLETE
     }
 }

@@ -58,7 +58,7 @@ public class RecipeEditorGUI implements IGUI {
                 recipe.isResultUnbreakable(),
                 new HashSet<>(recipe.getResultFlags()),
                 new HashMap<>(recipe.getMaterialRequirements()),
-                new ArrayList<>(recipe.getPermissionRequirements())
+                recipe.getPermissionRequirement()
         );
         recipeBackups.put(player.getUniqueId(), backup);
     }
@@ -78,7 +78,7 @@ public class RecipeEditorGUI implements IGUI {
             recipe.setResultUnbreakable(backup.resultUnbreakable);
             recipe.setResultFlags(new HashSet<>(backup.resultFlags));
             recipe.setMaterialRequirements(new HashMap<>(backup.materialRequirements));
-            recipe.setPermissionRequirements(new ArrayList<>(backup.permissionRequirements));
+            recipe.setPermissionRequirement(backup.permissionRequirement);
         }
     }
 
@@ -135,7 +135,8 @@ public class RecipeEditorGUI implements IGUI {
 
         // Preview item already has lore from config, no need to add more
 
-        InteractiveItem resultPreview = new InteractiveItem(previewItem, 13);
+        int previewSlot = getSlot("items.result_preview", 13);
+        InteractiveItem resultPreview = new InteractiveItem(previewItem, previewSlot);
         inventory.setItem(resultPreview.getSlot(), resultPreview);
     }
 
@@ -144,7 +145,8 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack materialItem = createConfigItem("items.edit_material",
                 "#current_material#", recipe.getResultMaterial());
         if (materialItem != null) {
-            InteractiveItem materialEditor = new InteractiveItem(materialItem, 10)
+            InteractiveItem materialEditor = new InteractiveItem(materialItem,
+                    getSlot("items.edit_material", 10))
                     .onLeftClick(p -> editMaterial(p));
             inventory.setItem(materialEditor.getSlot(), materialEditor);
         }
@@ -153,7 +155,8 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack nameItem = createConfigItem("items.edit_name",
                 "#current_name#", recipe.getResultName());
         if (nameItem != null) {
-            InteractiveItem nameEditor = new InteractiveItem(nameItem, 11)
+            InteractiveItem nameEditor = new InteractiveItem(nameItem,
+                    getSlot("items.edit_name", 11))
                     .onLeftClick(p -> editName(p));
             inventory.setItem(nameEditor.getSlot(), nameEditor);
         }
@@ -162,7 +165,8 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack loreItem = createConfigItem("items.edit_lore",
                 "#lore_count#", String.valueOf(recipe.getResultLore().size()));
         if (loreItem != null) {
-            InteractiveItem loreEditor = new InteractiveItem(loreItem, 12)
+            InteractiveItem loreEditor = new InteractiveItem(loreItem,
+                    getSlot("items.edit_lore", 12))
                     .onClick((p, clickType) -> editLore(p, clickType));
             inventory.setItem(loreEditor.getSlot(), loreEditor);
         }
@@ -172,7 +176,8 @@ public class RecipeEditorGUI implements IGUI {
                 "#current_amount#", String.valueOf(recipe.getResultAmount()));
         if (amountItem != null) {
             amountItem.setAmount(Math.max(1, Math.min(64, recipe.getResultAmount())));
-            InteractiveItem amountEditor = new InteractiveItem(amountItem, 14)
+            InteractiveItem amountEditor = new InteractiveItem(amountItem,
+                    getSlot("items.edit_amount", 14))
                     .onClick((p, clickType) -> editAmount(p, clickType));
             inventory.setItem(amountEditor.getSlot(), amountEditor);
         }
@@ -181,7 +186,8 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack enchantItem = createConfigItem("items.edit_enchantments",
                 "#enchant_count#", String.valueOf(recipe.getResultEnchantments().size()));
         if (enchantItem != null) {
-            InteractiveItem enchantEditor = new InteractiveItem(enchantItem, 15)
+            InteractiveItem enchantEditor = new InteractiveItem(enchantItem,
+                    getSlot("items.edit_enchantments", 15))
                     .onLeftClick(p -> editEnchantments(p));
             inventory.setItem(enchantEditor.getSlot(), enchantEditor);
         }
@@ -190,7 +196,8 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack flagsItem = createConfigItem("items.edit_flags",
                 "#flag_count#", String.valueOf(recipe.getResultFlags().size()));
         if (flagsItem != null) {
-            InteractiveItem flagsEditor = new InteractiveItem(flagsItem, 16)
+            InteractiveItem flagsEditor = new InteractiveItem(flagsItem,
+                    getSlot("items.edit_flags", 16))
                     .onLeftClick(p -> editFlags(p));
             inventory.setItem(flagsEditor.getSlot(), flagsEditor);
         }
@@ -199,7 +206,8 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack cmdItem = createConfigItem("items.edit_custom_model_data",
                 "#current_cmd#", String.valueOf(recipe.getResultCustomModelData()));
         if (cmdItem != null) {
-            InteractiveItem cmdEditor = new InteractiveItem(cmdItem, 19)
+            InteractiveItem cmdEditor = new InteractiveItem(cmdItem,
+                    getSlot("items.edit_custom_model_data", 19))
                     .onLeftClick(p -> editCustomModelData(p));
             inventory.setItem(cmdEditor.getSlot(), cmdEditor);
         }
@@ -208,24 +216,28 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack unbreakableItem = createConfigItem("items.toggle_unbreakable",
                 "#status#", recipe.isResultUnbreakable() ? "&aEnabled" : "&cDisabled");
         if (unbreakableItem != null) {
-            InteractiveItem unbreakableToggle = new InteractiveItem(unbreakableItem, 20)
+            InteractiveItem unbreakableToggle = new InteractiveItem(unbreakableItem,
+                    getSlot("items.toggle_unbreakable", 20))
                     .onLeftClick(p -> toggleUnbreakable(p));
             inventory.setItem(unbreakableToggle.getSlot(), unbreakableToggle);
         }
     }
 
     private void addRequirementsPanel(Inventory inventory) {
+        String permissionStatus = recipe.getPermissionRequirement() == null || recipe.getPermissionRequirement().trim().isEmpty()
+                ? "None" : recipe.getPermissionRequirement();
         ItemStack permReqItem = createConfigItem("items.permission_requirements",
-                "#permission_count#", String.valueOf(recipe.getPermissionRequirements().size()));
+                "#permission#", permissionStatus);
         if (permReqItem != null) {
-            InteractiveItem permReqButton = new InteractiveItem(permReqItem, 28)
-                    .onLeftClick(p -> openPermissionRequirementsGUI(p));
+            InteractiveItem permReqButton = new InteractiveItem(permReqItem,
+                    getSlot("items.permission_requirements", 28))
+                    .onClick((p, clickType) -> handlePermissionClick(p, clickType));
             inventory.setItem(permReqButton.getSlot(), permReqButton);
         }
 
         InteractiveItem addMaterial = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_material"))),
-                37
+                getSlot("items.add_material", 37)
         ).onLeftClick(p -> openMaterialEditor(p));
         inventory.setItem(addMaterial.getSlot(), addMaterial);
 
@@ -276,7 +288,8 @@ public class RecipeEditorGUI implements IGUI {
                 "#category#", recipe.getCategory(),
                 "#status#", recipe.isEnabled() ? "&aEnabled" : "&cDisabled");
         if (settingsItem != null) {
-            InteractiveItem settingsButton = new InteractiveItem(settingsItem, 48)
+            InteractiveItem settingsButton = new InteractiveItem(settingsItem,
+                    getSlot("items.recipe_settings", 48))
                     .onLeftClick(p -> editRecipeSettings(p));
             inventory.setItem(settingsButton.getSlot(), settingsButton);
         }
@@ -284,23 +297,27 @@ public class RecipeEditorGUI implements IGUI {
         // Save button
         InteractiveItem saveButton = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.save"))),
-                50
+                getSlot("items.save", 50)
         ).onLeftClick(p -> saveRecipe(p));
         inventory.setItem(saveButton.getSlot(), saveButton);
 
         // Back button
         InteractiveItem backButton = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back"))),
-                49
+                getSlot("items.back", 49)
         ).onLeftClick(p -> backToList(p));
         inventory.setItem(backButton.getSlot(), backButton);
 
         // Delete button
         InteractiveItem deleteButton = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.delete"))),
-                53
+                getSlot("items.delete", 53)
         ).onLeftClick(p -> deleteRecipe(p));
         inventory.setItem(deleteButton.getSlot(), deleteButton);
+    }
+
+    private int getSlot(String configPath, int defaultSlot) {
+        return config.getInt(configPath + ".slot", defaultSlot);
     }
 
     private ItemStack createConfigItem(String configPath, String... placeholders) {
@@ -379,8 +396,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void editEnchantments(Player player) {
-        SoundManager.setShouldPlayCloseSound(player, false);
-        player.openInventory(new EnchantmentsEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
+        RecipeEditManager.requestEnchantmentEdit(player, recipe);
     }
 
     private void editFlags(Player player) {
@@ -445,14 +461,20 @@ public class RecipeEditorGUI implements IGUI {
         RecipeEditManager.requestCategoryEdit(player, recipe);
     }
 
-    private void openPermissionRequirementsGUI(Player player) {
-        SoundManager.setShouldPlayCloseSound(player, false);
-        player.openInventory(new PermissionRequirementsGUI(player, recipe).getInventory(SoundContext.SILENT));
+    private void handlePermissionClick(Player player, ClickType clickType) {
+        if (clickType == ClickType.LEFT) {
+            RecipeEditManager.requestPermissionEdit(player, recipe);
+        } else if (clickType == ClickType.RIGHT) {
+            recipe.setPermissionRequirement(null);
+            CraftingManager.updateRecipe(recipe);
+            SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
+            refreshGUI(player);
+        }
     }
 
     private void saveRecipe(Player player) {
         CraftingManager.updateRecipe(recipe);
-        clearBackup(); // Clear backup after successful save
+        clearBackup();
 
         player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_saved")
                 .replace("#recipe#", recipe.getName())));
@@ -478,7 +500,7 @@ public class RecipeEditorGUI implements IGUI {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new ConfirmationGUI(player, message,
                 () -> {
-                    // On confirm - delete recipe and clear backup
+                    // On confirm
                     CraftingManager.removeRecipe(recipe.getId());
                     clearBackup();
                     player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_deleted")
@@ -487,7 +509,7 @@ public class RecipeEditorGUI implements IGUI {
                     player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.SILENT));
                 },
                 () -> {
-                    // On cancel - return to editor (backup still exists)
+                    // On cancel
                     SoundManager.setShouldPlayCloseSound(player, false);
                     player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
                 }
@@ -512,7 +534,7 @@ public class RecipeEditorGUI implements IGUI {
         final boolean resultUnbreakable;
         final Set<org.bukkit.inventory.ItemFlag> resultFlags;
         final Map<String, Integer> materialRequirements;
-        final List<String> permissionRequirements;
+        final String permissionRequirement;
 
         RecipeBackup(String name, String category, boolean enabled,
                      String resultMaterial, String resultName, List<String> resultLore,
@@ -520,7 +542,7 @@ public class RecipeEditorGUI implements IGUI {
                      int resultCustomModelData, boolean resultUnbreakable,
                      Set<org.bukkit.inventory.ItemFlag> resultFlags,
                      Map<String, Integer> materialRequirements,
-                     List<String> permissionRequirements) {
+                     String permissionRequirement) {
             this.name = name;
             this.category = category;
             this.enabled = enabled;
@@ -533,7 +555,7 @@ public class RecipeEditorGUI implements IGUI {
             this.resultUnbreakable = resultUnbreakable;
             this.resultFlags = resultFlags;
             this.materialRequirements = materialRequirements;
-            this.permissionRequirements = permissionRequirements;
+            this.permissionRequirement = permissionRequirement;
         }
     }
 }

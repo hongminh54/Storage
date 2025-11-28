@@ -82,7 +82,7 @@ public class RecipeEditorListGUI implements IGUI {
     private void addCreateButton(Inventory inventory) {
         InteractiveItem createButton = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.create_recipe"))),
-                4
+                getSlot("items.create_recipe", 4)
         ).onLeftClick(this::createNewRecipe);
         inventory.setItem(createButton.getSlot(), createButton);
     }
@@ -111,7 +111,7 @@ public class RecipeEditorListGUI implements IGUI {
     private void addNoRecipesItem(Inventory inventory) {
         InteractiveItem noRecipesItem = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.no_recipes"))),
-                22
+                getSlot("items.no_recipes", 22)
         );
         inventory.setItem(noRecipesItem.getSlot(), noRecipesItem);
     }
@@ -271,7 +271,7 @@ public class RecipeEditorListGUI implements IGUI {
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
 
-        InteractiveItem prevButton = new InteractiveItem(prevItem, 45)
+        InteractiveItem prevButton = new InteractiveItem(prevItem, getSlot("items.previous_page", 45))
                 .onLeftClick(p -> {
                     SoundManager.setShouldPlayCloseSound(p, false);
                     p.openInventory(new RecipeEditorListGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
@@ -285,7 +285,7 @@ public class RecipeEditorListGUI implements IGUI {
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
 
-        InteractiveItem nextButton = new InteractiveItem(nextItem, 53)
+        InteractiveItem nextButton = new InteractiveItem(nextItem, getSlot("items.next_page", 53))
                 .onLeftClick(p -> {
                     SoundManager.setShouldPlayCloseSound(p, false);
                     p.openInventory(new RecipeEditorListGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
@@ -296,11 +296,15 @@ public class RecipeEditorListGUI implements IGUI {
     private void addCloseButton(Inventory inventory) {
         InteractiveItem closeButton = new InteractiveItem(
                 ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close"))),
-                49
+                getSlot("items.close", 49)
         ).onLeftClick(p -> {
             SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
             p.closeInventory();
         });
         inventory.setItem(closeButton.getSlot(), closeButton);
+    }
+
+    private int getSlot(String path, int defaultSlot) {
+        return config.getInt(path + ".slot", defaultSlot);
     }
 }

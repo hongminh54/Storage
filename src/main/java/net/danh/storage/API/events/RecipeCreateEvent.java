@@ -17,30 +17,20 @@ import org.jetbrains.annotations.Nullable;
 public class RecipeCreateEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
-    private boolean cancelled = false;
-
     private final Player creator;
     private final Recipe recipe;
     private final Action action;
-
-    /**
-     * Recipe action enum
-     */
-    public enum Action {
-        /** New recipe created */
-        CREATE,
-        /** Existing recipe updated */
-        UPDATE,
-        /** Recipe deleted */
-        DELETE,
-        /** Recipe duplicated */
-        DUPLICATE
-    }
+    private boolean cancelled = false;
 
     public RecipeCreateEvent(@Nullable Player creator, @NotNull Recipe recipe, @NotNull Action action) {
         this.creator = creator;
         this.recipe = recipe;
         this.action = action;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 
     /**
@@ -89,8 +79,25 @@ public class RecipeCreateEvent extends Event implements Cancellable {
         return handlers;
     }
 
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return handlers;
+    /**
+     * Recipe action enum
+     */
+    public enum Action {
+        /**
+         * New recipe created
+         */
+        CREATE,
+        /**
+         * Existing recipe updated
+         */
+        UPDATE,
+        /**
+         * Recipe deleted
+         */
+        DELETE,
+        /**
+         * Recipe duplicated
+         */
+        DUPLICATE
     }
 }
