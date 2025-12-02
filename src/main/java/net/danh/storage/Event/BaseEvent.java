@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseEvent {
@@ -271,7 +272,7 @@ public abstract class BaseEvent {
 
         List<Integer> reminderTimes = File.getEventConfig().getIntegerList("notifications.reminders.before_end");
         if (reminderTimes.isEmpty()) {
-            reminderTimes = List.of(300, 60, 10); // Default: 5min, 1min, 10sec
+            reminderTimes = Arrays.asList(300, 60, 10); // Default: 5min, 1min, 10sec
         }
 
         for (int reminderTime : reminderTimes) {

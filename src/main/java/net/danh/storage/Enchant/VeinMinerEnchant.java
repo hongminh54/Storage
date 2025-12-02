@@ -272,4 +272,11 @@ public class VeinMinerEnchant {
             Storage.getStorage().getLogger().warning("Failed to drop items for: " + drop);
         }
     }
+
+    public static void clearPlayerCooldown(Player player) {
+        if (player != null) {
+            playerCooldowns.remove(player.getUniqueId());
+        }
+    }
+
 }

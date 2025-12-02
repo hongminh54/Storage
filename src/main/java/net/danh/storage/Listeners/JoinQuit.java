@@ -1,6 +1,9 @@
 package net.danh.storage.Listeners;
 
+import net.danh.storage.Enchant.HasteEnchant;
+import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.Enchant.TNTEnchant;
+import net.danh.storage.Enchant.VeinMinerEnchant;
 import net.danh.storage.GUI.*;
 import net.danh.storage.Manager.*;
 import org.bukkit.entity.Player;
@@ -55,7 +58,9 @@ public class JoinQuit implements Listener {
 
         // Cleanup enchant cooldown data
         TNTEnchant.clearPlayerCooldown(p);
-        // Other enchant classes handle their own cleanup or don't have public cleanup methods
+        HasteEnchant.clearPlayerCooldown(p);
+        MultiplierEnchant.clearPlayerCooldown(p);
+        VeinMinerEnchant.clearPlayerCooldown(p);
 
         // Cleanup sound tracking data
         SoundManager.cleanupPlayer(p);

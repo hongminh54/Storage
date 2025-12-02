@@ -121,13 +121,11 @@ public class HasteEnchant {
         }, enchantData.soundDelayTicks);
     }
 
-    public static void cleanupOldEntries() {
-        long currentTime = System.currentTimeMillis();
-        long cleanupThreshold = 300000; // 5 minutes
-        playerCooldowns.entrySet().removeIf(entry ->
-                currentTime - entry.getValue() > cleanupThreshold);
-
-        playerLastHaste.entrySet().removeIf(entry ->
-                currentTime - entry.getValue() > cleanupThreshold);
+    public static void clearPlayerCooldown(org.bukkit.entity.Player player) {
+        if (player != null) {
+            playerCooldowns.remove(player.getUniqueId());
+            playerLastHaste.remove(player.getUniqueId());
+        }
     }
+
 }

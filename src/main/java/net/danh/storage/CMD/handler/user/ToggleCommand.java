@@ -27,7 +27,7 @@ public class ToggleCommand extends BaseCommand {
         boolean currentStatus = MineManager.getToggleStatus(player);
         boolean newStatus = !currentStatus;
 
-        MineManager.toggle.put(player, newStatus);
+        MineManager.setToggleStatus(player, newStatus);
 
         String statusText = ItemManager.getStatus(player);
         sendMessage(sender, "user.status.toggle", "#status#", statusText);

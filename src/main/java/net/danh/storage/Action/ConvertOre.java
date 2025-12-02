@@ -76,8 +76,8 @@ public class ConvertOre {
             resultAmount = option.calculateResultAmount(actualConversions);
         }
 
-        if (MineManager.removeBlockAmount(player, fromMaterial, requiredAmount)) {
-            if (MineManager.addBlockAmount(player, toMaterial, resultAmount)) {
+        if (MineManager.removeBlockAmount(player, fromMaterial, requiredAmount, false)) {
+            if (MineManager.addBlockAmount(player, toMaterial, resultAmount, false)) {
                 playEffects();
                 sendMessage("convert.success",
                         "#from_amount#", String.valueOf(requiredAmount),
@@ -85,7 +85,7 @@ public class ConvertOre {
                         "#to_amount#", String.valueOf(resultAmount),
                         "#to_material#", getMaterialName(toMaterial));
             } else {
-                MineManager.addBlockAmount(player, fromMaterial, requiredAmount);
+                MineManager.addBlockAmount(player, fromMaterial, requiredAmount, false);
                 sendMessage("convert.failed");
             }
         } else {

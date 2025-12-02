@@ -1,15 +1,13 @@
 package net.danh.storage.API;
 
-import net.danh.storage.API.events.MythicStorageDepositEvent;
-import net.danh.storage.API.events.MythicStorageWithdrawEvent;
 import net.danh.storage.API.exceptions.StorageException;
 import net.danh.storage.API.exceptions.StorageFullException;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,28 +58,26 @@ public class MythicStorageAPI {
         if (!isSystemEnabled()) {
             throw new IllegalStateException("MythicStorage system is not enabled");
         }
-
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
-
         if (!isValidMythicItem(itemName)) {
             throw new StorageException("Invalid MythicMobs item: " + itemName);
         }
 
-        MythicStorageDepositEvent event = new MythicStorageDepositEvent(player, itemName, amount);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        boolean result = MythicStorageManager.addItemAmount(player, itemName, event.getAmount());
+        boolean result = MythicStorageManager.addItemAmount(player, itemName, amount, true);
         if (!result) {
             throw new StorageFullException("MythicStorage is full or invalid item");
         }
-
         return true;
+    }
+
+    /**
+     * Add item without firing events (for internal use)
+     */
+    public static boolean addMythicItemSilent(@NotNull Player player, @NotNull String itemName, int amount) {
+        if (!isSystemEnabled() || amount <= 0) return false;
+        return MythicStorageManager.addItemAmount(player, itemName, amount, false);
     }
 
     /**
@@ -98,19 +94,19 @@ public class MythicStorageAPI {
         if (!isSystemEnabled()) {
             throw new IllegalStateException("MythicStorage system is not enabled");
         }
-
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
 
-        MythicStorageWithdrawEvent event = new MythicStorageWithdrawEvent(player, itemName, amount);
-        Bukkit.getPluginManager().callEvent(event);
+        return MythicStorageManager.removeItemAmount(player, itemName, amount, true);
+    }
 
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        return MythicStorageManager.removeItemAmount(player, itemName, event.getAmount());
+    /**
+     * Remove item without firing events (for internal use)
+     */
+    public static boolean removeMythicItemSilent(@NotNull Player player, @NotNull String itemName, int amount) {
+        if (!isSystemEnabled() || amount <= 0) return false;
+        return MythicStorageManager.removeItemAmount(player, itemName, amount, false);
     }
 
     /**
@@ -211,7 +207,7 @@ public class MythicStorageAPI {
     @NotNull
     public static List<String> getConfiguredMythicItems() {
         if (!isSystemEnabled()) {
-            return List.of();
+            return Collections.emptyList();
         }
         return MythicStorageManager.getConfiguredDrops();
     }

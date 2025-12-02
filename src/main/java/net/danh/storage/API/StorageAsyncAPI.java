@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * API for asynchronous storage operations
@@ -23,6 +22,7 @@ public class StorageAsyncAPI {
 
     /**
      * Asynchronously add item to player's storage
+     * Note: The actual storage operation runs on main thread to properly fire events
      *
      * @param player   The player
      * @param material Material name
@@ -31,17 +31,21 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Boolean> addItemAsync(@NotNull Player player, @NotNull String material, int amount) {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
             try {
-                return StorageAPI.addItem(player, material, amount);
+                boolean result = StorageAPI.addItem(player, material, amount);
+                future.complete(result);
             } catch (StorageException e) {
-                throw new CompletionException(e);
+                future.completeExceptionally(e);
             }
         });
+        return future;
     }
 
     /**
      * Asynchronously remove item from player's storage
+     * Note: The actual storage operation runs on main thread to properly fire events
      *
      * @param player   The player
      * @param material Material name
@@ -50,13 +54,16 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Boolean> removeItemAsync(@NotNull Player player, @NotNull String material, int amount) {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
             try {
-                return StorageAPI.removeItem(player, material, amount);
+                boolean result = StorageAPI.removeItem(player, material, amount);
+                future.complete(result);
             } catch (StorageException e) {
-                throw new CompletionException(e);
+                future.completeExceptionally(e);
             }
         });
+        return future;
     }
 
     /**
@@ -109,6 +116,7 @@ public class StorageAsyncAPI {
 
     /**
      * Asynchronously transfer item between players
+     * Note: The actual transfer operation runs on main thread to properly fire events
      *
      * @param sender   Sender player
      * @param receiver Receiver player
@@ -119,13 +127,16 @@ public class StorageAsyncAPI {
     @NotNull
     public static CompletableFuture<Boolean> transferItemAsync(@NotNull Player sender, @NotNull Player receiver,
                                                                @NotNull String material, int amount) {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
             try {
-                return StorageAPI.transferItem(sender, receiver, material, amount);
+                boolean result = StorageAPI.transferItem(sender, receiver, material, amount);
+                future.complete(result);
             } catch (StorageException e) {
-                throw new CompletionException(e);
+                future.completeExceptionally(e);
             }
         });
+        return future;
     }
 
     /**

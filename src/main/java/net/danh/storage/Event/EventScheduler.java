@@ -12,6 +12,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,7 +200,7 @@ public class EventScheduler {
 
         List<Integer> reminderTimes = File.getEventConfig().getIntegerList("notifications.reminders.before_start");
         if (reminderTimes.isEmpty()) {
-            reminderTimes = List.of(300, 60, 10); // Default: 5min, 1min, 10sec
+            reminderTimes = Arrays.asList(300, 60, 10); // Default: 5min, 1min, 10sec
         }
 
         long eventDelaySeconds = eventDelayTicks / 20L;

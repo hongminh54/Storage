@@ -99,4 +99,11 @@ public class MultiplierEnchant {
             }
         }, enchantData.soundDelayTicks);
     }
+
+    public static void clearPlayerCooldown(org.bukkit.entity.Player player) {
+        if (player != null) {
+            playerCooldowns.remove(player.getUniqueId());
+        }
+    }
+
 }

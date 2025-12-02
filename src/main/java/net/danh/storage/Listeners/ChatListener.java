@@ -56,10 +56,14 @@ public class ChatListener implements Listener {
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                new Deposit(p, chat_deposit.get(p), (long) Number.getInteger(message)).doAction();
-                SoundManager.playChatDepositSound(p);
+                String material = chat_deposit.get(p);
+                int amount = Number.getInteger(message);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new Deposit(p, material, (long) amount).doAction();
+                    SoundManager.playChatDepositSound(p);
+                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                });
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -78,10 +82,14 @@ public class ChatListener implements Listener {
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                new Withdraw(p, chat_withdraw.get(p), Number.getInteger(message)).doAction();
-                SoundManager.playChatWithdrawSound(p);
+                String material = chat_withdraw.get(p);
+                int amount = Number.getInteger(message);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new Withdraw(p, material, amount).doAction();
+                    SoundManager.playChatWithdrawSound(p);
+                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                });
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -100,10 +108,14 @@ public class ChatListener implements Listener {
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                new Sell(p, chat_sell.get(p), Number.getInteger(message)).doAction();
-                SoundManager.playChatSellSound(p);
+                String material = chat_sell.get(p);
+                int amount = Number.getInteger(message);
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
-                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new Sell(p, material, amount).doAction();
+                    SoundManager.playChatSellSound(p);
+                    p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT));
+                });
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -123,10 +135,14 @@ public class ChatListener implements Listener {
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                new MythicWithdraw(p, chat_mythic_withdraw.get(p), Number.getInteger(message)).doAction();
-                SoundManager.playChatDepositSound(p);
+                String itemName = chat_mythic_withdraw.get(p);
+                int amount = Number.getInteger(message);
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
-                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new MythicWithdraw(p, itemName, amount).doAction();
+                    SoundManager.playChatDepositSound(p);
+                    p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
+                });
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -146,10 +162,14 @@ public class ChatListener implements Listener {
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                new MythicDeposit(p, chat_mythic_deposit.get(p), Number.getInteger(message)).doAction();
-                SoundManager.playChatDepositSound(p);
+                String itemName = chat_mythic_deposit.get(p);
+                int amount = Number.getInteger(message);
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
-                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new MythicDeposit(p, itemName, amount).doAction();
+                    SoundManager.playChatDepositSound(p);
+                    p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
+                });
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
@@ -177,9 +197,11 @@ public class ChatListener implements Listener {
                 int amount = Number.getInteger(message);
                 int returnPage = chat_return_page.getOrDefault(p, 0);
 
-                new ConvertOre(p, fromMaterial, toMaterial, amount).doAction();
-                SoundManager.playItemSound(p, net.danh.storage.Utils.File.getConvertOreConfig(), "option_items.convert_option", SoundContext.INITIAL_OPEN);
-                SchedulerUtil.runTask(Storage.getStorage(), () -> p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT)));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new ConvertOre(p, fromMaterial, toMaterial, amount).doAction();
+                    SoundManager.playItemSound(p, net.danh.storage.Utils.File.getConvertOreConfig(), "option_items.convert_option", SoundContext.INITIAL_OPEN);
+                    p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT));
+                });
             } else {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));

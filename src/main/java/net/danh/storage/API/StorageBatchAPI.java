@@ -208,6 +208,7 @@ public class StorageBatchAPI {
 
     /**
      * Async add multiple items to player's storage
+     * Note: The actual storage operations run on main thread to properly fire events
      *
      * @param player The player
      * @param items  Map of material -> amount
@@ -216,11 +217,17 @@ public class StorageBatchAPI {
     @NotNull
     public static CompletableFuture<Map<String, Boolean>> addItemsAsync(@NotNull Player player,
                                                                         @NotNull Map<String, Integer> items) {
-        return CompletableFuture.supplyAsync(() -> addItems(player, items));
+        CompletableFuture<Map<String, Boolean>> future = new CompletableFuture<>();
+        org.bukkit.Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
+            Map<String, Boolean> result = addItems(player, items);
+            future.complete(result);
+        });
+        return future;
     }
 
     /**
      * Async remove multiple items from player's storage
+     * Note: The actual storage operations run on main thread to properly fire events
      *
      * @param player The player
      * @param items  Map of material -> amount
@@ -229,11 +236,17 @@ public class StorageBatchAPI {
     @NotNull
     public static CompletableFuture<Map<String, Boolean>> removeItemsAsync(@NotNull Player player,
                                                                            @NotNull Map<String, Integer> items) {
-        return CompletableFuture.supplyAsync(() -> removeItems(player, items));
+        CompletableFuture<Map<String, Boolean>> future = new CompletableFuture<>();
+        org.bukkit.Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
+            Map<String, Boolean> result = removeItems(player, items);
+            future.complete(result);
+        });
+        return future;
     }
 
     /**
      * Async get storage data for multiple players
+     * Note: This is safe to run async as it only reads data
      *
      * @param players List of players
      * @return CompletableFuture with results

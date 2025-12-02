@@ -1,11 +1,16 @@
 package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XMaterial;
+import net.danh.storage.API.StorageHookAPI;
+import net.danh.storage.API.events.StorageDepositEvent;
+import net.danh.storage.API.events.StorageToggleEvent;
+import net.danh.storage.API.events.StorageWithdrawEvent;
 import net.danh.storage.Database.PlayerData;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -148,31 +153,64 @@ public class MineManager {
     }
 
     public static boolean addBlockAmount(Player p, String material, int amount) {
-        if (amount > 0 && blocksdata.containsKey(material)) {
-            int currentAmount = getPlayerBlock(p, material);
-            int maxStorage = getMaxBlock(p);
+        return addBlockAmount(p, material, amount, true);
+    }
 
-            if (currentAmount >= maxStorage) return false;
+    public static boolean addBlockAmount(Player p, String material, int amount, boolean fireEvent) {
+        if (amount <= 0 || !blocksdata.containsKey(material)) return false;
 
-            int availableSpace = maxStorage - currentAmount;
-            int amountToAdd = Math.min(amount, availableSpace);
-            int newAmount = currentAmount + amountToAdd;
+        int currentAmount = getPlayerBlock(p, material);
+        int maxStorage = getMaxBlock(p);
+        if (currentAmount >= maxStorage) return false;
 
-            playerdata.put(p.getName() + "_" + material, newAmount);
-            return amountToAdd > 0;
+        int availableSpace = maxStorage - currentAmount;
+        int amountToAdd = Math.min(amount, availableSpace);
+        if (amountToAdd <= 0) return false;
+
+        if (fireEvent) {
+            if (!StorageHookAPI.callBeforeDeposit(p, material, amountToAdd)) return false;
+
+            StorageDepositEvent event = new StorageDepositEvent(p, material, amountToAdd);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+            amountToAdd = Math.min(event.getAmount(), availableSpace);
         }
-        return false;
+
+        playerdata.put(p.getName() + "_" + material, currentAmount + amountToAdd);
+
+        if (fireEvent) {
+            StorageHookAPI.callAfterDeposit(p, material, amountToAdd);
+        }
+        return true;
     }
 
     public static boolean removeBlockAmount(Player p, String material, int amount) {
-        if (amount > 0) {
-            int old_data = getPlayerBlock(p, material);
-            int new_data = old_data - amount;
-            if (old_data <= 0) return false;
-            playerdata.replace(p.getName() + "_" + material, Math.max(new_data, 0));
-            return true;
+        return removeBlockAmount(p, material, amount, true);
+    }
+
+    public static boolean removeBlockAmount(Player p, String material, int amount, boolean fireEvent) {
+        if (amount <= 0) return false;
+
+        int oldData = getPlayerBlock(p, material);
+        if (oldData <= 0) return false;
+
+        int amountToRemove = amount;
+
+        if (fireEvent) {
+            if (!StorageHookAPI.callBeforeWithdraw(p, material, amountToRemove)) return false;
+
+            StorageWithdrawEvent event = new StorageWithdrawEvent(p, material, amountToRemove);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+            amountToRemove = event.getAmount();
         }
-        return false;
+
+        playerdata.replace(p.getName() + "_" + material, Math.max(oldData - amountToRemove, 0));
+
+        if (fireEvent) {
+            StorageHookAPI.callAfterWithdraw(p, material, amountToRemove);
+        }
+        return true;
     }
 
     public static void loadPlayerData(Player p) {
@@ -208,6 +246,27 @@ public class MineManager {
             toggle.put(p, status);
         }
         return status;
+    }
+
+    public static void setToggleStatus(@NotNull Player p, boolean enabled) {
+        setToggleStatus(p, enabled, true);
+    }
+
+    public static void setToggleStatus(@NotNull Player p, boolean enabled, boolean fireEvent) {
+        if (fireEvent) {
+            if (!StorageHookAPI.callBeforeToggle(p, enabled)) return;
+
+            StorageToggleEvent event = new StorageToggleEvent(p, enabled);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+            enabled = event.getNewState();
+        }
+
+        toggle.put(p, enabled);
+
+        if (fireEvent) {
+            StorageHookAPI.callAfterToggle(p, enabled);
+        }
     }
 
     public static int getMaxTransferableAmount(@NotNull Player sender, @NotNull Player receiver, @NotNull String material) {

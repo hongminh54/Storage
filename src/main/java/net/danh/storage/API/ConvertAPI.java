@@ -132,12 +132,12 @@ public class ConvertAPI {
         int resultAmount = option.calculateResultAmount(conversions);
 
         // Remove source material
-        if (!MineManager.removeBlockAmount(player, fromMaterial, amount)) {
+        if (!MineManager.removeBlockAmount(player, fromMaterial, amount, false)) {
             return false;
         }
 
         // Add target material
-        MineManager.addBlockAmount(player, toMaterial, resultAmount);
+        MineManager.addBlockAmount(player, toMaterial, resultAmount, false);
 
         return true;
     }

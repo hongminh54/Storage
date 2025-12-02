@@ -248,11 +248,11 @@ public class MythicTransferManager {
             return;
         }
 
-        if (MythicStorageManager.removeItemAmount(sender, itemName, amount)) {
-            if (MythicStorageManager.addItemAmount(receiver, itemName, amount)) {
+        if (MythicStorageManager.removeItemAmount(sender, itemName, amount, false)) {
+            if (MythicStorageManager.addItemAmount(receiver, itemName, amount, false)) {
                 handleSuccessfulTransfer(sender, receiver, itemName, amount);
             } else {
-                MythicStorageManager.addItemAmount(sender, itemName, amount);
+                MythicStorageManager.addItemAmount(sender, itemName, amount, false);
                 handleFailedTransfer(sender, receiver.getName(), itemName, amount, "RECEIVER_FULL");
             }
         } else {
@@ -314,8 +314,8 @@ public class MythicTransferManager {
                 continue;
             }
 
-            if (MythicStorageManager.removeItemAmount(sender, itemName, amount)) {
-                if (MythicStorageManager.addItemAmount(receiver, itemName, amount)) {
+            if (MythicStorageManager.removeItemAmount(sender, itemName, amount, false)) {
+                if (MythicStorageManager.addItemAmount(receiver, itemName, amount, false)) {
                     long timestamp = System.currentTimeMillis();
                     MythicTransferData transferData = new MythicTransferData(
                             sender.getName(),
@@ -336,7 +336,7 @@ public class MythicTransferManager {
                     successfulTransfers.append(amount).append(" ").append(displayName);
                     successCount++;
                 } else {
-                    MythicStorageManager.addItemAmount(sender, itemName, amount);
+                    MythicStorageManager.addItemAmount(sender, itemName, amount, false);
                     String displayName = MythicStorageManager.getItemDisplayNameOrId(itemName, sender);
                     sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.failed_receiver_full_during")
                             .replace("#item#", displayName)

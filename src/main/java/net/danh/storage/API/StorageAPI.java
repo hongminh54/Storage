@@ -1,9 +1,5 @@
 package net.danh.storage.API;
 
-import net.danh.storage.API.events.StorageDepositEvent;
-import net.danh.storage.API.events.StorageToggleEvent;
-import net.danh.storage.API.events.StorageTransferEvent;
-import net.danh.storage.API.events.StorageWithdrawEvent;
 import net.danh.storage.API.exceptions.InvalidMaterialException;
 import net.danh.storage.API.exceptions.StorageException;
 import net.danh.storage.API.exceptions.StorageFullException;
@@ -11,11 +7,11 @@ import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.TransferManager;
 import net.danh.storage.Storage;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -91,33 +87,23 @@ public class StorageAPI {
         if (!isInitialized()) {
             throw new IllegalStateException("StorageAPI not initialized");
         }
-
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
 
-        // Call before hooks
-        if (!StorageHookAPI.callBeforeDeposit(player, material, amount)) {
-            return false;
-        }
-
-        // Fire event
-        StorageDepositEvent event = new StorageDepositEvent(player, material, amount);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        boolean result = MineManager.addBlockAmount(player, material, event.getAmount());
+        boolean result = MineManager.addBlockAmount(player, material, amount, true);
         if (!result) {
             throw new StorageFullException("Storage is full or invalid material");
         }
-
-        // Call after hooks
-        StorageHookAPI.callAfterDeposit(player, material, event.getAmount());
-
         return true;
+    }
+
+    /**
+     * Add item without firing events (for internal use)
+     */
+    public static boolean addItemSilent(@NotNull Player player, @NotNull String material, int amount) {
+        if (!isInitialized() || amount <= 0) return false;
+        return MineManager.addBlockAmount(player, material, amount, false);
     }
 
     /**
@@ -134,32 +120,19 @@ public class StorageAPI {
         if (!isInitialized()) {
             throw new IllegalStateException("StorageAPI not initialized");
         }
-
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
 
-        // Call before hooks
-        if (!StorageHookAPI.callBeforeWithdraw(player, material, amount)) {
-            return false;
-        }
+        return MineManager.removeBlockAmount(player, material, amount, true);
+    }
 
-        // Fire event
-        StorageWithdrawEvent event = new StorageWithdrawEvent(player, material, amount);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        boolean result = MineManager.removeBlockAmount(player, material, event.getAmount());
-
-        // Call after hooks if successful
-        if (result) {
-            StorageHookAPI.callAfterWithdraw(player, material, event.getAmount());
-        }
-
-        return result;
+    /**
+     * Remove item without firing events (for internal use)
+     */
+    public static boolean removeItemSilent(@NotNull Player player, @NotNull String material, int amount) {
+        if (!isInitialized() || amount <= 0) return false;
+        return MineManager.removeBlockAmount(player, material, amount, false);
     }
 
     /**
@@ -222,24 +195,16 @@ public class StorageAPI {
      * @param enabled New state
      */
     public static void toggleStorage(@NotNull Player player, boolean enabled) {
-        if (!isInitialized()) {
-            return;
-        }
+        if (!isInitialized()) return;
+        MineManager.setToggleStatus(player, enabled, true);
+    }
 
-        // Call before hooks
-        if (!StorageHookAPI.callBeforeToggle(player, enabled)) {
-            return;
-        }
-
-        // Fire event
-        StorageToggleEvent event = new StorageToggleEvent(player, enabled);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (!event.isCancelled()) {
-            MineManager.toggle.put(player, event.getNewState());
-            // Call after hooks
-            StorageHookAPI.callAfterToggle(player, event.getNewState());
-        }
+    /**
+     * Toggle storage without firing events (for internal use)
+     */
+    public static void toggleStorageSilent(@NotNull Player player, boolean enabled) {
+        if (!isInitialized()) return;
+        MineManager.setToggleStatus(player, enabled, false);
     }
 
     /**
@@ -271,27 +236,16 @@ public class StorageAPI {
             throw new IllegalStateException("StorageAPI not initialized");
         }
 
-        // Call before hooks
-        if (!StorageHookAPI.callBeforeTransfer(sender, receiver, material, amount)) {
-            return false;
-        }
+        return TransferManager.executeTransfer(sender, receiver.getName(), material, amount, true);
+    }
 
-        // Fire event
-        StorageTransferEvent event = new StorageTransferEvent(sender, receiver, material, amount);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        boolean result = TransferManager.executeTransfer(sender, receiver.getName(), material, event.getAmount());
-
-        // Call after hooks if successful
-        if (result) {
-            StorageHookAPI.callAfterTransfer(sender, receiver, material, event.getAmount());
-        }
-
-        return result;
+    /**
+     * Transfer item without firing events (for internal use)
+     */
+    public static boolean transferItemSilent(@NotNull Player sender, @NotNull Player receiver,
+                                             @NotNull String material, int amount) {
+        if (!isInitialized()) return false;
+        return TransferManager.executeTransfer(sender, receiver.getName(), material, amount, false);
     }
 
     /**
@@ -390,7 +344,7 @@ public class StorageAPI {
     @NotNull
     public static Set<String> getAvailableEnchants() {
         if (!isInitialized()) {
-            return Set.of();
+            return Collections.emptySet();
         }
         return EnchantManager.getAvailableEnchants();
     }
@@ -405,7 +359,7 @@ public class StorageAPI {
     @NotNull
     public static List<String> getStorableMaterials() {
         if (!isInitialized()) {
-            return List.of();
+            return Collections.emptyList();
         }
         return MineManager.getPluginBlocks();
     }

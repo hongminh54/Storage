@@ -15,11 +15,15 @@ commands:
     description: Main command
     aliases:
       - kho
+      - kks
   mythicstorage:
     description: MythicMobs storage command
     aliases:
       - mstorage
       - mythics
+      - khoquaivat
+      - kqv
+      - khoqv
 permissions:
   storage.toggle:
     description: Toggle permission

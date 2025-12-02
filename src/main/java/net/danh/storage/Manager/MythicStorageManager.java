@@ -1,9 +1,12 @@
 package net.danh.storage.Manager;
 
+import net.danh.storage.API.events.MythicStorageDepositEvent;
+import net.danh.storage.API.events.MythicStorageWithdrawEvent;
 import net.danh.storage.Database.PlayerData;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -181,35 +184,52 @@ public class MythicStorageManager {
     }
 
     public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
-        if (!isSystemEnabled()) return false;
-        if (!isConfiguredDrop(itemName)) return false;
-        if (amount <= 0) return false;
+        return addItemAmount(player, itemName, amount, true);
+    }
+
+    public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount, boolean fireEvent) {
+        if (!isSystemEnabled() || !isConfiguredDrop(itemName) || amount <= 0) return false;
 
         String key = player.getName() + "_" + itemName;
         int current = playerdata.getOrDefault(key, 0);
         int max = getMaxStorage(player);
+        if (current >= max) return false;
 
-        if (current >= max) {
-            return false;
+        int amountToAdd = Math.min(amount, max - current);
+        if (amountToAdd <= 0) return false;
+
+        if (fireEvent) {
+            MythicStorageDepositEvent event = new MythicStorageDepositEvent(player, itemName, amountToAdd);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+            amountToAdd = Math.min(event.getAmount(), max - current);
         }
 
-        int newAmount = Math.min(current + amount, max);
-        playerdata.put(key, newAmount);
+        playerdata.put(key, current + amountToAdd);
         return true;
     }
 
     public static boolean removeItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
-        if (!isSystemEnabled()) return false;
-        if (amount <= 0) return false;
+        return removeItemAmount(player, itemName, amount, true);
+    }
+
+    public static boolean removeItemAmount(@NotNull Player player, @NotNull String itemName, int amount, boolean fireEvent) {
+        if (!isSystemEnabled() || amount <= 0) return false;
 
         String key = player.getName() + "_" + itemName;
         int current = playerdata.getOrDefault(key, 0);
+        if (current < amount) return false;
 
-        if (current < amount) {
-            return false;
+        int amountToRemove = amount;
+
+        if (fireEvent) {
+            MythicStorageWithdrawEvent event = new MythicStorageWithdrawEvent(player, itemName, amountToRemove);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+            amountToRemove = event.getAmount();
         }
 
-        int newValue = current - amount;
+        int newValue = current - amountToRemove;
         if (newValue <= 0) {
             playerdata.remove(key);
         } else {

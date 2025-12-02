@@ -76,7 +76,6 @@ public final class Storage extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
             new CraftingPlaceholder(this).register();
-            getLogger().info("Registered PlaceholderAPI expansions (Storage + Crafting)");
         }
         registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace());
         new UpdateChecker(storage).fetch();

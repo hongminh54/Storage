@@ -1,5 +1,7 @@
 package net.danh.storage.Manager;
 
+import net.danh.storage.API.StorageHookAPI;
+import net.danh.storage.API.events.StorageTransferEvent;
 import net.danh.storage.Data.TransferData;
 import net.danh.storage.Database.TransferDatabase;
 import net.danh.storage.Storage;
@@ -153,6 +155,10 @@ public class TransferManager {
     }
 
     public static boolean executeTransfer(Player sender, String receiverName, String material, int amount) {
+        return executeTransfer(sender, receiverName, material, amount, true);
+    }
+
+    public static boolean executeTransfer(Player sender, String receiverName, String material, int amount, boolean fireEvent) {
         if (!canTransfer(sender, receiverName, material, amount)) {
             return false;
         }
@@ -162,8 +168,20 @@ public class TransferManager {
             return false;
         }
 
-        // Start transfer process with delay
-        startTransferProcess(sender, receiver, material, amount);
+        if (fireEvent) {
+            if (!StorageHookAPI.callBeforeTransfer(sender, receiver, material, amount)) {
+                return false;
+            }
+
+            StorageTransferEvent event = new StorageTransferEvent(sender, receiver, material, amount);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return false;
+            }
+            amount = event.getAmount();
+        }
+
+        startTransferProcess(sender, receiver, material, amount, fireEvent);
         return true;
     }
 
@@ -195,7 +213,7 @@ public class TransferManager {
         return true;
     }
 
-    private static void startTransferProcess(Player sender, Player receiver, String material, int amount) {
+    private static void startTransferProcess(Player sender, Player receiver, String material, int amount, boolean fireEvent) {
         FileConfiguration config = File.getConfig();
         int transferDelay = config.getInt("transfer.delay", 3); // Default 3 seconds
 
@@ -212,11 +230,14 @@ public class TransferManager {
         // Start processing animation
         ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
 
+        // Store fireEvent flag for completion
+        final boolean shouldFireEvent = fireEvent;
+
         // Create and start the transfer task
         TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
             // Stop processing animation
             ParticleManager.stopTransferProcessingAnimation(sender);
-            completeTransfer(sender, receiver, material, amount);
+            completeTransfer(sender, receiver, material, amount, shouldFireEvent);
             activeTransfers.remove(sender.getName());
         }, transferDelay * 20L);
 
@@ -294,9 +315,8 @@ public class TransferManager {
                 continue;
             }
 
-            // Perform the transfer
-            if (MineManager.removeBlockAmount(sender, material, amount)) {
-                if (MineManager.addBlockAmount(receiver, material, amount)) {
+            if (MineManager.removeBlockAmount(sender, material, amount, false)) {
+                if (MineManager.addBlockAmount(receiver, material, amount, false)) {
                     // Log successful transfer
                     TransferData transferData = new TransferData(
                             sender.getName(),
@@ -316,7 +336,7 @@ public class TransferManager {
                     successCount++;
                 } else {
                     // Rollback if receiver couldn't receive
-                    MineManager.addBlockAmount(sender, material, amount);
+                    MineManager.addBlockAmount(sender, material, amount, false);
                     sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.failed_receiver_full")
                             .replace("#player#", receiver.getName())));
                 }
@@ -341,7 +361,7 @@ public class TransferManager {
         }
     }
 
-    private static void completeTransfer(Player sender, Player receiver, String material, int amount) {
+    private static void completeTransfer(Player sender, Player receiver, String material, int amount, boolean fireEvent) {
         // Double-check conditions before completing transfer
         if (!sender.isOnline() || !receiver.isOnline()) {
             handleFailedTransfer(sender, receiver.getName(), material, amount, "PLAYER_OFFLINE");
@@ -354,12 +374,12 @@ public class TransferManager {
             return;
         }
 
-        if (MineManager.removeBlockAmount(sender, material, amount)) {
-            if (MineManager.addBlockAmount(receiver, material, amount)) {
-                handleSuccessfulTransfer(sender, receiver, material, amount);
+        if (MineManager.removeBlockAmount(sender, material, amount, false)) {
+            if (MineManager.addBlockAmount(receiver, material, amount, false)) {
+                handleSuccessfulTransfer(sender, receiver, material, amount, fireEvent);
             } else {
                 // Rollback if receiver couldn't receive
-                MineManager.addBlockAmount(sender, material, amount);
+                MineManager.addBlockAmount(sender, material, amount, false);
                 handleFailedTransfer(sender, receiver.getName(), material, amount, "RECEIVER_FULL");
             }
         } else {
@@ -367,11 +387,16 @@ public class TransferManager {
         }
     }
 
-    private static void handleSuccessfulTransfer(Player sender, Player receiver, String material, int amount) {
+    private static void handleSuccessfulTransfer(Player sender, Player receiver, String material, int amount, boolean fireEvent) {
         long timestamp = System.currentTimeMillis();
         TransferData transferData = new TransferData(sender.getName(), receiver.getName(), material, amount, timestamp, "SUCCESS");
 
         transferDatabase.insertTransfer(transferData);
+
+        // Call after hooks
+        if (fireEvent) {
+            StorageHookAPI.callAfterTransfer(sender, receiver, material, amount);
+        }
 
         String displayName = getDisplayName(material);
 
