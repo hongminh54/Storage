@@ -15,7 +15,7 @@ public class CraftCommand extends BaseCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
-            sendMessage(sender, "admin.player_only");
+            sendMessage(sender, "admin.only_players");
             return;
         }
 

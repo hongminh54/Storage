@@ -56,14 +56,15 @@ public class RecipeEditManager {
                         .replace("#current#", String.valueOf(recipe.getResultAmount()))));
     }
 
-    public static void requestLoreAdd(Player player, Recipe recipe) {
-        editType.put(player.getUniqueId(), "lore_add");
+    public static void requestLoreEdit(Player player, Recipe recipe) {
+        editType.put(player.getUniqueId(), "lore_edit");
         editRecipeId.put(player.getUniqueId(), recipe.getId());
         player.closeInventory();
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_lore_prompt")));
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_lore_hint")));
+        displayCurrentLore(player, recipe);
     }
 
     public static void requestRequirementAdd(Player player, Recipe recipe) {
@@ -132,6 +133,28 @@ public class RecipeEditManager {
         displayCurrentEnchantments(player, recipe);
     }
 
+    public static void requestFlagEdit(Player player, Recipe recipe) {
+        editType.put(player.getUniqueId(), "flag_edit");
+        editRecipeId.put(player.getUniqueId(), recipe.getId());
+        player.closeInventory();
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_prompt")));
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_hint")));
+
+        // Display available flags
+        List<ItemFlag> availableFlags = getAvailableFlags();
+        String flagsStr = availableFlags.stream()
+                .map(ItemFlag::name)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("None");
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_available")
+                        .replace("#flags#", flagsStr)));
+
+        displayCurrentFlags(player, recipe);
+    }
+
     public static void requestCustomModelDataEdit(Player player, Recipe recipe) {
         editType.put(player.getUniqueId(), "custom_model_data");
         editRecipeId.put(player.getUniqueId(), recipe.getId());
@@ -186,7 +209,7 @@ public class RecipeEditManager {
         boolean success = processEdit(player, recipe, type, message);
         if (success) {
             updateRecipeAndReopenGUI(player, recipe, type);
-        } else if (!"material".equals(type) && !"enchant_edit".equals(type) && !"permission_edit".equals(type)) {
+        } else if (!"material".equals(type) && !"enchant_edit".equals(type) && !"flag_edit".equals(type) && !"lore_edit".equals(type) && !"permission_edit".equals(type)) {
             clearEditData(playerId);
         }
         return true;
@@ -260,18 +283,8 @@ public class RecipeEditManager {
                             File.getMessage().getString("crafting.edit_amount_success")));
                     return true;
 
-                case "lore_add":
-                    if (input.trim().isEmpty()) {
-                        player.sendMessage(ChatUtils.colorize(
-                                File.getMessage().getString("crafting.edit_lore_empty")));
-                        return false;
-                    }
-                    List<String> lore = new ArrayList<>(recipe.getResultLore());
-                    lore.add(input);
-                    recipe.setResultLore(lore);
-                    player.sendMessage(ChatUtils.colorize(
-                            File.getMessage().getString("crafting.edit_lore_success")));
-                    return true;
+                case "lore_edit":
+                    return processLoreEdit(player, recipe, input);
 
                 case "requirement_add":
                     String normalizedMaterial = MineManager.normalizeMaterial(input);
@@ -321,6 +334,9 @@ public class RecipeEditManager {
 
                 case "enchant_edit":
                     return processEnchantmentEdit(player, recipe, input);
+
+                case "flag_edit":
+                    return processFlagEdit(player, recipe, input);
 
                 case "custom_model_data":
                     int cmd = Number.getInteger(input);
@@ -397,6 +413,142 @@ public class RecipeEditManager {
                 File.getMessage().getString("crafting.edit_material_prompt")));
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_material_hint")));
+    }
+
+    private static void displayCurrentLore(Player player, Recipe recipe) {
+        List<String> lore = recipe.getResultLore();
+        if (lore == null || lore.isEmpty()) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_list_empty")));
+            return;
+        }
+
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_lore_current_header")));
+
+        for (int i = 0; i < lore.size(); i++) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_list")
+                            .replace("#index#", String.valueOf(i + 1))
+                            .replace("#text#", lore.get(i))));
+        }
+    }
+
+    private static void promptLoreRetry(Player player, Recipe recipe) {
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_lore_prompt")));
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_lore_hint")));
+        displayCurrentLore(player, recipe);
+    }
+
+    private static boolean processLoreEdit(Player player, Recipe recipe, String input) {
+        String[] parts = input.trim().split("\\s+", 2);
+        if (parts.length == 0 || parts[0].trim().isEmpty()) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_hint")));
+            promptLoreRetry(player, recipe);
+            return false;
+        }
+
+        String command = parts[0].toLowerCase();
+        List<String> lore = new ArrayList<>(recipe.getResultLore());
+
+        if ("add".equalsIgnoreCase(command)) {
+            if (parts.length < 2 || parts[1].trim().isEmpty()) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_empty")));
+                promptLoreRetry(player, recipe);
+                return false;
+            }
+
+            lore.add(parts[1]);
+            recipe.setResultLore(lore);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_add_success")));
+            return true;
+
+        } else if ("edit".equalsIgnoreCase(command)) {
+            if (parts.length < 2) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_edit_invalid")));
+                promptLoreRetry(player, recipe);
+                return false;
+            }
+
+            String[] args = parts[1].split("\\s+", 2);
+            if (args.length < 2) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_edit_invalid")));
+                promptLoreRetry(player, recipe);
+                return false;
+            }
+
+            int lineNum = Number.getInteger(args[0]);
+            if (lineNum < 1 || lineNum > lore.size()) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_invalid_line")));
+                promptLoreRetry(player, recipe);
+                return false;
+            }
+
+            lore.set(lineNum - 1, args[1]);
+            recipe.setResultLore(lore);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_edit_success")
+                            .replace("#line#", String.valueOf(lineNum))));
+            return true;
+
+        } else if ("remove".equalsIgnoreCase(command)) {
+            if (lore.isEmpty()) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_remove_empty")));
+                promptLoreRetry(player, recipe);
+                return false;
+            }
+
+            if (parts.length < 2) {
+                // Remove last line
+                String removed = lore.remove(lore.size() - 1);
+                recipe.setResultLore(lore);
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_remove_last_success")));
+                return true;
+            }
+
+            int lineNum = Number.getInteger(parts[1]);
+            if (lineNum < 1 || lineNum > lore.size()) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_invalid_line")));
+                promptLoreRetry(player, recipe);
+                return false;
+            }
+
+            lore.remove(lineNum - 1);
+            recipe.setResultLore(lore);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_remove_success")
+                            .replace("#line#", String.valueOf(lineNum))));
+            return true;
+
+        } else if ("clear".equalsIgnoreCase(command)) {
+            if (parts.length >= 2 && "all".equalsIgnoreCase(parts[1].trim())) {
+                lore.clear();
+                recipe.setResultLore(lore);
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_lore_clear_success")));
+                return true;
+            }
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_lore_hint")));
+            promptLoreRetry(player, recipe);
+            return false;
+        }
+
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_lore_hint")));
+        promptLoreRetry(player, recipe);
+        return false;
     }
 
     private static boolean processEnchantmentEdit(Player player, Recipe recipe, String input) {
@@ -523,5 +675,238 @@ public class RecipeEditManager {
             }
         }
         return 5;
+    }
+
+    public static List<ItemFlag> getAvailableFlags() {
+        List<ItemFlag> availableFlags = new ArrayList<>();
+
+        // These flags exist in all versions (1.8+)
+        String[] baseFlags = {
+                "HIDE_ENCHANTS",
+                "HIDE_ATTRIBUTES",
+                "HIDE_UNBREAKABLE",
+                "HIDE_DESTROYS",
+                "HIDE_PLACED_ON"
+        };
+
+        // Try to add base flags
+        for (String flagName : baseFlags) {
+            try {
+                ItemFlag flag = ItemFlag.valueOf(flagName);
+                availableFlags.add(flag);
+            } catch (IllegalArgumentException ignored) {
+                // Flag doesn't exist in this version
+            }
+        }
+
+        // Try to add version-specific flags
+        String[] versionSpecificFlags = {
+                "HIDE_POTION_EFFECTS",      // 1.9+
+                "HIDE_DYE",                  // 1.20+
+                "HIDE_ARMOR_TRIM",           // 1.20+
+                "HIDE_ADDITIONAL_TOOLTIP",   // 1.20.5+
+                "HIDE_STORED_ENCHANTS"       // Some versions
+        };
+
+        for (String flagName : versionSpecificFlags) {
+            try {
+                ItemFlag flag = ItemFlag.valueOf(flagName);
+                availableFlags.add(flag);
+            } catch (IllegalArgumentException ignored) {
+                // Flag doesn't exist in this version
+            }
+        }
+
+        return availableFlags;
+    }
+
+    public static ItemFlag parseFlag(String flagName) {
+        if (flagName == null || flagName.trim().isEmpty()) {
+            return null;
+        }
+
+        String normalizedName = flagName.toUpperCase().trim();
+
+        try {
+            ItemFlag flag = ItemFlag.valueOf(normalizedName);
+            List<ItemFlag> availableFlags = getAvailableFlags();
+            if (availableFlags.contains(flag)) {
+                return flag;
+            }
+            // Flag exists in enum but not available in this version
+            return null;
+        } catch (IllegalArgumentException e) {
+            // Not a valid ItemFlag name
+            return null;
+        }
+    }
+
+    private static void displayCurrentFlags(Player player, Recipe recipe) {
+        Set<ItemFlag> flags = recipe.getResultFlags();
+        if (flags == null || flags.isEmpty()) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_flag_empty")));
+            return;
+        }
+
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_current_header")));
+
+        List<ItemFlag> flagList = new ArrayList<>(flags);
+        for (int i = 0; i < flagList.size(); i++) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_flag_list")
+                            .replace("#index#", String.valueOf(i + 1))
+                            .replace("#flag#", flagList.get(i).name())));
+        }
+    }
+
+    private static void promptFlagRetry(Player player, Recipe recipe) {
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_prompt")));
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_hint")));
+
+        List<ItemFlag> availableFlags = getAvailableFlags();
+        String flagsStr = availableFlags.stream()
+                .map(ItemFlag::name)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("None");
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_available")
+                        .replace("#flags#", flagsStr)));
+
+        displayCurrentFlags(player, recipe);
+    }
+
+    private static boolean processFlagEdit(Player player, Recipe recipe, String input) {
+        String[] parts = input.trim().split("\\s+", 2);
+        if (parts.length == 0) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_flag_hint")));
+            promptFlagRetry(player, recipe);
+            return false;
+        }
+
+        String command = parts[0].toLowerCase();
+        Set<ItemFlag> flags = new HashSet<>(recipe.getResultFlags());
+
+        if ("add".equalsIgnoreCase(command)) {
+            if (parts.length < 2) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_hint")));
+                promptFlagRetry(player, recipe);
+                return false;
+            }
+
+            String flagName = parts[1].toUpperCase().trim();
+            ItemFlag flag = parseFlag(flagName);
+
+            if (flag == null) {
+                try {
+                    ItemFlag.valueOf(flagName);
+                    player.sendMessage(ChatUtils.colorize(
+                            File.getMessage().getString("crafting.edit_flag_version_incompatible")
+                                    .replace("#flag#", flagName)));
+                } catch (IllegalArgumentException e) {
+                    player.sendMessage(ChatUtils.colorize(
+                            File.getMessage().getString("crafting.edit_flag_invalid")
+                                    .replace("#flag#", flagName)));
+                }
+                promptFlagRetry(player, recipe);
+                return false;
+            }
+
+            if (flags.contains(flag)) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_add_duplicate")
+                                .replace("#flag#", flag.name())));
+                promptFlagRetry(player, recipe);
+                return false;
+            }
+
+            flags.add(flag);
+            recipe.setResultFlags(flags);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_flag_add_success")
+                            .replace("#flag#", flag.name())));
+            return true;
+
+        } else if ("remove".equalsIgnoreCase(command)) {
+            if (flags.isEmpty()) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_remove_empty")));
+                promptFlagRetry(player, recipe);
+                return false;
+            }
+
+            if (parts.length < 2) {
+                List<ItemFlag> flagList = new ArrayList<>(flags);
+                ItemFlag lastFlag = flagList.get(flagList.size() - 1);
+                flags.remove(lastFlag);
+                recipe.setResultFlags(flags);
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_remove_last_success")
+                                .replace("#flag#", lastFlag.name())));
+                return true;
+            }
+
+            String arg = parts[1].trim();
+
+            try {
+                int lineNum = Integer.parseInt(arg);
+                List<ItemFlag> flagList = new ArrayList<>(flags);
+                if (lineNum < 1 || lineNum > flagList.size()) {
+                    player.sendMessage(ChatUtils.colorize(
+                            File.getMessage().getString("crafting.edit_flag_remove_invalid_line")));
+                    promptFlagRetry(player, recipe);
+                    return false;
+                }
+
+                ItemFlag flagToRemove = flagList.get(lineNum - 1);
+                flags.remove(flagToRemove);
+                recipe.setResultFlags(flags);
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_remove_success")
+                                .replace("#flag#", flagToRemove.name())));
+                return true;
+            } catch (NumberFormatException e) {
+                String flagName = arg.toUpperCase();
+                ItemFlag flag = parseFlag(flagName);
+
+                if (flag == null || !flags.contains(flag)) {
+                    player.sendMessage(ChatUtils.colorize(
+                            File.getMessage().getString("crafting.edit_flag_remove_not_found")
+                                    .replace("#flag#", flagName)));
+                    promptFlagRetry(player, recipe);
+                    return false;
+                }
+
+                flags.remove(flag);
+                recipe.setResultFlags(flags);
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_remove_success")
+                                .replace("#flag#", flag.name())));
+                return true;
+            }
+
+        } else if ("clear".equalsIgnoreCase(command)) {
+            if (parts.length >= 2 && "all".equalsIgnoreCase(parts[1].trim())) {
+                flags.clear();
+                recipe.setResultFlags(flags);
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_flag_clear_success")));
+                return true;
+            }
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_flag_hint")));
+            promptFlagRetry(player, recipe);
+            return false;
+        }
+
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_flag_hint")));
+        promptFlagRetry(player, recipe);
+        return false;
     }
 }

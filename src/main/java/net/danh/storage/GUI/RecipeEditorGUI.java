@@ -364,20 +364,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void editLore(Player player, ClickType clickType) {
-        if (clickType == ClickType.LEFT || clickType == ClickType.SHIFT_LEFT) {
-            // Add new lore line
-            RecipeEditManager.requestLoreAdd(player, recipe);
-        } else if (clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) {
-            // Remove last lore line
-            List<String> lore = recipe.getResultLore();
-            if (!lore.isEmpty()) {
-                RecipeEditManager.removeLoreLine(recipe, lore.size() - 1);
-                CraftingManager.updateRecipe(recipe);
-                refreshGUI(player);
-            } else {
-                SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
-            }
-        }
+        RecipeEditManager.requestLoreEdit(player, recipe);
     }
 
     private void editAmount(Player player, ClickType clickType) {
@@ -390,7 +377,6 @@ public class RecipeEditorGUI implements IGUI {
             CraftingManager.updateRecipe(recipe);
             refreshGUI(player);
         } else if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
-            // Custom amount input
             RecipeEditManager.requestAmountEdit(player, recipe);
         }
     }
@@ -400,8 +386,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void editFlags(Player player) {
-        SoundManager.setShouldPlayCloseSound(player, false);
-        player.openInventory(new ItemFlagsEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
+        RecipeEditManager.requestFlagEdit(player, recipe);
     }
 
     private void editCustomModelData(Player player) {

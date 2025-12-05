@@ -25,7 +25,7 @@ special_materials:
   rare_gem:
     # Item configuration
     item:
-      # Base material (use XMaterial format)
+      # Base material
       material: "EMERALD"
       # Display name (supports color codes)
       name: "&a&lRare Gem"
@@ -38,7 +38,7 @@ special_materials:
       # Make item glow
       glow: true
       # Custom model data (for resource packs)
-      custom_model_data: 1001
+      custom_model_data: 0
       # Item flags to hide | If you use ALL: true -> All flag will be applied to item
       flags:
         ALL: true
@@ -93,7 +93,7 @@ special_materials:
         - ""
         - "&b&lMYSTIC MATERIAL"
       glow: true
-      custom_model_data: 1002
+      custom_model_data: 0
       flags:
         ALL: true
     
