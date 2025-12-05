@@ -27,6 +27,8 @@ import java.util.*;
 public class RecipeEditorGUI implements IGUI {
 
     private static final Map<UUID, RecipeBackup> recipeBackups = new HashMap<>();
+    private static final Map<UUID, Boolean> shouldRestoreOnClose = new HashMap<>();
+    private static final Map<UUID, String> editingRecipeIds = new HashMap<>();
 
     private final Player player;
     private final Recipe recipe;
@@ -38,13 +40,70 @@ public class RecipeEditorGUI implements IGUI {
         this.config = File.getRecipeEditorGUIConfig();
 
         createBackup();
+        shouldRestoreOnClose.put(player.getUniqueId(), true);
+        editingRecipeIds.put(player.getUniqueId(), recipe.getId());
     }
 
     public static void cleanupBackup(UUID playerUUID) {
         recipeBackups.remove(playerUUID);
+        shouldRestoreOnClose.remove(playerUUID);
+        editingRecipeIds.remove(playerUUID);
+    }
+
+    public static void setShouldRestoreOnClose(Player player, boolean shouldRestore) {
+        shouldRestoreOnClose.put(player.getUniqueId(), shouldRestore);
+    }
+
+    public static boolean getShouldRestoreOnClose(Player player) {
+        return shouldRestoreOnClose.getOrDefault(player.getUniqueId(), false);
+    }
+
+    public static boolean hasActiveSession(UUID playerUUID) {
+        return recipeBackups.containsKey(playerUUID);
+    }
+
+    public static String getBackupRecipeName(UUID playerUUID) {
+        RecipeBackup backup = recipeBackups.get(playerUUID);
+        return backup != null ? backup.name : "Unknown";
+    }
+
+    public static boolean restoreAndSaveBackup(UUID playerUUID) {
+        RecipeBackup backup = recipeBackups.get(playerUUID);
+        String recipeId = editingRecipeIds.get(playerUUID);
+
+        if (backup == null || recipeId == null) {
+            return false;
+        }
+
+        Recipe recipe = CraftingManager.getRecipe(recipeId);
+        if (recipe == null) {
+            return false;
+        }
+
+        recipe.setName(backup.name);
+        recipe.setCategory(backup.category);
+        recipe.setEnabled(backup.enabled);
+        recipe.setResultMaterial(backup.resultMaterial);
+        recipe.setResultName(backup.resultName);
+        recipe.setResultLore(new ArrayList<>(backup.resultLore));
+        recipe.setResultEnchantments(new HashMap<>(backup.resultEnchantments));
+        recipe.setResultAmount(backup.resultAmount);
+        recipe.setResultCustomModelData(backup.resultCustomModelData);
+        recipe.setResultUnbreakable(backup.resultUnbreakable);
+        recipe.setResultFlags(new HashSet<>(backup.resultFlags));
+        recipe.setMaterialRequirements(new HashMap<>(backup.materialRequirements));
+        recipe.setPermissionRequirement(backup.permissionRequirement);
+
+        CraftingManager.saveRecipes();
+
+        return true;
     }
 
     private void createBackup() {
+        if (recipeBackups.containsKey(player.getUniqueId())) {
+            return;
+        }
+
         RecipeBackup backup = new RecipeBackup(
                 recipe.getName(),
                 recipe.getCategory(),
@@ -141,8 +200,9 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void addItemConfigurationPanel(Inventory inventory) {
-        // Material editor
-        ItemStack materialItem = createConfigItem("items.edit_material",
+        // Material editor - dynamically shows the recipe's material as icon
+        ItemStack materialItem = createDynamicMaterialItem("items.edit_material",
+                recipe.getResultMaterial(),
                 "#current_material#", recipe.getResultMaterial());
         if (materialItem != null) {
             InteractiveItem materialEditor = new InteractiveItem(materialItem,
@@ -355,15 +415,72 @@ public class RecipeEditorGUI implements IGUI {
         return fallback;
     }
 
+    private ItemStack createDynamicMaterialItem(String configPath, String recipeMaterial, String... placeholders) {
+        try {
+            org.bukkit.configuration.ConfigurationSection section = config.getConfigurationSection(configPath);
+            if (section == null) {
+                Storage.getStorage().getLogger().warning("Missing config section: " + configPath);
+                return createFallbackItem(configPath);
+            }
+
+            ItemStack item = null;
+            if (recipeMaterial != null && !recipeMaterial.isEmpty()) {
+                String materialName = recipeMaterial.contains(";") ? recipeMaterial.split(";")[0] : recipeMaterial;
+                Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+                if (xMaterial.isPresent() && xMaterial.get() != XMaterial.AIR) {
+                    item = xMaterial.get().parseItem();
+                }
+            }
+
+            if (item == null) {
+                item = ItemManager.getItemConfigWithPlaceholders(player, section, placeholders);
+                return item != null ? item : createFallbackItem(configPath);
+            }
+
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                String displayName = section.getString("name");
+                if (displayName != null) {
+                    for (int i = 0; i < placeholders.length - 1; i += 2) {
+                        displayName = displayName.replace(placeholders[i], placeholders[i + 1]);
+                    }
+                    meta.setDisplayName(ChatUtils.colorizewp(displayName));
+                }
+
+                List<String> lore = section.getStringList("lore");
+                if (lore != null && !lore.isEmpty()) {
+                    List<String> processedLore = new ArrayList<>();
+                    for (String line : lore) {
+                        for (int i = 0; i < placeholders.length - 1; i += 2) {
+                            line = line.replace(placeholders[i], placeholders[i + 1]);
+                        }
+                        processedLore.add(ChatUtils.colorizewp(line));
+                    }
+                    meta.setLore(processedLore);
+                }
+
+                item.setItemMeta(meta);
+            }
+
+            return item;
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().warning("Error creating material item: " + configPath + " - " + e.getMessage());
+            return createFallbackItem(configPath);
+        }
+    }
+
     private void editMaterial(Player player) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestMaterialEdit(player, recipe);
     }
 
     private void editName(Player player) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestNameEdit(player, recipe);
     }
 
     private void editLore(Player player, ClickType clickType) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestLoreEdit(player, recipe);
     }
 
@@ -377,19 +494,23 @@ public class RecipeEditorGUI implements IGUI {
             CraftingManager.updateRecipe(recipe);
             refreshGUI(player);
         } else if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
+            setShouldRestoreOnClose(player, false);
             RecipeEditManager.requestAmountEdit(player, recipe);
         }
     }
 
     private void editEnchantments(Player player) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestEnchantmentEdit(player, recipe);
     }
 
     private void editFlags(Player player) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestFlagEdit(player, recipe);
     }
 
     private void editCustomModelData(Player player) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestCustomModelDataEdit(player, recipe);
     }
 
@@ -405,6 +526,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void openMaterialEditor(Player player) {
+        setShouldRestoreOnClose(player, false);
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new MaterialEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
     }
@@ -430,6 +552,7 @@ public class RecipeEditorGUI implements IGUI {
             }
         } else if (clickType == ClickType.SHIFT_LEFT) {
             // Custom amount
+            setShouldRestoreOnClose(player, false);
             RecipeEditManager.requestRequirementAmountEdit(player, recipe, material);
         } else if (clickType == ClickType.SHIFT_RIGHT) {
             // Remove requirement
@@ -443,11 +566,13 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void editRecipeSettings(Player player) {
+        setShouldRestoreOnClose(player, false);
         RecipeEditManager.requestCategoryEdit(player, recipe);
     }
 
     private void handlePermissionClick(Player player, ClickType clickType) {
         if (clickType == ClickType.LEFT) {
+            setShouldRestoreOnClose(player, false);
             RecipeEditManager.requestPermissionEdit(player, recipe);
         } else if (clickType == ClickType.RIGHT) {
             recipe.setPermissionRequirement(null);
@@ -458,6 +583,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void saveRecipe(Player player) {
+        setShouldRestoreOnClose(player, false);
         CraftingManager.updateRecipe(recipe);
         clearBackup();
 
@@ -469,7 +595,9 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void backToList(Player player) {
+        setShouldRestoreOnClose(player, false);
         restoreBackup();
+        CraftingManager.saveRecipes();
         clearBackup();
 
         player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_discarded")
@@ -480,12 +608,14 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void deleteRecipe(Player player) {
+        // Mark as navigating to confirmation GUI
+        setShouldRestoreOnClose(player, false);
         String message = "Delete recipe: &e" + recipe.getName() + "&7?";
 
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new ConfirmationGUI(player, message,
                 () -> {
-                    // On confirm
+                    // On confirm - recipe deleted, no need to restore
                     CraftingManager.removeRecipe(recipe.getId());
                     clearBackup();
                     player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.editor_deleted")
@@ -494,7 +624,7 @@ public class RecipeEditorGUI implements IGUI {
                     player.openInventory(new RecipeEditorListGUI(player).getInventory(SoundContext.SILENT));
                 },
                 () -> {
-                    // On cancel
+                    // On cancel - return to editor, re-enable restore on close
                     SoundManager.setShouldPlayCloseSound(player, false);
                     player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
                 }
@@ -502,6 +632,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private void refreshGUI(Player player) {
+        setShouldRestoreOnClose(player, false);
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
     }

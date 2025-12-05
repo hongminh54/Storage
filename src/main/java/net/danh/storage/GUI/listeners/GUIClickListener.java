@@ -6,6 +6,7 @@ import net.danh.storage.GUI.RecipeEditorGUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.File;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -169,14 +170,24 @@ public class GUIClickListener implements Listener {
     public void onInventoryClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
 
-        // Check if the closed inventory is a GUI
         if (e.getInventory().getHolder() instanceof IGUI) {
-            // Check if we should play close sound
+            if (e.getInventory().getHolder() instanceof RecipeEditorGUI) {
+                if (RecipeEditorGUI.getShouldRestoreOnClose(player) && RecipeEditorGUI.hasActiveSession(player.getUniqueId())) {
+                    String recipeName = RecipeEditorGUI.getBackupRecipeName(player.getUniqueId());
+
+                    if (RecipeEditorGUI.restoreAndSaveBackup(player.getUniqueId())) {
+                        player.sendMessage(net.danh.storage.Utils.ChatUtils.colorize(
+                                File.getMessage().getString("crafting.editor_discarded", "&7Changes discarded for recipe: &e#recipe#")
+                                        .replace("#recipe#", recipeName)));
+                    }
+                    RecipeEditorGUI.cleanupBackup(player.getUniqueId());
+                }
+            }
+
             if (SoundManager.getShouldPlayCloseSound(player)) {
                 SoundManager.playCloseSound(player);
             }
 
-            // Reset the flag for next time
             SoundManager.setShouldPlayCloseSound(player, true);
         }
     }
@@ -184,6 +195,11 @@ public class GUIClickListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
+
+        if (RecipeEditorGUI.hasActiveSession(player.getUniqueId())) {
+            RecipeEditorGUI.restoreAndSaveBackup(player.getUniqueId());
+        }
+
         RecipeEditorGUI.cleanupBackup(player.getUniqueId());
         interactTimeout.remove(player.getUniqueId());
     }

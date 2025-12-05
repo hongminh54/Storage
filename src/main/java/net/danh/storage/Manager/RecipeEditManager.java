@@ -20,6 +20,7 @@ public class RecipeEditManager {
     private static final Map<UUID, String> editRecipeId = new HashMap<>();
     private static final Map<UUID, String> editField = new HashMap<>();
     private static final Map<UUID, String> previousGUI = new HashMap<>();
+    private static List<ItemFlag> cachedAvailableFlags = null;
 
     public static void requestMaterialEdit(Player player, Recipe recipe) {
         editType.put(player.getUniqueId(), "material");
@@ -678,46 +679,18 @@ public class RecipeEditManager {
     }
 
     public static List<ItemFlag> getAvailableFlags() {
-        List<ItemFlag> availableFlags = new ArrayList<>();
-
-        // These flags exist in all versions (1.8+)
-        String[] baseFlags = {
-                "HIDE_ENCHANTS",
-                "HIDE_ATTRIBUTES",
-                "HIDE_UNBREAKABLE",
-                "HIDE_DESTROYS",
-                "HIDE_PLACED_ON"
-        };
-
-        // Try to add base flags
-        for (String flagName : baseFlags) {
-            try {
-                ItemFlag flag = ItemFlag.valueOf(flagName);
-                availableFlags.add(flag);
-            } catch (IllegalArgumentException ignored) {
-                // Flag doesn't exist in this version
-            }
+        if (cachedAvailableFlags != null) {
+            return new ArrayList<>(cachedAvailableFlags);
         }
 
-        // Try to add version-specific flags
-        String[] versionSpecificFlags = {
-                "HIDE_POTION_EFFECTS",      // 1.9+
-                "HIDE_DYE",                  // 1.20+
-                "HIDE_ARMOR_TRIM",           // 1.20+
-                "HIDE_ADDITIONAL_TOOLTIP",   // 1.20.5+
-                "HIDE_STORED_ENCHANTS"       // Some versions
-        };
+        cachedAvailableFlags = new ArrayList<>();
+        Collections.addAll(cachedAvailableFlags, ItemFlag.values());
 
-        for (String flagName : versionSpecificFlags) {
-            try {
-                ItemFlag flag = ItemFlag.valueOf(flagName);
-                availableFlags.add(flag);
-            } catch (IllegalArgumentException ignored) {
-                // Flag doesn't exist in this version
-            }
-        }
+        return new ArrayList<>(cachedAvailableFlags);
+    }
 
-        return availableFlags;
+    public static void clearFlagCache() {
+        cachedAvailableFlags = null;
     }
 
     public static ItemFlag parseFlag(String flagName) {
@@ -727,17 +700,34 @@ public class RecipeEditManager {
 
         String normalizedName = flagName.toUpperCase().trim();
 
-        try {
-            ItemFlag flag = ItemFlag.valueOf(normalizedName);
-            List<ItemFlag> availableFlags = getAvailableFlags();
-            if (availableFlags.contains(flag)) {
+        List<ItemFlag> availableFlags = getAvailableFlags();
+        for (ItemFlag flag : availableFlags) {
+            if (flag.name().equals(normalizedName)) {
                 return flag;
             }
-            // Flag exists in enum but not available in this version
-            return null;
+        }
+
+        return null;
+    }
+
+    public static boolean isFlagVersionIncompatible(String flagName) {
+        if (flagName == null || flagName.trim().isEmpty()) {
+            return false;
+        }
+
+        String normalizedName = flagName.toUpperCase().trim();
+
+        try {
+            ItemFlag.valueOf(normalizedName);
+            List<ItemFlag> availableFlags = getAvailableFlags();
+            for (ItemFlag flag : availableFlags) {
+                if (flag.name().equals(normalizedName)) {
+                    return false; // Flag is available
+                }
+            }
+            return true;
         } catch (IllegalArgumentException e) {
-            // Not a valid ItemFlag name
-            return null;
+            return false;
         }
     }
 
@@ -803,12 +793,11 @@ public class RecipeEditManager {
             ItemFlag flag = parseFlag(flagName);
 
             if (flag == null) {
-                try {
-                    ItemFlag.valueOf(flagName);
+                if (isFlagVersionIncompatible(flagName)) {
                     player.sendMessage(ChatUtils.colorize(
                             File.getMessage().getString("crafting.edit_flag_version_incompatible")
                                     .replace("#flag#", flagName)));
-                } catch (IllegalArgumentException e) {
+                } else {
                     player.sendMessage(ChatUtils.colorize(
                             File.getMessage().getString("crafting.edit_flag_invalid")
                                     .replace("#flag#", flagName)));
