@@ -11,10 +11,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 /**
  * API for Storage Event System
@@ -414,6 +412,6 @@ public class StorageEventAPI {
      */
     @NotNull
     public static List<EventType> getAvailableEventTypes() {
-        return Arrays.asList(EventType.values());
+        return new ArrayList<>(Arrays.asList(EventType.values()));
     }
 }

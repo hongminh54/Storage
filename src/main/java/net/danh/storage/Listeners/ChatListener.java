@@ -140,7 +140,7 @@ public class ChatListener implements Listener {
                 int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new MythicWithdraw(p, itemName, amount).doAction();
-                    SoundManager.playChatDepositSound(p);
+                    SoundManager.playChatWithdrawSound(p);
                     p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
                 });
             } else {

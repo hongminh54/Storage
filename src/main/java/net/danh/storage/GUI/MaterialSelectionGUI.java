@@ -25,7 +25,6 @@ public class MaterialSelectionGUI implements IGUI {
     private final Recipe recipe;
     private final String selectionType;
     private final int currentPage;
-    private final int currentCategory;
     private final FileConfiguration config;
 
     public MaterialSelectionGUI(Player player, Recipe recipe, String selectionType) {
@@ -41,7 +40,6 @@ public class MaterialSelectionGUI implements IGUI {
         this.recipe = recipe;
         this.selectionType = selectionType;
         this.currentPage = currentPage;
-        this.currentCategory = currentCategory;
         this.config = File.getMaterialSelectionGUIConfig();
     }
 

@@ -230,11 +230,12 @@ public class MythicStorageGUI implements IGUI {
             if (currentAmount <= 0) {
                 player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.action.withdraw.not_enough", "")
                         .replace("#amount#", String.valueOf(currentAmount))));
+                SoundManager.playErrorSound(player);
                 return;
             }
 
             new net.danh.storage.Action.MythicWithdraw(player, itemName, currentAmount).doAction();
-            SoundManager.playItemSound(player, config, "items.mythic_item.sound", SoundContext.SILENT);
+            SoundManager.playWithdrawSound(player);
             SoundManager.setShouldPlayCloseSound(player, false);
             player.openInventory(new MythicStorageGUI(player, currentPage).getInventory(SoundContext.SILENT));
 
@@ -247,7 +248,7 @@ public class MythicStorageGUI implements IGUI {
 
         } else if (clickType == ClickType.SHIFT_RIGHT) {
             new net.danh.storage.Action.MythicDeposit(player, itemName, Integer.MAX_VALUE).doAction();
-            SoundManager.playItemSound(player, config, "items.mythic_item.sound", SoundContext.SILENT);
+            SoundManager.playDepositSound(player);
             SoundManager.setShouldPlayCloseSound(player, false);
             player.openInventory(new MythicStorageGUI(player, currentPage).getInventory(SoundContext.SILENT));
         }

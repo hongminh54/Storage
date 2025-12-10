@@ -63,17 +63,17 @@ user:
   action:
     deposit:
       full_storage: "#prefix# &cStorage has been full &8(#item_amount#/#max_storage#)&c, you can't deposit #amount# #material#!"
-      chat_number: "#prefix# &aHow many item you want to deposit?"
+      chat_number: "#prefix# &aHow many item you want to deposit? &7(Type 'cancel' to exit)"
       deposit_item: "#prefix# &aYou deposited #amount# #material# | #item_amount#/#max_storage# Items"
       invalid_item: "#prefix# &cInvalid item! Cannot deposit this item."
     withdraw:
-      chat_number: "#prefix# &aHow many item you want to withdraw?"
+      chat_number: "#prefix# &aHow many item you want to withdraw? &7(Type 'cancel' to exit)"
       withdraw_item: "#prefix# &aYou withdrew #amount# #material# | #item_amount#/#max_storage# Items"
       cannot_create_item: "#prefix# &cCannot create item! Please contact administrator."
       not_enough_in_storage: "#prefix# &cYou don't have enough #material# in storage! You only have #amount# items."
       inventory_full: "#prefix# &cYour inventory is full! Please make some space to withdraw items."
     sell:
-      chat_number: "#prefix# &aHow many item you want to sell?"
+      chat_number: "#prefix# &aHow many item you want to sell? &7(Type 'cancel' to exit)"
       can_not_sell: "#prefix# &cThis item can't be sell"
       sell_item: "#prefix# &aYou sold #amount# #material# and got #money#$ | #item_amount#/#max_storage# Items"
       no_worth_config: "#prefix# &cSell system is not configured! Please contact administrator."
@@ -89,7 +89,7 @@ user:
     - "&e/Storage toggle &f- &7Toggle autoPickup"
     - "&e/Storage convert &f- &7Open convert materials GUI (require permission)"
     - "&e/Storage craft &f - &7Open crafting GUI"
-    - "&e/Storage view &a<player> &f- &7View player's storage (read-only)"
+    - "&e/Storage view &a<player> &f- &7View player's storage"
     - "&e/Storage transfer &a<player> &b<material> &f- &7Transfer material to player"
     - "&e/Storage transfer multi &a<player> &f- &7Transfer multiple materials to player"
     - "&e/Storage transfer log &a<player> &d<page> &f- &7View transfer history"
@@ -308,12 +308,12 @@ mythicstorage:
   toggle_disabled: "#prefix# &dMythicStorage &cAuto-pickup disabled!"
   action:
     withdraw:
-      chat_number: "#prefix# &aHow many items do you want to withdraw?"
+      chat_number: "#prefix# &aHow many items do you want to withdraw? &7(Type 'cancel' to exit)"
       withdraw_item: "#prefix# &aYou withdrew &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
       not_enough: "#prefix# &cYou don't have enough items! You only have &e#amount#"
       inventory_full: "#prefix# &cYour inventory is full! Cannot withdraw more items"
     deposit:
-      chat_number: "#prefix# &aHow many items do you want to deposit?"
+      chat_number: "#prefix# &aHow many items do you want to deposit? &7(Type 'cancel' to exit)"
       deposit_item: "#prefix# &aYou deposited &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
       full_storage: "#prefix# &cStorage is full &8(#item_amount#/#max_storage#)&c, cannot deposit &e#amount# #material#"
       no_items: "#prefix# &cYou don't have this MythicMobs item in your inventory!"
@@ -361,7 +361,7 @@ mythicstorage:
       - "&6=== &eMythicStorage Commands &6==="
       - "&e/mythicstorage &f- &7Open MythicStorage GUI"
       - "&e/mythicstorage toggle &f- &7Toggle auto-pickup"
-      - "&e/mythicstorage view &a<player> &f- &7View player's storage (require permission)"
+      - "&e/mythicstorage view &a<player> &f- &7View player's storage"
       - "&e/mythicstorage transfer &a<player> &b<item> &f- &7Transfer items to another player"
       - "&e/mythicstorage transfer multi &a<player> &f- &7Transfer multiple items at once"
       - "&e/mythicstorage transfer log &6[page] &f- &7View transfer history"

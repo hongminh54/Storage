@@ -374,14 +374,55 @@ public class StorageAPI {
         return getStorableMaterials().contains(material);
     }
 
+    // ==================== MANAGER INTERFACES ====================
+
+    /**
+     * Get IStorageManager implementation
+     *
+     * @return IStorageManager instance
+     */
+    @NotNull
+    public static net.danh.storage.API.interfaces.IStorageManager getStorageManager() {
+        return net.danh.storage.API.impl.StorageManagerImpl.getInstance();
+    }
+
+    /**
+     * Get ITransferManager implementation
+     *
+     * @return ITransferManager instance
+     */
+    @NotNull
+    public static net.danh.storage.API.interfaces.ITransferManager getTransferManager() {
+        return net.danh.storage.API.impl.TransferManagerImpl.getInstance();
+    }
+
+    /**
+     * Get IEnchantManager implementation
+     *
+     * @return IEnchantManager instance
+     */
+    @NotNull
+    public static net.danh.storage.API.interfaces.IEnchantManager getEnchantManager() {
+        return net.danh.storage.API.impl.EnchantManagerImpl.getInstance();
+    }
+
+    /**
+     * Get IMythicStorageManager implementation
+     *
+     * @return IMythicStorageManager instance
+     */
+    @NotNull
+    public static net.danh.storage.API.interfaces.IMythicStorageManager getMythicStorageManager() {
+        return net.danh.storage.API.impl.MythicStorageManagerImpl.getInstance();
+    }
+
     /**
      * Reload API data from config files
      * This is called automatically when plugin reloads
      */
     public static void reload() {
-        if (!isInitialized()) {
-        }
-        // API data will be reloaded when managers reload
+        if (!isInitialized()) return;
+        EnchantManager.loadEnchants();
     }
 
     /**
