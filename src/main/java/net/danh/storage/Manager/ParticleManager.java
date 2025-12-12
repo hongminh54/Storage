@@ -202,7 +202,7 @@ public class ParticleManager {
         String animationKey = particleType.name().toLowerCase() + "_" + player.getName();
         stopAnimation(animationKey);
 
-        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
@@ -218,7 +218,9 @@ public class ParticleManager {
             }
         }, 0L, 1L);
 
-        activeAnimations.put(animationKey, task);
+        if (task != null) {
+            activeAnimations.put(animationKey, task);
+        }
     }
 
     public static void playTransferProcessingAnimation(Player player, int durationSeconds) {
@@ -234,7 +236,7 @@ public class ParticleManager {
         if (animation == ParticleAnimation.NONE) return;
 
         final int maxTicks = durationSeconds * 20;
-        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
@@ -250,7 +252,9 @@ public class ParticleManager {
             }
         }, 0L, 1L);
 
-        activeAnimations.put(animationKey, task);
+        if (task != null) {
+            activeAnimations.put(animationKey, task);
+        }
     }
 
     public static void playTransferBeamEffect(Player sender, Player receiver) {
@@ -263,7 +267,7 @@ public class ParticleManager {
         stopAnimation(animationKey);
 
         final int maxTicks = config.getInt("transfer.particles.beam.duration", 20);
-        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
@@ -281,7 +285,9 @@ public class ParticleManager {
             }
         }, 0L, 2L);
 
-        activeAnimations.put(animationKey, task);
+        if (task != null) {
+            activeAnimations.put(animationKey, task);
+        }
     }
 
     public static void stopTransferProcessingAnimation(Player player) {
@@ -301,7 +307,7 @@ public class ParticleManager {
         if (animation == ParticleAnimation.NONE) return;
 
         final int maxTicks = durationSeconds * 20;
-        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
@@ -317,7 +323,9 @@ public class ParticleManager {
             }
         }, 0L, 1L);
 
-        activeAnimations.put(animationKey, task);
+        if (task != null) {
+            activeAnimations.put(animationKey, task);
+        }
     }
 
     public static void stopCraftingProcessingAnimation(Player player) {
@@ -376,7 +384,7 @@ public class ParticleManager {
         String animationKey = "special_material_" + location.hashCode();
         stopAnimation(animationKey);
 
-        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
@@ -392,7 +400,9 @@ public class ParticleManager {
             }
         }, 0L, 1L);
 
-        activeAnimations.put(animationKey, task);
+        if (task != null) {
+            activeAnimations.put(animationKey, task);
+        }
     }
 
     private static void playSimpleParticleAtLocation(Location location, String particleType, int count, double speed) {
@@ -497,7 +507,7 @@ public class ParticleManager {
 
         int duration = config.getInt("convert.particles.duration", 2);
         final int maxTicks = duration * 20;
-        TaskWrapper task = TaskWrapper.runTaskTimer(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
             private int ticks = 0;
 
             @Override
@@ -513,7 +523,9 @@ public class ParticleManager {
             }
         }, 0L, 1L);
 
-        activeAnimations.put(animationKey, task);
+        if (task != null) {
+            activeAnimations.put(animationKey, task);
+        }
     }
 
     private static void stopAnimation(String animationKey) {

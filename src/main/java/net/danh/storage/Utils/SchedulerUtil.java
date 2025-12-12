@@ -44,13 +44,15 @@ public class SchedulerUtil {
     public static void runTaskLater(Plugin plugin, Runnable task, long delayTicks) {
         if (IS_FOLIA) {
             try {
+                long foliaDelayTicks = Math.max(1L, delayTicks);
+
                 Object globalRegionScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
                 Class<?> consumerClass = Class.forName("java.util.function.Consumer");
                 Object consumer = java.lang.reflect.Proxy.newProxyInstance(consumerClass.getClassLoader(), new Class[]{consumerClass}, (proxy, method, args) -> {
                     task.run();
                     return null;
                 });
-                globalRegionScheduler.getClass().getMethod("runDelayed", Plugin.class, consumerClass, long.class).invoke(globalRegionScheduler, plugin, consumer, delayTicks);
+                globalRegionScheduler.getClass().getMethod("runDelayed", Plugin.class, consumerClass, long.class).invoke(globalRegionScheduler, plugin, consumer, foliaDelayTicks);
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to run Folia delayed task: " + e.getMessage());
                 throw new RuntimeException("Failed to schedule delayed task on Folia", e);
@@ -79,9 +81,4 @@ public class SchedulerUtil {
         }
     }
 
-    public static void cancelTasks(Plugin plugin) {
-        if (!IS_FOLIA) {
-            Bukkit.getScheduler().cancelTasks(plugin);
-        }
-    }
 }
