@@ -2,6 +2,7 @@ package net.danh.storage.CMD.handler.user;
 
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.GUI.ViewStorageGUI;
+import net.danh.storage.Manager.MineManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -34,6 +35,11 @@ public class ViewCommand extends BaseCommand {
 
             if (!offlineTarget.hasPlayedBefore()) {
                 sendInvalidPlayer(sender, targetPlayerName);
+                return;
+            }
+
+            if (!MineManager.loadOfflinePlayerData(offlineTarget.getName())) {
+                sendMessage(sender, "view.no_data", "#player#", offlineTarget.getName());
                 return;
             }
 

@@ -393,4 +393,72 @@ public class MythicStorageManager {
     public static int getMaxStorage(@NotNull String playerName) {
         return File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000);
     }
+
+    public static boolean loadOfflinePlayerData(@NotNull String playerName) {
+        if (!isSystemEnabled()) return false;
+
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        if (onlinePlayer != null) {
+            return true; // Player is online, data already loaded
+        }
+
+        for (String key : playerdata.keySet()) {
+            if (key.startsWith(playerName + "_")) {
+                return true; // Data already loaded
+            }
+        }
+
+        PlayerData data = Storage.dataStorage.getData(playerName);
+        if (data == null) {
+            return false; // Player has no data
+        }
+
+        String dataString = data.getData();
+        if (dataString == null || dataString.isEmpty()) {
+            return false;
+        }
+
+        String[] dataParts = dataString.split(";");
+        for (String part : dataParts) {
+            if (part == null || part.isEmpty()) continue;
+
+            if (part.startsWith("mythic:")) {
+                String mythicData = part.substring(7);
+                if (mythicData.isEmpty()) continue;
+
+                String[] items = mythicData.split(",");
+                for (String item : items) {
+                    if (item == null || item.isEmpty()) continue;
+                    String[] itemParts = item.split(":");
+                    if (itemParts.length == 2) {
+                        String key = playerName + "_" + itemParts[0];
+                        try {
+                            int value = Integer.parseInt(itemParts[1]);
+                            if (value > 0) {
+                                playerdata.put(key, value);
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean hasOfflinePlayerData(@NotNull String playerName) {
+        if (!isSystemEnabled()) return false;
+        return Storage.dataStorage.getData(playerName) != null;
+    }
+
+
+    public static void cleanupOfflinePlayerData(@NotNull String playerName) {
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        if (onlinePlayer != null) {
+            return;
+        }
+
+        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+    }
 }

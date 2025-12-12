@@ -3,7 +3,11 @@ package net.danh.storage.GUI.listeners;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.GUI.RecipeEditorGUI;
+import net.danh.storage.GUI.ViewMythicStorageGUI;
+import net.danh.storage.GUI.ViewStorageGUI;
 import net.danh.storage.GUI.manager.IGUI;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -181,6 +185,20 @@ public class GUIClickListener implements Listener {
                                         .replace("#recipe#", recipeName)));
                     }
                     RecipeEditorGUI.cleanupBackup(player.getUniqueId());
+                }
+            }
+
+            if (e.getInventory().getHolder() instanceof ViewStorageGUI) {
+                ViewStorageGUI gui = (ViewStorageGUI) e.getInventory().getHolder();
+                if (gui.getTarget() == null) {
+                    MineManager.cleanupOfflinePlayerData(gui.getTargetName());
+                }
+            }
+
+            if (e.getInventory().getHolder() instanceof ViewMythicStorageGUI) {
+                ViewMythicStorageGUI gui = (ViewMythicStorageGUI) e.getInventory().getHolder();
+                if (gui.getTarget() == null) {
+                    MythicStorageManager.cleanupOfflinePlayerData(gui.getTargetName());
                 }
             }
 

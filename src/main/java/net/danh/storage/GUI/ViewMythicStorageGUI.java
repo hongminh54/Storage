@@ -116,12 +116,12 @@ public class ViewMythicStorageGUI implements IGUI {
         return inventory;
     }
 
-    public Player getViewer() {
-        return viewer;
-    }
-
     public Player getTarget() {
         return target;
+    }
+
+    public String getTargetName() {
+        return targetName;
     }
 
     public FileConfiguration getConfig() {
@@ -189,7 +189,7 @@ public class ViewMythicStorageGUI implements IGUI {
                 InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
                     SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
                     SoundManager.setShouldPlayCloseSound(player, false);
-                    player.openInventory(new ViewMythicStorageGUI(viewer, target, currentPage - 1).getInventory(SoundContext.SILENT));
+                    player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage - 1).getInventory(SoundContext.SILENT));
                 });
                 inventory.setItem(item.getSlot(), item);
             }
@@ -203,7 +203,7 @@ public class ViewMythicStorageGUI implements IGUI {
                 InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
                     SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
                     SoundManager.setShouldPlayCloseSound(player, false);
-                    player.openInventory(new ViewMythicStorageGUI(viewer, target, currentPage + 1).getInventory(SoundContext.SILENT));
+                    player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage + 1).getInventory(SoundContext.SILENT));
                 });
                 inventory.setItem(item.getSlot(), item);
             }
@@ -211,7 +211,7 @@ public class ViewMythicStorageGUI implements IGUI {
     }
 
     private void setupViewInfo(Inventory inventory, String slot) {
-        ItemStack viewInfoItem = ItemManager.getItemConfigWithPlaceholders(viewer, Objects.requireNonNull(config.getConfigurationSection("items.view_info")), "#player#", target.getName());
+        ItemStack viewInfoItem = ItemManager.getItemConfigWithPlaceholders(viewer, Objects.requireNonNull(config.getConfigurationSection("items.view_info")), "#player#", targetName);
 
         InteractiveItem item = new InteractiveItem(viewInfoItem, Number.getInteger(slot));
         inventory.setItem(item.getSlot(), item);

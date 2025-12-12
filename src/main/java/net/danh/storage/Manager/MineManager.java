@@ -424,4 +424,48 @@ public class MineManager {
         return File.getConfig().getInt("settings.default_max_storage", 100000);
     }
 
+    public static boolean loadOfflinePlayerData(@NotNull String playerName) {
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        if (onlinePlayer != null) {
+            return true;
+        }
+
+        for (String key : playerdata.keySet()) {
+            if (key.startsWith(playerName + "_")) {
+                return true;
+            }
+        }
+
+        PlayerData data = Storage.db.getData(playerName);
+        if (data == null) {
+            return false;
+        }
+
+        List<String> list = convertOnlineData(data.getData());
+        for (String block : list) {
+            String[] block_data = block.split(";");
+            if (block_data.length >= 3) {
+                String material = block_data[0] + ";" + block_data[1];
+                int amount = Number.getInteger(block_data[2]);
+                playerdata.put(playerName + "_" + material, amount);
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean hasOfflinePlayerData(@NotNull String playerName) {
+        return Storage.db.getData(playerName) != null;
+    }
+
+    public static void cleanupOfflinePlayerData(@NotNull String playerName) {
+        // Don't cleanup if player is online
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        if (onlinePlayer != null) {
+            return;
+        }
+
+        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+    }
+
 }

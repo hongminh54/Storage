@@ -6,6 +6,7 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.TransferManager;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
@@ -427,7 +428,8 @@ public class TransferMultiGUI implements IGUI {
 
     private void confirmTransfer() {
         if (selectedAmounts.isEmpty()) {
-            player.sendMessage(ChatUtils.colorize("&cNo materials selected for transfer!"));
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("transfer.failed_no_selection")));
             return;
         }
 
@@ -435,10 +437,9 @@ public class TransferMultiGUI implements IGUI {
         player.closeInventory();
 
         // Use multi transfer method instead of individual transfers
-        if (TransferManager.executeMultiTransfer(player, targetPlayer, selectedAmounts)) {
-            // Transfer initiated successfully
-        } else {
-            player.sendMessage(ChatUtils.colorize("&cFailed to initiate multi transfer!"));
+        if (!TransferManager.executeMultiTransfer(player, targetPlayer, selectedAmounts)) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("transfer.failed_multi_all")));
         }
 
         activeGUIs.remove(player);
@@ -452,7 +453,7 @@ public class TransferMultiGUI implements IGUI {
             int currentPage = PersonalStorage.getPlayerCurrentPage(player);
             player.openInventory(new PersonalStorage(player, currentPage).getInventory());
         } catch (Exception e) {
-            player.sendMessage(ChatUtils.colorize("&cError opening storage GUI"));
+            Storage.getStorage().getLogger().warning("Error opening storage GUI: " + e.getMessage());
         }
     }
 

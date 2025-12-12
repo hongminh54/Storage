@@ -2,6 +2,7 @@ package net.danh.storage.CMD.handler.mythic.user;
 
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
 import net.danh.storage.GUI.ViewMythicStorageGUI;
+import net.danh.storage.Manager.MythicStorageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -37,6 +38,8 @@ public class MythicViewCommand extends MythicCommand {
                 sendPlayerNotFound(sender, targetName);
                 return;
             }
+
+            MythicStorageManager.loadOfflinePlayerData(offlineTarget.getName());
 
             try {
                 viewer.openInventory(new ViewMythicStorageGUI(viewer, offlineTarget.getName()).getInventory());

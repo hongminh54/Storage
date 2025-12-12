@@ -109,12 +109,12 @@ public class ViewStorageGUI implements IGUI {
         return inventory;
     }
 
-    public Player getViewer() {
-        return viewer;
-    }
-
     public Player getTarget() {
         return target;
+    }
+
+    public String getTargetName() {
+        return targetName;
     }
 
     public FileConfiguration getConfig() {
@@ -193,7 +193,7 @@ public class ViewStorageGUI implements IGUI {
     private void setupViewInfo(Inventory inventory, String slot) {
         ItemStack viewInfoItem = ItemManager.getItemConfigWithPlaceholders(viewer,
                 Objects.requireNonNull(config.getConfigurationSection("items.view_info")),
-                "#player#", target.getName());
+                "#player#", targetName);
 
         InteractiveItem item = new InteractiveItem(viewInfoItem, Number.getInteger(slot));
         inventory.setItem(item.getSlot(), item);

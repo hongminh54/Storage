@@ -7,6 +7,7 @@ import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.MythicTransferManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
@@ -331,7 +332,7 @@ public class MythicTransferGUI implements IGUI {
         try {
             player.openInventory(new MythicStorageGUI(player).getInventory());
         } catch (Exception e) {
-            player.sendMessage(ChatUtils.colorize("&cError opening storage GUI"));
+            Storage.getStorage().getLogger().warning("Error opening MythicStorage GUI: " + e.getMessage());
         }
     }
 

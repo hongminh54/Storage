@@ -120,10 +120,16 @@ public final class Storage extends JavaPlugin {
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MythicStorageManager.savePlayerData(p);
+            // Cleanup player-specific data from managers
+            MineManager.cleanupPlayerData(p);
+            MythicStorageManager.cleanupPlayerData(p);
+            SoundManager.cleanupPlayer(p);
         }
         TransferManager.cancelAllTransfers();
         MythicTransferManager.cancelAllTransfers();
         CraftingManager.cancelAllCrafting();
+        ParticleManager.stopAllAnimations();
+        RecipeEditManager.clearFlagCache();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");

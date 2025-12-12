@@ -956,6 +956,19 @@ public class ParticleManager {
         }
     }
 
+    /**
+     * Stop all active particle animations - called on plugin disable
+     */
+    public static void stopAllAnimations() {
+        for (TaskWrapper task : activeAnimations.values()) {
+            if (task != null && !task.isCancelled()) {
+                task.cancel();
+            }
+        }
+        activeAnimations.clear();
+        particleCooldowns.clear();
+    }
+
     public enum ParticleType {
         TRANSFER_SUCCESS("transfer.particles.success"),
         TRANSFER_RECEIVE("transfer.particles.receive"),

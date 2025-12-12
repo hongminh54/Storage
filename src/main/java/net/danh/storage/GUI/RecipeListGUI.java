@@ -186,9 +186,10 @@ public class RecipeListGUI implements IGUI {
                     }
                 }
             } else {
+                String categoryDisplayName = CraftingManager.getCategoryDisplayName(recipe.getCategory());
                 String processed = line
                         .replace("#recipe_name#", recipe.getName())
-                        .replace("#category#", recipe.getCategory())
+                        .replace("#category#", categoryDisplayName)
                         .replace("#result_amount#", String.valueOf(recipe.getResultAmount()))
                         .replace("#result_name#", recipe.getResultName());
                 processedLore.add(ChatUtils.colorizewp(processed));
@@ -310,10 +311,10 @@ public class RecipeListGUI implements IGUI {
         if (!config.contains("items.category_filter")) return;
 
         int slot = config.getInt("items.category_filter.slot", 49);
-        String categoryName = currentCategory.equals("all") ? "All" : currentCategory;
+        String categoryDisplayName = CraftingManager.getCategoryDisplayName(currentCategory);
         ItemStack filterItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.category_filter")),
-                "#current_category#", categoryName);
+                "#current_category#", categoryDisplayName);
 
         InteractiveItem filterButton = new InteractiveItem(filterItem, slot)
                 .onLeftClick(p -> cycleCategory(p));

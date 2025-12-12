@@ -6,6 +6,7 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.TransferManager;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SoundContext;
@@ -327,7 +328,7 @@ public class TransferGUI implements IGUI {
             int currentPage = PersonalStorage.getPlayerCurrentPage(player);
             player.openInventory(new PersonalStorage(player, currentPage).getInventory());
         } catch (Exception e) {
-            player.sendMessage(ChatUtils.colorize("&cError opening storage GUI"));
+            Storage.getStorage().getLogger().warning("Error opening storage GUI: " + e.getMessage());
         }
     }
 

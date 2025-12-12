@@ -41,22 +41,46 @@ settings:
 
 # Recipe categories
 categories:
+  all:
+    name: "&f&lAll Items"
+    description: "&7All recipes"
+    icon: "NETHER_STAR"
   default:
     name: "&7Default"
     description: "&7Uncategorized recipes"
     icon: "CRAFTING_TABLE"
   tools:
     name: "&6Tools & Weapons"
-    description: "&7Craft powerful tools and weapons"
+    description: "&7Swords, pickaxes, axes, etc."
     icon: "DIAMOND_SWORD"
+  armor:
+    name: "&bArmor & Protection"
+    description: "&7Helmets, chestplates, leggings, boots"
+    icon: "DIAMOND_CHESTPLATE"
   blocks:
     name: "&aBlocks & Building"
-    description: "&7Create decorative and functional blocks"
+    description: "&7Building and decorative blocks"
     icon: "STONE"
+  food:
+    name: "&cFood & Consumables"
+    description: "&7Food items and potions"
+    icon: "GOLDEN_APPLE"
+  materials:
+    name: "&eMaterials & Resources"
+    description: "&7Raw materials and ingots"
+    icon: "IRON_INGOT"
   misc:
-    name: "&bMiscellaneous"
+    name: "&dMiscellaneous"
     description: "&7Various useful items"
     icon: "CHEST"
+  special:
+    name: "&5&lSpecial Items"
+    description: "&7Rare and unique items"
+    icon: "END_CRYSTAL"
+  custom:
+    name: "&3Custom"
+    description: "&7Custom category recipes"
+    icon: "COMMAND_BLOCK"
 
 # Custom recipes
 recipes:

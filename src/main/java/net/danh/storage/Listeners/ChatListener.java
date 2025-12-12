@@ -230,7 +230,9 @@ public class ChatListener implements Listener {
                     activeGUI.setTransferAmount(amount);
                     SchedulerUtil.runTask(Storage.getStorage(), () -> {
                         activeGUI.updateGUI();
-                        p.sendMessage(ChatUtils.colorize("&aTransfer amount set to " + amount));
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("transfer.gui_enter_amount_success")
+                                        .replace("#amount#", String.valueOf(amount))));
                     });
                 }
             } else {
@@ -256,7 +258,9 @@ public class ChatListener implements Listener {
                     int amount = Number.getInteger(message);
                     SchedulerUtil.runTask(Storage.getStorage(), () -> {
                         activeGUI.setTransferAmountAndUpdate(amount);
-                        p.sendMessage(ChatUtils.colorize("&aTransfer amount set to " + amount));
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("mythicstorage.transfer.gui_enter_amount_success")
+                                        .replace("#amount#", String.valueOf(amount))));
                     });
                 }
             } else {

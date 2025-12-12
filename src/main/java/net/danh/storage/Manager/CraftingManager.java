@@ -80,7 +80,62 @@ public class CraftingManager {
     }
 
     public static Set<String> getCategories() {
-        return recipesByCategory.keySet();
+        Set<String> allCategories = new LinkedHashSet<>();
+        for (String cat : RecipeEditManager.getCategoryNames()) {
+            if (!cat.equals("all")) {
+                allCategories.add(cat);
+            }
+        }
+        allCategories.addAll(recipesByCategory.keySet());
+        return allCategories;
+    }
+
+    public static RecipeEditManager.CategoryInfo getCategoryInfo(String category) {
+        return RecipeEditManager.getCategoryInfo(category);
+    }
+
+    public static String getCategoryDisplayName(String categoryKey) {
+        if (categoryKey == null || categoryKey.isEmpty()) return "Unknown";
+        if (categoryKey.equalsIgnoreCase("all")) {
+            String configName = File.getCraftingConfig().getString("categories.all.name");
+            return configName != null ? ChatUtils.colorizewp(configName) : "All";
+        }
+
+        String configPath = "categories." + categoryKey.toLowerCase() + ".name";
+        String configName = File.getCraftingConfig().getString(configPath);
+        if (configName != null) {
+            return ChatUtils.colorizewp(configName);
+        }
+        // Fallback to RecipeEditManager default
+        return ChatUtils.colorizewp(RecipeEditManager.getCategoryInfo(categoryKey).displayName);
+    }
+
+    public static boolean isValidCategory(String categoryKey) {
+        if (categoryKey == null || categoryKey.isEmpty()) return false;
+        if (categoryKey.equalsIgnoreCase("all")) return false;
+
+        String configPath = "categories." + categoryKey.toLowerCase();
+        if (File.getCraftingConfig().contains(configPath)) {
+            return true;
+        }
+        return RecipeEditManager.getDefaultCategories().containsKey(categoryKey.toLowerCase());
+    }
+
+    public static Set<String> getValidCategoryKeys() {
+        Set<String> validCategories = new LinkedHashSet<>();
+        if (File.getCraftingConfig().contains("categories")) {
+            for (String key : File.getCraftingConfig().getConfigurationSection("categories").getKeys(false)) {
+                if (!key.equalsIgnoreCase("all")) {
+                    validCategories.add(key.toLowerCase());
+                }
+            }
+        }
+        for (String key : RecipeEditManager.getCategoryNames()) {
+            if (!key.equalsIgnoreCase("all")) {
+                validCategories.add(key.toLowerCase());
+            }
+        }
+        return validCategories;
     }
 
     public static List<Recipe> getAvailableRecipes(Player player) {

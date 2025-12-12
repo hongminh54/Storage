@@ -20,7 +20,115 @@ public class RecipeEditManager {
     private static final Map<UUID, String> editRecipeId = new HashMap<>();
     private static final Map<UUID, String> editField = new HashMap<>();
     private static final Map<UUID, String> previousGUI = new HashMap<>();
+    private static final Map<String, CategoryInfo> DEFAULT_CATEGORIES = new LinkedHashMap<>();
     private static List<ItemFlag> cachedAvailableFlags = null;
+
+    static {
+        // Core categories
+        DEFAULT_CATEGORIES.put("all", new CategoryInfo("&f&lAll Items", "NETHER_STAR", "&7All recipes"));
+        DEFAULT_CATEGORIES.put("default", new CategoryInfo("&7Default", "CRAFTING_TABLE", "&7Uncategorized recipes"));
+
+        // Item type categories
+        DEFAULT_CATEGORIES.put("tools", new CategoryInfo("&6Tools & Weapons", "DIAMOND_SWORD", "&7Swords, pickaxes, axes, etc."));
+        DEFAULT_CATEGORIES.put("armor", new CategoryInfo("&bArmor & Protection", "DIAMOND_CHESTPLATE", "&7Helmets, chestplates, leggings, boots"));
+        DEFAULT_CATEGORIES.put("blocks", new CategoryInfo("&aBlocks & Building", "STONE", "&7Building and decorative blocks"));
+        DEFAULT_CATEGORIES.put("food", new CategoryInfo("&cFood & Consumables", "GOLDEN_APPLE", "&7Food items and potions"));
+        DEFAULT_CATEGORIES.put("materials", new CategoryInfo("&eMaterials & Resources", "IRON_INGOT", "&7Raw materials and ingots"));
+        DEFAULT_CATEGORIES.put("misc", new CategoryInfo("&dMiscellaneous", "CHEST", "&7Various useful items"));
+        DEFAULT_CATEGORIES.put("special", new CategoryInfo("&5&lSpecial Items", "END_CRYSTAL", "&7Rare and unique items"));
+        DEFAULT_CATEGORIES.put("custom", new CategoryInfo("&3Custom", "COMMAND_BLOCK", "&7Custom category recipes"));
+    }
+
+    public static Map<String, CategoryInfo> getDefaultCategories() {
+        return Collections.unmodifiableMap(DEFAULT_CATEGORIES);
+    }
+
+    public static List<String> getCategoryNames() {
+        return new ArrayList<>(DEFAULT_CATEGORIES.keySet());
+    }
+
+    public static CategoryInfo getCategoryInfo(String category) {
+        return DEFAULT_CATEGORIES.getOrDefault(category.toLowerCase(),
+                new CategoryInfo("&7" + category, "PAPER", "&7Custom category"));
+    }
+
+    public static String suggestCategory(String material) {
+        if (material == null || material.isEmpty()) return "default";
+
+        String mat = material.toUpperCase();
+
+        if (mat.contains("SWORD") || mat.contains("AXE") || mat.contains("PICKAXE") ||
+                mat.contains("SHOVEL") || mat.contains("HOE") || mat.contains("BOW") ||
+                mat.contains("CROSSBOW") || mat.contains("TRIDENT") || mat.contains("FISHING_ROD") ||
+                mat.contains("SHEARS") || mat.contains("FLINT_AND_STEEL")) {
+            return "tools";
+        }
+
+        if (mat.contains("HELMET") || mat.contains("CHESTPLATE") || mat.contains("LEGGINGS") ||
+                mat.contains("BOOTS") || mat.contains("SHIELD") || mat.contains("ELYTRA") ||
+                mat.contains("HORSE_ARMOR")) {
+            return "armor";
+        }
+
+        if (mat.contains("APPLE") || mat.contains("BREAD") || mat.contains("COOKED") ||
+                mat.contains("STEAK") || mat.contains("PORKCHOP") || mat.contains("CHICKEN") ||
+                mat.contains("MUTTON") || mat.contains("RABBIT") || mat.contains("COD") ||
+                mat.contains("SALMON") || mat.contains("CAKE") || mat.contains("COOKIE") ||
+                mat.contains("PIE") || mat.contains("SOUP") || mat.contains("STEW") ||
+                mat.contains("POTION") || mat.contains("CARROT") || mat.contains("POTATO") ||
+                mat.contains("BEETROOT") || mat.contains("MELON") || mat.contains("CHORUS")) {
+            return "food";
+        }
+
+        if (mat.contains("INGOT") || mat.contains("NUGGET") || mat.contains("RAW_") ||
+                mat.contains("DIAMOND") || mat.contains("EMERALD") || mat.contains("LAPIS") ||
+                mat.contains("REDSTONE") || mat.contains("COAL") || mat.contains("QUARTZ") ||
+                mat.contains("AMETHYST") || mat.contains("COPPER") || mat.contains("NETHERITE") ||
+                mat.contains("GOLD") || mat.contains("IRON") || mat.contains("LEATHER") ||
+                mat.contains("STRING") || mat.contains("FEATHER") || mat.contains("BONE") ||
+                mat.contains("GUNPOWDER") || mat.contains("BLAZE") || mat.contains("ENDER") ||
+                mat.contains("GHAST") || mat.contains("SLIME") || mat.contains("PHANTOM") ||
+                mat.contains("SCUTE") || mat.contains("MEMBRANE") || mat.contains("SHELL")) {
+            return "materials";
+        }
+
+        if (mat.contains("STONE") || mat.contains("BRICK") || mat.contains("WOOD") ||
+                mat.contains("PLANKS") || mat.contains("LOG") || mat.contains("GLASS") ||
+                mat.contains("CONCRETE") || mat.contains("TERRACOTTA") || mat.contains("WOOL") ||
+                mat.contains("CARPET") || mat.contains("STAIRS") || mat.contains("SLAB") ||
+                mat.contains("FENCE") || mat.contains("WALL") || mat.contains("DOOR") ||
+                mat.contains("TRAPDOOR") || mat.contains("GATE") || mat.contains("LANTERN") ||
+                mat.contains("TORCH") || mat.contains("CANDLE") || mat.contains("BED") ||
+                mat.contains("BANNER") || mat.contains("SIGN") || mat.contains("DEEPSLATE") ||
+                mat.contains("COPPER_BLOCK") || mat.contains("AMETHYST_BLOCK") ||
+                mat.contains("OBSIDIAN") || mat.contains("CRYING") || mat.contains("PRISMARINE") ||
+                mat.contains("PURPUR") || mat.contains("END_STONE") || mat.contains("SANDSTONE") ||
+                mat.contains("BLACKSTONE") || mat.contains("BASALT") || mat.contains("CALCITE") ||
+                mat.contains("DRIPSTONE") || mat.contains("TUFF") || mat.contains("MUD")) {
+            return "blocks";
+        }
+
+        if (mat.contains("NETHER_STAR") || mat.contains("BEACON") || mat.contains("DRAGON") ||
+                mat.contains("END_CRYSTAL") || mat.contains("TOTEM") || mat.contains("ENCHANTED") ||
+                mat.contains("HEART_OF_THE_SEA") || mat.contains("CONDUIT") || mat.contains("LODESTONE") ||
+                mat.contains("RESPAWN_ANCHOR") || mat.contains("NETHERITE")) {
+            return "special";
+        }
+
+        return "misc";
+    }
+
+    public static List<String> getSuggestedCategories(String material) {
+        List<String> suggestions = new ArrayList<>();
+        String primary = suggestCategory(material);
+        suggestions.add(primary);
+
+        if (!primary.equals("default")) suggestions.add("default");
+        if (!primary.equals("misc")) suggestions.add("misc");
+        if (!primary.equals("custom")) suggestions.add("custom");
+
+        return suggestions;
+    }
 
     public static void requestMaterialEdit(Player player, Recipe recipe) {
         editType.put(player.getUniqueId(), "material");
@@ -113,14 +221,59 @@ public class RecipeEditManager {
     }
 
     public static void requestCategoryEdit(Player player, Recipe recipe) {
-        editType.put(player.getUniqueId(), "category");
+        editType.put(player.getUniqueId(), "category_edit");
         editRecipeId.put(player.getUniqueId(), recipe.getId());
         player.closeInventory();
+
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_category_prompt")));
         player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_category_hint")));
+
+        displayAvailableCategories(player);
+
+        displayCurrentCategory(player, recipe);
+    }
+
+    private static void displayAvailableCategories(Player player) {
+        StringBuilder categories = new StringBuilder();
+        int count = 0;
+        for (String cat : DEFAULT_CATEGORIES.keySet()) {
+            if (cat.equals("all")) continue; // Skip "all" vì nó chỉ dùng cho filter
+            if (count > 0) categories.append("&7, ");
+            categories.append("&e").append(cat);
+            count++;
+        }
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_category_available")
+                        .replace("#categories#", categories.toString())));
+    }
+
+    private static void displayCurrentCategory(Player player, Recipe recipe) {
+        String current = recipe.getCategory();
+        CategoryInfo info = getCategoryInfo(current);
+
+        player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_category_current")
-                        .replace("#current#", recipe.getCategory())));
+                        .replace("#current#", current)
+                        .replace("#display#", info.displayName)));
+
+        String suggested = suggestCategory(recipe.getResultMaterial());
+        if (!suggested.equals(current)) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_suggested")
+                            .replace("#suggested#", suggested)
+                            .replace("#material#", recipe.getResultMaterial())));
+        }
+    }
+
+    private static void promptCategoryRetry(Player player, Recipe recipe) {
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_category_prompt")));
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_category_hint")));
+        displayAvailableCategories(player);
+        displayCurrentCategory(player, recipe);
     }
 
     public static void requestEnchantmentEdit(Player player, Recipe recipe) {
@@ -210,7 +363,7 @@ public class RecipeEditManager {
         boolean success = processEdit(player, recipe, type, message);
         if (success) {
             updateRecipeAndReopenGUI(player, recipe, type);
-        } else if (!"material".equals(type) && !"enchant_edit".equals(type) && !"flag_edit".equals(type) && !"lore_edit".equals(type) && !"permission_edit".equals(type)) {
+        } else if (!"material".equals(type) && !"enchant_edit".equals(type) && !"flag_edit".equals(type) && !"lore_edit".equals(type) && !"permission_edit".equals(type) && !"category_edit".equals(type)) {
             clearEditData(playerId);
         }
         return true;
@@ -322,16 +475,8 @@ public class RecipeEditManager {
                                     .replace("#permission#", perm)));
                     return true;
 
-                case "category":
-                    if (input.trim().isEmpty()) {
-                        player.sendMessage(ChatUtils.colorize(
-                                File.getMessage().getString("crafting.edit_category_empty")));
-                        return false;
-                    }
-                    recipe.setCategory(input);
-                    player.sendMessage(ChatUtils.colorize(
-                            File.getMessage().getString("crafting.edit_category_success")));
-                    return true;
+                case "category_edit":
+                    return processCategoryEdit(player, recipe, input);
 
                 case "enchant_edit":
                     return processEnchantmentEdit(player, recipe, input);
@@ -510,7 +655,7 @@ public class RecipeEditManager {
 
             if (parts.length < 2) {
                 // Remove last line
-                String removed = lore.remove(lore.size() - 1);
+                lore.remove(lore.size() - 1);
                 recipe.setResultLore(lore);
                 player.sendMessage(ChatUtils.colorize(
                         File.getMessage().getString("crafting.edit_lore_remove_last_success")));
@@ -549,6 +694,127 @@ public class RecipeEditManager {
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("crafting.edit_lore_hint")));
         promptLoreRetry(player, recipe);
+        return false;
+    }
+
+    private static boolean processCategoryEdit(Player player, Recipe recipe, String input) {
+        String[] parts = input.trim().split("\\s+", 2);
+        if (parts.length == 0 || parts[0].trim().isEmpty()) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_hint")));
+            promptCategoryRetry(player, recipe);
+            return false;
+        }
+
+        String command = parts[0].toLowerCase();
+
+        if ("set".equalsIgnoreCase(command)) {
+            if (parts.length < 2 || parts[1].trim().isEmpty()) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_category_set_invalid")));
+                promptCategoryRetry(player, recipe);
+                return false;
+            }
+
+            String newCategory = parts[1].trim().toLowerCase();
+            if (newCategory.equals("all")) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_category_all_reserved")));
+                promptCategoryRetry(player, recipe);
+                return false;
+            }
+
+            if (!CraftingManager.isValidCategory(newCategory)) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_category_invalid")
+                                .replace("#category#", newCategory)));
+                promptCategoryRetry(player, recipe);
+                return false;
+            }
+
+            recipe.setCategory(newCategory);
+            String displayName = CraftingManager.getCategoryDisplayName(newCategory);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_set_success")
+                            .replace("#category#", newCategory)
+                            .replace("#display#", displayName)));
+            return true;
+        }
+
+        if ("auto".equalsIgnoreCase(command)) {
+            String suggested = suggestCategory(recipe.getResultMaterial());
+            recipe.setCategory(suggested);
+            String displayName = CraftingManager.getCategoryDisplayName(suggested);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_auto_success")
+                            .replace("#category#", suggested)
+                            .replace("#display#", displayName)
+                            .replace("#material#", recipe.getResultMaterial())));
+            return true;
+        }
+
+        if ("list".equalsIgnoreCase(command)) {
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_list_header")));
+            for (String key : CraftingManager.getValidCategoryKeys()) {
+                String displayName = CraftingManager.getCategoryDisplayName(key);
+                CategoryInfo info = getCategoryInfo(key);
+                String current = recipe.getCategory().equalsIgnoreCase(key) ? " &a✓" : "";
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_category_list_entry")
+                                .replace("#key#", key)
+                                .replace("#name#", displayName)
+                                .replace("#desc#", info.description)
+                                .replace("#current#", current)));
+            }
+            promptCategoryRetry(player, recipe);
+            return false;
+        }
+
+        if ("suggest".equalsIgnoreCase(command)) {
+            List<String> suggestions = getSuggestedCategories(recipe.getResultMaterial());
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_suggest_header")
+                            .replace("#material#", recipe.getResultMaterial())));
+            for (int i = 0; i < suggestions.size(); i++) {
+                String cat = suggestions.get(i);
+                String displayName = CraftingManager.getCategoryDisplayName(cat);
+                String prefix = i == 0 ? "&a★ " : "&7• ";
+                player.sendMessage(ChatUtils.colorize(prefix + "&e" + cat + " &7- " + displayName));
+            }
+            promptCategoryRetry(player, recipe);
+            return false;
+        }
+
+        String directCategory = input.trim().toLowerCase();
+        if (!directCategory.isEmpty()) {
+            if (directCategory.equals("all")) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_category_all_reserved")));
+                promptCategoryRetry(player, recipe);
+                return false;
+            }
+
+            if (!CraftingManager.isValidCategory(directCategory)) {
+                player.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("crafting.edit_category_invalid")
+                                .replace("#category#", directCategory)));
+                promptCategoryRetry(player, recipe);
+                return false;
+            }
+
+            recipe.setCategory(directCategory);
+            String displayName = CraftingManager.getCategoryDisplayName(directCategory);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.edit_category_set_success")
+                            .replace("#category#", directCategory)
+                            .replace("#display#", displayName)));
+            return true;
+        }
+
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("crafting.edit_category_hint")));
+        promptCategoryRetry(player, recipe);
         return false;
     }
 
@@ -897,5 +1163,18 @@ public class RecipeEditManager {
                 File.getMessage().getString("crafting.edit_flag_hint")));
         promptFlagRetry(player, recipe);
         return false;
+    }
+
+    // Category info holder
+    public static class CategoryInfo {
+        public final String displayName;
+        public final String icon;
+        public final String description;
+
+        public CategoryInfo(String displayName, String icon, String description) {
+            this.displayName = displayName;
+            this.icon = icon;
+            this.description = description;
+        }
     }
 }

@@ -68,12 +68,15 @@ public class TextComponent {
                     Constructor<?> hoverTextConstructor = textComponentClass.getConstructor(String.class);
                     Object hoverTextComponent = hoverTextConstructor.newInstance(ChatUtils.colorizewp(hoverText));
 
+                    Class<?> baseComponentArrayClass = java.lang.reflect.Array.newInstance(baseComponentClass, 0).getClass();
                     Constructor<?> hoverConstructor = hoverEventClass.getConstructor(
                             Class.forName("net.md_5.bungee.api.chat.HoverEvent$Action"),
-                            baseComponentClass.arrayType()
+                            baseComponentArrayClass
                     );
                     Object hoverAction = hoverEventClass.getDeclaredField("SHOW_TEXT").get(null);
-                    Object hoverEvent = hoverConstructor.newInstance(hoverAction, new Object[]{hoverTextComponent});
+                    Object componentArray = java.lang.reflect.Array.newInstance(baseComponentClass, 1);
+                    java.lang.reflect.Array.set(componentArray, 0, hoverTextComponent);
+                    Object hoverEvent = hoverConstructor.newInstance(hoverAction, componentArray);
                     Method setHoverEvent = textComponentClass.getMethod("setHoverEvent", hoverEventClass);
                     setHoverEvent.invoke(textComponent, hoverEvent);
                 } catch (Exception ignored) {
@@ -199,12 +202,15 @@ public class TextComponent {
                 try {
                     Constructor<?> hoverTextConstructor = textComponentClass.getConstructor(String.class);
                     Object hoverTextComponent = hoverTextConstructor.newInstance(hoverText);
+                    Class<?> baseComponentArrayClass = java.lang.reflect.Array.newInstance(baseComponentClass, 0).getClass();
                     Constructor<?> hoverConstructor = hoverEventClass.getConstructor(
                             Class.forName("net.md_5.bungee.api.chat.HoverEvent$Action"),
-                            baseComponentClass.arrayType()
+                            baseComponentArrayClass
                     );
                     Object hoverAction = hoverEventClass.getDeclaredField("SHOW_TEXT").get(null);
-                    Object hoverEvent = hoverConstructor.newInstance(hoverAction, new Object[]{hoverTextComponent});
+                    Object componentArray = java.lang.reflect.Array.newInstance(baseComponentClass, 1);
+                    java.lang.reflect.Array.set(componentArray, 0, hoverTextComponent);
+                    Object hoverEvent = hoverConstructor.newInstance(hoverAction, componentArray);
                     Method setHoverEvent = textComponentClass.getMethod("setHoverEvent", hoverEventClass);
                     setHoverEvent.invoke(component, hoverEvent);
                 } catch (Exception ignored) {
