@@ -104,7 +104,11 @@ public class RecipeEditorGUI implements IGUI {
             return;
         }
 
-        RecipeBackup backup = new RecipeBackup(
+        recipeBackups.put(player.getUniqueId(), createBackupFromRecipe(recipe));
+    }
+
+    private static RecipeBackup createBackupFromRecipe(Recipe recipe) {
+        return new RecipeBackup(
                 recipe.getName(),
                 recipe.getCategory(),
                 recipe.isEnabled(),
@@ -119,7 +123,12 @@ public class RecipeEditorGUI implements IGUI {
                 new HashMap<>(recipe.getMaterialRequirements()),
                 recipe.getPermissionRequirement()
         );
-        recipeBackups.put(player.getUniqueId(), backup);
+    }
+
+    public static void updateBackup(UUID playerUUID, Recipe recipe) {
+        if (recipeBackups.containsKey(playerUUID)) {
+            recipeBackups.put(playerUUID, createBackupFromRecipe(recipe));
+        }
     }
 
     private void restoreBackup() {
@@ -488,10 +497,12 @@ public class RecipeEditorGUI implements IGUI {
         if (clickType == ClickType.LEFT) {
             recipe.setResultAmount(Math.min(64, recipe.getResultAmount() + 1));
             CraftingManager.updateRecipe(recipe);
+            updateBackup(player.getUniqueId(), recipe);
             refreshGUI(player);
         } else if (clickType == ClickType.RIGHT) {
             recipe.setResultAmount(Math.max(1, recipe.getResultAmount() - 1));
             CraftingManager.updateRecipe(recipe);
+            updateBackup(player.getUniqueId(), recipe);
             refreshGUI(player);
         } else if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
             setShouldRestoreOnClose(player, false);
@@ -517,6 +528,7 @@ public class RecipeEditorGUI implements IGUI {
     private void toggleUnbreakable(Player player) {
         recipe.setResultUnbreakable(!recipe.isResultUnbreakable());
         CraftingManager.updateRecipe(recipe);
+        updateBackup(player.getUniqueId(), recipe);
         refreshGUI(player);
         String statusKey = recipe.isResultUnbreakable() ? "crafting.status_on" : "crafting.status_off";
         String status = File.getMessage().getString(statusKey);
@@ -539,6 +551,7 @@ public class RecipeEditorGUI implements IGUI {
             requirements.put(material, currentAmount + 1);
             recipe.setMaterialRequirements(requirements);
             CraftingManager.updateRecipe(recipe);
+            updateBackup(player.getUniqueId(), recipe);
             refreshGUI(player);
         } else if (clickType == ClickType.RIGHT) {
             // Decrease amount
@@ -548,6 +561,7 @@ public class RecipeEditorGUI implements IGUI {
                 requirements.put(material, currentAmount - 1);
                 recipe.setMaterialRequirements(requirements);
                 CraftingManager.updateRecipe(recipe);
+                updateBackup(player.getUniqueId(), recipe);
                 refreshGUI(player);
             }
         } else if (clickType == ClickType.SHIFT_LEFT) {
@@ -558,6 +572,7 @@ public class RecipeEditorGUI implements IGUI {
             // Remove requirement
             RecipeEditManager.removeRequirement(recipe, material);
             CraftingManager.updateRecipe(recipe);
+            updateBackup(player.getUniqueId(), recipe);
             refreshGUI(player);
             String materialName = material.contains(";") ? material.split(";")[0] : material;
             player.sendMessage(ChatUtils.colorize(File.getMessage().getString("crafting.requirement_removed_gui")
@@ -577,6 +592,7 @@ public class RecipeEditorGUI implements IGUI {
         } else if (clickType == ClickType.RIGHT) {
             recipe.setPermissionRequirement(null);
             CraftingManager.updateRecipe(recipe);
+            updateBackup(player.getUniqueId(), recipe);
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
             refreshGUI(player);
         }

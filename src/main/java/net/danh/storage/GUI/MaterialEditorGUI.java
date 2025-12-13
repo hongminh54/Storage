@@ -176,11 +176,13 @@ public class MaterialEditorGUI implements IGUI {
         if (clickType == ClickType.LEFT) {
             requirements.put(material, currentAmount + 1);
             CraftingManager.updateRecipe(recipe);
+            RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
             refreshGUI(player);
         } else if (clickType == ClickType.RIGHT) {
             if (currentAmount > 1) {
                 requirements.put(material, currentAmount - 1);
                 CraftingManager.updateRecipe(recipe);
+                RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
                 refreshGUI(player);
             } else {
                 player.sendMessage(ChatUtils.colorize(
@@ -193,6 +195,7 @@ public class MaterialEditorGUI implements IGUI {
         } else if (clickType == ClickType.SHIFT_RIGHT) {
             RecipeEditManager.removeRequirement(recipe, material);
             CraftingManager.updateRecipe(recipe);
+            RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
             refreshGUI(player);
         }
     }
@@ -229,6 +232,7 @@ public class MaterialEditorGUI implements IGUI {
                     // On confirm
                     recipe.getMaterialRequirements().clear();
                     CraftingManager.updateRecipe(recipe);
+                    RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
                     player.sendMessage(ChatUtils.colorize(
                             File.getMessage().getString("crafting.materials_cleared")));
                     SoundManager.setShouldPlayCloseSound(player, false);

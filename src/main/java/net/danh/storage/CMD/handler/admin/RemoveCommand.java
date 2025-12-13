@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class RemoveCommand extends BaseCommand {
@@ -17,12 +17,6 @@ public class RemoveCommand extends BaseCommand {
     public void execute(CommandSender sender, String[] args) {
         if (args.length != 3) {
             sendUsage(sender);
-            return;
-        }
-
-        String material = args[0];
-        if (!MineManager.getPluginBlocks().contains(material)) {
-            sendInvalidMaterial(sender, material, new ArrayList<>(MineManager.getPluginBlocks()));
             return;
         }
 
@@ -42,16 +36,45 @@ public class RemoveCommand extends BaseCommand {
             return;
         }
 
-        if (MineManager.removeBlockAmount(target, material, amount)) {
-            String[] placeholders = {"#amount#", "#material#", "#player#"};
-            String[] replacements = {args[2], material, target.getName()};
-
-            sendMessage(sender, "admin.remove_material_amount", placeholders, replacements);
-
-            String[] targetPlaceholders = {"#amount#", "#material#", "#player#"};
-            String[] targetReplacements = {args[2], material, sender.getName()};
-            sendMessage(target, "user.remove_material_amount", targetPlaceholders, targetReplacements);
+        List<String> materials = parseMaterials(args[0]);
+        if (materials.isEmpty()) {
+            sendInvalidMaterial(sender, args[0], new ArrayList<>(MineManager.getPluginBlocks()));
+            return;
         }
+
+        for (String material : materials) {
+            MineManager.removeBlockAmount(target, material, amount);
+        }
+
+        String materialDisplay = materials.size() == 1 ? materials.get(0) : 
+                (materials.size() == MineManager.getPluginBlocks().size() ? "*" : String.join(", ", materials));
+
+        String[] placeholders = {"#amount#", "#material#", "#player#"};
+        String[] replacements = {args[2], materialDisplay, target.getName()};
+        sendMessage(sender, "admin.remove_material_amount", placeholders, replacements);
+
+        String[] targetPlaceholders = {"#amount#", "#material#", "#player#"};
+        String[] targetReplacements = {args[2], materialDisplay, sender.getName()};
+        sendMessage(target, "user.remove_material_amount", targetPlaceholders, targetReplacements);
+    }
+
+    private List<String> parseMaterials(String input) {
+        List<String> result = new ArrayList<>();
+        if (input.equals("*")) {
+            result.addAll(MineManager.getPluginBlocks());
+        } else if (input.contains(",")) {
+            for (String mat : input.split(",")) {
+                String trimmed = mat.trim();
+                if (MineManager.getPluginBlocks().contains(trimmed)) {
+                    result.add(trimmed);
+                }
+            }
+        } else {
+            if (MineManager.getPluginBlocks().contains(input)) {
+                result.add(input);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -59,21 +82,19 @@ public class RemoveCommand extends BaseCommand {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> materials = new ArrayList<>(MineManager.getPluginBlocks());
-            StringUtil.copyPartialMatches(args[0], materials, completions);
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("*");
+            suggestions.addAll(MineManager.getPluginBlocks());
+            StringUtil.copyPartialMatches(args[0], suggestions, completions);
         }
 
         if (args.length == 2) {
-            if (MineManager.getPluginBlocks().contains(args[0])) {
-                List<String> playerNames = getOnlinePlayerNames();
-                StringUtil.copyPartialMatches(args[1], playerNames, completions);
-            }
+            List<String> playerNames = getOnlinePlayerNames();
+            StringUtil.copyPartialMatches(args[1], playerNames, completions);
         }
 
         if (args.length == 3) {
-            if (MineManager.getPluginBlocks().contains(args[0])) {
-                StringUtil.copyPartialMatches(args[2], Collections.singleton("<number>"), completions);
-            }
+            StringUtil.copyPartialMatches(args[2], Arrays.asList("1", "10", "64", "100"), completions);
         }
 
         return completions;
@@ -86,7 +107,7 @@ public class RemoveCommand extends BaseCommand {
 
     @Override
     public String getUsage() {
-        return "/storage remove <material> <player> <amount>";
+        return "/storage remove <material|*|mat1,mat2,...> <player> <amount>";
     }
 
     @Override

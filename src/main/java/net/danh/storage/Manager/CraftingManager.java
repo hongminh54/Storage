@@ -518,10 +518,11 @@ public class CraftingManager {
     private static void startCraftingProcess(Player player, Recipe recipe, int amount) {
         FileConfiguration config = File.getCraftingConfig();
         int craftingDelay = config.getInt("settings.delay.seconds", 3);
+        int totalItems = recipe.getResultAmount() * amount;
 
         sendMessage(player, "crafting.processing",
                 new String[]{"#amount#", "#recipe#", "#time#"},
-                new String[]{String.valueOf(amount), recipe.getName(), String.valueOf(craftingDelay)});
+                new String[]{String.valueOf(totalItems), recipe.getName(), String.valueOf(craftingDelay)});
 
         cancelCrafting(player);
 
@@ -582,9 +583,10 @@ public class CraftingManager {
         RecipeCraftEvent completeEvent = new RecipeCraftEvent(player, recipe, amount, resultItem, RecipeCraftEvent.CraftPhase.COMPLETE);
         Bukkit.getPluginManager().callEvent(completeEvent);
 
+        int totalItems = recipe.getResultAmount() * amount;
         sendMessage(player, "crafting.craft_success",
                 new String[]{"#recipe#", "#amount#"},
-                new String[]{recipe.getName(), String.valueOf(amount)});
+                new String[]{recipe.getName(), String.valueOf(totalItems)});
 
         return true;
     }

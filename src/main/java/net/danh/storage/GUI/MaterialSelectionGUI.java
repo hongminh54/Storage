@@ -173,6 +173,7 @@ public class MaterialSelectionGUI implements IGUI {
             player.sendMessage(ChatUtils.colorize(
                     File.getMessage().getString("crafting.edit_material_success")));
             CraftingManager.updateRecipe(recipe);
+            RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
             returnToRecipeEditor(player);
         } else if (selectionType.equals("requirement")) {
             String normalizedMaterial = MineManager.normalizeMaterial(materialName);
@@ -182,6 +183,7 @@ public class MaterialSelectionGUI implements IGUI {
                             .replace("#material#", materialName)
                             .replace("#amount#", "1")));
             CraftingManager.updateRecipe(recipe);
+            RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
             returnToMaterialEditor(player);
         }
     }

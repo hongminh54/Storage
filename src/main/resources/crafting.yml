@@ -113,9 +113,9 @@ recipes:
     # Requirements from storage
     requirements:
       materials:
-        'DIAMOND': 10
-        'IRON_INGOT': 5
-        'GOLD_INGOT': 3
+        'DIAMOND;0': 10
+        'IRON_INGOT;0': 5
+        'GOLD_INGOT;0': 3
       permissions:
         - "storage.craft.enhanced"
 
@@ -141,5 +141,5 @@ recipes:
 
     requirements:
       materials:
-        'STONE': 1000
+        'COBBLESTONE;0': 1000
       permissions: []

@@ -26,34 +26,62 @@ public class MythicSetCommand extends MythicCommand {
             return;
         }
 
-        String itemName = args[1];
-        if (!MythicStorageManager.isConfiguredDrop(itemName)) {
-            sendInvalidItem(sender, itemName);
-            return;
-        }
-
         int amount = Number.getInteger(args[2]);
         if (amount < 0) {
-            if (Number.getInteger(args[2]) == -1) {
-                sendInvalidNumber(sender, args[2]);
-            } else {
-                sendInvalidNumber(sender, args[2]);
-            }
+            sendInvalidNumber(sender, args[2]);
             return;
         }
 
-        MythicStorageManager.setItemAmount(target, itemName, amount);
+        List<String> items = parseItems(args[1]);
+        if (items.isEmpty()) {
+            sendInvalidItem(sender, args[1]);
+            return;
+        }
 
-        String displayName = getItemDisplayName(itemName);
+        for (String itemName : items) {
+            MythicStorageManager.setItemAmount(target, itemName, amount);
+        }
+
+        String itemDisplay = items.size() == 1 ? getItemDisplayName(items.get(0)) : 
+                (items.size() == getConfiguredDrops().size() ? "*" : formatItemList(items));
+
         String[] placeholders = {"#amount#", "#item#", "#player#"};
-        String[] replacements = {String.valueOf(amount), displayName, target.getName()};
+        String[] replacements = {String.valueOf(amount), itemDisplay, target.getName()};
         sendMessage(sender, "admin.set_success", placeholders, replacements);
 
         if (target.isOnline()) {
             String[] notifyPlaceholders = {"#amount#", "#item#", "#player#"};
-            String[] notifyReplacements = {String.valueOf(amount), displayName, sender.getName()};
+            String[] notifyReplacements = {String.valueOf(amount), itemDisplay, sender.getName()};
             sendMessage(target, "admin.set_notify", notifyPlaceholders, notifyReplacements);
         }
+    }
+
+    private List<String> parseItems(String input) {
+        List<String> result = new ArrayList<>();
+        List<String> configuredDrops = getConfiguredDrops();
+        if (input.equals("*")) {
+            result.addAll(configuredDrops);
+        } else if (input.contains(",")) {
+            for (String item : input.split(",")) {
+                String trimmed = item.trim();
+                if (configuredDrops.contains(trimmed)) {
+                    result.add(trimmed);
+                }
+            }
+        } else {
+            if (configuredDrops.contains(input)) {
+                result.add(input);
+            }
+        }
+        return result;
+    }
+
+    private String formatItemList(List<String> items) {
+        List<String> displayNames = new ArrayList<>();
+        for (String item : items) {
+            displayNames.add(getItemDisplayName(item));
+        }
+        return String.join(", ", displayNames);
     }
 
     @Override
@@ -63,7 +91,10 @@ public class MythicSetCommand extends MythicCommand {
         if (args.length == 1) {
             StringUtil.copyPartialMatches(args[0], getOnlinePlayerNames(), completions);
         } else if (args.length == 2) {
-            StringUtil.copyPartialMatches(args[1], getConfiguredDrops(), completions);
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("*");
+            suggestions.addAll(getConfiguredDrops());
+            StringUtil.copyPartialMatches(args[1], suggestions, completions);
         } else if (args.length == 3) {
             completions.addAll(Arrays.asList("0", "1", "10", "64", "100"));
         }
@@ -78,7 +109,7 @@ public class MythicSetCommand extends MythicCommand {
 
     @Override
     public String getUsage() {
-        return "/mythicstorage set <player> <item> <amount>";
+        return "/mythicstorage set <player> <item|*|item1,item2,...> <amount>";
     }
 
     @Override

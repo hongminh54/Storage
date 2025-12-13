@@ -371,6 +371,7 @@ public class RecipeEditManager {
 
     private static void updateRecipeAndReopenGUI(Player player, Recipe recipe, String editType) {
         CraftingManager.updateRecipe(recipe);
+        RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
 
         SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
             String prevGUI = previousGUI.get(player.getUniqueId());
