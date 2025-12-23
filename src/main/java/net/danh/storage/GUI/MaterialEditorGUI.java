@@ -85,26 +85,55 @@ public class MaterialEditorGUI implements IGUI {
                 "#max_materials#", String.valueOf(MAX_MATERIALS));
 
         if (titleItem != null) {
-            InteractiveItem title = new InteractiveItem(titleItem, config.getInt("items.title.slot", 4));
-            inventory.setItem(title.getSlot(), title);
+            String slotConfig = config.getString("items.title.slot", "4");
+            if (slotConfig.contains(",")) {
+                for (String slotStr : slotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem title = new InteractiveItem(titleItem.clone(), slot);
+                    inventory.setItem(title.getSlot(), title);
+                }
+            } else {
+                int slot = Number.getInteger(slotConfig);
+                InteractiveItem title = new InteractiveItem(titleItem, slot);
+                inventory.setItem(title.getSlot(), title);
+            }
         }
     }
 
     private void addAddMaterialButton(Inventory inventory) {
         int materialCount = recipe.getMaterialRequirements().size();
+        String slotConfig = config.getString("items.add_material.slot", "40");
 
         if (materialCount >= MAX_MATERIALS) {
             ItemStack fullItem = ItemManager.getItemConfig(config.getConfigurationSection("items.material_full"));
             if (fullItem != null) {
-                InteractiveItem fullButton = new InteractiveItem(fullItem, config.getInt("items.add_material.slot", 40));
-                inventory.setItem(fullButton.getSlot(), fullButton);
+                if (slotConfig.contains(",")) {
+                    for (String slotStr : slotConfig.split(",")) {
+                        int slot = Number.getInteger(slotStr.trim());
+                        InteractiveItem fullButton = new InteractiveItem(fullItem.clone(), slot);
+                        inventory.setItem(fullButton.getSlot(), fullButton);
+                    }
+                } else {
+                    int slot = Number.getInteger(slotConfig);
+                    InteractiveItem fullButton = new InteractiveItem(fullItem, slot);
+                    inventory.setItem(fullButton.getSlot(), fullButton);
+                }
             }
         } else {
-            InteractiveItem addButton = new InteractiveItem(
-                    ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_material"))),
-                    config.getInt("items.add_material.slot", 40)
-            ).onLeftClick(p -> openMaterialSelection(p));
-            inventory.setItem(addButton.getSlot(), addButton);
+            ItemStack addItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_material")));
+            if (slotConfig.contains(",")) {
+                for (String slotStr : slotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem addButton = new InteractiveItem(addItem.clone(), slot)
+                            .onLeftClick(p -> openMaterialSelection(p));
+                    inventory.setItem(addButton.getSlot(), addButton);
+                }
+            } else {
+                int slot = Number.getInteger(slotConfig);
+                InteractiveItem addButton = new InteractiveItem(addItem, slot)
+                        .onLeftClick(p -> openMaterialSelection(p));
+                inventory.setItem(addButton.getSlot(), addButton);
+            }
         }
     }
 
@@ -207,19 +236,39 @@ public class MaterialEditorGUI implements IGUI {
 
     private void addControlButtons(Inventory inventory) {
         // Back button
-        InteractiveItem backButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back"))),
-                config.getInt("items.back.slot", 49)
-        ).onLeftClick(p -> backToEditor(p));
-        inventory.setItem(backButton.getSlot(), backButton);
+        ItemStack backItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back")));
+        String backSlotConfig = config.getString("items.back.slot", "49");
+        if (backSlotConfig.contains(",")) {
+            for (String slotStr : backSlotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem backButton = new InteractiveItem(backItem.clone(), slot)
+                        .onLeftClick(p -> backToEditor(p));
+                inventory.setItem(backButton.getSlot(), backButton);
+            }
+        } else {
+            int slot = Number.getInteger(backSlotConfig);
+            InteractiveItem backButton = new InteractiveItem(backItem, slot)
+                    .onLeftClick(p -> backToEditor(p));
+            inventory.setItem(backButton.getSlot(), backButton);
+        }
 
         // Clear all button
         if (recipe.getMaterialRequirements().size() > 0) {
-            InteractiveItem clearButton = new InteractiveItem(
-                    ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.clear_all"))),
-                    config.getInt("items.clear_all.slot", 48)
-            ).onLeftClick(p -> clearAllMaterials(p));
-            inventory.setItem(clearButton.getSlot(), clearButton);
+            ItemStack clearItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.clear_all")));
+            String clearSlotConfig = config.getString("items.clear_all.slot", "48");
+            if (clearSlotConfig.contains(",")) {
+                for (String slotStr : clearSlotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem clearButton = new InteractiveItem(clearItem.clone(), slot)
+                            .onLeftClick(p -> clearAllMaterials(p));
+                    inventory.setItem(clearButton.getSlot(), clearButton);
+                }
+            } else {
+                int slot = Number.getInteger(clearSlotConfig);
+                InteractiveItem clearButton = new InteractiveItem(clearItem, slot)
+                        .onLeftClick(p -> clearAllMaterials(p));
+                inventory.setItem(clearButton.getSlot(), clearButton);
+            }
         }
     }
 

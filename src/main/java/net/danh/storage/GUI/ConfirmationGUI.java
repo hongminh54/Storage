@@ -95,24 +95,36 @@ public class ConfirmationGUI implements IGUI {
             }
         }
 
-        InteractiveItem messageDisplay = new InteractiveItem(messageItem, 4);
-        inventory.setItem(messageDisplay.getSlot(), messageDisplay);
+        String slotConfig = config.getString("items.message.slot", "4");
+        for (String slotStr : slotConfig.split(",")) {
+            int slot = Number.getInteger(slotStr.trim());
+            InteractiveItem messageDisplay = new InteractiveItem(messageItem, slot);
+            inventory.setItem(messageDisplay.getSlot(), messageDisplay);
+        }
     }
 
     private void addConfirmButton(Inventory inventory) {
-        InteractiveItem confirmButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.confirm"))),
-                11
-        ).onLeftClick(p -> confirm(p));
-        inventory.setItem(confirmButton.getSlot(), confirmButton);
+        String slotConfig = config.getString("items.confirm.slot", "11");
+        for (String slotStr : slotConfig.split(",")) {
+            int slot = Number.getInteger(slotStr.trim());
+            InteractiveItem confirmButton = new InteractiveItem(
+                    ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.confirm"))),
+                    slot
+            ).onLeftClick(p -> confirm(p));
+            inventory.setItem(confirmButton.getSlot(), confirmButton);
+        }
     }
 
     private void addCancelButton(Inventory inventory) {
-        InteractiveItem cancelButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.cancel"))),
-                15
-        ).onLeftClick(p -> cancel(p));
-        inventory.setItem(cancelButton.getSlot(), cancelButton);
+        String slotConfig = config.getString("items.cancel.slot", "15");
+        for (String slotStr : slotConfig.split(",")) {
+            int slot = Number.getInteger(slotStr.trim());
+            InteractiveItem cancelButton = new InteractiveItem(
+                    ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.cancel"))),
+                    slot
+            ).onLeftClick(p -> cancel(p));
+            inventory.setItem(cancelButton.getSlot(), cancelButton);
+        }
     }
 
     private void confirm(Player player) {

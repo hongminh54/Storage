@@ -82,10 +82,20 @@ public class ViewMythicStorageGUI implements IGUI {
         Set<Integer> navigationSlots = new HashSet<>();
         if (hasMultiplePages) {
             if (config.contains("items.previous_page.slot")) {
-                navigationSlots.add(Integer.parseInt(config.getString("items.previous_page.slot")));
+                String prevSlot = config.getString("items.previous_page.slot");
+                if (prevSlot != null) {
+                    for (String s : prevSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
             }
             if (config.contains("items.next_page.slot")) {
-                navigationSlots.add(Integer.parseInt(config.getString("items.next_page.slot")));
+                String nextSlot = config.getString("items.next_page.slot");
+                if (nextSlot != null) {
+                    for (String s : nextSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
             }
         }
 
@@ -186,12 +196,23 @@ public class ViewMythicStorageGUI implements IGUI {
         if (hasMultiplePages && currentPage > 0) {
             ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
             if (prevPageItem != null) {
-                InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
-                    SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
-                    SoundManager.setShouldPlayCloseSound(player, false);
-                    player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage - 1).getInventory(SoundContext.SILENT));
-                });
-                inventory.setItem(item.getSlot(), item);
+                if (slot.contains(",")) {
+                    for (String slotString : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(prevPageItem.clone(), Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage - 1).getInventory(SoundContext.SILENT));
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
+                        SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
+                        SoundManager.setShouldPlayCloseSound(player, false);
+                        player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage - 1).getInventory(SoundContext.SILENT));
+                    });
+                    inventory.setItem(item.getSlot(), item);
+                }
             }
         }
     }
@@ -200,12 +221,23 @@ public class ViewMythicStorageGUI implements IGUI {
         if (hasMultiplePages && currentPage < totalPages - 1) {
             ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
             if (nextPageItem != null) {
-                InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
-                    SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
-                    SoundManager.setShouldPlayCloseSound(player, false);
-                    player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage + 1).getInventory(SoundContext.SILENT));
-                });
-                inventory.setItem(item.getSlot(), item);
+                if (slot.contains(",")) {
+                    for (String slotString : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(nextPageItem.clone(), Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage + 1).getInventory(SoundContext.SILENT));
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
+                        SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
+                        SoundManager.setShouldPlayCloseSound(player, false);
+                        player.openInventory(new ViewMythicStorageGUI(viewer, targetName, currentPage + 1).getInventory(SoundContext.SILENT));
+                    });
+                    inventory.setItem(item.getSlot(), item);
+                }
             }
         }
     }
@@ -213,20 +245,39 @@ public class ViewMythicStorageGUI implements IGUI {
     private void setupViewInfo(Inventory inventory, String slot) {
         ItemStack viewInfoItem = ItemManager.getItemConfigWithPlaceholders(viewer, Objects.requireNonNull(config.getConfigurationSection("items.view_info")), "#player#", targetName);
 
-        InteractiveItem item = new InteractiveItem(viewInfoItem, Number.getInteger(slot));
-        inventory.setItem(item.getSlot(), item);
+        if (slot.contains(",")) {
+            for (String slotString : slot.split(",")) {
+                InteractiveItem item = new InteractiveItem(viewInfoItem.clone(), Number.getInteger(slotString.trim()));
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            InteractiveItem item = new InteractiveItem(viewInfoItem, Number.getInteger(slot));
+            inventory.setItem(item.getSlot(), item);
+        }
     }
 
     private void setupBackButton(Inventory inventory, String slot) {
         ItemStack backItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back_button")));
 
-        InteractiveItem item = new InteractiveItem(backItem, Number.getInteger(slot)).onClick((player, clickType) -> {
-            SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
-            SoundManager.setShouldPlayCloseSound(player, false);
-            int viewerCurrentPage = MythicStorageGUI.getPlayerCurrentPage(viewer);
-            player.openInventory(new MythicStorageGUI(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
-        });
-        inventory.setItem(item.getSlot(), item);
+        if (slot.contains(",")) {
+            for (String slotString : slot.split(",")) {
+                InteractiveItem item = new InteractiveItem(backItem.clone(), Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                    SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
+                    SoundManager.setShouldPlayCloseSound(player, false);
+                    int viewerCurrentPage = MythicStorageGUI.getPlayerCurrentPage(viewer);
+                    player.openInventory(new MythicStorageGUI(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
+                });
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            InteractiveItem item = new InteractiveItem(backItem, Number.getInteger(slot)).onClick((player, clickType) -> {
+                SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
+                SoundManager.setShouldPlayCloseSound(player, false);
+                int viewerCurrentPage = MythicStorageGUI.getPlayerCurrentPage(viewer);
+                player.openInventory(new MythicStorageGUI(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
+            });
+            inventory.setItem(item.getSlot(), item);
+        }
     }
 
     private void setupDecorativeItems(Inventory inventory, String slot, String itemTag, boolean hasMultiplePages, Set<Integer> navigationSlots) {

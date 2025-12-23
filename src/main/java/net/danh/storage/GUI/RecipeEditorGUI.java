@@ -99,14 +99,6 @@ public class RecipeEditorGUI implements IGUI {
         return true;
     }
 
-    private void createBackup() {
-        if (recipeBackups.containsKey(player.getUniqueId())) {
-            return;
-        }
-
-        recipeBackups.put(player.getUniqueId(), createBackupFromRecipe(recipe));
-    }
-
     private static RecipeBackup createBackupFromRecipe(Recipe recipe) {
         return new RecipeBackup(
                 recipe.getName(),
@@ -129,6 +121,14 @@ public class RecipeEditorGUI implements IGUI {
         if (recipeBackups.containsKey(playerUUID)) {
             recipeBackups.put(playerUUID, createBackupFromRecipe(recipe));
         }
+    }
+
+    private void createBackup() {
+        if (recipeBackups.containsKey(player.getUniqueId())) {
+            return;
+        }
+
+        recipeBackups.put(player.getUniqueId(), createBackupFromRecipe(recipe));
     }
 
     private void restoreBackup() {
@@ -203,9 +203,19 @@ public class RecipeEditorGUI implements IGUI {
 
         // Preview item already has lore from config, no need to add more
 
-        int previewSlot = getSlot("items.result_preview", 13);
-        InteractiveItem resultPreview = new InteractiveItem(previewItem, previewSlot);
-        inventory.setItem(resultPreview.getSlot(), resultPreview);
+        String slotConfig = config.getString("items.result_preview.slot", "13");
+        final ItemStack finalPreviewItem = previewItem;
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem resultPreview = new InteractiveItem(finalPreviewItem.clone(), slot);
+                inventory.setItem(resultPreview.getSlot(), resultPreview);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem resultPreview = new InteractiveItem(finalPreviewItem, slot);
+            inventory.setItem(resultPreview.getSlot(), resultPreview);
+        }
     }
 
     private void addItemConfigurationPanel(Inventory inventory) {
@@ -214,30 +224,24 @@ public class RecipeEditorGUI implements IGUI {
                 recipe.getResultMaterial(),
                 "#current_material#", recipe.getResultMaterial());
         if (materialItem != null) {
-            InteractiveItem materialEditor = new InteractiveItem(materialItem,
-                    getSlot("items.edit_material", 10))
-                    .onLeftClick(p -> editMaterial(p));
-            inventory.setItem(materialEditor.getSlot(), materialEditor);
+            setupInteractiveItem(inventory, "items.edit_material", 10, materialItem,
+                    item -> item.onLeftClick(p -> editMaterial(p)));
         }
 
         // Name editor
         ItemStack nameItem = createConfigItem("items.edit_name",
                 "#current_name#", recipe.getResultName());
         if (nameItem != null) {
-            InteractiveItem nameEditor = new InteractiveItem(nameItem,
-                    getSlot("items.edit_name", 11))
-                    .onLeftClick(p -> editName(p));
-            inventory.setItem(nameEditor.getSlot(), nameEditor);
+            setupInteractiveItem(inventory, "items.edit_name", 11, nameItem,
+                    item -> item.onLeftClick(p -> editName(p)));
         }
 
         // Lore editor
         ItemStack loreItem = createConfigItem("items.edit_lore",
                 "#lore_count#", String.valueOf(recipe.getResultLore().size()));
         if (loreItem != null) {
-            InteractiveItem loreEditor = new InteractiveItem(loreItem,
-                    getSlot("items.edit_lore", 12))
-                    .onClick((p, clickType) -> editLore(p, clickType));
-            inventory.setItem(loreEditor.getSlot(), loreEditor);
+            setupInteractiveItem(inventory, "items.edit_lore", 12, loreItem,
+                    item -> item.onClick((p, clickType) -> editLore(p, clickType)));
         }
 
         // Amount editor
@@ -245,50 +249,40 @@ public class RecipeEditorGUI implements IGUI {
                 "#current_amount#", String.valueOf(recipe.getResultAmount()));
         if (amountItem != null) {
             amountItem.setAmount(Math.max(1, Math.min(64, recipe.getResultAmount())));
-            InteractiveItem amountEditor = new InteractiveItem(amountItem,
-                    getSlot("items.edit_amount", 14))
-                    .onClick((p, clickType) -> editAmount(p, clickType));
-            inventory.setItem(amountEditor.getSlot(), amountEditor);
+            setupInteractiveItem(inventory, "items.edit_amount", 14, amountItem,
+                    item -> item.onClick((p, clickType) -> editAmount(p, clickType)));
         }
 
         // Enchantments editor
         ItemStack enchantItem = createConfigItem("items.edit_enchantments",
                 "#enchant_count#", String.valueOf(recipe.getResultEnchantments().size()));
         if (enchantItem != null) {
-            InteractiveItem enchantEditor = new InteractiveItem(enchantItem,
-                    getSlot("items.edit_enchantments", 15))
-                    .onLeftClick(p -> editEnchantments(p));
-            inventory.setItem(enchantEditor.getSlot(), enchantEditor);
+            setupInteractiveItem(inventory, "items.edit_enchantments", 15, enchantItem,
+                    item -> item.onLeftClick(p -> editEnchantments(p)));
         }
 
         // Flags editor
         ItemStack flagsItem = createConfigItem("items.edit_flags",
                 "#flag_count#", String.valueOf(recipe.getResultFlags().size()));
         if (flagsItem != null) {
-            InteractiveItem flagsEditor = new InteractiveItem(flagsItem,
-                    getSlot("items.edit_flags", 16))
-                    .onLeftClick(p -> editFlags(p));
-            inventory.setItem(flagsEditor.getSlot(), flagsEditor);
+            setupInteractiveItem(inventory, "items.edit_flags", 16, flagsItem,
+                    item -> item.onLeftClick(p -> editFlags(p)));
         }
 
         // Custom Model Data editor
         ItemStack cmdItem = createConfigItem("items.edit_custom_model_data",
                 "#current_cmd#", String.valueOf(recipe.getResultCustomModelData()));
         if (cmdItem != null) {
-            InteractiveItem cmdEditor = new InteractiveItem(cmdItem,
-                    getSlot("items.edit_custom_model_data", 19))
-                    .onLeftClick(p -> editCustomModelData(p));
-            inventory.setItem(cmdEditor.getSlot(), cmdEditor);
+            setupInteractiveItem(inventory, "items.edit_custom_model_data", 19, cmdItem,
+                    item -> item.onLeftClick(p -> editCustomModelData(p)));
         }
 
         // Unbreakable toggle
         ItemStack unbreakableItem = createConfigItem("items.toggle_unbreakable",
                 "#status#", recipe.isResultUnbreakable() ? "&aEnabled" : "&cDisabled");
         if (unbreakableItem != null) {
-            InteractiveItem unbreakableToggle = new InteractiveItem(unbreakableItem,
-                    getSlot("items.toggle_unbreakable", 20))
-                    .onLeftClick(p -> toggleUnbreakable(p));
-            inventory.setItem(unbreakableToggle.getSlot(), unbreakableToggle);
+            setupInteractiveItem(inventory, "items.toggle_unbreakable", 20, unbreakableItem,
+                    item -> item.onLeftClick(p -> toggleUnbreakable(p)));
         }
     }
 
@@ -298,17 +292,13 @@ public class RecipeEditorGUI implements IGUI {
         ItemStack permReqItem = createConfigItem("items.permission_requirements",
                 "#permission#", permissionStatus);
         if (permReqItem != null) {
-            InteractiveItem permReqButton = new InteractiveItem(permReqItem,
-                    getSlot("items.permission_requirements", 28))
-                    .onClick((p, clickType) -> handlePermissionClick(p, clickType));
-            inventory.setItem(permReqButton.getSlot(), permReqButton);
+            setupInteractiveItem(inventory, "items.permission_requirements", 28, permReqItem,
+                    item -> item.onClick((p, clickType) -> handlePermissionClick(p, clickType)));
         }
 
-        InteractiveItem addMaterial = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_material"))),
-                getSlot("items.add_material", 37)
-        ).onLeftClick(p -> openMaterialEditor(p));
-        inventory.setItem(addMaterial.getSlot(), addMaterial);
+        ItemStack addMaterialItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.add_material")));
+        setupInteractiveItem(inventory, "items.add_material", 37, addMaterialItem,
+                item -> item.onLeftClick(p -> openMaterialEditor(p)));
 
         displayRequirements(inventory);
     }
@@ -357,36 +347,42 @@ public class RecipeEditorGUI implements IGUI {
                 "#category#", recipe.getCategory(),
                 "#status#", recipe.isEnabled() ? "&aEnabled" : "&cDisabled");
         if (settingsItem != null) {
-            InteractiveItem settingsButton = new InteractiveItem(settingsItem,
-                    getSlot("items.recipe_settings", 48))
-                    .onLeftClick(p -> editRecipeSettings(p));
-            inventory.setItem(settingsButton.getSlot(), settingsButton);
+            setupInteractiveItem(inventory, "items.recipe_settings", 48, settingsItem,
+                    item -> item.onLeftClick(p -> editRecipeSettings(p)));
         }
 
         // Save button
-        InteractiveItem saveButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.save"))),
-                getSlot("items.save", 50)
-        ).onLeftClick(p -> saveRecipe(p));
-        inventory.setItem(saveButton.getSlot(), saveButton);
+        ItemStack saveItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.save")));
+        setupInteractiveItem(inventory, "items.save", 50, saveItem,
+                item -> item.onLeftClick(p -> saveRecipe(p)));
 
         // Back button
-        InteractiveItem backButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back"))),
-                getSlot("items.back", 49)
-        ).onLeftClick(p -> backToList(p));
-        inventory.setItem(backButton.getSlot(), backButton);
+        ItemStack backItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back")));
+        setupInteractiveItem(inventory, "items.back", 49, backItem,
+                item -> item.onLeftClick(p -> backToList(p)));
 
         // Delete button
-        InteractiveItem deleteButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.delete"))),
-                getSlot("items.delete", 53)
-        ).onLeftClick(p -> deleteRecipe(p));
-        inventory.setItem(deleteButton.getSlot(), deleteButton);
+        ItemStack deleteItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.delete")));
+        setupInteractiveItem(inventory, "items.delete", 53, deleteItem,
+                item -> item.onLeftClick(p -> deleteRecipe(p)));
     }
 
-    private int getSlot(String configPath, int defaultSlot) {
-        return config.getInt(configPath + ".slot", defaultSlot);
+    private void setupInteractiveItem(Inventory inventory, String configPath, int defaultSlot, ItemStack itemStack,
+                                      java.util.function.Consumer<InteractiveItem> clickHandler) {
+        String slotConfig = config.getString(configPath + ".slot", String.valueOf(defaultSlot));
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem item = new InteractiveItem(itemStack.clone(), slot);
+                clickHandler.accept(item);
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem item = new InteractiveItem(itemStack, slot);
+            clickHandler.accept(item);
+            inventory.setItem(item.getSlot(), item);
+        }
     }
 
     private ItemStack createConfigItem(String configPath, String... placeholders) {

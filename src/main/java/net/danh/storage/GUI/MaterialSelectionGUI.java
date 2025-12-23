@@ -205,12 +205,26 @@ public class MaterialSelectionGUI implements IGUI {
                 "#total_pages#", String.valueOf(totalPages));
 
         if (prevItem != null) {
-            InteractiveItem prevButton = new InteractiveItem(prevItem, config.getInt("items.previous_page.slot", 45))
-                    .onLeftClick(p -> {
-                        SoundManager.setShouldPlayCloseSound(p, false);
-                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage - 1).getInventory(SoundContext.SILENT));
-                    });
-            inventory.setItem(prevButton.getSlot(), prevButton);
+            String slotConfig = config.getString("items.previous_page.slot", "45");
+            if (slotConfig.contains(",")) {
+                for (String slotStr : slotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem prevButton = new InteractiveItem(prevItem.clone(), slot)
+                            .onLeftClick(p -> {
+                                SoundManager.setShouldPlayCloseSound(p, false);
+                                p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage - 1).getInventory(SoundContext.SILENT));
+                            });
+                    inventory.setItem(prevButton.getSlot(), prevButton);
+                }
+            } else {
+                int slot = Number.getInteger(slotConfig);
+                InteractiveItem prevButton = new InteractiveItem(prevItem, slot)
+                        .onLeftClick(p -> {
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage - 1).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(prevButton.getSlot(), prevButton);
+            }
         }
     }
 
@@ -221,42 +235,90 @@ public class MaterialSelectionGUI implements IGUI {
                 "#total_pages#", String.valueOf(totalPages));
 
         if (nextItem != null) {
-            InteractiveItem nextButton = new InteractiveItem(nextItem, config.getInt("items.next_page.slot", 53))
-                    .onLeftClick(p -> {
-                        SoundManager.setShouldPlayCloseSound(p, false);
-                        p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage + 1).getInventory(SoundContext.SILENT));
-                    });
-            inventory.setItem(nextButton.getSlot(), nextButton);
+            String slotConfig = config.getString("items.next_page.slot", "53");
+            if (slotConfig.contains(",")) {
+                for (String slotStr : slotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem nextButton = new InteractiveItem(nextItem.clone(), slot)
+                            .onLeftClick(p -> {
+                                SoundManager.setShouldPlayCloseSound(p, false);
+                                p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage + 1).getInventory(SoundContext.SILENT));
+                            });
+                    inventory.setItem(nextButton.getSlot(), nextButton);
+                }
+            } else {
+                int slot = Number.getInteger(slotConfig);
+                InteractiveItem nextButton = new InteractiveItem(nextItem, slot)
+                        .onLeftClick(p -> {
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new MaterialSelectionGUI(p, recipe, selectionType, currentPage + 1).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(nextButton.getSlot(), nextButton);
+            }
         }
     }
 
     private void addBackButton(Inventory inventory) {
         ItemStack backItem = ItemManager.getItemConfig(config.getConfigurationSection("items.back"));
         if (backItem != null) {
-            InteractiveItem backButton = new InteractiveItem(backItem, config.getInt("items.back.slot", 49))
-                    .onLeftClick(p -> {
-                        if (selectionType.equals("requirement")) {
-                            returnToMaterialEditor(p);
-                        } else {
-                            returnToRecipeEditor(p);
-                        }
-                    });
-            inventory.setItem(backButton.getSlot(), backButton);
+            String slotConfig = config.getString("items.back.slot", "49");
+            if (slotConfig.contains(",")) {
+                for (String slotStr : slotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem backButton = new InteractiveItem(backItem.clone(), slot)
+                            .onLeftClick(p -> {
+                                if (selectionType.equals("requirement")) {
+                                    returnToMaterialEditor(p);
+                                } else {
+                                    returnToRecipeEditor(p);
+                                }
+                            });
+                    inventory.setItem(backButton.getSlot(), backButton);
+                }
+            } else {
+                int slot = Number.getInteger(slotConfig);
+                InteractiveItem backButton = new InteractiveItem(backItem, slot)
+                        .onLeftClick(p -> {
+                            if (selectionType.equals("requirement")) {
+                                returnToMaterialEditor(p);
+                            } else {
+                                returnToRecipeEditor(p);
+                            }
+                        });
+                inventory.setItem(backButton.getSlot(), backButton);
+            }
         }
     }
 
     private void addSearchButton(Inventory inventory) {
         ItemStack searchItem = ItemManager.getItemConfig(config.getConfigurationSection("items.search"));
         if (searchItem != null) {
-            InteractiveItem searchButton = new InteractiveItem(searchItem, config.getInt("items.search.slot", 4))
-                    .onLeftClick(p -> {
-                        if (selectionType.equals("result")) {
-                            RecipeEditManager.requestMaterialEdit(p, recipe);
-                        } else {
-                            RecipeEditManager.requestRequirementAdd(p, recipe);
-                        }
-                    });
-            inventory.setItem(searchButton.getSlot(), searchButton);
+            String slotConfig = config.getString("items.search.slot", "4");
+            if (slotConfig.contains(",")) {
+                for (String slotStr : slotConfig.split(",")) {
+                    int slot = Number.getInteger(slotStr.trim());
+                    InteractiveItem searchButton = new InteractiveItem(searchItem.clone(), slot)
+                            .onLeftClick(p -> {
+                                if (selectionType.equals("result")) {
+                                    RecipeEditManager.requestMaterialEdit(p, recipe);
+                                } else {
+                                    RecipeEditManager.requestRequirementAdd(p, recipe);
+                                }
+                            });
+                    inventory.setItem(searchButton.getSlot(), searchButton);
+                }
+            } else {
+                int slot = Number.getInteger(slotConfig);
+                InteractiveItem searchButton = new InteractiveItem(searchItem, slot)
+                        .onLeftClick(p -> {
+                            if (selectionType.equals("result")) {
+                                RecipeEditManager.requestMaterialEdit(p, recipe);
+                            } else {
+                                RecipeEditManager.requestRequirementAdd(p, recipe);
+                            }
+                        });
+                inventory.setItem(searchButton.getSlot(), searchButton);
+            }
         }
     }
 

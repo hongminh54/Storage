@@ -69,10 +69,20 @@ public class MythicStorageGUI implements IGUI {
         Set<Integer> navigationSlots = new HashSet<>();
         if (hasMultiplePages) {
             if (config.contains("items.previous_page.slot")) {
-                navigationSlots.add(Integer.parseInt(config.getString("items.previous_page.slot")));
+                String prevSlot = config.getString("items.previous_page.slot");
+                if (prevSlot != null) {
+                    for (String s : prevSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
             }
             if (config.contains("items.next_page.slot")) {
-                navigationSlots.add(Integer.parseInt(config.getString("items.next_page.slot")));
+                String nextSlot = config.getString("items.next_page.slot");
+                if (nextSlot != null) {
+                    for (String s : nextSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
             }
         }
 
@@ -134,24 +144,46 @@ public class MythicStorageGUI implements IGUI {
                 if (hasMultiplePages && currentPage > 0) {
                     ItemStack prevItem = getNavigationItem(itemTag, currentPage, totalPages);
                     if (prevItem != null) {
-                        InteractiveItem item = new InteractiveItem(prevItem, Number.getInteger(slot)).onClick((p, clickType) -> {
-                            SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                            SoundManager.setShouldPlayCloseSound(p, false);
-                            p.openInventory(new MythicStorageGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
-                        });
-                        inventory.setItem(item.getSlot(), item);
+                        if (slot.contains(",")) {
+                            for (String slotString : slot.split(",")) {
+                                InteractiveItem item = new InteractiveItem(prevItem.clone(), Number.getInteger(slotString.trim())).onClick((p, clickType) -> {
+                                    SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                    SoundManager.setShouldPlayCloseSound(p, false);
+                                    p.openInventory(new MythicStorageGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                                });
+                                inventory.setItem(item.getSlot(), item);
+                            }
+                        } else {
+                            InteractiveItem item = new InteractiveItem(prevItem, Number.getInteger(slot)).onClick((p, clickType) -> {
+                                SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(p, false);
+                                p.openInventory(new MythicStorageGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                            });
+                            inventory.setItem(item.getSlot(), item);
+                        }
                     }
                 }
             } else if (itemTag.equalsIgnoreCase("next_page")) {
                 if (hasMultiplePages && currentPage < totalPages - 1) {
                     ItemStack nextItem = getNavigationItem(itemTag, currentPage, totalPages);
                     if (nextItem != null) {
-                        InteractiveItem item = new InteractiveItem(nextItem, Number.getInteger(slot)).onClick((p, clickType) -> {
-                            SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                            SoundManager.setShouldPlayCloseSound(p, false);
-                            p.openInventory(new MythicStorageGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
-                        });
-                        inventory.setItem(item.getSlot(), item);
+                        if (slot.contains(",")) {
+                            for (String slotString : slot.split(",")) {
+                                InteractiveItem item = new InteractiveItem(nextItem.clone(), Number.getInteger(slotString.trim())).onClick((p, clickType) -> {
+                                    SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                    SoundManager.setShouldPlayCloseSound(p, false);
+                                    p.openInventory(new MythicStorageGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                                });
+                                inventory.setItem(item.getSlot(), item);
+                            }
+                        } else {
+                            InteractiveItem item = new InteractiveItem(nextItem, Number.getInteger(slot)).onClick((p, clickType) -> {
+                                SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(p, false);
+                                p.openInventory(new MythicStorageGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                            });
+                            inventory.setItem(item.getSlot(), item);
+                        }
                     }
                 }
             } else {

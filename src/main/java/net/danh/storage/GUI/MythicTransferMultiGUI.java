@@ -120,46 +120,43 @@ public class MythicTransferMultiGUI implements IGUI {
         String slotString = section.getString("slot");
         if (slotString == null) return;
 
-        if (itemKey.equals("decorates") && slotString.contains(",")) {
+        if (slotString.contains(",")) {
             for (String slotStr : slotString.split(",")) {
                 try {
                     int slot = Integer.parseInt(slotStr.trim());
-                    InteractiveItem item = createDecorativeItem(section, slot);
+                    InteractiveItem item = createStaticItemByKey(itemKey, section, slot);
                     if (item != null) {
                         inventory.setItem(slot, item);
                     }
                 } catch (NumberFormatException ignored) {
                 }
             }
-            return;
+        } else {
+            try {
+                int slot = Integer.parseInt(slotString.trim());
+                InteractiveItem item = createStaticItemByKey(itemKey, section, slot);
+                if (item != null) {
+                    inventory.setItem(slot, item);
+                }
+            } catch (NumberFormatException ignored) {
+            }
         }
+    }
 
-        try {
-            int slot = Integer.parseInt(slotString.trim());
-            InteractiveItem item = null;
-
-            switch (itemKey) {
-                case "player_info":
-                    item = createPlayerInfoItem(section, slot);
-                    break;
-                case "confirm_transfer":
-                    item = createConfirmItem(section, slot);
-                    break;
-                case "cancel_transfer":
-                    item = createCancelItem(section, slot);
-                    break;
-                case "clear_selection":
-                    item = createClearSelectionItem(section, slot);
-                    break;
-                case "decorates":
-                    item = createDecorativeItem(section, slot);
-                    break;
-            }
-
-            if (item != null) {
-                inventory.setItem(slot, item);
-            }
-        } catch (NumberFormatException ignored) {
+    private InteractiveItem createStaticItemByKey(String itemKey, ConfigurationSection section, int slot) {
+        switch (itemKey) {
+            case "player_info":
+                return createPlayerInfoItem(section, slot);
+            case "confirm_transfer":
+                return createConfirmItem(section, slot);
+            case "cancel_transfer":
+                return createCancelItem(section, slot);
+            case "clear_selection":
+                return createClearSelectionItem(section, slot);
+            case "decorates":
+                return createDecorativeItem(section, slot);
+            default:
+                return null;
         }
     }
 
@@ -294,17 +291,31 @@ public class MythicTransferMultiGUI implements IGUI {
             ConfigurationSection prevSection = guiConfig.getConfigurationSection("items.previous_page");
             if (prevSection != null) {
                 String slotString = prevSection.getString("slot", "48");
-                try {
-                    int slot = Integer.parseInt(slotString.trim());
-                    ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
-                    if (prevPageItem != null) {
-                        InteractiveItem prevItem = new InteractiveItem(prevPageItem, slot).onClick((p, clickType) -> {
-                            SoundManager.playItemSound(p, guiConfig, "items.previous_page", SoundContext.INITIAL_OPEN);
-                            previousPage();
-                        });
-                        inventory.setItem(slot, prevItem);
+                ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
+                if (prevPageItem != null) {
+                    if (slotString.contains(",")) {
+                        for (String slotStr : slotString.split(",")) {
+                            try {
+                                int slot = Integer.parseInt(slotStr.trim());
+                                InteractiveItem prevItem = new InteractiveItem(prevPageItem.clone(), slot).onClick((p, clickType) -> {
+                                    SoundManager.playItemSound(p, guiConfig, "items.previous_page", SoundContext.INITIAL_OPEN);
+                                    previousPage();
+                                });
+                                inventory.setItem(slot, prevItem);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    } else {
+                        try {
+                            int slot = Integer.parseInt(slotString.trim());
+                            InteractiveItem prevItem = new InteractiveItem(prevPageItem, slot).onClick((p, clickType) -> {
+                                SoundManager.playItemSound(p, guiConfig, "items.previous_page", SoundContext.INITIAL_OPEN);
+                                previousPage();
+                            });
+                            inventory.setItem(slot, prevItem);
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
-                } catch (NumberFormatException ignored) {
                 }
             }
         }
@@ -313,17 +324,31 @@ public class MythicTransferMultiGUI implements IGUI {
             ConfigurationSection nextSection = guiConfig.getConfigurationSection("items.next_page");
             if (nextSection != null) {
                 String slotString = nextSection.getString("slot", "50");
-                try {
-                    int slot = Integer.parseInt(slotString.trim());
-                    ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
-                    if (nextPageItem != null) {
-                        InteractiveItem nextItem = new InteractiveItem(nextPageItem, slot).onClick((p, clickType) -> {
-                            SoundManager.playItemSound(p, guiConfig, "items.next_page", SoundContext.INITIAL_OPEN);
-                            nextPage();
-                        });
-                        inventory.setItem(slot, nextItem);
+                ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
+                if (nextPageItem != null) {
+                    if (slotString.contains(",")) {
+                        for (String slotStr : slotString.split(",")) {
+                            try {
+                                int slot = Integer.parseInt(slotStr.trim());
+                                InteractiveItem nextItem = new InteractiveItem(nextPageItem.clone(), slot).onClick((p, clickType) -> {
+                                    SoundManager.playItemSound(p, guiConfig, "items.next_page", SoundContext.INITIAL_OPEN);
+                                    nextPage();
+                                });
+                                inventory.setItem(slot, nextItem);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    } else {
+                        try {
+                            int slot = Integer.parseInt(slotString.trim());
+                            InteractiveItem nextItem = new InteractiveItem(nextPageItem, slot).onClick((p, clickType) -> {
+                                SoundManager.playItemSound(p, guiConfig, "items.next_page", SoundContext.INITIAL_OPEN);
+                                nextPage();
+                            });
+                            inventory.setItem(slot, nextItem);
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
-                } catch (NumberFormatException ignored) {
                 }
             }
         }

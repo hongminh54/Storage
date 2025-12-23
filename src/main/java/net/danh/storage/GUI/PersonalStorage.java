@@ -60,10 +60,20 @@ public class PersonalStorage implements IGUI {
         Set<Integer> navigationSlots = new HashSet<>();
         if (hasMultiplePages) {
             if (config.contains("items.previous_page.slot")) {
-                navigationSlots.add(Integer.parseInt(config.getString("items.previous_page.slot")));
+                String prevSlot = config.getString("items.previous_page.slot");
+                if (prevSlot != null) {
+                    for (String s : prevSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
             }
             if (config.contains("items.next_page.slot")) {
-                navigationSlots.add(Integer.parseInt(config.getString("items.next_page.slot")));
+                String nextSlot = config.getString("items.next_page.slot");
+                if (nextSlot != null) {
+                    for (String s : nextSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
             }
         }
 
@@ -145,24 +155,46 @@ public class PersonalStorage implements IGUI {
                 if (hasMultiplePages && currentPage > 0) {
                     ItemStack prevPageItem = getNavigationItem(item_tag, currentPage, totalPages);
                     if (prevPageItem != null) {
-                        InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
-                            SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
-                            SoundManager.setShouldPlayCloseSound(player, false);
-                            player.openInventory(new PersonalStorage(p, currentPage - 1).getInventory(SoundContext.SILENT));
-                        });
-                        inventory.setItem(item.getSlot(), item);
+                        if (slot.contains(",")) {
+                            for (String slotString : slot.split(",")) {
+                                InteractiveItem item = new InteractiveItem(prevPageItem.clone(), Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                                    SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
+                                    SoundManager.setShouldPlayCloseSound(player, false);
+                                    player.openInventory(new PersonalStorage(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                                });
+                                inventory.setItem(item.getSlot(), item);
+                            }
+                        } else {
+                            InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
+                                SoundManager.playItemSound(player, config, "items.previous_page", SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(player, false);
+                                player.openInventory(new PersonalStorage(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                            });
+                            inventory.setItem(item.getSlot(), item);
+                        }
                     }
                 }
             } else if (item_tag.equalsIgnoreCase("next_page")) {
                 if (hasMultiplePages && currentPage < totalPages - 1) {
                     ItemStack nextPageItem = getNavigationItem(item_tag, currentPage, totalPages);
                     if (nextPageItem != null) {
-                        InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
-                            SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
-                            SoundManager.setShouldPlayCloseSound(player, false);
-                            player.openInventory(new PersonalStorage(p, currentPage + 1).getInventory(SoundContext.SILENT));
-                        });
-                        inventory.setItem(item.getSlot(), item);
+                        if (slot.contains(",")) {
+                            for (String slotString : slot.split(",")) {
+                                InteractiveItem item = new InteractiveItem(nextPageItem.clone(), Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                                    SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
+                                    SoundManager.setShouldPlayCloseSound(player, false);
+                                    player.openInventory(new PersonalStorage(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                                });
+                                inventory.setItem(item.getSlot(), item);
+                            }
+                        } else {
+                            InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot)).onClick((player, clickType) -> {
+                                SoundManager.playItemSound(player, config, "items.next_page", SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(player, false);
+                                player.openInventory(new PersonalStorage(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                            });
+                            inventory.setItem(item.getSlot(), item);
+                        }
                     }
                 }
             } else {

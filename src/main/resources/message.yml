@@ -95,7 +95,6 @@ user:
     - "&e/Storage transfer log &a<player> &d<page> &f- &7View transfer history"
 view:
   viewing_storage: "#prefix# &aViewing &e#player#'s &astorage"
-  storage_empty: "#prefix# &e#player# &cdoesn't have any items in storage"
   no_data: "#prefix# &cPlayer &e#player# &chas no storage data!"
 transfer:
   success_send: "#prefix# &aSuccessfully transferred &6#amount#&r #material# &ato &e#player#"

@@ -46,7 +46,7 @@ public class RemoveCommand extends BaseCommand {
             MineManager.removeBlockAmount(target, material, amount);
         }
 
-        String materialDisplay = materials.size() == 1 ? materials.get(0) : 
+        String materialDisplay = materials.size() == 1 ? materials.get(0) :
                 (materials.size() == MineManager.getPluginBlocks().size() ? "*" : String.join(", ", materials));
 
         String[] placeholders = {"#amount#", "#material#", "#player#"};

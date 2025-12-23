@@ -312,17 +312,25 @@ public class TransferMultiGUI implements IGUI {
             ConfigurationSection prevSection = guiConfig.getConfigurationSection("items.previous_page");
             if (prevSection != null) {
                 String slotString = prevSection.getString("slot", "48");
-                try {
-                    int slot = Integer.parseInt(slotString.trim());
-                    ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
-                    if (prevPageItem != null) {
+                ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
+                if (prevPageItem != null) {
+                    if (slotString.contains(",")) {
+                        for (String slotStr : slotString.split(",")) {
+                            int slot = Integer.parseInt(slotStr.trim());
+                            InteractiveItem prevItem = new InteractiveItem(prevPageItem.clone(), slot).onClick((p, clickType) -> {
+                                SoundManager.playItemSound(p, guiConfig, "items.previous_page", SoundContext.INITIAL_OPEN);
+                                previousPage();
+                            });
+                            inventory.setItem(slot, prevItem);
+                        }
+                    } else {
+                        int slot = Integer.parseInt(slotString.trim());
                         InteractiveItem prevItem = new InteractiveItem(prevPageItem, slot).onClick((p, clickType) -> {
                             SoundManager.playItemSound(p, guiConfig, "items.previous_page", SoundContext.INITIAL_OPEN);
                             previousPage();
                         });
                         inventory.setItem(slot, prevItem);
                     }
-                } catch (NumberFormatException ignored) {
                 }
             }
         }
@@ -331,17 +339,25 @@ public class TransferMultiGUI implements IGUI {
             ConfigurationSection nextSection = guiConfig.getConfigurationSection("items.next_page");
             if (nextSection != null) {
                 String slotString = nextSection.getString("slot", "50");
-                try {
-                    int slot = Integer.parseInt(slotString.trim());
-                    ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
-                    if (nextPageItem != null) {
+                ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
+                if (nextPageItem != null) {
+                    if (slotString.contains(",")) {
+                        for (String slotStr : slotString.split(",")) {
+                            int slot = Integer.parseInt(slotStr.trim());
+                            InteractiveItem nextItem = new InteractiveItem(nextPageItem.clone(), slot).onClick((p, clickType) -> {
+                                SoundManager.playItemSound(p, guiConfig, "items.next_page", SoundContext.INITIAL_OPEN);
+                                nextPage();
+                            });
+                            inventory.setItem(slot, nextItem);
+                        }
+                    } else {
+                        int slot = Integer.parseInt(slotString.trim());
                         InteractiveItem nextItem = new InteractiveItem(nextPageItem, slot).onClick((p, clickType) -> {
                             SoundManager.playItemSound(p, guiConfig, "items.next_page", SoundContext.INITIAL_OPEN);
                             nextPage();
                         });
                         inventory.setItem(slot, nextItem);
                     }
-                } catch (NumberFormatException ignored) {
                 }
             }
         }

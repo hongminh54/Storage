@@ -46,7 +46,7 @@ public class MythicAddCommand extends MythicCommand {
             MythicStorageManager.addItemAmount(target, itemName, amount);
         }
 
-        String itemDisplay = items.size() == 1 ? getItemDisplayName(items.get(0)) : 
+        String itemDisplay = items.size() == 1 ? getItemDisplayName(items.get(0)) :
                 (items.size() == getConfiguredDrops().size() ? "*" : formatItemList(items));
 
         String[] placeholders = {"#amount#", "#item#", "#player#"};

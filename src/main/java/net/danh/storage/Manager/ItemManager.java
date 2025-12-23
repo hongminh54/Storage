@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.PlaceholderUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -88,17 +89,20 @@ public class ItemManager {
         return itemStack;
     }
 
-    private static ItemStack applyPlaceholders(ItemStack item, List<String> loreTemplate, String displayNameTemplate, String... replacements) {
-        if (item == null || replacements.length % 2 != 0) return item;
+    private static ItemStack applyPlaceholders(Player player, ItemStack item, List<String> loreTemplate, String displayNameTemplate, String... replacements) {
+        if (item == null) return item;
 
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
         if (displayNameTemplate != null) {
             String displayName = displayNameTemplate;
-            for (int i = 0; i < replacements.length - 1; i += 2) {
-                displayName = displayName.replace(replacements[i], replacements[i + 1]);
+            if (replacements != null && replacements.length >= 2) {
+                for (int i = 0; i < replacements.length - 1; i += 2) {
+                    displayName = displayName.replace(replacements[i], replacements[i + 1]);
+                }
             }
+            displayName = PlaceholderUtils.setPlaceholders(player, displayName);
             meta.setDisplayName(ChatUtils.colorizewp(displayName));
         }
 
@@ -106,9 +110,12 @@ public class ItemManager {
             List<String> newLore = loreTemplate.stream()
                     .map(line -> {
                         String result = line;
-                        for (int i = 0; i < replacements.length - 1; i += 2) {
-                            result = result.replace(replacements[i], replacements[i + 1]);
+                        if (replacements != null && replacements.length >= 2) {
+                            for (int i = 0; i < replacements.length - 1; i += 2) {
+                                result = result.replace(replacements[i], replacements[i + 1]);
+                            }
                         }
+                        result = PlaceholderUtils.setPlaceholders(player, result);
                         return result;
                     })
                     .collect(Collectors.toList());
@@ -123,7 +130,7 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, null);
         if (item == null) return null;
 
-        return applyPlaceholders(item, section.getStringList("lore"), section.getString("name"));
+        return applyPlaceholders(null, item, section.getStringList("lore"), section.getString("name"));
     }
 
     public static ItemStack getItemConfig(Player p, String material, ConfigurationSection section) {
@@ -132,7 +139,7 @@ public class ItemManager {
 
         String materialName = File.getConfig().getString("items." + material, material.split(";")[0]);
 
-        return applyPlaceholders(item, section.getStringList("lore"), section.getString("name"),
+        return applyPlaceholders(p, item, section.getStringList("lore"), section.getString("name"),
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)),
                 "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)),
                 "#material#", materialName);
@@ -148,7 +155,7 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, null);
         if (item == null) return null;
 
-        return applyPlaceholders(item, section.getStringList("lore"), section.getString("name"),
+        return applyPlaceholders(p, item, section.getStringList("lore"), section.getString("name"),
                 "#status#", getStatus(p));
     }
 
@@ -156,7 +163,7 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, material.split(";")[0]);
         if (item == null) return null;
 
-        return applyPlaceholders(item, section.getStringList("lore"), name,
+        return applyPlaceholders(p, item, section.getStringList("lore"), name,
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)),
                 "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)));
     }
@@ -165,7 +172,7 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, material.split(";")[0]);
         if (item == null) return null;
 
-        return applyPlaceholders(item, section.getStringList("lore"), name,
+        return applyPlaceholders(null, item, section.getStringList("lore"), name,
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(playerName, material)),
                 "#max_storage#", String.valueOf(MineManager.getMaxStorage(playerName)));
     }
@@ -174,29 +181,29 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, null);
         if (item == null) return null;
 
-        return applyPlaceholders(item, section.getStringList("lore"), section.getString("name"), placeholders);
+        return applyPlaceholders(p, item, section.getStringList("lore"), section.getString("name"), placeholders);
     }
 
     public static ItemStack getItemConfigWithPlaceholders(Player p, String material, String name, ConfigurationSection section, String... placeholders) {
         ItemStack item = createBaseItem(section, material.split(";")[0]);
         if (item == null) return null;
 
-        return applyPlaceholders(item, section.getStringList("lore"), name, placeholders);
+        return applyPlaceholders(p, item, section.getStringList("lore"), name, placeholders);
     }
 
     @Deprecated
     public static ItemStack replaceLore(ItemStack item, List<String> loreTemplate, String... replacements) {
-        return applyPlaceholders(item, loreTemplate, null, replacements);
+        return applyPlaceholders(null, item, loreTemplate, null, replacements);
     }
 
     @Deprecated
     public static ItemStack replacePlaceholders(ItemStack item, String... replacements) {
-        if (item == null || replacements.length % 2 != 0) return item;
+        if (item == null) return item;
 
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
-        return applyPlaceholders(item, meta.getLore(), meta.getDisplayName(), replacements);
+        return applyPlaceholders(null, item, meta.getLore(), meta.getDisplayName(), replacements);
     }
 
     public static ItemStack setPlayerSkull(ItemStack item, String playerName) {

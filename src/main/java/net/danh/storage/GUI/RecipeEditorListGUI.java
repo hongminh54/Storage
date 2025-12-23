@@ -80,11 +80,22 @@ public class RecipeEditorListGUI implements IGUI {
     }
 
     private void addCreateButton(Inventory inventory) {
-        InteractiveItem createButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.create_recipe"))),
-                getSlot("items.create_recipe", 4)
-        ).onLeftClick(this::createNewRecipe);
-        inventory.setItem(createButton.getSlot(), createButton);
+        String slotConfig = config.getString("items.create_recipe.slot", "4");
+        ItemStack createItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.create_recipe")));
+
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem createButton = new InteractiveItem(createItem.clone(), slot)
+                        .onLeftClick(this::createNewRecipe);
+                inventory.setItem(createButton.getSlot(), createButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem createButton = new InteractiveItem(createItem, slot)
+                    .onLeftClick(this::createNewRecipe);
+            inventory.setItem(createButton.getSlot(), createButton);
+        }
     }
 
     private void setupRecipeItems(Inventory inventory) {
@@ -109,11 +120,20 @@ public class RecipeEditorListGUI implements IGUI {
     }
 
     private void addNoRecipesItem(Inventory inventory) {
-        InteractiveItem noRecipesItem = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.no_recipes"))),
-                getSlot("items.no_recipes", 22)
-        );
-        inventory.setItem(noRecipesItem.getSlot(), noRecipesItem);
+        String slotConfig = config.getString("items.no_recipes.slot", "22");
+        ItemStack noRecipesItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.no_recipes")));
+
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem item = new InteractiveItem(noRecipesItem.clone(), slot);
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem item = new InteractiveItem(noRecipesItem, slot);
+            inventory.setItem(item.getSlot(), item);
+        }
     }
 
     private void addRecipeItemsToInventory(Inventory inventory, List<Recipe> recipeList, String[] slotArray, int itemsPerPage) {
@@ -266,45 +286,84 @@ public class RecipeEditorListGUI implements IGUI {
     }
 
     private void addPreviousPageButton(Inventory inventory, int totalPages) {
+        String slotConfig = config.getString("items.previous_page.slot", "45");
         ItemStack prevItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.previous_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
 
-        InteractiveItem prevButton = new InteractiveItem(prevItem, getSlot("items.previous_page", 45))
-                .onLeftClick(p -> {
-                    SoundManager.setShouldPlayCloseSound(p, false);
-                    p.openInventory(new RecipeEditorListGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
-                });
-        inventory.setItem(prevButton.getSlot(), prevButton);
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem prevButton = new InteractiveItem(prevItem.clone(), slot)
+                        .onLeftClick(p -> {
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new RecipeEditorListGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(prevButton.getSlot(), prevButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem prevButton = new InteractiveItem(prevItem, slot)
+                    .onLeftClick(p -> {
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new RecipeEditorListGUI(p, currentPage - 1).getInventory(SoundContext.SILENT));
+                    });
+            inventory.setItem(prevButton.getSlot(), prevButton);
+        }
     }
 
     private void addNextPageButton(Inventory inventory, int totalPages) {
+        String slotConfig = config.getString("items.next_page.slot", "53");
         ItemStack nextItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.next_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
 
-        InteractiveItem nextButton = new InteractiveItem(nextItem, getSlot("items.next_page", 53))
-                .onLeftClick(p -> {
-                    SoundManager.setShouldPlayCloseSound(p, false);
-                    p.openInventory(new RecipeEditorListGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
-                });
-        inventory.setItem(nextButton.getSlot(), nextButton);
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem nextButton = new InteractiveItem(nextItem.clone(), slot)
+                        .onLeftClick(p -> {
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new RecipeEditorListGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(nextButton.getSlot(), nextButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem nextButton = new InteractiveItem(nextItem, slot)
+                    .onLeftClick(p -> {
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new RecipeEditorListGUI(p, currentPage + 1).getInventory(SoundContext.SILENT));
+                    });
+            inventory.setItem(nextButton.getSlot(), nextButton);
+        }
     }
 
     private void addCloseButton(Inventory inventory) {
-        InteractiveItem closeButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close"))),
-                getSlot("items.close", 49)
-        ).onLeftClick(p -> {
-            SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
-            p.closeInventory();
-        });
-        inventory.setItem(closeButton.getSlot(), closeButton);
+        String slotConfig = config.getString("items.close.slot", "49");
+        ItemStack closeItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close")));
+
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem closeButton = new InteractiveItem(closeItem.clone(), slot)
+                        .onLeftClick(p -> {
+                            SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
+                            p.closeInventory();
+                        });
+                inventory.setItem(closeButton.getSlot(), closeButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem closeButton = new InteractiveItem(closeItem, slot)
+                    .onLeftClick(p -> {
+                        SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
+                        p.closeInventory();
+                    });
+            inventory.setItem(closeButton.getSlot(), closeButton);
+        }
     }
 
-    private int getSlot(String path, int defaultSlot) {
-        return config.getInt(path + ".slot", defaultSlot);
-    }
 }

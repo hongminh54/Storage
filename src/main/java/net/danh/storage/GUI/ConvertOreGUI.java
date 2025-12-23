@@ -118,14 +118,27 @@ public class ConvertOreGUI implements IGUI {
                     "#current_page#", String.valueOf(currentPageDisplay),
                     "#total_pages#", String.valueOf(totalPages));
 
-            InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot))
-                    .onClick((clickPlayer, clickType) -> {
-                        SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                        int newPage = isPrevious ? currentPage - 1 : currentPage + 1;
-                        SoundManager.setShouldPlayCloseSound(clickPlayer, false);
-                        clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, newPage).getInventory(SoundContext.SILENT));
-                    });
-            inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+            if (slot.contains(",")) {
+                for (String slotString : slot.split(",")) {
+                    InteractiveItem interactiveItem = new InteractiveItem(itemStack.clone(), Number.getInteger(slotString.trim()))
+                            .onClick((clickPlayer, clickType) -> {
+                                SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                int newPage = isPrevious ? currentPage - 1 : currentPage + 1;
+                                SoundManager.setShouldPlayCloseSound(clickPlayer, false);
+                                clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, newPage).getInventory(SoundContext.SILENT));
+                            });
+                    inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+                }
+            } else {
+                InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot))
+                        .onClick((clickPlayer, clickType) -> {
+                            SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                            int newPage = isPrevious ? currentPage - 1 : currentPage + 1;
+                            SoundManager.setShouldPlayCloseSound(clickPlayer, false);
+                            clickPlayer.openInventory(new ConvertOreGUI(clickPlayer, newPage).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+            }
         }
     }
 
@@ -152,15 +165,29 @@ public class ConvertOreGUI implements IGUI {
         if (section != null) {
             ItemStack itemStack = ItemManager.getItemConfig(player, section);
 
-            InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot))
-                    .onClick((clickPlayer, clickType) -> {
-                        if (itemTag.equalsIgnoreCase("back")) {
-                            SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
-                            SoundManager.setShouldPlayCloseSound(clickPlayer, false);
-                            clickPlayer.openInventory(new PersonalStorage(clickPlayer, PersonalStorage.getPlayerCurrentPage(clickPlayer)).getInventory(SoundContext.SILENT));
-                        }
-                    });
-            inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+            if (slot.contains(",")) {
+                for (String slotString : slot.split(",")) {
+                    InteractiveItem interactiveItem = new InteractiveItem(itemStack.clone(), Number.getInteger(slotString.trim()))
+                            .onClick((clickPlayer, clickType) -> {
+                                if (itemTag.equalsIgnoreCase("back")) {
+                                    SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                    SoundManager.setShouldPlayCloseSound(clickPlayer, false);
+                                    clickPlayer.openInventory(new PersonalStorage(clickPlayer, PersonalStorage.getPlayerCurrentPage(clickPlayer)).getInventory(SoundContext.SILENT));
+                                }
+                            });
+                    inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+                }
+            } else {
+                InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot))
+                        .onClick((clickPlayer, clickType) -> {
+                            if (itemTag.equalsIgnoreCase("back")) {
+                                SoundManager.playItemSound(clickPlayer, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(clickPlayer, false);
+                                clickPlayer.openInventory(new PersonalStorage(clickPlayer, PersonalStorage.getPlayerCurrentPage(clickPlayer)).getInventory(SoundContext.SILENT));
+                            }
+                        });
+                inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+            }
         }
     }
 }

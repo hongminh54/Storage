@@ -118,12 +118,20 @@ public class RecipeListGUI implements IGUI {
     }
 
     private void addNoRecipesItem(Inventory inventory) {
-        int slot = config.getInt("items.no_recipes.slot", 22);
-        InteractiveItem noRecipesItem = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.no_recipes"))),
-                slot
-        );
-        inventory.setItem(noRecipesItem.getSlot(), noRecipesItem);
+        String slotConfig = config.getString("items.no_recipes.slot", "22");
+        ItemStack noRecipesItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.no_recipes")));
+
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem item = new InteractiveItem(noRecipesItem.clone(), slot);
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem item = new InteractiveItem(noRecipesItem, slot);
+            inventory.setItem(item.getSlot(), item);
+        }
     }
 
     private void handleRecipeClick(Player p, Recipe recipe, org.bukkit.event.inventory.ClickType clickType) {
@@ -276,49 +284,87 @@ public class RecipeListGUI implements IGUI {
     }
 
     private void addPreviousPageButton(Inventory inventory, int totalPages) {
-        int slot = config.getInt("items.previous_page.slot", 45);
+        String slotConfig = config.getString("items.previous_page.slot", "45");
         ItemStack prevItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.previous_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
 
-        InteractiveItem prevButton = new InteractiveItem(prevItem, slot)
-                .onLeftClick(p -> {
-                    SoundManager.playItemSound(p, config, "items.previous_page", SoundContext.SILENT);
-                    SoundManager.setShouldPlayCloseSound(p, false);
-                    p.openInventory(new RecipeListGUI(p, currentPage - 1, currentCategory).getInventory(SoundContext.SILENT));
-                });
-        inventory.setItem(prevButton.getSlot(), prevButton);
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem prevButton = new InteractiveItem(prevItem.clone(), slot)
+                        .onLeftClick(p -> {
+                            SoundManager.playItemSound(p, config, "items.previous_page", SoundContext.SILENT);
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new RecipeListGUI(p, currentPage - 1, currentCategory).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(prevButton.getSlot(), prevButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem prevButton = new InteractiveItem(prevItem, slot)
+                    .onLeftClick(p -> {
+                        SoundManager.playItemSound(p, config, "items.previous_page", SoundContext.SILENT);
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new RecipeListGUI(p, currentPage - 1, currentCategory).getInventory(SoundContext.SILENT));
+                    });
+            inventory.setItem(prevButton.getSlot(), prevButton);
+        }
     }
 
     private void addNextPageButton(Inventory inventory, int totalPages) {
-        int slot = config.getInt("items.next_page.slot", 53);
+        String slotConfig = config.getString("items.next_page.slot", "53");
         ItemStack nextItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.next_page")),
                 "#current_page#", String.valueOf(currentPage + 1),
                 "#total_pages#", String.valueOf(totalPages));
 
-        InteractiveItem nextButton = new InteractiveItem(nextItem, slot)
-                .onLeftClick(p -> {
-                    SoundManager.playItemSound(p, config, "items.next_page", SoundContext.SILENT);
-                    SoundManager.setShouldPlayCloseSound(p, false);
-                    p.openInventory(new RecipeListGUI(p, currentPage + 1, currentCategory).getInventory(SoundContext.SILENT));
-                });
-        inventory.setItem(nextButton.getSlot(), nextButton);
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem nextButton = new InteractiveItem(nextItem.clone(), slot)
+                        .onLeftClick(p -> {
+                            SoundManager.playItemSound(p, config, "items.next_page", SoundContext.SILENT);
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new RecipeListGUI(p, currentPage + 1, currentCategory).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(nextButton.getSlot(), nextButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem nextButton = new InteractiveItem(nextItem, slot)
+                    .onLeftClick(p -> {
+                        SoundManager.playItemSound(p, config, "items.next_page", SoundContext.SILENT);
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new RecipeListGUI(p, currentPage + 1, currentCategory).getInventory(SoundContext.SILENT));
+                    });
+            inventory.setItem(nextButton.getSlot(), nextButton);
+        }
     }
 
     private void setupCategoryFilter(Inventory inventory) {
         if (!config.contains("items.category_filter")) return;
 
-        int slot = config.getInt("items.category_filter.slot", 49);
+        String slotConfig = config.getString("items.category_filter.slot", "49");
         String categoryDisplayName = CraftingManager.getCategoryDisplayName(currentCategory);
         ItemStack filterItem = ItemManager.getItemConfigWithPlaceholders(player,
                 Objects.requireNonNull(config.getConfigurationSection("items.category_filter")),
                 "#current_category#", categoryDisplayName);
 
-        InteractiveItem filterButton = new InteractiveItem(filterItem, slot)
-                .onLeftClick(p -> cycleCategory(p));
-        inventory.setItem(filterButton.getSlot(), filterButton);
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem filterButton = new InteractiveItem(filterItem.clone(), slot)
+                        .onLeftClick(p -> cycleCategory(p));
+                inventory.setItem(filterButton.getSlot(), filterButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem filterButton = new InteractiveItem(filterItem, slot)
+                    .onLeftClick(p -> cycleCategory(p));
+            inventory.setItem(filterButton.getSlot(), filterButton);
+        }
     }
 
     private void cycleCategory(Player p) {
@@ -335,15 +381,28 @@ public class RecipeListGUI implements IGUI {
     }
 
     private void setupCloseButton(Inventory inventory) {
-        int slot = config.getInt("items.close.slot", 48);
-        InteractiveItem closeButton = new InteractiveItem(
-                ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close"))),
-                slot
-        ).onLeftClick(p -> {
-            SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
-            p.closeInventory();
-        });
-        inventory.setItem(closeButton.getSlot(), closeButton);
+        String slotConfig = config.getString("items.close.slot", "48");
+        ItemStack closeItem = ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.close")));
+
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem closeButton = new InteractiveItem(closeItem.clone(), slot)
+                        .onLeftClick(p -> {
+                            SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
+                            p.closeInventory();
+                        });
+                inventory.setItem(closeButton.getSlot(), closeButton);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem closeButton = new InteractiveItem(closeItem, slot)
+                    .onLeftClick(p -> {
+                        SoundManager.playItemSound(p, config, "items.close", SoundContext.INITIAL_OPEN);
+                        p.closeInventory();
+                    });
+            inventory.setItem(closeButton.getSlot(), closeButton);
+        }
     }
 
     private int calculateMaxCraftableByInventorySpace(Player player, Recipe recipe) {
