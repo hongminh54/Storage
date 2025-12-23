@@ -20,6 +20,7 @@ public class Recipe {
     private int resultCustomModelData;
     private boolean resultUnbreakable;
     private Set<ItemFlag> resultFlags;
+    private String resultItemNbt;
 
     private Map<String, Integer> materialRequirements;
     private String permissionRequirement;
@@ -37,6 +38,7 @@ public class Recipe {
         this.resultCustomModelData = 0;
         this.resultUnbreakable = false;
         this.resultFlags = new HashSet<>();
+        this.resultItemNbt = null;
         this.materialRequirements = new HashMap<>();
         this.permissionRequirement = null;
     }
@@ -61,6 +63,7 @@ public class Recipe {
             this.resultAmount = resultSection.getInt("amount", 1);
             this.resultCustomModelData = resultSection.getInt("custom_model_data", 0);
             this.resultUnbreakable = resultSection.getBoolean("unbreakable", false);
+            this.resultItemNbt = resultSection.getString("item_nbt", null);
 
             ConfigurationSection enchantSection = resultSection.getConfigurationSection("enchantments");
             if (enchantSection != null) {
@@ -113,6 +116,10 @@ public class Recipe {
         resultSection.set("amount", this.resultAmount);
         resultSection.set("custom_model_data", this.resultCustomModelData);
         resultSection.set("unbreakable", this.resultUnbreakable);
+
+        if (this.resultItemNbt != null && !this.resultItemNbt.trim().isEmpty()) {
+            resultSection.set("item_nbt", this.resultItemNbt);
+        }
 
         if (!this.resultEnchantments.isEmpty()) {
             ConfigurationSection enchantSection = resultSection.createSection("enchantments");
@@ -233,6 +240,14 @@ public class Recipe {
 
     public void setResultFlags(Set<ItemFlag> resultFlags) {
         this.resultFlags = resultFlags;
+    }
+
+    public String getResultItemNbt() {
+        return resultItemNbt;
+    }
+
+    public void setResultItemNbt(String resultItemNbt) {
+        this.resultItemNbt = resultItemNbt;
     }
 
     public Map<String, Integer> getMaterialRequirements() {

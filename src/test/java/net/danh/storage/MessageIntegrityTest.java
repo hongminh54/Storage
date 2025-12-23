@@ -3,7 +3,10 @@ package net.danh.storage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +52,9 @@ class MessageIntegrityTest {
             "sendColorizedMessageList\\s*\\([^,]+,\\s*\"([^\"]+)\"");
 
     private static Set<String> ymlKeys;
+    private static Map<String, YmlValueType> ymlKeyTypes;
     private static Map<String, List<KeyLocation>> codeKeys;
+    private static Map<String, Set<CodeKeyType>> codeKeyTypes;
 
     @BeforeAll
     static void setup() throws IOException {
@@ -58,7 +63,9 @@ class MessageIntegrityTest {
         assertTrue(Files.exists(MESSAGE_YML),
                 "message.yml not found: " + MESSAGE_YML.toAbsolutePath());
 
-        ymlKeys = loadYmlKeys();
+        ymlKeyTypes = loadYmlKeyTypes();
+        ymlKeys = new HashSet<>(ymlKeyTypes.keySet());
+        codeKeyTypes = new HashMap<>();
         codeKeys = scanSourceCode();
 
         assertFalse(ymlKeys.isEmpty(), "No keys found in message.yml - file may be empty or malformed");
@@ -76,6 +83,61 @@ class MessageIntegrityTest {
         }
 
         return keys;
+    }
+
+    private static Map<String, YmlValueType> loadYmlKeyTypes() throws IOException {
+        Map<String, YmlValueType> keyTypes = new HashMap<>();
+        Yaml yaml = createStrictYaml();
+
+        try (InputStream is = Files.newInputStream(MESSAGE_YML)) {
+            Object loaded = yaml.load(is);
+            if (loaded instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) loaded;
+                extractKeyTypes(data, "", keyTypes);
+            }
+        } catch (YAMLException e) {
+            fail(String.format(
+                    "\n\n========================================\n" +
+                            "MESSAGE.YML PARSE FAILED\n" +
+                            "========================================\n" +
+                            "Failed to parse src/main/resources/message.yml.\n" +
+                            "This can happen due to malformed YAML or duplicate keys.\n" +
+                            "\nError: %s\n" +
+                            "========================================\n" +
+                            "ACTION REQUIRED: Fix YAML syntax and remove duplicates.\n" +
+                            "========================================\n",
+                    e.getMessage()),
+                    e);
+        }
+
+        return keyTypes;
+    }
+
+    private static Yaml createStrictYaml() {
+        LoaderOptions options = new LoaderOptions();
+        options.setAllowDuplicateKeys(false);
+        return new Yaml(new SafeConstructor(options));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void extractKeyTypes(Map<String, Object> map, String prefix,
+                                        Map<String, YmlValueType> keyTypes) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String childKey = String.valueOf(entry.getKey());
+            String key = prefix.isEmpty() ? childKey : prefix + "." + childKey;
+            Object value = entry.getValue();
+
+            if (value instanceof Map) {
+                extractKeyTypes((Map<String, Object>) value, key, keyTypes);
+            } else if (value instanceof List) {
+                keyTypes.put(key, YmlValueType.LIST);
+            } else if (value instanceof String) {
+                keyTypes.put(key, YmlValueType.STRING);
+            } else {
+                keyTypes.put(key, YmlValueType.OTHER);
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -116,24 +178,22 @@ class MessageIntegrityTest {
 
         String keyPrefix = detectKeyPrefix(file, lines);
 
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            int lineNumber = i + 1;
+        String content = joinLines(lines);
+        List<Integer> lineStartOffsets = calculateLineStartOffsets(lines);
+        String commentFreeContent = stripCommentsPreserveLines(content);
 
-            // Skip comments
-            String trimmed = line.trim();
-            if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) {
-                continue;
-            }
-
-            // Apply all patterns
-            extractKeysFromLine(DIRECT_GET_STRING, line, relativePath, lineNumber, keys, "");
-            extractKeysFromLine(DIRECT_GET_STRING_LIST, line, relativePath, lineNumber, keys, "");
-            extractKeysFromLine(SEND_MESSAGE, line, relativePath, lineNumber, keys, keyPrefix);
-            extractKeysFromLine(SEND_MESSAGE_LIST, line, relativePath, lineNumber, keys, keyPrefix);
-            extractKeysFromLine(SEND_COLORIZED_MESSAGE, line, relativePath, lineNumber, keys, keyPrefix);
-            extractKeysFromLine(SEND_COLORIZED_MESSAGE_LIST, line, relativePath, lineNumber, keys, keyPrefix);
-        }
+        extractKeysFromContent(DIRECT_GET_STRING, commentFreeContent, relativePath,
+                lineStartOffsets, lines, keys, "", CodeKeyType.STRING);
+        extractKeysFromContent(DIRECT_GET_STRING_LIST, commentFreeContent, relativePath,
+                lineStartOffsets, lines, keys, "", CodeKeyType.LIST);
+        extractKeysFromContent(SEND_MESSAGE, commentFreeContent, relativePath,
+                lineStartOffsets, lines, keys, keyPrefix, CodeKeyType.STRING);
+        extractKeysFromContent(SEND_MESSAGE_LIST, commentFreeContent, relativePath,
+                lineStartOffsets, lines, keys, keyPrefix, CodeKeyType.LIST);
+        extractKeysFromContent(SEND_COLORIZED_MESSAGE, commentFreeContent, relativePath,
+                lineStartOffsets, lines, keys, keyPrefix, CodeKeyType.STRING);
+        extractKeysFromContent(SEND_COLORIZED_MESSAGE_LIST, commentFreeContent, relativePath,
+                lineStartOffsets, lines, keys, keyPrefix, CodeKeyType.LIST);
     }
 
     private static String detectKeyPrefix(Path file, List<String> lines) {
@@ -170,6 +230,234 @@ class MessageIntegrityTest {
             keys.computeIfAbsent(fullKey, k -> new ArrayList<>())
                     .add(new KeyLocation(filePath, lineNumber, line));
         }
+    }
+
+    private static void extractKeysFromContent(Pattern pattern, String content, String filePath,
+                                               List<Integer> lineStartOffsets,
+                                               List<String> lines,
+                                               Map<String, List<KeyLocation>> keys,
+                                               String keyPrefix,
+                                               CodeKeyType codeKeyType) {
+        Matcher matcher = pattern.matcher(content);
+        while (matcher.find()) {
+            if (isSendMethodPattern(pattern) &&
+                    isDisallowedQualifiedSendCall(content, matcher.start())) {
+                continue;
+            }
+
+            String key = matcher.group(1);
+
+            if (key == null || key.isEmpty() || key.contains("+") ||
+                    key.startsWith("$")) {
+                continue;
+            }
+
+            if (isFollowedByConcatenation(content, matcher.end())) {
+                continue;
+            }
+
+            String fullKey = keyPrefix.isEmpty() ? key : keyPrefix + key;
+            int lineNumber = findLineNumber(lineStartOffsets, matcher.start());
+            String lineContent = getLineSafely(lines, lineNumber);
+
+            keys.computeIfAbsent(fullKey, k -> new ArrayList<>())
+                    .add(new KeyLocation(filePath, lineNumber, lineContent));
+            codeKeyTypes.computeIfAbsent(fullKey, k -> new HashSet<>())
+                    .add(codeKeyType);
+        }
+    }
+
+    private static boolean isSendMethodPattern(Pattern pattern) {
+        return pattern == SEND_MESSAGE ||
+                pattern == SEND_MESSAGE_LIST ||
+                pattern == SEND_COLORIZED_MESSAGE ||
+                pattern == SEND_COLORIZED_MESSAGE_LIST;
+    }
+
+    private static boolean isDisallowedQualifiedSendCall(String content,
+                                                         int matchStart) {
+        int i = matchStart - 1;
+        while (i >= 0 && Character.isWhitespace(content.charAt(i))) {
+            i--;
+        }
+
+        if (i < 0 || content.charAt(i) != '.') {
+            return false;
+        }
+
+        i--;
+        while (i >= 0 && Character.isWhitespace(content.charAt(i))) {
+            i--;
+        }
+
+        int end = i;
+        while (i >= 0 &&
+                (Character.isJavaIdentifierPart(content.charAt(i)) ||
+                        content.charAt(i) == '$')) {
+            i--;
+        }
+
+        String identifier = content.substring(i + 1, end + 1);
+        return !"this".equals(identifier) && !"super".equals(identifier);
+    }
+
+    private static String joinLines(List<String> lines) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < lines.size(); i++) {
+            if (i > 0) {
+                builder.append('\n');
+            }
+            builder.append(lines.get(i));
+        }
+        return builder.toString();
+    }
+
+    private static List<Integer> calculateLineStartOffsets(List<String> lines) {
+        List<Integer> offsets = new ArrayList<>(lines.size());
+        int offset = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            offsets.add(offset);
+            offset += lines.get(i).length();
+            if (i < lines.size() - 1) {
+                offset += 1;
+            }
+        }
+        return offsets;
+    }
+
+    private static int findLineNumber(List<Integer> lineStartOffsets, int index) {
+        int low = 0;
+        int high = lineStartOffsets.size() - 1;
+        int result = 0;
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            int start = lineStartOffsets.get(mid);
+            if (start <= index) {
+                result = mid;
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return result + 1;
+    }
+
+    private static String getLineSafely(List<String> lines, int lineNumber) {
+        if (lines.isEmpty()) {
+            return "";
+        }
+        int index = Math.max(0, Math.min(lines.size() - 1, lineNumber - 1));
+        return lines.get(index);
+    }
+
+    private static boolean isFollowedByConcatenation(String content, int matchEnd) {
+        int i = matchEnd;
+        while (i < content.length()) {
+            char c = content.charAt(i);
+            if (Character.isWhitespace(c)) {
+                i++;
+                continue;
+            }
+            return c == '+';
+        }
+        return false;
+    }
+
+    private static String stripCommentsPreserveLines(String source) {
+        StringBuilder result = new StringBuilder(source.length());
+
+        boolean inString = false;
+        boolean inChar = false;
+        boolean escaped = false;
+        boolean inLineComment = false;
+        boolean inBlockComment = false;
+
+        for (int i = 0; i < source.length(); i++) {
+            char c = source.charAt(i);
+            char next = i + 1 < source.length() ? source.charAt(i + 1) : '\0';
+
+            if (inLineComment) {
+                if (c == '\n') {
+                    inLineComment = false;
+                    result.append(c);
+                } else {
+                    result.append(' ');
+                }
+                continue;
+            }
+
+            if (inBlockComment) {
+                if (c == '*' && next == '/') {
+                    result.append(' ');
+                    result.append(' ');
+                    i++;
+                    inBlockComment = false;
+                } else if (c == '\n') {
+                    result.append('\n');
+                } else {
+                    result.append(' ');
+                }
+                continue;
+            }
+
+            if (inString) {
+                result.append(c);
+                if (escaped) {
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                } else if (c == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (inChar) {
+                result.append(c);
+                if (escaped) {
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                } else if (c == '\'') {
+                    inChar = false;
+                }
+                continue;
+            }
+
+            if (c == '/' && next == '/') {
+                result.append(' ');
+                result.append(' ');
+                i++;
+                inLineComment = true;
+                continue;
+            }
+
+            if (c == '/' && next == '*') {
+                result.append(' ');
+                result.append(' ');
+                i++;
+                inBlockComment = true;
+                continue;
+            }
+
+            if (c == '"') {
+                inString = true;
+                result.append(c);
+                continue;
+            }
+
+            if (c == '\'') {
+                inChar = true;
+                result.append(c);
+                continue;
+            }
+
+            result.append(c);
+        }
+
+        return result.toString();
     }
 
     private static boolean isDynamicKey(String key) {
@@ -234,6 +522,87 @@ class MessageIntegrityTest {
                             "ACTION REQUIRED: Add the missing keys to src/main/resources/message.yml\n" +
                             "========================================",
                     missingKeys.size(), report));
+        }
+    }
+
+    @Test
+    @DisplayName("Message key usage types (String vs List) must match message.yml")
+    void testKeyTypeConsistency() {
+        List<String> invalidKeys = new ArrayList<>();
+        StringBuilder report = new StringBuilder();
+
+        for (Map.Entry<String, Set<CodeKeyType>> entry : codeKeyTypes.entrySet()) {
+            String key = entry.getKey();
+            Set<CodeKeyType> usageTypes = entry.getValue();
+
+            if (isDynamicKey(key)) {
+                continue;
+            }
+
+            if (usageTypes == null || usageTypes.isEmpty()) {
+                continue;
+            }
+
+            YmlValueType ymlType = ymlKeyTypes.get(key);
+            if (ymlType == null) {
+                continue;
+            }
+
+            if (usageTypes.size() > 1) {
+                invalidKeys.add(key);
+                report.append("\n\nINCONSISTENT CODE USAGE: \"")
+                        .append(key)
+                        .append("\" used as ")
+                        .append(usageTypes)
+                        .append("\n");
+                appendLocations(report, key);
+                continue;
+            }
+
+            CodeKeyType codeType = usageTypes.iterator().next();
+            boolean matches = (codeType == CodeKeyType.STRING &&
+                    ymlType == YmlValueType.STRING) ||
+                    (codeType == CodeKeyType.LIST && ymlType == YmlValueType.LIST);
+
+            if (!matches) {
+                invalidKeys.add(key);
+                report.append("\n\nTYPE MISMATCH: \"")
+                        .append(key)
+                        .append("\"\n")
+                        .append("   Used in code as: ")
+                        .append(codeType)
+                        .append("\n")
+                        .append("   Defined in message.yml as: ")
+                        .append(ymlType)
+                        .append("\n");
+                appendLocations(report, key);
+            }
+        }
+
+        if (!invalidKeys.isEmpty()) {
+            fail(String.format(
+                    "\n\n========================================\n" +
+                            "MESSAGE KEY TYPE CONSISTENCY FAILED\n" +
+                            "========================================\n" +
+                            "Found %d key(s) with type mismatches between code and message.yml!\n" +
+                            "Keys used with getString/sendMessage must map to a String in YAML.\n" +
+                            "Keys used with getStringList/sendMessageList must map to a List in YAML.\n" +
+                            "%s\n" +
+                            "========================================\n" +
+                            "ACTION REQUIRED: Fix key usage in code OR fix value type in message.yml\n" +
+                            "========================================",
+                    invalidKeys.size(), report));
+        }
+    }
+
+    private static void appendLocations(StringBuilder report, String key) {
+        List<KeyLocation> locations = codeKeys.get(key);
+        if (locations == null || locations.isEmpty()) {
+            return;
+        }
+        report.append("   Locations:\n");
+        for (KeyLocation loc : locations) {
+            report.append("   • ").append(loc).append("\n");
         }
     }
 
@@ -329,5 +698,16 @@ class MessageIntegrityTest {
             return String.format("%s:%d -> %s", filePath, lineNumber,
                     lineContent.length() > 80 ? lineContent.substring(0, 77) + "..." : lineContent);
         }
+    }
+
+    private enum YmlValueType {
+        STRING,
+        LIST,
+        OTHER
+    }
+
+    private enum CodeKeyType {
+        STRING,
+        LIST
     }
 }

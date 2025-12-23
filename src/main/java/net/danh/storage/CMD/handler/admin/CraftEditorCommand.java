@@ -1,5 +1,7 @@
 package net.danh.storage.CMD.handler.admin;
 
+import com.cryptomorin.xseries.XEnchantment;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.GUI.RecipeEditorGUI;
 import net.danh.storage.GUI.RecipeEditorListGUI;
@@ -54,40 +56,69 @@ public class CraftEditorCommand extends BaseCommand {
             String recipeId = CraftingManager.generateUniqueId();
             Recipe recipe = new Recipe(recipeId);
 
+            try {
+                ItemStack itemToStore = heldItem.clone();
+                itemToStore.setAmount(1);
+                NBTItem nbtItem = new NBTItem(itemToStore);
+                recipe.setResultItemNbt(nbtItem.toString());
+            } catch (Exception ignored) {
+            }
+
             recipe.setResultMaterial(MineManager.normalizeMaterial(heldItem.getType().name()));
-            recipe.setResultAmount(heldItem.getAmount());
+            recipe.setResultAmount(Math.max(1, Math.min(64, heldItem.getAmount())));
             recipe.setCategory("imported");
 
             if (heldItem.hasItemMeta()) {
                 ItemMeta meta = heldItem.getItemMeta();
 
+                String recipeName = "&eImported " + heldItem.getType().name();
+                if (meta != null && meta.hasDisplayName()) {
+                    recipeName = meta.getDisplayName();
+                }
+                recipe.setName(recipeName);
+
                 // Import display name
-                if (meta.hasDisplayName()) {
+                if (meta != null && meta.hasDisplayName()) {
                     recipe.setResultName(meta.getDisplayName());
                 } else {
                     recipe.setResultName("&eImported Item");
                 }
 
                 // Import lore
-                if (meta.hasLore()) {
+                if (meta != null && meta.hasLore()) {
                     recipe.setResultLore(meta.getLore());
                 }
 
                 // Import enchantments
-                if (meta.hasEnchants()) {
+                if (meta != null && meta.hasEnchants()) {
                     Map<String, Integer> enchants = new HashMap<>();
                     for (Map.Entry<org.bukkit.enchantments.Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
-                        enchants.put(entry.getKey().getName().toUpperCase(), entry.getValue());
+                        String key = null;
+                        try {
+                            XEnchantment xEnchantment = XEnchantment.matchXEnchantment(entry.getKey());
+                            if (xEnchantment != null) {
+                                key = xEnchantment.name();
+                            }
+                        } catch (Exception ignored) {
+                        }
+
+                        if (key == null) {
+                            key = entry.getKey().getName().toUpperCase();
+                        }
+
+                        enchants.put(key, entry.getValue());
                     }
                     recipe.setResultEnchantments(enchants);
                 }
 
                 // Import item flags
-                recipe.setResultFlags(meta.getItemFlags());
+                if (meta != null) {
+                    recipe.setResultFlags(meta.getItemFlags());
+                }
 
                 // Import custom model data (1.14+)
                 try {
-                    if (meta.hasCustomModelData()) {
+                    if (meta != null && meta.hasCustomModelData()) {
                         recipe.setResultCustomModelData(meta.getCustomModelData());
                     }
                 } catch (NoSuchMethodError ignored) {
@@ -95,9 +126,13 @@ public class CraftEditorCommand extends BaseCommand {
 
                 // Import unbreakable (1.11+)
                 try {
-                    recipe.setResultUnbreakable(meta.isUnbreakable());
+                    if (meta != null) {
+                        recipe.setResultUnbreakable(meta.isUnbreakable());
+                    }
                 } catch (NoSuchMethodError ignored) {
                 }
+            } else {
+                recipe.setName("&eImported " + heldItem.getType().name());
             }
 
             CraftingManager.addRecipe(recipe);

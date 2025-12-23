@@ -2,6 +2,8 @@ package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import de.tr7zw.changeme.nbtapi.NBTContainer;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.API.events.RecipeCraftEvent;
 import net.danh.storage.API.events.RecipeCreateEvent;
 import net.danh.storage.Listeners.ChatListener;
@@ -218,6 +220,11 @@ public class CraftingManager {
     public static ItemStack createResultItem(Recipe recipe) {
         if (recipe == null) return null;
 
+        ItemStack nbtItem = createResultItemFromNbt(recipe);
+        if (nbtItem != null) {
+            return nbtItem;
+        }
+
         Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(recipe.getResultMaterial());
         if (!xMaterial.isPresent()) return null;
 
@@ -267,6 +274,32 @@ public class CraftingManager {
         }
 
         return item;
+    }
+
+    private static ItemStack createResultItemFromNbt(Recipe recipe) {
+        String itemNbt = recipe.getResultItemNbt();
+        if (itemNbt == null || itemNbt.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            NBTContainer container = new NBTContainer(itemNbt);
+            ItemStack item = NBTItem.convertNBTtoItem(container);
+            if (item == null || item.getType() == Material.AIR) {
+                return null;
+            }
+
+            int amount = recipe.getResultAmount();
+            if (amount < 1) {
+                amount = 1;
+            } else if (amount > 64) {
+                amount = 64;
+            }
+            item.setAmount(amount);
+            return item;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static void addRecipe(Recipe recipe) {
