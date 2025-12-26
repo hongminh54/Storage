@@ -39,7 +39,9 @@ public class MythicTransferMultiGUI implements IGUI {
         this.reservedSlots = new HashSet<>();
 
         FileConfiguration guiConfig = getMythicTransferMultiConfig();
-        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Multi Transfer MythicMobs to #player#").replace("#player#", targetPlayer));
+        String title = ChatUtils.colorizewp(player, guiConfig.getString(
+                "title", "&0Multi Transfer MythicMobs to #player#")
+                .replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
         this.inventory = Bukkit.createInventory(this, size, title);

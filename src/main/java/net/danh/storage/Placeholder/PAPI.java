@@ -14,6 +14,8 @@ import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.GUI.MythicStorageGUI;
+import net.danh.storage.GUI.PersonalStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -51,6 +53,10 @@ public class PAPI extends PlaceholderExpansion {
     @Override
     public @Nullable String onPlaceholderRequest(Player p, @NotNull String args) {
         if (p == null) return null;
+
+        if (args.startsWith("page_")) {
+            return handlePagePlaceholders(p, args.substring(5));
+        }
 
         // Storage percentage
         if (args.equalsIgnoreCase("percentage")) {
@@ -126,6 +132,63 @@ public class PAPI extends PlaceholderExpansion {
         }
 
         return null;
+    }
+
+    private String handlePagePlaceholders(Player p, String placeholder) {
+        if (placeholder.equalsIgnoreCase("storage_current")) {
+            return String.valueOf(PersonalStorage.getPlayerCurrentPage(p) + 1);
+        }
+
+        if (placeholder.equalsIgnoreCase("storage_total")) {
+            return String.valueOf(getStorageTotalPages());
+        }
+
+        if (placeholder.equalsIgnoreCase("mythic_current")) {
+            return String.valueOf(MythicStorageGUI.getPlayerCurrentPage(p) + 1);
+        }
+
+        if (placeholder.equalsIgnoreCase("mythic_total")) {
+            return String.valueOf(getMythicTotalPages());
+        }
+
+        return null;
+    }
+
+    private int getStorageTotalPages() {
+        try {
+            String slotConfig = File.getGUIStorage().getString("items.storage_item.slot");
+            if (slotConfig == null || slotConfig.trim().isEmpty()) {
+                return 1;
+            }
+            int itemsPerPage = slotConfig.replace(" ", "").split(",").length;
+            if (itemsPerPage <= 0) {
+                return 1;
+            }
+            int totalItems = MineManager.getOrderedPluginBlocks().size();
+            return Math.max(1, (int) Math.ceil((double) totalItems
+                    / (double) itemsPerPage));
+        } catch (Exception ignored) {
+            return 1;
+        }
+    }
+
+    private int getMythicTotalPages() {
+        try {
+            String slotConfig = File.getMythicStorageGUIConfig()
+                    .getString("items.mythic_item.slot");
+            if (slotConfig == null || slotConfig.trim().isEmpty()) {
+                return 1;
+            }
+            int itemsPerPage = slotConfig.replace(" ", "").split(",").length;
+            if (itemsPerPage <= 0) {
+                return 1;
+            }
+            int totalItems = MythicStorageManager.getConfiguredDrops().size();
+            return Math.max(1, (int) Math.ceil((double) totalItems
+                    / (double) itemsPerPage));
+        } catch (Exception ignored) {
+            return 1;
+        }
     }
 
     private String handleEventPlaceholders(Player p, String args) {

@@ -59,7 +59,8 @@ public class StorageGUIAPI {
         int rows = Math.min(6, (materials.size() + 8) / 9);
         if (rows == 0) rows = 1;
 
-        Inventory inv = Bukkit.createInventory(null, rows * 9, ChatUtils.colorize(title));
+        Inventory inv = Bukkit.createInventory(null, rows * 9,
+                ChatUtils.colorizewp(viewer, title));
 
         int slot = 0;
         for (Map.Entry<String, Integer> entry : materials.entrySet()) {

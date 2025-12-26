@@ -69,8 +69,8 @@ public class ViewStorageGUI implements IGUI {
         SoundManager.playItemSound(viewer, config, "gui_open_sound", context);
 
         // Create inventory with target player's name
-        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title"))
-                .replace("#player#", targetName));
+        String title = ChatUtils.colorizewp(viewer, Objects.requireNonNull(
+                config.getString("title")).replace("#player#", targetName));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 

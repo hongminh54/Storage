@@ -2,6 +2,7 @@ package net.danh.storage.Utils;
 
 import net.danh.storage.NMS.NMSAssistant;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
@@ -29,8 +30,22 @@ public class ChatUtils {
         return translateColors(replacePlaceholders(message));
     }
 
+    public static @NotNull String colorize(@NotNull Player player, String message) {
+        String result = PlaceholderUtils.setPlaceholders(player, message);
+        return translateColors(replacePlaceholders(result));
+    }
+
+    public static @NotNull String colorizewp(@NotNull Player player, String message) {
+        String result = PlaceholderUtils.setPlaceholders(player, message);
+        return translateColors(replacePlaceholders(result));
+    }
+
     public static List<String> colorize(String... message) {
         return Arrays.stream(message).map(ChatUtils::colorize).collect(Collectors.toList());
+    }
+
+    public static List<String> colorize(@NotNull Player player, String... message) {
+        return Arrays.stream(message).map(msg -> colorize(player, msg)).collect(Collectors.toList());
     }
 
     public static List<String> colorize(@NotNull List<String> message) {

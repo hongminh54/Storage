@@ -47,8 +47,9 @@ public class MaterialEditorGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
-        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title"))
-                .replace("#recipe_name#", recipe.getName()));
+        String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
+                config.getString("title")).replace("#recipe_name#",
+                recipe.getName()));
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
         setupItems(inventory);

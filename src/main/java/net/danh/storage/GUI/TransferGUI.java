@@ -37,8 +37,9 @@ public class TransferGUI implements IGUI {
         this.transferAmount = 1;
 
         FileConfiguration guiConfig = getTransferConfig();
-        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Transfer to #player#")
-                .replace("#player#", targetPlayer));
+        String title = ChatUtils.colorizewp(player, guiConfig.getString(
+                "title", "&0Transfer to #player#").replace("#player#",
+                targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
         this.inventory = Bukkit.createInventory(this, size, title);

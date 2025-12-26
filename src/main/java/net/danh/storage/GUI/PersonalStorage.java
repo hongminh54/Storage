@@ -51,7 +51,9 @@ public class PersonalStorage implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(p, config, "gui_open_sound", context);
-        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName())));
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9,
+                ChatUtils.colorizewp(p, Objects.requireNonNull(config.getString("title"))
+                        .replace("#player#", p.getName())));
         List<String> item_list = new ArrayList<>(MineManager.getOrderedPluginBlocks());
         int itemsPerPage = Objects.requireNonNull(config.getString("items.storage_item.slot")).split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) item_list.size() / itemsPerPage));

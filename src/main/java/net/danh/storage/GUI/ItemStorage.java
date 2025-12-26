@@ -48,7 +48,12 @@ public class ItemStorage implements IGUI {
     @Override
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(p, config, "gui_open_sound", context);
-        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title")).replace("#player#", p.getName()).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material, material.split(";")[0])))));
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9,
+                ChatUtils.colorizewp(p, Objects.requireNonNull(config.getString("title"))
+                        .replace("#player#", p.getName())
+                        .replace("#material#", Objects.requireNonNull(File.getConfig()
+                                .getString("items." + material,
+                                        material.split(";")[0])))));
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
             if (slot.contains(",")) {

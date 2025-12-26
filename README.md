@@ -146,6 +146,14 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 | `%storage_price_<MATERIAL>%` | Show material's sell price | `%storage_price_COAL;0%` |
 | `%storage_status%` | Show auto-pickup status (On/Off) | `On` |
 
+#### GUI Page Placeholders
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storage_page_storage_current%` | Current page in Storage GUI (starts at 1) | `1` |
+| `%storage_page_storage_total%` | Total pages in Storage GUI | `5` |
+| `%storage_page_mythic_current%` | Current page in MythicStorage GUI (starts at 1) | `1` |
+| `%storage_page_mythic_total%` | Total pages in MythicStorage GUI | `3` |
+
 #### Storage Statistics
 | Placeholder | Description | Example |
 |-------------|-------------|---------|

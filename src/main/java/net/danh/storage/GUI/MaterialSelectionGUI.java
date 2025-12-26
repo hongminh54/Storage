@@ -54,8 +54,9 @@ public class MaterialSelectionGUI implements IGUI {
     public Inventory getInventory(SoundContext context) {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
-        String title = ChatUtils.colorizewp(Objects.requireNonNull(config.getString("title"))
-                .replace("#category_name#", "Available Materials")
+        String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
+                config.getString("title")).replace("#category_name#",
+                        "Available Materials")
                 .replace("#player#", player.getName()));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);

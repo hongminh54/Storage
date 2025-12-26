@@ -39,7 +39,8 @@ public class TransferMultiGUI implements IGUI {
         this.reservedSlots = new HashSet<>();
 
         FileConfiguration guiConfig = getTransferMultiConfig();
-        String title = ChatUtils.colorizewp(guiConfig.getString("title", "&0Multi Transfer to #player#")
+        String title = ChatUtils.colorizewp(player, guiConfig.getString(
+                "title", "&0Multi Transfer to #player#")
                 .replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 
