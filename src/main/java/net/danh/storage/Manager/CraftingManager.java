@@ -21,7 +21,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.io.BukkitObjectInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -220,13 +222,36 @@ public class CraftingManager {
     public static ItemStack createResultItem(Recipe recipe) {
         if (recipe == null) return null;
 
+        ItemStack base64Item = createResultItemFromBase64(recipe);
+        if (base64Item != null) {
+            return base64Item;
+        }
+
         ItemStack nbtItem = createResultItemFromNbt(recipe);
         if (nbtItem != null) {
             return nbtItem;
         }
 
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(recipe.getResultMaterial());
+        String materialKey = recipe.getResultMaterial();
+        String cleanedMaterialKey = materialKey;
+        if (cleanedMaterialKey != null) {
+            cleanedMaterialKey = cleanedMaterialKey.trim();
+            if (cleanedMaterialKey.contains(";")) {
+                cleanedMaterialKey = cleanedMaterialKey.split(";", 2)[0];
+            }
+            if (cleanedMaterialKey.contains(":")) {
+                cleanedMaterialKey = cleanedMaterialKey.split(":", 2)[0];
+            }
+        }
+
+        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(cleanedMaterialKey);
         if (!xMaterial.isPresent()) return null;
+
+        if (materialKey != null && cleanedMaterialKey != null
+                && !materialKey.equals(cleanedMaterialKey)
+                && xMaterial.get().name().equalsIgnoreCase(cleanedMaterialKey)) {
+            recipe.setResultMaterial(xMaterial.get().name());
+        }
 
         ItemStack item = xMaterial.get().parseItem();
         if (item == null) return null;
@@ -276,6 +301,38 @@ public class CraftingManager {
         return item;
     }
 
+    private static ItemStack createResultItemFromBase64(Recipe recipe) {
+        String encoded = recipe.getResultItemBase64();
+        if (encoded == null || encoded.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            byte[] data = Base64.getDecoder().decode(encoded);
+            try (BukkitObjectInputStream in = new BukkitObjectInputStream(new ByteArrayInputStream(data))) {
+                Object obj = in.readObject();
+                if (!(obj instanceof ItemStack)) {
+                    return null;
+                }
+                ItemStack item = ((ItemStack) obj).clone();
+                if (item.getType() == Material.AIR) {
+                    return null;
+                }
+
+                int amount = recipe.getResultAmount();
+                if (amount < 1) {
+                    amount = 1;
+                } else if (amount > 64) {
+                    amount = 64;
+                }
+                item.setAmount(amount);
+                return item;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static ItemStack createResultItemFromNbt(Recipe recipe) {
         String itemNbt = recipe.getResultItemNbt();
         if (itemNbt == null || itemNbt.trim().isEmpty()) {
@@ -287,6 +344,11 @@ public class CraftingManager {
             ItemStack item = NBTItem.convertNBTtoItem(container);
             if (item == null || item.getType() == Material.AIR) {
                 return null;
+            }
+
+            try {
+                item = new NBTItem(item).getItem();
+            } catch (Exception ignored) {
             }
 
             int amount = recipe.getResultAmount();
@@ -514,7 +576,8 @@ public class CraftingManager {
         if (recipe.getId() == null || recipe.getId().isEmpty()) return false;
         if (recipe.getResultMaterial() == null || recipe.getResultMaterial().isEmpty()) return false;
         if (recipe.getResultAmount() <= 0) return false;
-        return !recipe.getMaterialRequirements().isEmpty();
+        return recipe.getMaterialRequirements() != null
+                && !recipe.getMaterialRequirements().isEmpty();
     }
 
     public static Map<String, Integer> getTotalMaterialsNeeded(Recipe recipe, int amount) {
@@ -652,6 +715,13 @@ public class CraftingManager {
         recipes.put(recipe.getId(), recipe);
         String category = recipe.getCategory();
         recipesByCategory.computeIfAbsent(category, k -> new ArrayList<>()).add(recipe);
+    }
+
+    public static void stageRecipe(Recipe recipe) {
+        if (recipe == null || recipe.getId() == null || recipe.getId().isEmpty()) {
+            return;
+        }
+        addRecipeToMaps(recipe);
     }
 
     private static void removeRecipeFromCategory(Recipe recipe) {

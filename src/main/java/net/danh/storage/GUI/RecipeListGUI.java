@@ -55,7 +55,7 @@ public class RecipeListGUI implements IGUI {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
         String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
-                config.getString("title", "&6Crafting Menu"))
+                        config.getString("title", "&6Crafting Menu"))
                 .replace("#player#", player.getName()));
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size", 6) * 9, title);
 

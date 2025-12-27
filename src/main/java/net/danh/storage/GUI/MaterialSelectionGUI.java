@@ -55,7 +55,7 @@ public class MaterialSelectionGUI implements IGUI {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
         String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
-                config.getString("title")).replace("#category_name#",
+                        config.getString("title")).replace("#category_name#",
                         "Available Materials")
                 .replace("#player#", player.getName()));
 
@@ -170,7 +170,16 @@ public class MaterialSelectionGUI implements IGUI {
 
     private void selectMaterial(Player player, String materialName) {
         if (selectionType.equals("result")) {
-            recipe.setResultMaterial(materialName);
+            String resultMaterial = materialName;
+            if (resultMaterial != null) {
+                if (resultMaterial.contains(";")) {
+                    resultMaterial = resultMaterial.split(";", 2)[0];
+                }
+                if (resultMaterial.contains(":")) {
+                    resultMaterial = resultMaterial.split(":", 2)[0];
+                }
+            }
+            recipe.setResultMaterial(resultMaterial);
             player.sendMessage(ChatUtils.colorize(
                     File.getMessage().getString("crafting.edit_material_success")));
             CraftingManager.updateRecipe(recipe);

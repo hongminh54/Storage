@@ -39,7 +39,7 @@ public class MythicTransferGUI implements IGUI {
 
         FileConfiguration guiConfig = getTransferConfig();
         String title = ChatUtils.colorizewp(player, guiConfig.getString(
-                "title", "&0Transfer to #player#")
+                        "title", "&0Transfer to #player#")
                 .replace("#player#", targetPlayer));
         int size = guiConfig.getInt("size", 6) * 9;
 

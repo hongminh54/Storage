@@ -50,7 +50,7 @@ public class ConvertOptionGUI implements IGUI {
 
         String materialName = File.getConfig().getString("items." + material, material.split(";")[0]);
         String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
-                config.getString("option_title")).replace("#player#", player.getName())
+                        config.getString("option_title")).replace("#player#", player.getName())
                 .replace("#material#", materialName));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("option_size") * 9, title);

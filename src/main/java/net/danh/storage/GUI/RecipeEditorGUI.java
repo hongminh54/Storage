@@ -221,9 +221,20 @@ public class RecipeEditorGUI implements IGUI {
 
     private void addItemConfigurationPanel(Inventory inventory) {
         // Material editor - dynamically shows the recipe's material as icon
+        String rawMaterial = recipe.getResultMaterial();
+        String displayMaterial = rawMaterial;
+        if (displayMaterial != null) {
+            displayMaterial = displayMaterial.trim();
+            if (displayMaterial.contains(";")) {
+                displayMaterial = displayMaterial.split(";", 2)[0];
+            }
+            if (displayMaterial.contains(":")) {
+                displayMaterial = displayMaterial.split(":", 2)[0];
+            }
+        }
         ItemStack materialItem = createDynamicMaterialItem("items.edit_material",
-                recipe.getResultMaterial(),
-                "#current_material#", recipe.getResultMaterial());
+                displayMaterial,
+                "#current_material#", displayMaterial);
         if (materialItem != null) {
             setupInteractiveItem(inventory, "items.edit_material", 10, materialItem,
                     item -> item.onLeftClick(p -> editMaterial(p)));

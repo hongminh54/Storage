@@ -21,6 +21,7 @@ public class Recipe {
     private boolean resultUnbreakable;
     private Set<ItemFlag> resultFlags;
     private String resultItemNbt;
+    private String resultItemBase64;
 
     private Map<String, Integer> materialRequirements;
     private String permissionRequirement;
@@ -39,6 +40,7 @@ public class Recipe {
         this.resultUnbreakable = false;
         this.resultFlags = new HashSet<>();
         this.resultItemNbt = null;
+        this.resultItemBase64 = null;
         this.materialRequirements = new HashMap<>();
         this.permissionRequirement = null;
     }
@@ -64,6 +66,7 @@ public class Recipe {
             this.resultCustomModelData = resultSection.getInt("custom_model_data", 0);
             this.resultUnbreakable = resultSection.getBoolean("unbreakable", false);
             this.resultItemNbt = resultSection.getString("item_nbt", null);
+            this.resultItemBase64 = resultSection.getString("item_base64", null);
 
             ConfigurationSection enchantSection = resultSection.getConfigurationSection("enchantments");
             if (enchantSection != null) {
@@ -119,6 +122,10 @@ public class Recipe {
 
         if (this.resultItemNbt != null && !this.resultItemNbt.trim().isEmpty()) {
             resultSection.set("item_nbt", this.resultItemNbt);
+        }
+
+        if (this.resultItemBase64 != null && !this.resultItemBase64.trim().isEmpty()) {
+            resultSection.set("item_base64", this.resultItemBase64);
         }
 
         if (!this.resultEnchantments.isEmpty()) {
@@ -248,6 +255,14 @@ public class Recipe {
 
     public void setResultItemNbt(String resultItemNbt) {
         this.resultItemNbt = resultItemNbt;
+    }
+
+    public String getResultItemBase64() {
+        return resultItemBase64;
+    }
+
+    public void setResultItemBase64(String resultItemBase64) {
+        this.resultItemBase64 = resultItemBase64;
     }
 
     public Map<String, Integer> getMaterialRequirements() {

@@ -400,7 +400,16 @@ public class RecipeEditManager {
                         promptMaterialRetry(player, recipe);
                         return false;
                     }
-                    Optional<XMaterial> xMaterial = com.cryptomorin.xseries.XMaterial.matchXMaterial(input.toUpperCase());
+
+                    String materialKey = input.trim();
+                    if (materialKey.contains(";")) {
+                        materialKey = materialKey.split(";", 2)[0];
+                    }
+                    if (materialKey.contains(":")) {
+                        materialKey = materialKey.split(":", 2)[0];
+                    }
+
+                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialKey.toUpperCase());
                     if (!xMaterial.isPresent()) {
                         player.sendMessage(ChatUtils.colorize(
                                 File.getMessage().getString("crafting.edit_material_invalid")

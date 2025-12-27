@@ -16,14 +16,21 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.io.BukkitObjectOutputStream;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.ByteArrayOutputStream;
+import java.util.*;
 import java.util.logging.Level;
 
 public class CraftEditorCommand extends BaseCommand {
+
+    private String itemStackToBase64(ItemStack item) throws Exception {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
+            dataOutput.writeObject(item);
+        }
+        return Base64.getEncoder().encodeToString(outputStream.toByteArray());
+    }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
@@ -44,7 +51,12 @@ public class CraftEditorCommand extends BaseCommand {
     }
 
     private void handleImportCommand(Player player) {
-        ItemStack heldItem = player.getInventory().getItemInMainHand();
+        ItemStack heldItem;
+        try {
+            heldItem = player.getInventory().getItemInMainHand();
+        } catch (NoSuchMethodError ignored) {
+            heldItem = player.getItemInHand();
+        }
 
         if (heldItem == null || heldItem.getType() == Material.AIR) {
             sendMessage(player, "crafting.import_empty_hand");
@@ -56,17 +68,29 @@ public class CraftEditorCommand extends BaseCommand {
             String recipeId = CraftingManager.generateUniqueId();
             Recipe recipe = new Recipe(recipeId);
 
+            recipe.setResultMaterial(heldItem.getType().name());
+            recipe.setResultAmount(Math.max(1, Math.min(64, heldItem.getAmount())));
+            recipe.setCategory("imported");
+
             try {
                 ItemStack itemToStore = heldItem.clone();
                 itemToStore.setAmount(1);
-                NBTItem nbtItem = new NBTItem(itemToStore);
-                recipe.setResultItemNbt(nbtItem.toString());
+
+                try {
+                    recipe.setResultItemBase64(itemStackToBase64(itemToStore));
+                } catch (Exception ignored) {
+                }
+
+                String nbtString = createItemNbtString(itemToStore);
+                if (nbtString != null && !nbtString.trim().isEmpty()) {
+                    recipe.setResultItemNbt(nbtString);
+                }
             } catch (Exception ignored) {
             }
 
-            recipe.setResultMaterial(MineManager.normalizeMaterial(heldItem.getType().name()));
-            recipe.setResultAmount(Math.max(1, Math.min(64, heldItem.getAmount())));
-            recipe.setCategory("imported");
+            Map<String, Integer> requirements = new HashMap<>();
+            requirements.put(MineManager.normalizeMaterial(heldItem.getType().name()), 1);
+            recipe.setMaterialRequirements(requirements);
 
             if (heldItem.hasItemMeta()) {
                 ItemMeta meta = heldItem.getItemMeta();
@@ -135,7 +159,7 @@ public class CraftEditorCommand extends BaseCommand {
                 recipe.setName("&eImported " + heldItem.getType().name());
             }
 
-            CraftingManager.addRecipe(recipe);
+            CraftingManager.stageRecipe(recipe);
 
             sendMessage(player, "crafting.import_success", "#recipe#", recipe.getName());
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_SUCCESS);
@@ -147,6 +171,22 @@ public class CraftEditorCommand extends BaseCommand {
             sendMessage(player, "crafting.import_failed");
             SoundManager.playSound(player, SoundManager.SoundType.ACTION_ERROR);
             Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to import item as recipe", e);
+        }
+    }
+
+    private String createItemNbtString(ItemStack item) {
+        try {
+            Class<?> relocatedClass = Class.forName("net.danh.nbtapi.NBTItem");
+            Object nbtItem = relocatedClass.getConstructor(ItemStack.class).newInstance(item);
+            return String.valueOf(nbtItem);
+        } catch (Exception ignored) {
+        }
+
+        try {
+            NBTItem nbtItem = new NBTItem(item);
+            return nbtItem.toString();
+        } catch (Exception ignored) {
+            return null;
         }
     }
 
