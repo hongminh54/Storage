@@ -27,7 +27,6 @@ import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
 
 public class BlockBreak implements Listener {
 
@@ -35,6 +34,7 @@ public class BlockBreak implements Listener {
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
+        boolean breakable = MineManager.checkBreak(block);
         boolean inv_full = (p.getInventory().firstEmpty() == -1);
         if (Storage.isWorldGuardInstalled()) {
             if (!WorldGuard.handleForLocation(p, block.getLocation())) {
@@ -48,12 +48,12 @@ public class BlockBreak implements Listener {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
 
-        if (MineManager.getToggleStatus(p)) {
+        if (MineManager.getToggleStatus(p) && breakable) {
             if (inv_full) {
                 processInventoryItems(p);
             }
-            if (MineManager.checkBreak(block)) {
-                String drop = MineManager.getDrop(block);
+            String drop = MineManager.getDrop(block);
+            if (drop != null) {
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
                 Enchantment fortune = XEnchantment.FORTUNE.get();
@@ -76,16 +76,46 @@ public class BlockBreak implements Listener {
 
                 if (MineManager.addBlockAmount(p, drop, totalAmount)) {
                     EventManager.onPlayerMine(p, drop, amount);
-                    if (File.getConfig().getBoolean("mine.actionbar.enable")) {
+                    boolean actionBarEnabled = File.getConfig().getBoolean("mine.actionbar.enable");
+                    boolean titleEnabled = File.getConfig().getBoolean("mine.title.enable");
+                    if (actionBarEnabled || titleEnabled) {
                         String name = File.getConfig().getString("items." + drop);
+                        String itemName = name != null ? name : drop.replace("_", " ");
                         String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
-                        ActionBar.sendActionBar(Storage.getStorage(), p, ChatUtils.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.actionbar.action")).replace("#item#", name != null ? name : drop.replace("_", " ")).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
-                    }
-                    if (File.getConfig().getBoolean("mine.title.enable")) {
-                        String name = File.getConfig().getString("items." + drop);
-                        String replacement = name != null ? name : drop.replace("_", " ");
-                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
-                        Titles.sendTitle(p, ChatUtils.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.title")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))), ChatUtils.colorizewp(Objects.requireNonNull(File.getConfig().getString("mine.title.subtitle")).replace("#item#", replacement).replace("#amount#", displayAmount).replace("#storage#", String.valueOf(MineManager.getPlayerBlock(p, drop))).replace("#max#", String.valueOf(MineManager.getMaxBlock(p)))));
+                        int newStoredAmount = MineManager.getPlayerBlock(p, drop);
+                        int maxStorage = MineManager.getMaxBlock(p);
+                        String storageValue = String.valueOf(newStoredAmount);
+                        String maxValue = String.valueOf(maxStorage);
+
+                        if (actionBarEnabled) {
+                            String template = File.getConfig().getString("mine.actionbar.action");
+                            if (template != null) {
+                                String msg = template
+                                        .replace("#item#", itemName)
+                                        .replace("#amount#", displayAmount)
+                                        .replace("#storage#", storageValue)
+                                        .replace("#max#", maxValue);
+                                ActionBar.sendActionBar(Storage.getStorage(), p, ChatUtils.colorizewp(msg));
+                            }
+                        }
+                        if (titleEnabled) {
+                            String titleTemplate = File.getConfig().getString("mine.title.title");
+                            String subtitleTemplate = File.getConfig().getString("mine.title.subtitle");
+                            if (titleTemplate != null && subtitleTemplate != null) {
+                                String title = titleTemplate
+                                        .replace("#item#", itemName)
+                                        .replace("#amount#", displayAmount)
+                                        .replace("#storage#", storageValue)
+                                        .replace("#max#", maxValue);
+                                String subtitle = subtitleTemplate
+                                        .replace("#item#", itemName)
+                                        .replace("#amount#", displayAmount)
+                                        .replace("#storage#", storageValue)
+                                        .replace("#max#", maxValue);
+                                Titles.sendTitle(p, ChatUtils.colorizewp(title),
+                                        ChatUtils.colorizewp(subtitle));
+                            }
+                        }
                     }
 
                     if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
@@ -99,7 +129,7 @@ public class BlockBreak implements Listener {
         }
 
         // Trigger enchants regardless of autopickup status
-        if (MineManager.checkBreak(block)) {
+        if (breakable) {
             ItemStack hand = p.getInventory().getItemInMainHand();
             if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0) {
                 if (EnchantManager.hasEnchant(hand, "tnt")) {
@@ -120,7 +150,7 @@ public class BlockBreak implements Listener {
         }
 
         // Check for special material drops
-        if (MineManager.checkBreak(block)) {
+        if (breakable) {
             SpecialMaterialManager.checkSpecialMaterialDrop(p, block);
         }
     }
@@ -146,7 +176,7 @@ public class BlockBreak implements Listener {
 
         if (inventoryChanged) {
             inv.setContents(items);
-            if (new NMSAssistant().isVersionLessThan(9)) {
+            if (MineManager.isBefore9()) {
                 player.updateInventory();
             }
         }
@@ -174,7 +204,7 @@ public class BlockBreak implements Listener {
             }
         }
         inv.setContents(items);
-        if (new NMSAssistant().isVersionLessThan(9)) {
+        if (MineManager.isBefore9()) {
             player.updateInventory();
         }
     }

@@ -11,6 +11,7 @@ import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +22,11 @@ import java.util.*;
 
 public class MineManager {
 
+    private static final NMSAssistant NMS = new NMSAssistant();
+    private static final boolean IS_LEGACY = NMS.isVersionLessThanOrEqualTo(12);
+    private static final boolean IS_BEFORE_9 = NMS.isVersionLessThan(9);
+    private static final Map<Material, String> inventoryDropLookup =
+            new EnumMap<>(Material.class);
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -305,7 +311,7 @@ public class MineManager {
         if (blockType.equals("GLOWING_REDSTONE_ORE")) {
             blockType = "REDSTONE_ORE";
         }
-        return blocksdrop.get(blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0"));
+        return blocksdrop.get(blockType + ";" + (IS_LEGACY ? block.getData() : "0"));
     }
 
     public static void loadBlocks() {
@@ -315,27 +321,57 @@ public class MineManager {
         if (!blocksdata.isEmpty()) {
             blocksdata.clear();
         }
+        if (!inventoryDropLookup.isEmpty()) {
+            inventoryDropLookup.clear();
+        }
         for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
-            NMSAssistant nms = new NMSAssistant();
             if (item_drop != null) {
                 if (!item_drop.contains(";")) {
-                    addPluginBlocks(item_drop + ";0");
-                    blocksdrop.put(block_break, item_drop + ";0");
+                    String normalizedDrop = item_drop + ";0";
+                    addPluginBlocks(normalizedDrop);
+                    blocksdrop.put(block_break, normalizedDrop);
+                    addInventoryLookupEntry(normalizedDrop);
                 } else {
-                    if (nms.isVersionLessThanOrEqualTo(12)) {
+                    if (IS_LEGACY) {
                         String[] item_data = item_drop.split(";");
                         String item_material = item_data[0] + ";" + item_data[1];
                         addPluginBlocks(item_material);
                         blocksdrop.put(block_break, item_material);
+                        addInventoryLookupEntry(item_material);
                     } else {
                         String[] item_data = item_drop.split(";");
-                        addPluginBlocks(item_data[0] + ";0");
-                        blocksdrop.put(block_break, item_data[0] + ";0");
+                        String normalizedDrop = item_data[0] + ";0";
+                        addPluginBlocks(normalizedDrop);
+                        blocksdrop.put(block_break, normalizedDrop);
+                        addInventoryLookupEntry(normalizedDrop);
                     }
                 }
             }
         }
+    }
+
+    private static void addInventoryLookupEntry(String dropKey) {
+        if (dropKey == null || dropKey.isEmpty()) {
+            return;
+        }
+
+        String materialName = dropKey;
+        if (dropKey.contains(";")) {
+            materialName = dropKey.split(";", 2)[0];
+        }
+
+        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
+        if (!xMaterial.isPresent()) {
+            return;
+        }
+
+        Material material = xMaterial.get().parseMaterial();
+        if (material == null) {
+            return;
+        }
+
+        inventoryDropLookup.put(material, dropKey);
     }
 
     public static boolean checkBreak(@NotNull Block block) {
@@ -343,12 +379,8 @@ public class MineManager {
         if (blockType.equals("GLOWING_REDSTONE_ORE")) {
             blockType = "REDSTONE_ORE";
         }
-        if (File.getConfig().contains("blocks." + blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop")) {
-            return File.getConfig().getString("blocks." + blockType + ";" + (new NMSAssistant().isVersionLessThanOrEqualTo(12) ? block.getData() : "0") + ".drop") != null;
-        } else if (File.getConfig().contains("blocks." + blockType + ".drop")) {
-            return File.getConfig().getString("blocks." + blockType + ".drop") != null;
-        }
-        return false;
+        String dataKey = blockType + ";" + (IS_LEGACY ? block.getData() : "0");
+        return blocksdrop.containsKey(dataKey) || blocksdrop.containsKey(blockType);
     }
 
     public static String normalizeMaterial(String material) {
@@ -369,8 +401,7 @@ public class MineManager {
 
     public static String getMaterial(String material) {
         String material_data = material.replace(":", ";");
-        NMSAssistant nms = new NMSAssistant();
-        if (nms.isVersionGreaterThanOrEqualTo(13)) {
+        if (NMS.isVersionGreaterThanOrEqualTo(13)) {
             return material_data.split(";")[0] + ";0";
         } else {
             if (Number.getInteger(material_data.split(";")[1]) > 0) {
@@ -382,38 +413,14 @@ public class MineManager {
     }
 
     public static String getItemStackDrop(ItemStack item) {
-        for (String drops : getPluginBlocks()) {
-            if (drops != null) {
-                NMSAssistant nms = new NMSAssistant();
-                if (nms.isVersionLessThanOrEqualTo(12)) {
-                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops);
-                    if (xMaterial.isPresent()) {
-                        ItemStack itemStack = xMaterial.get().parseItem();
-                        if (itemStack != null && item.getType().equals(itemStack.getType())) {
-                            return drops;
-                        }
-                    }
-                }
-                if (drops.contains(";")) {
-                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops.split(";")[0]);
-                    if (xMaterial.isPresent()) {
-                        ItemStack itemStack = xMaterial.get().parseItem();
-                        if (itemStack != null && item.getType().equals(itemStack.getType())) {
-                            return drops;
-                        }
-                    }
-                } else {
-                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(drops);
-                    if (xMaterial.isPresent()) {
-                        ItemStack itemStack = xMaterial.get().parseItem();
-                        if (itemStack != null && item.getType().equals(itemStack.getType())) {
-                            return drops;
-                        }
-                    }
-                }
-            }
+        if (item == null) {
+            return null;
         }
-        return null;
+        return inventoryDropLookup.get(item.getType());
+    }
+
+    public static boolean isBefore9() {
+        return IS_BEFORE_9;
     }
 
     public static int getPlayerBlock(@NotNull String playerName, @NotNull String material) {

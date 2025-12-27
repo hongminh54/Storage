@@ -24,6 +24,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectInputStream;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,12 +38,18 @@ public class CraftingManager {
     private static final Map<String, List<Recipe>> recipesByCategory = new HashMap<>();
     private static final Map<String, CraftingTask> activeCrafting = new HashMap<>();
 
+    private static final String RECIPE_FOLDER_NAME = "recipes";
+
     public static void loadRecipes() {
         recipes.clear();
         recipesByCategory.clear();
 
         FileConfiguration config = File.getCraftingConfig();
         if (config == null) return;
+
+        migrateLegacyRecipesToFolder(config);
+
+        loadRecipesFromFolder();
 
         ConfigurationSection recipesSection = config.getConfigurationSection("recipes");
         if (recipesSection == null) return;
@@ -47,8 +58,10 @@ public class CraftingManager {
             try {
                 ConfigurationSection recipeSection = recipesSection.getConfigurationSection(recipeId);
                 if (recipeSection != null) {
-                    Recipe recipe = new Recipe(recipeId, recipeSection);
-                    addRecipeToMaps(recipe);
+                    if (!recipes.containsKey(recipeId)) {
+                        Recipe recipe = new Recipe(recipeId, recipeSection);
+                        addRecipeToMaps(recipe);
+                    }
                 }
             } catch (Exception e) {
                 Storage.getStorage().getLogger().warning("Error loading recipe '" + recipeId + "': " + e.getMessage());
@@ -57,18 +70,177 @@ public class CraftingManager {
     }
 
     public static void saveRecipes() {
-        FileConfiguration config = File.getCraftingConfig();
-        if (config == null) return;
-
-        config.set("recipes", null);
-
-        ConfigurationSection recipesSection = config.createSection("recipes");
         for (Recipe recipe : recipes.values()) {
-            ConfigurationSection recipeSection = recipesSection.createSection(recipe.getId());
-            recipe.saveToConfig(recipeSection);
+            saveRecipeToFile(recipe);
+        }
+    }
+
+    private static void migrateLegacyRecipesToFolder(FileConfiguration config) {
+        if (config == null || Storage.getStorage() == null) {
+            return;
         }
 
-        File.saveCraftingConfig();
+        ConfigurationSection recipesSection = config.getConfigurationSection("recipes");
+        if (recipesSection == null) {
+            return;
+        }
+
+        java.io.File folder = new java.io.File(
+                Storage.getStorage().getDataFolder(),
+                RECIPE_FOLDER_NAME
+        );
+        if (!folder.exists() && !folder.mkdirs()) {
+            return;
+        }
+
+        boolean shouldRemoveLegacySection = false;
+        for (String recipeId : recipesSection.getKeys(false)) {
+            try {
+                if (recipeId == null || recipeId.trim().isEmpty()) {
+                    continue;
+                }
+
+                java.io.File outFile = new java.io.File(folder, recipeId + ".yml");
+                if (outFile.exists()) {
+                    shouldRemoveLegacySection = true;
+                    continue;
+                }
+
+                ConfigurationSection recipeSection =
+                        recipesSection.getConfigurationSection(recipeId);
+                if (recipeSection == null) {
+                    continue;
+                }
+
+                org.bukkit.configuration.file.YamlConfiguration yaml =
+                        new org.bukkit.configuration.file.YamlConfiguration();
+                ConfigurationSection outSection = yaml.createSection("recipe");
+
+                for (String key : recipeSection.getKeys(true)) {
+                    outSection.set(key, recipeSection.get(key));
+                }
+
+                yaml.save(outFile);
+                shouldRemoveLegacySection = true;
+            } catch (Exception e) {
+                Storage.getStorage().getLogger().warning(
+                        "Failed to migrate recipe '" + recipeId + "': "
+                                + e.getMessage()
+                );
+            }
+        }
+
+        if (shouldRemoveLegacySection) {
+            config.set("recipes", null);
+            File.saveCraftingConfig();
+        }
+    }
+
+    private static void loadRecipesFromFolder() {
+        if (Storage.getStorage() == null) {
+            return;
+        }
+
+        java.io.File folder = new java.io.File(
+                Storage.getStorage().getDataFolder(),
+                RECIPE_FOLDER_NAME
+        );
+        if (!folder.exists() && !folder.mkdirs()) {
+            return;
+        }
+
+        Path dir = folder.toPath();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.yml")) {
+            for (Path path : stream) {
+                try {
+                    String fileName = path.getFileName().toString();
+                    if (fileName.length() <= 4) {
+                        continue;
+                    }
+
+                    String recipeId = fileName.substring(0, fileName.length() - 4);
+                    if (recipeId.trim().isEmpty()) {
+                        continue;
+                    }
+
+                    org.bukkit.configuration.file.YamlConfiguration yaml =
+                            org.bukkit.configuration.file.YamlConfiguration
+                                    .loadConfiguration(path.toFile());
+
+                    ConfigurationSection section = yaml.getConfigurationSection("recipe");
+                    if (section == null) {
+                        section = yaml;
+                    }
+
+                    Recipe recipe = new Recipe(recipeId, section);
+                    addRecipeToMaps(recipe);
+                } catch (Exception e) {
+                    Storage.getStorage().getLogger().warning(
+                            "Error loading recipe file '" + path.getFileName()
+                                    + "': " + e.getMessage()
+                    );
+                }
+            }
+        } catch (IOException e) {
+            Storage.getStorage().getLogger().warning(
+                    "Error reading recipe folder: " + e.getMessage()
+            );
+        }
+    }
+
+    private static void saveRecipeToFile(Recipe recipe) {
+        if (recipe == null || Storage.getStorage() == null) {
+            return;
+        }
+
+        java.io.File folder = new java.io.File(
+                Storage.getStorage().getDataFolder(),
+                RECIPE_FOLDER_NAME
+        );
+        if (!folder.exists() && !folder.mkdirs()) {
+            return;
+        }
+
+        java.io.File outFile = new java.io.File(folder, recipe.getId() + ".yml");
+        org.bukkit.configuration.file.YamlConfiguration yaml =
+                new org.bukkit.configuration.file.YamlConfiguration();
+
+        ConfigurationSection section = yaml.createSection("recipe");
+        recipe.saveToConfig(section);
+
+        try {
+            yaml.save(outFile);
+        } catch (IOException e) {
+            Storage.getStorage().getLogger().warning(
+                    "Failed to save recipe file '" + outFile.getName() + "': "
+                            + e.getMessage()
+            );
+        }
+    }
+
+    private static void deleteRecipeFile(String recipeId) {
+        if (recipeId == null || recipeId.trim().isEmpty()
+                || Storage.getStorage() == null) {
+            return;
+        }
+
+        java.io.File folder = new java.io.File(
+                Storage.getStorage().getDataFolder(),
+                RECIPE_FOLDER_NAME
+        );
+        if (!folder.exists()) {
+            return;
+        }
+
+        Path path = Paths.get(folder.getPath(), recipeId + ".yml");
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            Storage.getStorage().getLogger().warning(
+                    "Failed to delete recipe file '" + recipeId + ".yml': "
+                            + e.getMessage()
+            );
+        }
     }
 
     public static Recipe getRecipe(String id) {
@@ -393,6 +565,7 @@ public class CraftingManager {
                 recipes.remove(id);
                 removeRecipeFromCategory(recipe);
                 saveRecipes();
+                deleteRecipeFile(id);
             }
         });
         return true;
