@@ -183,7 +183,10 @@ public class TNTEnchant {
                 String drop = MineManager.getDrop(block);
                 if (drop != null) {
                     int amount = calculateDropAmount(player, block, hand, fortune);
-                    int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
+                    int bonusAmount = 0;
+                    if (!isPlacedBlock(block)) {
+                        bonusAmount = EventManager.calculateDoubleDropBonus(amount);
+                    }
                     int totalAmount = amount + bonusAmount;
 
                     if (totalAmount > 0) {
@@ -312,10 +315,25 @@ public class TNTEnchant {
     }
 
     private static boolean isPlacedBlock(Block block) {
+        if (block == null) {
+            return false;
+        }
+
         List<MetadataValue> metaDataValues = block.getMetadata("PlacedBlock");
         for (MetadataValue value : metaDataValues) {
-            return value.asBoolean();
+            if (value != null && value.asBoolean()) {
+                return true;
+            }
         }
+
+        if (block.hasMetadata("placed")) {
+            for (MetadataValue value : block.getMetadata("placed")) {
+                if (value != null && value.asBoolean()) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 }

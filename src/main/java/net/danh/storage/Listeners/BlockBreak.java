@@ -41,8 +41,9 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
-        if (File.getConfig().getBoolean("prevent_rebreak")) {
-            if (isPlacedBlock(block)) return;
+        boolean placedBlock = isPlacedBlock(block);
+        if (File.getConfig().getBoolean("prevent_rebreak") && placedBlock) {
+            return;
         }
         if (File.getConfig().contains("blacklist_world")) {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
@@ -71,7 +72,10 @@ public class BlockBreak implements Listener {
                     amount = MultiplierEnchant.calculateMultipliedAmount(p, amount, multiplierLevel);
                 }
 
-                int bonusAmount = EventManager.calculateDoubleDropBonus(amount);
+                int bonusAmount = 0;
+                if (!placedBlock) {
+                    bonusAmount = EventManager.calculateDoubleDropBonus(amount);
+                }
                 int totalAmount = amount + bonusAmount;
 
                 if (MineManager.addBlockAmount(p, drop, totalAmount)) {
@@ -217,10 +221,25 @@ public class BlockBreak implements Listener {
     }
 
     public boolean isPlacedBlock(Block b) {
+        if (b == null) {
+            return false;
+        }
+
         List<MetadataValue> metaDataValues = b.getMetadata("PlacedBlock");
         for (MetadataValue value : metaDataValues) {
-            return value.asBoolean();
+            if (value != null && value.asBoolean()) {
+                return true;
+            }
         }
+
+        if (b.hasMetadata("placed")) {
+            for (MetadataValue value : b.getMetadata("placed")) {
+                if (value != null && value.asBoolean()) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
