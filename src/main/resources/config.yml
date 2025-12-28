@@ -43,6 +43,26 @@ settings:
     #Send notification to target player when their storage is reset by admin
     notify_target_player: true
 
+# Storage limit based on permissions
+# Players with permission storage.storage.<tier_name> will receive the configured max_storage
+# Priority system: higher number = higher priority (overrides lower priority)
+# If the player has multiple storage limit permissions, the highest priority will be used
+# If no storage limit permission is found, settings.default_max_storage will be used
+storage_permissions:
+  vip:
+    max_storage: 10000
+    priority: 1
+  premium:
+    max_storage: 50000
+    priority: 2
+  ultimate:
+    max_storage: 200000
+    priority: 3
+  # You can add more permissions here.
+  # abc:
+  #  max_storage: 5000
+  #  priority: 4
+
 #Auto save player data settings
 auto_save:
   #Enable auto save feature

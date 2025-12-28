@@ -7,7 +7,9 @@ import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -16,6 +18,10 @@ import java.util.List;
 
 public class MythicStorageManager {
 
+    private static final String STORAGE_LIMIT_PERMISSION_PREFIX =
+            "storage.mythicstorage.storage.";
+    private static final String STORAGE_LIMIT_PERMISSION_MAX_PREFIX =
+            "storage.mythicstorage.storage.max.";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
@@ -170,6 +176,78 @@ public class MythicStorageManager {
         return playermaxdata.getOrDefault(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
     }
 
+    public static int getPermissionMaxStorage(@NotNull Player player) {
+        int defaultMax = File.getMythicStorageConfig().getInt(
+                "settings.default_max_storage",
+                100000
+        );
+
+        if (player.isOp() || player.hasPermission("storage.admin")) {
+            return defaultMax;
+        }
+
+        int bestLimit = -1;
+        int bestPriority = Integer.MIN_VALUE;
+
+        // Numeric permission: storage.storage.max.<n>
+        for (PermissionAttachmentInfo pai :
+                player.getEffectivePermissions()) {
+            String perm = pai.getPermission();
+            if (perm == null || !pai.getValue()) {
+                continue;
+            }
+            if (!perm.startsWith(STORAGE_LIMIT_PERMISSION_MAX_PREFIX)) {
+                continue;
+            }
+
+            String numberPart = perm.substring(
+                    STORAGE_LIMIT_PERMISSION_MAX_PREFIX.length()
+            );
+            int value;
+            try {
+                value = Integer.parseInt(numberPart);
+            } catch (NumberFormatException ignored) {
+                continue;
+            }
+            if (value > bestLimit) {
+                bestLimit = value;
+            }
+        }
+
+        ConfigurationSection section =
+                File.getMythicStorageConfig().getConfigurationSection(
+                        "mythic_storage_permissions"
+                );
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                if (key == null || key.trim().isEmpty()) {
+                    continue;
+                }
+                String permission = STORAGE_LIMIT_PERMISSION_PREFIX + key;
+                if (!player.hasPermission(permission)) {
+                    continue;
+                }
+
+                int limit = section.getInt(key + ".max_storage", -1);
+                int priority = section.getInt(key + ".priority", 0);
+                if (limit < 0) {
+                    continue;
+                }
+                if (priority > bestPriority) {
+                    bestPriority = priority;
+                    bestLimit = limit;
+                }
+            }
+        }
+
+        return bestLimit >= 0 ? bestLimit : defaultMax;
+    }
+
+    public static void refreshPermissionMaxStorage(@NotNull Player player) {
+        int computed = getPermissionMaxStorage(player);
+        playermaxdata.put(player, Math.max(0, computed));
+    }
+
     public static boolean getToggleStatus(@NotNull Player player) {
         Boolean status = toggle.get(player);
         if (status == null) {
@@ -252,14 +330,14 @@ public class MythicStorageManager {
 
         PlayerData data = Storage.dataStorage.getData(player.getName());
         if (data == null) {
-            playermaxdata.put(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
+            refreshPermissionMaxStorage(player);
             toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
             return;
         }
 
         String dataString = data.getData();
         if (dataString == null || dataString.isEmpty()) {
-            playermaxdata.put(player, data.getMax());
+            refreshPermissionMaxStorage(player);
             toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
             return;
         }
@@ -296,7 +374,7 @@ public class MythicStorageManager {
             }
         }
 
-        playermaxdata.put(player, data.getMax());
+        refreshPermissionMaxStorage(player);
     }
 
     public static void savePlayerData(@NotNull Player player) {

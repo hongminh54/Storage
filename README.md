@@ -14,13 +14,14 @@
 - **PlaceholderAPI Support** - Rich placeholder system for other plugins
 - **Custom Enchant System** - Custom enchantments for tools with configurable effects, particles, and sounds
 - **Special Material System** - Rare materials with custom effects, particles, and sounds that drop from mining
+- **Folia Support** - The plugin can run on servers running Foila.
 - **Developer API** - Comprehensive API for external plugin integration
 
 > **Note**: This is a complete rework from v1. Please reset all configuration files when updating from v1 to v2.
 > 
 > **Reworked by**: hongminh54
 
-## MythicMobs Storage System (*New Feature)
+## MythicMobs Storage System
 
 A dedicated storage system for MythicMobs items that automatically stores drops from Mobs.
 
@@ -30,8 +31,6 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 - All command in `/mythicstorage`
 - Configure which MythicMobs items can be stored in `mythicstorage.yml`
 - Works with all MythicMobs versions (4.x, 5.x, and newer)
-### This feature is still a work in progress and will be completed in the next update: Inventory Storage
-
 
 ## Commands
 

@@ -105,6 +105,10 @@ public final class Storage extends JavaPlugin {
         // Initialize MythicStorage if MythicMobs is available
         initializeMythicStorage();
 
+        if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
+            LuckPermsListener.register(this);
+        }
+
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");

@@ -10,6 +10,7 @@ softdepend:
   - WorldGuard
   - PlaceholderAPI
   - MythicMobs
+  - LuckPerms
 commands:
   storage:
     description: Main command

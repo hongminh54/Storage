@@ -25,6 +25,25 @@ public class SpecialMaterialManager {
     private static final Map<String, SpecialMaterial> specialMaterials = new HashMap<>();
     private static boolean systemEnabled = false;
 
+    public static String getMaterialDisplayName(String materialId) {
+        SpecialMaterial material = specialMaterials.get(materialId);
+        if (material == null) {
+            return materialId;
+        }
+
+        ItemStack item = material.getItem();
+        if (item == null) {
+            return materialId;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) {
+            return materialId;
+        }
+
+        return meta.getDisplayName();
+    }
+
     public static void loadSpecialMaterials() {
         specialMaterials.clear();
 

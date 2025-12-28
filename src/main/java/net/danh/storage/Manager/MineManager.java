@@ -13,8 +13,10 @@ import net.danh.storage.Utils.Number;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +29,10 @@ public class MineManager {
     private static final boolean IS_BEFORE_9 = NMS.isVersionLessThan(9);
     private static final Map<Material, String> inventoryDropLookup =
             new EnumMap<>(Material.class);
+    private static final String STORAGE_LIMIT_PERMISSION_PREFIX =
+            "storage.storage.";
+    private static final String STORAGE_LIMIT_PERMISSION_MAX_PREFIX =
+            "storage.storage.max.";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -190,6 +196,80 @@ public class MineManager {
         return true;
     }
 
+    public static int getPermissionMaxStorage(@NotNull Player player) {
+        int defaultMax = File.getConfig().getInt(
+                "settings.default_max_storage",
+                100000
+        );
+
+        if (player.isOp() || player.hasPermission("storage.admin")) {
+            return defaultMax;
+        }
+
+        int bestLimit = -1;
+        int bestPriority = Integer.MIN_VALUE;
+
+        // Numeric permission: storage.storage.max.<n>
+        // Only applies to the user that has it (not op/admin).
+        for (PermissionAttachmentInfo pai :
+                player.getEffectivePermissions()) {
+            String perm = pai.getPermission();
+            if (perm == null || !pai.getValue()) {
+                continue;
+            }
+            if (!perm.startsWith(STORAGE_LIMIT_PERMISSION_MAX_PREFIX)) {
+                continue;
+            }
+
+            String numberPart = perm.substring(
+                    STORAGE_LIMIT_PERMISSION_MAX_PREFIX.length()
+            );
+            int value;
+            try {
+                value = Integer.parseInt(numberPart);
+            } catch (NumberFormatException ignored) {
+                continue;
+            }
+            if (value > bestLimit) {
+                bestLimit = value;
+            }
+        }
+
+        // Rank permission: storage.storage.<rank>
+        ConfigurationSection section =
+                File.getConfig().getConfigurationSection(
+                        "storage_permissions"
+                );
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                if (key == null || key.trim().isEmpty()) {
+                    continue;
+                }
+                String permission = STORAGE_LIMIT_PERMISSION_PREFIX + key;
+                if (!player.hasPermission(permission)) {
+                    continue;
+                }
+
+                int limit = section.getInt(key + ".max_storage", -1);
+                int priority = section.getInt(key + ".priority", 0);
+                if (limit < 0) {
+                    continue;
+                }
+                if (priority > bestPriority) {
+                    bestPriority = priority;
+                    bestLimit = limit;
+                }
+            }
+        }
+
+        return bestLimit >= 0 ? bestLimit : defaultMax;
+    }
+
+    public static void refreshPermissionMaxStorage(@NotNull Player player) {
+        int computed = getPermissionMaxStorage(player);
+        playermaxdata.put(player, Math.max(0, computed));
+    }
+
     public static boolean removeBlockAmount(Player p, String material, int amount) {
         return removeBlockAmount(p, material, amount, true);
     }
@@ -222,7 +302,9 @@ public class MineManager {
     public static void loadPlayerData(Player p) {
         PlayerData playerData = getPlayerDatabase(p);
         List<String> list = convertOnlineData(playerData.getData());
-        playermaxdata.put(p, playerData.getMax());
+        // Always refresh max storage based on current permissions.
+        // This ensures when permissions change, max is updated on next join/reload.
+        refreshPermissionMaxStorage(p);
         setBlock(p, list);
 
         if (!toggle.containsKey(p)) {

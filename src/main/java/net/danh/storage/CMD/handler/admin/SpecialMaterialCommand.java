@@ -104,12 +104,13 @@ public class SpecialMaterialCommand extends BaseCommand {
 
         // Give special material
         if (SpecialMaterialManager.giveSpecialMaterial(target, materialId, amount)) {
+            String materialDisplayName = SpecialMaterialManager.getMaterialDisplayName(materialId);
             String[] placeholders = {"#amount#", "#material#", "#player#"};
-            String[] replacements = {String.valueOf(amount), materialId, target.getName()};
+            String[] replacements = {String.valueOf(amount), materialDisplayName, target.getName()};
             sendMessage(sender, "special_material.give_success", placeholders, replacements);
 
             String[] targetPlaceholders = {"#amount#", "#material#", "#player#"};
-            String[] targetReplacements = {String.valueOf(amount), materialId, sender.getName()};
+            String[] targetReplacements = {String.valueOf(amount), materialDisplayName, sender.getName()};
             sendMessage(target, "special_material.give_received", targetPlaceholders, targetReplacements);
         } else {
             sendMessage(sender, "special_material.give_failed");
