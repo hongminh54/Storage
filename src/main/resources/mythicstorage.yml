@@ -8,6 +8,13 @@ blacklist_world:
 settings:
   enabled: true
   default_max_storage: 5000
+  #How to resolve max storage between database/commands and permissions.
+  # PERMISSION: Always use permission-based value.
+  # DATABASE: Always use database value (set by commands or external systems).
+  # MAX: Use the higher value between permission and database.
+  # MIN: Use the lower value between permission and database.
+  # Default: PERMISSION
+  max_storage_mode: PERMISSION
   default_auto_pickup: false
 
 # Storage limit based on permissions (MythicStorage)

@@ -30,6 +30,13 @@ prefix: "&7[&6Storage&7]"
 settings:
   #Default max storage for all item
   default_max_storage: 100000
+  #How to resolve max storage between database/commands and permissions.
+  # PERMISSION: Always use permission-based value.
+  # DATABASE: Always use database value (set by /storage max or external systems).
+  # MAX: Use the higher value between permission and database.
+  # MIN: Use the lower value between permission and database.
+  # Default: PERMISSION
+  max_storage_mode: MAX
   #Default auto pickup on first join
   default_auto_pickup: false
   #Storage full notification settings

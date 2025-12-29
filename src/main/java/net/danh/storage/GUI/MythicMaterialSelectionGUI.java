@@ -3,11 +3,7 @@ package net.danh.storage.GUI;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Manager.CraftingManager;
-import net.danh.storage.Manager.ItemManager;
-import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.MythicStorageManager;
-import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Manager.*;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.ChatUtils;
@@ -22,7 +18,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class MythicMaterialSelectionGUI implements IGUI {
 
@@ -54,7 +53,7 @@ public class MythicMaterialSelectionGUI implements IGUI {
         SoundManager.playItemSound(player, config, "gui_open_sound", context);
 
         String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
-                config.getString("title"))
+                        config.getString("title"))
                 .replace("#player#", player.getName()));
 
         Inventory inventory = Bukkit.createInventory(this,

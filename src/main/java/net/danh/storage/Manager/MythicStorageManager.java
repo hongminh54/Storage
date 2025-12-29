@@ -373,14 +373,16 @@ public class MythicStorageManager {
 
         PlayerData data = Storage.dataStorage.getData(player.getName());
         if (data == null) {
-            refreshPermissionMaxStorage(player);
+            int permissionMax = Math.max(0, getPermissionMaxStorage(player));
+            playermaxdata.put(player, permissionMax);
             toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
             return;
         }
 
         String dataString = data.getData();
         if (dataString == null || dataString.isEmpty()) {
-            refreshPermissionMaxStorage(player);
+            int permissionMax = Math.max(0, getPermissionMaxStorage(player));
+            playermaxdata.put(player, permissionMax);
             toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
             return;
         }
@@ -409,11 +411,6 @@ public class MythicStorageManager {
                         }
                     }
                 }
-            } else if (part.startsWith("mythictoggle:")) {
-                try {
-                    toggle.put(player, Boolean.parseBoolean(part.substring(13)));
-                } catch (Exception ignored) {
-                }
             } else if (part.startsWith("mythicautopickupoff:")) {
                 String disabledData = part.substring("mythicautopickupoff:"
                         .length());
@@ -435,7 +432,15 @@ public class MythicStorageManager {
             }
         }
 
-        refreshPermissionMaxStorage(player);
+        int databaseMax = Math.max(0, data.getMax());
+        int permissionMax = Math.max(0, getPermissionMaxStorage(player));
+        int resolvedMax = File.resolveMaxStorage(
+                File.getMythicStorageConfig(),
+                "settings.max_storage_mode",
+                databaseMax,
+                permissionMax
+        );
+        playermaxdata.put(player, Math.max(0, resolvedMax));
     }
 
     public static void savePlayerData(@NotNull Player player) {

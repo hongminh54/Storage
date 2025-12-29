@@ -3,12 +3,7 @@ package net.danh.storage.GUI;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Manager.CraftingManager;
-import net.danh.storage.Manager.ItemManager;
-import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.MythicStorageManager;
-import net.danh.storage.Manager.RecipeEditManager;
-import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Manager.*;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.ChatUtils;
@@ -264,14 +259,14 @@ public class MaterialEditorGUI implements IGUI {
     }
 
     private void applyMaterialMeta(ItemStack item, String displayName,
-                                    int amount) {
+                                   int amount) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return;
         }
 
         meta.setDisplayName(ChatUtils.colorizewp(config.getString(
-                "items.material_slot.name", "&e#material#")
+                        "items.material_slot.name", "&e#material#")
                 .replace("#material#", displayName)));
 
         List<String> lore = new ArrayList<>();

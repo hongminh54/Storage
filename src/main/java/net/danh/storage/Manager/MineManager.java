@@ -312,7 +312,6 @@ public class MineManager {
         int bestPriority = Integer.MIN_VALUE;
 
         // Numeric permission: storage.storage.max.<n>
-        // Only applies to the user that has it (not op/admin).
         for (PermissionAttachmentInfo pai :
                 player.getEffectivePermissions()) {
             String perm = pai.getPermission();
@@ -367,16 +366,13 @@ public class MineManager {
         return bestLimit >= 0 ? bestLimit : defaultMax;
     }
 
-    public static void refreshPermissionMaxStorage(@NotNull Player player) {
-        int computed = getPermissionMaxStorage(player);
-        playermaxdata.put(player, Math.max(0, computed));
-    }
-
-    public static boolean removeBlockAmount(Player p, String material, int amount) {
+    public static boolean removeBlockAmount(Player p, String material,
+                                            int amount) {
         return removeBlockAmount(p, material, amount, true);
     }
 
-    public static boolean removeBlockAmount(Player p, String material, int amount, boolean fireEvent) {
+    public static boolean removeBlockAmount(Player p, String material,
+                                            int amount, boolean fireEvent) {
         if (amount <= 0) return false;
 
         int oldData = getPlayerBlock(p, material);
@@ -385,15 +381,18 @@ public class MineManager {
         int amountToRemove = amount;
 
         if (fireEvent) {
-            if (!StorageHookAPI.callBeforeWithdraw(p, material, amountToRemove)) return false;
+            if (!StorageHookAPI.callBeforeWithdraw(p, material,
+                    amountToRemove)) return false;
 
-            StorageWithdrawEvent event = new StorageWithdrawEvent(p, material, amountToRemove);
+            StorageWithdrawEvent event = new StorageWithdrawEvent(p, material,
+                    amountToRemove);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) return false;
             amountToRemove = event.getAmount();
         }
 
-        playerdata.replace(p.getName() + "_" + material, Math.max(oldData - amountToRemove, 0));
+        playerdata.replace(p.getName() + "_" + material,
+                Math.max(oldData - amountToRemove, 0));
 
         if (fireEvent) {
             StorageHookAPI.callAfterWithdraw(p, material, amountToRemove);
@@ -404,9 +403,17 @@ public class MineManager {
     public static void loadPlayerData(Player p) {
         PlayerData playerData = getPlayerDatabase(p);
         List<String> list = convertOnlineData(playerData.getData());
-        // Always refresh max storage based on current permissions.
-        // This ensures when permissions change, max is updated on next join/reload.
-        refreshPermissionMaxStorage(p);
+
+        int databaseMax = Math.max(0, playerData.getMax());
+        int permissionMax = Math.max(0, getPermissionMaxStorage(p));
+        int resolvedMax = File.resolveMaxStorage(
+                File.getConfig(),
+                "settings.max_storage_mode",
+                databaseMax,
+                permissionMax
+        );
+        playermaxdata.put(p, Math.max(0, resolvedMax));
+
         setBlock(p, list);
 
         String rawData = playerData.getData();

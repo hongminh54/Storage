@@ -58,8 +58,8 @@ public class LuckPermsListener {
         }
 
         SchedulerUtil.runTask(plugin, () -> {
-            MineManager.refreshPermissionMaxStorage(player);
-            MythicStorageManager.refreshPermissionMaxStorage(player);
+            MineManager.loadPlayerData(player);
+            MythicStorageManager.loadPlayerData(player);
         });
     }
 }

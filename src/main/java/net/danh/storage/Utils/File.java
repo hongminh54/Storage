@@ -16,10 +16,40 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Level;
 
 public class File {
+
+    public static int resolveMaxStorage(
+            FileConfiguration config,
+            String modePath,
+            int databaseValue,
+            int permissionValue
+    ) {
+        if (config == null) {
+            return permissionValue;
+        }
+
+        String mode = config.getString(modePath, "PERMISSION");
+        if (mode == null) {
+            mode = "PERMISSION";
+        }
+        mode = mode.trim().toUpperCase(Locale.ROOT);
+
+        if ("DATABASE".equals(mode)) {
+            return databaseValue;
+        }
+        if ("MAX".equals(mode)) {
+            return Math.max(databaseValue, permissionValue);
+        }
+        if ("MIN".equals(mode)) {
+            return Math.min(databaseValue, permissionValue);
+        }
+
+        return permissionValue;
+    }
 
     public static SimpleConfigurationManager getFileSetting() {
         return SimpleConfigurationManager.get();
