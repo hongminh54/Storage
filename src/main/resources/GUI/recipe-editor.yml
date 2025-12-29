@@ -207,7 +207,7 @@ items:
 
   add_material:
     slot: 10
-    name: "&a&lAdd Material"
+    name: "&6Add Material"
     material: LIME_DYE
     lore:
       - "&7Click to open the"

@@ -9,8 +9,10 @@ import net.danh.storage.API.events.RecipeCreateEvent;
 import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
+import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -558,14 +560,17 @@ public class CraftingManager {
             return false;
         }
 
+        recipes.remove(id);
+        removeRecipeFromCategory(recipe);
+
         RecipeCreateEvent event = new RecipeCreateEvent(null, recipe, RecipeCreateEvent.Action.DELETE);
         SchedulerUtil.runTask(Storage.getStorage(), () -> {
             Bukkit.getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
-                recipes.remove(id);
-                removeRecipeFromCategory(recipe);
                 saveRecipes();
                 deleteRecipeFile(id);
+            } else {
+                addRecipeToMaps(recipe);
             }
         });
         return true;
@@ -601,12 +606,42 @@ public class CraftingManager {
         return recipe.getMaterialRequirements().entrySet().stream()
                 .filter(entry -> entry.getValue() > 0)
                 .mapToInt(entry -> {
-                    String normalizedMaterial = MineManager.normalizeMaterial(entry.getKey());
-                    int playerAmount = MineManager.getPlayerBlock(player, normalizedMaterial);
-                    return playerAmount / entry.getValue();
+                    int required = entry.getValue();
+                    int available = getAvailableMaterialAmount(player, entry.getKey());
+                    return available / required;
                 })
                 .min()
                 .orElse(0);
+    }
+
+    private static int getAvailableMaterialAmount(Player player, String requirementKey) {
+        String normalized = MineManager.normalizeMaterial(requirementKey);
+        String mythicId = getMythicItemId(normalized);
+        if (mythicId != null) {
+            if (!MythicStorageManager.isSystemEnabled()) {
+                return 0;
+            }
+            return MythicStorageManager.getPlayerItem(player, mythicId);
+        }
+        return MineManager.getPlayerBlock(player, normalized);
+    }
+
+    private static String getMythicItemId(String normalizedKey) {
+        if (normalizedKey == null || normalizedKey.isEmpty()) {
+            return null;
+        }
+        if (!normalizedKey.startsWith("mythic;")) {
+            return null;
+        }
+        String[] parts = normalizedKey.split(";", 3);
+        if (parts.length < 2) {
+            return null;
+        }
+        String id = parts[1];
+        if (id == null || id.trim().isEmpty()) {
+            return null;
+        }
+        return id.trim();
     }
 
     public static void requestCraftAmount(Player player, String recipeId) {
@@ -711,11 +746,14 @@ public class CraftingManager {
     public static Map<String, Integer> getMissingMaterials(Player player, Recipe recipe) {
         Map<String, Integer> missing = new HashMap<>();
         for (Map.Entry<String, Integer> requirement : recipe.getMaterialRequirements().entrySet()) {
-            String normalizedMaterial = MineManager.normalizeMaterial(requirement.getKey());
-            int playerAmount = MineManager.getPlayerBlock(player, normalizedMaterial);
             int needed = requirement.getValue();
-            if (playerAmount < needed) {
-                missing.put(requirement.getKey(), needed - playerAmount);
+            if (needed <= 0) {
+                continue;
+            }
+
+            int available = getAvailableMaterialAmount(player, requirement.getKey());
+            if (available < needed) {
+                missing.put(requirement.getKey(), needed - available);
             }
         }
         return missing;
@@ -917,8 +955,21 @@ public class CraftingManager {
         for (Map.Entry<String, Integer> requirement : recipe.getMaterialRequirements().entrySet()) {
             String normalizedMaterial = MineManager.normalizeMaterial(requirement.getKey());
             int totalRequired = requirement.getValue() * amount;
-            if (!MineManager.removeBlockAmount(player, normalizedMaterial, totalRequired)) {
-                return false;
+
+            String mythicId = getMythicItemId(normalizedMaterial);
+            if (mythicId != null) {
+                if (!MythicStorageManager.isSystemEnabled()) {
+                    return false;
+                }
+                if (!MythicStorageManager.removeItemAmount(player, mythicId,
+                        totalRequired, true)) {
+                    return false;
+                }
+            } else {
+                if (!MineManager.removeBlockAmount(player, normalizedMaterial,
+                        totalRequired)) {
+                    return false;
+                }
             }
         }
         return true;

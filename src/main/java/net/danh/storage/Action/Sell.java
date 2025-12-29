@@ -13,8 +13,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Sell {
@@ -47,9 +45,9 @@ public class Sell {
                 if (MineManager.removeBlockAmount(p, getMaterialData(), this.amount)) {
                     ConfigurationSection section = config.getConfigurationSection("worth");
                     if (section != null) {
-                        List<String> sell_list = new ArrayList<>(section.getKeys(false));
-                        if (sell_list.contains(getMaterialData())) {
-                            double worth = section.getDouble(getMaterialData());
+                        String worthKey = resolveWorthKey(section, getMaterialData());
+                        if (worthKey != null) {
+                            double worth = section.getDouble(worthKey);
                             if (worth > 0) {
                                 double money = worth * this.amount;
                                 String money_round_up = roundWithDecimalFormat(money);
@@ -75,9 +73,9 @@ public class Sell {
             if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                 ConfigurationSection section = config.getConfigurationSection("worth");
                 if (section != null) {
-                    List<String> sell_list = new ArrayList<>(section.getKeys(false));
-                    if (sell_list.contains(getMaterialData())) {
-                        double worth = section.getDouble(getMaterialData());
+                    String worthKey = resolveWorthKey(section, getMaterialData());
+                    if (worthKey != null) {
+                        double worth = section.getDouble(worthKey);
                         if (worth > 0) {
                             double money = worth * amount;
                             String money_round_up = roundWithDecimalFormat(money);
@@ -123,6 +121,22 @@ public class Sell {
         if (!material.contains(";")) {
             return material + ";0";
         } else return material;
+    }
+
+    private String resolveWorthKey(@NotNull ConfigurationSection section,
+                                   @NotNull String materialData) {
+        if (section.contains(materialData)) {
+            return materialData;
+        }
+
+        if (materialData.endsWith(";0")) {
+            String noData = materialData.substring(0, materialData.length() - 2);
+            if (section.contains(noData)) {
+                return noData;
+            }
+        }
+
+        return null;
     }
 
     public Player getPlayer() {

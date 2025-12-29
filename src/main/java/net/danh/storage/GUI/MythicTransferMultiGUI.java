@@ -2,6 +2,7 @@ package net.danh.storage.GUI;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.MythicTransferManager;
@@ -397,8 +398,8 @@ public class MythicTransferMultiGUI implements IGUI {
                 newSelectedAmount = Math.max(0, selectedAmount - 10);
                 break;
             case DROP:
-                newSelectedAmount = currentAmount;
-                break;
+                requestCustomAmount(itemName);
+                return;
         }
 
         if (newSelectedAmount > 0) {
@@ -408,6 +409,29 @@ public class MythicTransferMultiGUI implements IGUI {
         }
 
         setupGUI();
+    }
+
+    private void requestCustomAmount(String itemName) {
+        player.closeInventory();
+        ChatListener.chat_multi_mythic_transfer_item.put(player, itemName);
+        ChatListener.chat_multi_mythic_transfer_target.put(player, targetPlayer);
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("mythicstorage.transfer.gui_enter_amount")));
+    }
+
+    public void setSelectedAmount(String itemName, int amount) {
+        if (itemName == null || itemName.trim().isEmpty()) {
+            return;
+        }
+
+        int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+        int newSelectedAmount = Math.min(Math.max(0, amount), currentAmount);
+
+        if (newSelectedAmount > 0) {
+            selectedAmounts.put(itemName, newSelectedAmount);
+        } else {
+            selectedAmounts.remove(itemName);
+        }
     }
 
     private void confirmTransfer() {

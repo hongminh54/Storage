@@ -188,7 +188,19 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, material.split(";")[0]);
         if (item == null) return null;
 
-        return applyPlaceholders(p, item, section.getStringList("lore"), name, placeholders);
+        int baseLength = 4;
+        int extraLength = placeholders == null ? 0 : placeholders.length;
+        String[] merged = new String[baseLength + extraLength];
+        merged[0] = "#item_amount#";
+        merged[1] = String.valueOf(MineManager.getPlayerBlock(p, material));
+        merged[2] = "#max_storage#";
+        merged[3] = String.valueOf(MineManager.getMaxBlock(p));
+        if (extraLength > 0) {
+            System.arraycopy(placeholders, 0, merged, baseLength, extraLength);
+        }
+
+        return applyPlaceholders(p, item, section.getStringList("lore"), name,
+                merged);
     }
 
     @Deprecated

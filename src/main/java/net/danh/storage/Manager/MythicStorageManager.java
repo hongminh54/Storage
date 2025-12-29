@@ -12,9 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class MythicStorageManager {
 
@@ -22,6 +20,8 @@ public class MythicStorageManager {
             "storage.mythicstorage.storage.";
     private static final String STORAGE_LIMIT_PERMISSION_MAX_PREFIX =
             "storage.mythicstorage.storage.max.";
+    private static final HashMap<String, Set<String>> disabledAutoPickupItems =
+            new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
@@ -261,6 +261,47 @@ public class MythicStorageManager {
         toggle.put(player, status);
     }
 
+    public static boolean isAutoPickupEnabledForItem(@NotNull Player player,
+                                                     @NotNull String itemName) {
+        if (!getToggleStatus(player)) {
+            return false;
+        }
+        Set<String> disabledItems = disabledAutoPickupItems.get(player.getName());
+        if (disabledItems == null || disabledItems.isEmpty()) {
+            return true;
+        }
+        return !disabledItems.contains(itemName);
+    }
+
+    public static boolean isItemAutoPickupDisabled(@NotNull Player player,
+                                                   @NotNull String itemName) {
+        Set<String> disabledItems = disabledAutoPickupItems.get(player.getName());
+        if (disabledItems == null || disabledItems.isEmpty()) {
+            return false;
+        }
+        return disabledItems.contains(itemName);
+    }
+
+    public static boolean toggleItemAutoPickup(@NotNull Player player,
+                                               @NotNull String itemName) {
+        String playerName = player.getName();
+        Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
+        if (disabledItems == null) {
+            disabledItems = new HashSet<>();
+            disabledAutoPickupItems.put(playerName, disabledItems);
+        }
+
+        if (disabledItems.contains(itemName)) {
+            disabledItems.remove(itemName);
+            savePlayerData(player);
+            return true;
+        }
+
+        disabledItems.add(itemName);
+        savePlayerData(player);
+        return false;
+    }
+
     public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
         return addItemAmount(player, itemName, amount, true);
     }
@@ -328,6 +369,8 @@ public class MythicStorageManager {
     public static void loadPlayerData(@NotNull Player player) {
         if (!isSystemEnabled()) return;
 
+        disabledAutoPickupItems.remove(player.getName());
+
         PlayerData data = Storage.dataStorage.getData(player.getName());
         if (data == null) {
             refreshPermissionMaxStorage(player);
@@ -371,6 +414,24 @@ public class MythicStorageManager {
                     toggle.put(player, Boolean.parseBoolean(part.substring(13)));
                 } catch (Exception ignored) {
                 }
+            } else if (part.startsWith("mythicautopickupoff:")) {
+                String disabledData = part.substring("mythicautopickupoff:"
+                        .length());
+                if (!disabledData.isEmpty()) {
+                    Set<String> disabledItems = new HashSet<>();
+                    for (String raw : disabledData.split(",")) {
+                        if (raw == null) continue;
+                        String item = raw.trim();
+                        if (item.isEmpty()) continue;
+                        if (isConfiguredDrop(item)) {
+                            disabledItems.add(item);
+                        }
+                    }
+                    if (!disabledItems.isEmpty()) {
+                        disabledAutoPickupItems.put(player.getName(),
+                                disabledItems);
+                    }
+                }
             }
         }
 
@@ -404,7 +465,10 @@ public class MythicStorageManager {
             String[] existingParts = existingDataString.split(";");
 
             for (String part : existingParts) {
-                if (!part.startsWith("mythic:") && !part.startsWith("mythictoggle:") && !part.isEmpty()) {
+                if (!part.startsWith("mythic:")
+                        && !part.startsWith("mythictoggle:")
+                        && !part.startsWith("mythicautopickupoff:")
+                        && !part.isEmpty()) {
                     if (finalData.length() > 0) {
                         finalData.append(";");
                     }
@@ -427,10 +491,36 @@ public class MythicStorageManager {
             finalData.append("mythictoggle:").append(toggle.get(player));
         }
 
+        Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
+        if (disabledItems != null && !disabledItems.isEmpty()) {
+            StringBuilder disabledData = new StringBuilder();
+            for (String item : configuredDrops) {
+                if (!disabledItems.contains(item)) {
+                    continue;
+                }
+                if (disabledData.length() > 0) {
+                    disabledData.append(",");
+                }
+                disabledData.append(item);
+            }
+
+            if (disabledData.length() > 0) {
+                if (finalData.length() > 0) {
+                    finalData.append(";");
+                }
+                finalData.append("mythicautopickupoff:")
+                        .append(disabledData);
+            }
+        }
+
         int maxStorage = playermaxdata.getOrDefault(player,
                 File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
 
-        boolean autoPickup = MineManager.getToggleStatus(player);
+        boolean autoPickup = toggle.getOrDefault(player,
+                File.getMythicStorageConfig().getBoolean(
+                        "settings.default_auto_pickup",
+                        false
+                ));
 
         PlayerData newData = new PlayerData(playerName, finalData.toString(), maxStorage, autoPickup);
 
@@ -445,6 +535,7 @@ public class MythicStorageManager {
         if (player == null) return;
         toggle.remove(player);
         playermaxdata.remove(player);
+        disabledAutoPickupItems.remove(player.getName());
 
         String playerName = player.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
@@ -496,6 +587,8 @@ public class MythicStorageManager {
             return false;
         }
 
+        Set<String> disabledItems = null;
+
         String[] dataParts = dataString.split(";");
         for (String part : dataParts) {
             if (part == null || part.isEmpty()) continue;
@@ -519,7 +612,25 @@ public class MythicStorageManager {
                         }
                     }
                 }
+            } else if (part.startsWith("mythicautopickupoff:")) {
+                String disabledData = part.substring("mythicautopickupoff:"
+                        .length());
+                if (!disabledData.isEmpty()) {
+                    disabledItems = new HashSet<>();
+                    for (String raw : disabledData.split(",")) {
+                        if (raw == null) continue;
+                        String item = raw.trim();
+                        if (item.isEmpty()) continue;
+                        if (isConfiguredDrop(item)) {
+                            disabledItems.add(item);
+                        }
+                    }
+                }
             }
+        }
+
+        if (disabledItems != null && !disabledItems.isEmpty()) {
+            disabledAutoPickupItems.put(playerName, disabledItems);
         }
 
         return true;
@@ -538,5 +649,7 @@ public class MythicStorageManager {
         }
 
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+
+        disabledAutoPickupItems.remove(playerName);
     }
 }

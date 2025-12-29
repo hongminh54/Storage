@@ -8,15 +8,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class MythicMobsHelper {
 
+    private static final Pattern HEX_PATTERN_1 =
+            Pattern.compile("&#[0-9a-fA-F]{6}");
+    private static final Pattern HEX_PATTERN_2 =
+            Pattern.compile("<#[0-9a-fA-F]{6}>");
+    private static final Pattern BUNGEE_SECTION_HEX_PATTERN =
+            Pattern.compile("\\u00A7x(\\u00A7[0-9a-fA-F]){6}");
+    private static final Pattern SECTION_COLOR_PATTERN =
+            Pattern.compile("\\u00A7[0-9a-fk-orA-FK-OR]");
+    private static final Pattern AMPERSAND_HEX_PATTERN =
+            Pattern.compile("&x(&[0-9a-fA-F]){6}");
+    private static final Pattern AMPERSAND_COLOR_PATTERN =
+            Pattern.compile("&[0-9a-fk-orA-FK-OR]");
     private final List<String> mmPackageAPI = Arrays.asList("io.lumine.mythic.bukkit", "io.lumine.xikage.mythicmobs.api.bukkit", "io.lumine.mythic.api.bukkit");
-
+    private final Map<String, String> strippedNameToInternalName =
+            new HashMap<>();
     private Object apiInstance;
     private String packageName = "";
     private boolean initialized = false;
@@ -24,6 +36,8 @@ public class MythicMobsHelper {
     private Method cachedGetMythicMobInstanceMethod;
     private Method cachedGetTypeMethod;
     private Method cachedGetInternalNameMethod;
+    private String lastCacheKey;
+    private Method cachedGetItemsMethod;
 
     public MythicMobsHelper() {
         this.scanPackage();
@@ -135,14 +149,78 @@ public class MythicMobsHelper {
     }
 
     private String stripAllColors(String text) {
-        if (text == null) return null;
-        text = text.replaceAll("&#[0-9a-fA-F]{6}", "");
-        text = text.replaceAll("<#[0-9a-fA-F]{6}>", "");
-        text = text.replaceAll("§x(§[0-9a-fA-F]){6}", "");
-        text = text.replaceAll("§[0-9a-fk-orA-FK-OR]", "");
-        text = text.replaceAll("&x(&[0-9a-fA-F]){6}", "");
-        text = text.replaceAll("&[0-9a-fk-orA-FK-OR]", "");
-        return text;
+        if (text == null) {
+            return null;
+        }
+        String result = text;
+        result = HEX_PATTERN_1.matcher(result).replaceAll("");
+        result = HEX_PATTERN_2.matcher(result).replaceAll("");
+        result = BUNGEE_SECTION_HEX_PATTERN.matcher(result).replaceAll("");
+        result = SECTION_COLOR_PATTERN.matcher(result).replaceAll("");
+        result = AMPERSAND_HEX_PATTERN.matcher(result).replaceAll("");
+        result = AMPERSAND_COLOR_PATTERN.matcher(result).replaceAll("");
+        return result;
+    }
+
+    private void rebuildInternalNameCache(Object itemManager,
+                                          List<String> configuredDrops) {
+        strippedNameToInternalName.clear();
+
+        if (itemManager == null || configuredDrops == null
+                || configuredDrops.isEmpty()) {
+            lastCacheKey = null;
+            return;
+        }
+
+        try {
+            if (cachedGetItemsMethod == null) {
+                cachedGetItemsMethod = itemManager.getClass().getMethod(
+                        "getItems");
+            }
+            Object itemsCollection = cachedGetItemsMethod.invoke(itemManager);
+            if (!(itemsCollection instanceof Iterable)) {
+                lastCacheKey = null;
+                return;
+            }
+
+            for (Object mythicItem : (Iterable<?>) itemsCollection) {
+                if (mythicItem == null) {
+                    continue;
+                }
+                try {
+                    Method getInternalName = mythicItem.getClass().getMethod(
+                            "getInternalName");
+                    String internalName = (String) getInternalName.invoke(
+                            mythicItem);
+                    if (internalName == null
+                            || !configuredDrops.contains(internalName)) {
+                        continue;
+                    }
+
+                    Method getDisplayName = mythicItem.getClass().getMethod(
+                            "getDisplayName");
+                    Object displayNameObj = getDisplayName.invoke(mythicItem);
+                    String mythicDisplayName = extractDisplayName(
+                            displayNameObj);
+                    if (mythicDisplayName == null
+                            || mythicDisplayName.isEmpty()) {
+                        continue;
+                    }
+
+                    String stripped = stripAllColors(mythicDisplayName);
+                    if (stripped != null && !stripped.isEmpty()) {
+                        strippedNameToInternalName.put(stripped,
+                                internalName);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            lastCacheKey = String.valueOf(configuredDrops.hashCode());
+        } catch (Exception e) {
+            strippedNameToInternalName.clear();
+            lastCacheKey = null;
+        }
     }
 
     @Nullable
@@ -156,59 +234,28 @@ public class MythicMobsHelper {
 
             String displayName = item.getItemMeta().getDisplayName();
             String strippedDisplayName = stripAllColors(displayName);
+            if (strippedDisplayName == null || strippedDisplayName.isEmpty()) {
+                return null;
+            }
 
             Object itemManager = getItemManager();
             if (itemManager == null) return null;
 
-            Method getItems = itemManager.getClass().getMethod("getItems");
-            Object itemsCollection = getItems.invoke(itemManager);
-
-            if (!(itemsCollection instanceof Iterable)) return null;
-
             List<String> configuredDrops = MythicStorageManager.getConfiguredDrops();
-
-            if (configuredDrops != null && !configuredDrops.isEmpty()) {
-                for (Object mythicItem : (Iterable<?>) itemsCollection) {
-                    try {
-                        Method getInternalName = mythicItem.getClass().getMethod("getInternalName");
-                        String internalName = (String) getInternalName.invoke(mythicItem);
-
-                        if (!configuredDrops.contains(internalName)) continue;
-
-                        Method getDisplayName = mythicItem.getClass().getMethod("getDisplayName");
-                        Object displayNameObj = getDisplayName.invoke(mythicItem);
-
-                        String mythicDisplayName = extractDisplayName(displayNameObj);
-                        if (mythicDisplayName == null) continue;
-
-                        String strippedMythicName = stripAllColors(mythicDisplayName);
-
-                        if (strippedMythicName.equals(strippedDisplayName)) {
-                            return internalName;
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
+            String cacheKey = configuredDrops == null ? null :
+                    String.valueOf(configuredDrops.hashCode());
+            if (cacheKey != null && !cacheKey.equals(lastCacheKey)) {
+                rebuildInternalNameCache(itemManager, configuredDrops);
             }
 
-            for (Object mythicItem : (Iterable<?>) itemsCollection) {
-                try {
-                    Method getInternalName = mythicItem.getClass().getMethod("getInternalName");
-                    String internalName = (String) getInternalName.invoke(mythicItem);
+            String cached = strippedNameToInternalName.get(strippedDisplayName);
+            if (cached != null) {
+                return cached;
+            }
 
-                    Method getDisplayName = mythicItem.getClass().getMethod("getDisplayName");
-                    Object displayNameObj = getDisplayName.invoke(mythicItem);
-
-                    String mythicDisplayName = extractDisplayName(displayNameObj);
-                    if (mythicDisplayName == null) continue;
-
-                    String strippedMythicName = stripAllColors(mythicDisplayName);
-
-                    if (strippedMythicName.equals(strippedDisplayName)) {
-                        return internalName;
-                    }
-                } catch (Exception ignored) {
-                }
+            if (configuredDrops != null && !configuredDrops.isEmpty()) {
+                rebuildInternalNameCache(itemManager, configuredDrops);
+                return strippedNameToInternalName.get(strippedDisplayName);
             }
         } catch (Exception e) {
             return null;

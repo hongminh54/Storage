@@ -55,15 +55,22 @@ public class BlockBreak implements Listener {
             }
             String drop = MineManager.getDrop(block);
             if (drop != null) {
+                if (!MineManager.isAutoPickupEnabledForItem(p, drop)) {
+                    return;
+                }
                 int amount;
                 ItemStack hand = p.getInventory().getItemInMainHand();
                 Enchantment fortune = XEnchantment.FORTUNE.get();
                 if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || fortune == null || !hand.containsEnchantment(fortune)) {
-                    amount = getDropAmount(block);
+                    amount = getDropAmount(block, hand);
                 } else {
                     if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
-                        amount = Number.getRandomInteger(getDropAmount(block), getDropAmount(block) + hand.getEnchantmentLevel(fortune) + 2);
-                    } else amount = getDropAmount(block);
+                        int base = getDropAmount(block, hand);
+                        amount = Number.getRandomInteger(base,
+                                base + hand.getEnchantmentLevel(fortune) + 2);
+                    } else {
+                        amount = getDropAmount(block, hand);
+                    }
                 }
 
                 // Apply multiplier enchant if present
@@ -78,7 +85,8 @@ public class BlockBreak implements Listener {
                 }
                 int totalAmount = amount + bonusAmount;
 
-                if (MineManager.addBlockAmount(p, drop, totalAmount)) {
+                boolean stored = MineManager.addBlockAmount(p, drop, totalAmount);
+                if (stored) {
                     EventManager.onPlayerMine(p, drop, amount);
                     boolean actionBarEnabled = File.getConfig().getBoolean("mine.actionbar.enable");
                     boolean titleEnabled = File.getConfig().getBoolean("mine.title.enable");
@@ -213,11 +221,45 @@ public class BlockBreak implements Listener {
         }
     }
 
-    private int getDropAmount(Block block) {
+    private int getDropAmount(Block block, ItemStack tool) {
+        if (block == null) {
+            return 0;
+        }
+
         int amount = 0;
-        if (block != null) for (ItemStack itemStack : block.getDrops())
-            if (itemStack != null) amount += itemStack.getAmount();
-        return amount;
+        if (tool == null) {
+            for (ItemStack itemStack : block.getDrops()) {
+                if (itemStack != null) {
+                    amount += itemStack.getAmount();
+                }
+            }
+        } else {
+            try {
+                for (ItemStack itemStack : block.getDrops(tool)) {
+                    if (itemStack != null) {
+                        amount += itemStack.getAmount();
+                    }
+                }
+            } catch (Exception ignored) {
+                for (ItemStack itemStack : block.getDrops()) {
+                    if (itemStack != null) {
+                        amount += itemStack.getAmount();
+                    }
+                }
+            }
+        }
+
+        if (amount > 0) {
+            return amount;
+        }
+
+        // Some blocks (e.g. glass/panes without Silk Touch) have no item drops,
+        // but storage mapping expects a fixed item amount.
+        String drop = MineManager.getDrop(block);
+        if (drop != null) {
+            return 1;
+        }
+        return 0;
     }
 
     public boolean isPlacedBlock(Block b) {

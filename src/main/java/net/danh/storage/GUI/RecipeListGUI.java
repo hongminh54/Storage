@@ -5,6 +5,7 @@ import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.CraftingManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.ChatUtils;
@@ -219,11 +220,24 @@ public class RecipeListGUI implements IGUI {
         for (Map.Entry<String, Integer> req : recipe.getMaterialRequirements().entrySet()) {
             String materialKey = req.getKey();
             String normalizedMaterial = MineManager.normalizeMaterial(materialKey);
-            int playerAmount = MineManager.getPlayerBlock(player, normalizedMaterial);
 
-            String displayName = File.getConfig().getString("items." + materialKey, materialKey);
-            if (materialKey.contains(";")) {
-                displayName = File.getConfig().getString("items." + materialKey, materialKey.split(";")[0]);
+            String mythicId = getMythicItemId(normalizedMaterial);
+            int playerAmount;
+            String displayName;
+            if (mythicId != null) {
+                playerAmount = MythicStorageManager.isSystemEnabled()
+                        ? MythicStorageManager.getPlayerItem(player, mythicId)
+                        : 0;
+                displayName = MythicStorageManager.getItemDisplayNameOrId(
+                        mythicId, player);
+            } else {
+                playerAmount = MineManager.getPlayerBlock(player, normalizedMaterial);
+                String displayMaterial = normalizedMaterial;
+                if (normalizedMaterial.contains(";")) {
+                    displayMaterial = normalizedMaterial.split(";", 2)[0];
+                }
+                displayName = File.getConfig().getString("items." + normalizedMaterial,
+                        displayMaterial);
             }
 
             String color = playerAmount >= req.getValue() ? "&a" : "&c";
@@ -231,6 +245,24 @@ public class RecipeListGUI implements IGUI {
         }
 
         return requirementLines;
+    }
+
+    private String getMythicItemId(String normalizedKey) {
+        if (normalizedKey == null || normalizedKey.isEmpty()) {
+            return null;
+        }
+        if (!normalizedKey.startsWith("mythic;")) {
+            return null;
+        }
+        String[] parts = normalizedKey.split(";", 3);
+        if (parts.length < 2) {
+            return null;
+        }
+        String id = parts[1];
+        if (id == null || id.trim().isEmpty()) {
+            return null;
+        }
+        return id.trim();
     }
 
     private void craftOne(Player player, Recipe recipe) {

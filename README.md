@@ -9,11 +9,12 @@
 - **Convert System** - Convert materials between different forms (ingots ↔ blocks) with configurable ratios
 - **Transfer System** - Send items to other players with single or multi-item transfers
 - **Event System** - Participate in server-wide mining contests and special events
-- **Multi-Version Support** - Compatible with Minecraft 1.8.x to 1.21.10
+- **Multi-Version Support** - Compatible with Minecraft 1.8.x to 1.21.11
 - **WorldGuard Integration** - Respect region protections
 - **PlaceholderAPI Support** - Rich placeholder system for other plugins
 - **Custom Enchant System** - Custom enchantments for tools with configurable effects, particles, and sounds
 - **Special Material System** - Rare materials with custom effects, particles, and sounds that drop from mining
+- **Crafting System** - Extremely convenient crafting system.
 - **Folia Support** - The plugin can run on servers running Foila.
 - **Developer API** - Comprehensive API for external plugin integration
 
@@ -41,21 +42,25 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 | `/storage help` | Show help information | - |
 | `/storage toggle` | Toggle auto-pickup on/off | `storage.toggle` |
 | `/storage convert` | Open material conversion GUI | `storage.convert` |
+| `/storage craft` | Open crafting GUI | `storage.craft.use` |
+| `/storage view <player>` | View player's storage | `storage.view` |
 | `/storage transfer <player> <material>` | Transfer specific material to player | `storage.transfer.use` |
 | `/storage transfer multi <player>` | Open multi-transfer GUI | `storage.transfer.multi` |
 | `/storage transfer log [player] [page]` | View transfer history | `storage.transfer.log` |
 
 ### Admin Commands
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/storage reload` | Reload all configuration files | `storage.admin.reload` |
-| `/storage max <player> <amount>` | Set max storage for player | `storage.admin.max` |
-| `/storage add <material;data> <player> <amount>` | Add items to player storage | `storage.admin.add` |
-| `/storage remove <material;data> <player> <amount>` | Remove items from player storage | `storage.admin.remove` |
-| `/storage set <material;data> <player> <amount>` | Set item amount for player | `storage.admin.set` |
-| `/storage reset <material\|all> [player]` | Reset storage materials for players | `storage.admin.reset` |
-| `/storage autosave` | Show auto-save system status | `storage.admin.reload` |
-| `/storage save` | Force save all player data | `storage.admin.reload` |
+| Command                                             | Description                         | Permission |
+|-----------------------------------------------------|-------------------------------------|------------|
+| `/storage reload`                                   | Reload all configuration files      | `storage.admin.reload` |
+| `/storage max <player> <amount>`                    | Set max storage for player          | `storage.admin.max` |
+| `/storage add <material;data> <player> <amount>`    | Add items to player storage         | `storage.admin.add` |
+| `/storage remove <material;data> <player> <amount>` | Remove items from player storage    | `storage.admin.remove` |
+| `/storage set <material;data> <player> <amount>`    | Set item amount for player          | `storage.admin.set` |
+| `/storage reset <material\|all> [player]`           | Reset storage materials for players | `storage.admin.reset` |
+| `/storage autosave`                                 | Show auto-save system status        | `storage.admin.reload` |
+| `/storage save`                                     | Force save all player data          | `storage.admin.reload` |
+| `/storage crafteditor`                              | Open crafting editor GUI            | `storage.craft.admin` |
+| `/storage crafteditor import`                       | Import held item                    | `storage.craft.admin` |
 
 ### Event Commands
 | Command | Description | Permission |
@@ -90,6 +95,10 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 | `/mythicstorage` | Open MythicStorage GUI | `storage.mythicstorage.use` |
 | `/mythicstorage toggle` | Toggle auto-pickup for MythicMobs items | `storage.mythicstorage.toggle` |
 | `/mythicstorage view <player>` | View player's MythicStorage | `storage.mythicstorage.view` |
+| `/mythicstorage transfer <player> <item>` | Transfer a MythicMobs item to player (opens GUI) | `storage.mythicstorage.transfer` |
+| `/mythicstorage transfer multi <player>` | Open multi-transfer GUI for MythicMobs items | `storage.mythicstorage.transfer.multi` |
+| `/mythicstorage transfer log [page]` | View your MythicMobs transfer history | `storage.mythicstorage.transfer.log` |
+| `/mythicstorage transfer log <player> <page>` | View other player's MythicMobs transfer history | `storage.mythicstorage.transfer.log.others` |
 | `/mythicstorage add <player> <item> <amount>` | Add MythicMobs items to player storage | `storage.mythicstorage.admin` |
 | `/mythicstorage remove <player> <item> <amount>` | Remove MythicMobs items from player storage | `storage.mythicstorage.admin` |
 | `/mythicstorage set <player> <item> <amount>` | Set MythicMobs item amount for player | `storage.mythicstorage.admin` |
@@ -104,17 +113,23 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 ### User Permissions
 | Permission | Description | Default |
 |------------|-------------|---------|
-| `storage.toggle` | Toggle auto-pickup | `true` |
-| `storage.convert` | Use material conversion feature | `true` |
-| `storage.transfer.use` | Use basic transfer feature | `true` |
-| `storage.transfer.multi` | Use multi-transfer feature | `true` |
-| `storage.transfer.log` | View own transfer logs | `true` |
-| `storage.transfer.log.others` | View other players' transfer logs | `true` |
-| `storage.event.view` | View event status | `true` |
-| `storage.enchant.use` | Use enchanted items | `true` |
-| `storage.mythicstorage.use` | Use MythicStorage GUI | `true` |
-| `storage.mythicstorage.toggle` | Toggle MythicMobs auto-pickup | `true` |
-| `storage.mythicstorage.view` | View other players' MythicStorage | `op` |
+| `storage.toggle` | Toggle auto-pickup | `true`  |
+| `storage.convert` | Use material conversion feature | `true`  |
+| `storage.view` | View other players' storage | `true`  |
+| `storage.transfer.use` | Use basic transfer feature | `true`  |
+| `storage.transfer.multi` | Use multi-transfer feature | `true`  |
+| `storage.transfer.log` | View own transfer logs | `true`  |
+| `storage.transfer.log.others` | View other players' transfer logs | `true`  |
+| `storage.event.view` | View event status | `true`  |
+| `storage.enchant.use` | Use enchanted items | `true`  |
+| `storage.craft.use` | Use crafting feature | `true`  |
+| `storage.mythicstorage.use` | Use MythicStorage GUI | `true`  |
+| `storage.mythicstorage.toggle` | Toggle MythicMobs auto-pickup | `true`  |
+| `storage.mythicstorage.view` | View other players' MythicStorage | `true`  |
+| `storage.mythicstorage.transfer` | Transfer MythicMobs items | `true`  |
+| `storage.mythicstorage.transfer.multi` | Transfer multiple MythicMobs items | `true`  |
+| `storage.mythicstorage.transfer.log` | View own MythicMobs transfer logs | `true`  |
+| `storage.mythicstorage.transfer.log.others` | View other players MythicMobs transfer logs | `true`  |
 
 ### Admin Permissions
 | Permission                     | Description           | Default |
@@ -131,6 +146,23 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 | `storage.event.admin`          | Manage server events  | `op` |
 | `storage.enchant.admin`        | Manage custom enchants| `op` |
 | `storage.mythicstorage.admin`  | Manage MythicStorage system | `op` |
+| `storage.craft.admin`          | Admin commands for crafting system | `op` |
+
+### Storage Limit Permissions
+
+Storage max capacity can be configured by permissions in `config.yml` (section `storage_permissions`).
+
+| Permission | Description |
+|------------|-------------|
+| `storage.storage.<tier>` | Assign max storage by tier (e.g., `storage.storage.vip`) |
+
+### MythicStorage Limit Permissions
+
+MythicStorage max capacity can be configured by permissions in `mythicstorage.yml` (section `mythic_storage_permissions`).
+
+| Permission | Description |
+|------------|-------------|
+| `storage.mythicstorage.storage.<tier>` | Assign MythicStorage max storage by tier (e.g., `storage.mythicstorage.storage.vip`) |
 
 ## Placeholders
 
@@ -233,6 +265,23 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 
 You can customize these messages by editing the `message.yml` file.
 
+### Crafting Placeholders
+
+Crafting placeholders use the identifier `storagecraft`.
+
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%storagecraft_total_recipes%` | Total number of recipes | `12` |
+| `%storagecraft_enabled_recipes%` | Total enabled recipes | `10` |
+| `%storagecraft_available_recipes%` | Recipes available for player (permission-checked) | `7` |
+| `%storagecraft_craftable_recipes%` | Recipes the player can craft (has materials) | `3` |
+| `%storagecraft_is_crafting%` | Whether player is currently crafting | `true` / `false` |
+| `%storagecraft_recipe_<recipeId>_exists%` | Check if recipe exists | `%storagecraft_recipe_example_diamond_sword_exists%` |
+| `%storagecraft_recipe_<recipeId>_enabled%` | Check if recipe is enabled | `%storagecraft_recipe_example_diamond_sword_enabled%` |
+| `%storagecraft_recipe_<recipeId>_can_craft%` | Check if player can craft recipe | `%storagecraft_recipe_example_diamond_sword_can_craft%` |
+| `%storagecraft_recipe_<recipeId>_max_amount%` | Max craftable amount for recipe | `%storagecraft_recipe_example_diamond_sword_max_amount%` |
+| `%storagecraft_recipe_<recipeId>_name%` | Display name of recipe | `%storagecraft_recipe_example_diamond_sword_name%` |
+
 ### MythicStorage Placeholders
 
 #### Basic MythicStorage Placeholders
@@ -266,9 +315,9 @@ You can customize these messages by editing the `message.yml` file.
 - Replace `<item>` with your MythicMobs item ID (e.g., `crown`, `rare_gem`)
 - Replace `<position>` with rank number (1, 2, 3, etc.)
 - Leaderboard placeholders only show online players
-- Status placeholders use message keys from `message.yml`:
-  - `mythicstorage.status_enabled` = "Enabled"
-  - `mythicstorage.status_disabled` = "Disabled"
+   - Status placeholders use message keys from `message.yml`:
+     - `mythicstorage.status_enabled` = "Enabled"
+     - `mythicstorage.status_disabled` = "Disabled"
 
 ## Developer API
 

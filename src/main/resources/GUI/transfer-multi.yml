@@ -35,7 +35,7 @@ items:
       - "&bRight click: +10"
       - "&cShift+Left: -1"
       - "&cShift+Right: -10"
-      - "&6Drop key (Q): Max"
+      - "&6Drop key (Q): Chat input"
     amount: 1
     damage: 0
     custom-model-data: 1

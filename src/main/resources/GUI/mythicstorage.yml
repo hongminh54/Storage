@@ -45,12 +45,15 @@ items:
     # Lore for item in storage
     lore:
       - "&7 "
-      - "&f#item_amount#/#max_storage# Items"
+      - "&a#item_amount#&f/&e#max_storage# &fItems"
+      - "&7 "
+      - "&aStatus: #autopickup_status#"
       - "&7 "
       - "&eLeft-Click: &aWithdraw (enter amount)"
       - "&eShift+Left-Click: &aWithdraw all"
       - "&eRight-Click: &aDeposit (enter amount)"
       - "&eShift+Right-Click: &aDeposit all"
+      - "&ePress Q &6(Drop key)&e: &aToggle auto-pickup for this item"
       - "&7 "
     # Amount of item
     amount: 1

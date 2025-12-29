@@ -204,15 +204,15 @@ public class RecipeEditorListGUI implements IGUI {
         if (clickType == ClickType.LEFT) {
             // Edit recipe
             editRecipe(player, recipe);
-        } else if (clickType == ClickType.RIGHT) {
-            // Delete recipe
-            deleteRecipe(player, recipe);
         } else if (clickType == ClickType.SHIFT_LEFT) {
             // Toggle enabled status
             toggleRecipeStatus(player, recipe);
-        } else if (clickType == ClickType.SHIFT_RIGHT) {
+        } else if (clickType == ClickType.RIGHT) {
             // Duplicate recipe
             duplicateRecipe(player, recipe);
+        } else if (clickType == ClickType.SHIFT_RIGHT) {
+            // Delete recipe
+            deleteRecipe(player, recipe);
         }
     }
 

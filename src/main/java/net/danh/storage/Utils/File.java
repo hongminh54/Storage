@@ -3,6 +3,7 @@ package net.danh.storage.Utils;
 import com.tchristofferson.configupdater.ConfigUpdater;
 import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
@@ -100,6 +101,10 @@ public class File {
         return getFileSetting().get("GUI/material-editor.yml");
     }
 
+    public static FileConfiguration getMythicMaterialSelectionGUIConfig() {
+        return getFileSetting().get("GUI/mythic-material-selection.yml");
+    }
+
     public static FileConfiguration getConfirmationGUIConfig() {
         return getFileSetting().get("GUI/confirmation.yml");
     }
@@ -110,17 +115,22 @@ public class File {
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/confirmation.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
+
+            if (MythicStorageManager.isSystemEnabled()) {
+                MythicStorageManager.savePlayerData(p);
+                MythicStorageManager.loadPlayerData(p);
+            }
         }
         ConvertOreManager.loadConvertOptions();
         SpecialMaterialManager.loadSpecialMaterials();
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/confirmation.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");
     }
 
     public static void updateConfig() {

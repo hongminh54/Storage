@@ -5,8 +5,11 @@ import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.CraftingManager;
 import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.MythicStorageManager;
 import net.danh.storage.Manager.RecipeEditManager;
 import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
@@ -60,6 +63,7 @@ public class MaterialEditorGUI implements IGUI {
         setupDecorativeItems(inventory);
         addTitleItem(inventory);
         addAddMaterialButton(inventory);
+        addAddMythicMaterialButton(inventory);
         displayMaterials(inventory);
         addControlButtons(inventory);
     }
@@ -138,6 +142,45 @@ public class MaterialEditorGUI implements IGUI {
         }
     }
 
+    private void addAddMythicMaterialButton(Inventory inventory) {
+        String slotConfig = config.getString("items.add_mythic_material.slot", "51");
+        int materialCount = recipe.getMaterialRequirements().size();
+
+        ItemStack item;
+        boolean canUse = MythicStorageManager.isSystemEnabled()
+                && materialCount < MAX_MATERIALS;
+
+        if (canUse) {
+            item = ItemManager.getItemConfig(Objects.requireNonNull(
+                    config.getConfigurationSection("items.add_mythic_material")));
+        } else {
+            item = ItemManager.getItemConfig(
+                    config.getConfigurationSection("items.add_mythic_material_disabled"));
+        }
+
+        if (item == null) {
+            return;
+        }
+
+        if (slotConfig.contains(",")) {
+            for (String slotStr : slotConfig.split(",")) {
+                int slot = Number.getInteger(slotStr.trim());
+                InteractiveItem button = new InteractiveItem(item.clone(), slot);
+                if (canUse) {
+                    button.onLeftClick(this::openMythicMaterialSelection);
+                }
+                inventory.setItem(button.getSlot(), button);
+            }
+        } else {
+            int slot = Number.getInteger(slotConfig);
+            InteractiveItem button = new InteractiveItem(item, slot);
+            if (canUse) {
+                button.onLeftClick(this::openMythicMaterialSelection);
+            }
+            inventory.setItem(button.getSlot(), button);
+        }
+    }
+
     private void displayMaterials(Inventory inventory) {
         String materialSlots = config.getString("items.material_slot.slot");
         if (materialSlots == null) return;
@@ -163,12 +206,19 @@ public class MaterialEditorGUI implements IGUI {
     }
 
     private ItemStack createMaterialItem(String materialName, int amount) {
-        String displayMaterial = materialName;
-        if (materialName.contains(";")) {
-            displayMaterial = materialName.split(";")[0];
+        String normalized = MineManager.normalizeMaterial(materialName);
+        String mythicId = getMythicItemId(normalized);
+        if (mythicId != null) {
+            return createMythicMaterialItem(mythicId, normalized, amount);
         }
 
-        String displayName = File.getConfig().getString("items." + materialName, displayMaterial);
+        String displayMaterial = normalized;
+        if (normalized.contains(";")) {
+            displayMaterial = normalized.split(";", 2)[0];
+        }
+
+        String displayName = File.getConfig().getString("items." + normalized,
+                displayMaterial);
 
         Optional<XMaterial> xMaterialOpt = XMaterial.matchXMaterial(displayMaterial);
         if (!xMaterialOpt.isPresent()) {
@@ -176,22 +226,80 @@ public class MaterialEditorGUI implements IGUI {
         }
 
         ItemStack item = xMaterialOpt.get().parseItem();
-        if (item == null) return null;
-
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(ChatUtils.colorizewp(config.getString("items.material_slot.name", "&e#material#")
-                    .replace("#material#", displayName)));
-
-            List<String> lore = new ArrayList<>();
-            for (String line : config.getStringList("items.material_slot.lore")) {
-                lore.add(ChatUtils.colorizewp(line.replace("#amount#", String.valueOf(amount))));
-            }
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            item.setAmount(Math.min(64, Math.max(1, amount)));
+        if (item == null) {
+            return null;
         }
+
+        applyMaterialMeta(item, displayName, amount);
         return item;
+    }
+
+    private ItemStack createMythicMaterialItem(String mythicId,
+                                               String normalizedKey,
+                                               int amount) {
+        String displayName = MythicStorageManager.getItemDisplayNameOrId(
+                mythicId, player);
+
+        ItemStack item = null;
+        if (MythicStorageManager.isSystemEnabled()) {
+            MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
+            if (helper != null && helper.isInitialized()) {
+                item = helper.getMythicItem(mythicId);
+            }
+        }
+
+        if (item == null) {
+            item = XMaterial.STONE.parseItem();
+            if (item == null) {
+                return null;
+            }
+        } else {
+            item = item.clone();
+        }
+
+        String configName = File.getConfig().getString("items." + normalizedKey,
+                displayName);
+        applyMaterialMeta(item, configName, amount);
+        return item;
+    }
+
+    private void applyMaterialMeta(ItemStack item, String displayName,
+                                    int amount) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        meta.setDisplayName(ChatUtils.colorizewp(config.getString(
+                "items.material_slot.name", "&e#material#")
+                .replace("#material#", displayName)));
+
+        List<String> lore = new ArrayList<>();
+        for (String line : config.getStringList("items.material_slot.lore")) {
+            lore.add(ChatUtils.colorizewp(line.replace("#amount#",
+                    String.valueOf(amount))));
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        item.setAmount(Math.min(64, Math.max(1, amount)));
+    }
+
+    private String getMythicItemId(String normalizedKey) {
+        if (normalizedKey == null || normalizedKey.isEmpty()) {
+            return null;
+        }
+        if (!normalizedKey.startsWith("mythic;")) {
+            return null;
+        }
+        String[] parts = normalizedKey.split(";", 3);
+        if (parts.length < 2) {
+            return null;
+        }
+        String id = parts[1];
+        if (id == null || id.trim().isEmpty()) {
+            return null;
+        }
+        return id.trim();
     }
 
     private void handleMaterialClick(Player player, String material, ClickType clickType) {
@@ -233,6 +341,12 @@ public class MaterialEditorGUI implements IGUI {
     private void openMaterialSelection(Player player) {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new MaterialSelectionGUI(player, recipe, "requirement").getInventory(SoundContext.SILENT));
+    }
+
+    private void openMythicMaterialSelection(Player player) {
+        SoundManager.setShouldPlayCloseSound(player, false);
+        player.openInventory(new MythicMaterialSelectionGUI(player, recipe)
+                .getInventory(SoundContext.SILENT));
     }
 
     private void addControlButtons(Inventory inventory) {

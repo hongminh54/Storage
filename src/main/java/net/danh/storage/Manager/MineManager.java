@@ -27,12 +27,14 @@ public class MineManager {
     private static final NMSAssistant NMS = new NMSAssistant();
     private static final boolean IS_LEGACY = NMS.isVersionLessThanOrEqualTo(12);
     private static final boolean IS_BEFORE_9 = NMS.isVersionLessThan(9);
-    private static final Map<Material, String> inventoryDropLookup =
-            new EnumMap<>(Material.class);
+    private static final Map<InvLookupKey, String> inventoryDropLookup =
+            new HashMap<>();
     private static final String STORAGE_LIMIT_PERMISSION_PREFIX =
             "storage.storage.";
     private static final String STORAGE_LIMIT_PERMISSION_MAX_PREFIX =
             "storage.storage.max.";
+    private static final HashMap<String, Set<String>> disabledAutoPickupItems =
+            new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -48,7 +50,14 @@ public class MineManager {
     }
 
     public static int getMaxBlock(Player p) {
-        return playermaxdata.get(p);
+        if (p == null) {
+            return File.getConfig().getInt("settings.default_max_storage",
+                    100000);
+        }
+        return playermaxdata.getOrDefault(p, File.getConfig().getInt(
+                "settings.default_max_storage",
+                100000
+        ));
     }
 
     @Contract(" -> new")
@@ -59,9 +68,14 @@ public class MineManager {
     @Contract(" -> new")
     public static @NotNull List<String> getOrderedPluginBlocks() {
         List<String> orderedBlocks = new ArrayList<>();
-        for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
+        ConfigurationSection section = File.getConfig().getConfigurationSection(
+                "blocks"
+        );
+        if (section == null) {
+            return orderedBlocks;
+        }
+        for (String block_break : section.getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
-            NMSAssistant nms = new NMSAssistant();
             if (item_drop != null) {
                 if (!item_drop.contains(";")) {
                     String material = item_drop + ";0";
@@ -69,7 +83,7 @@ public class MineManager {
                         orderedBlocks.add(material);
                     }
                 } else {
-                    if (nms.isVersionLessThanOrEqualTo(12)) {
+                    if (IS_LEGACY) {
                         String[] item_data = item_drop.split(";");
                         String item_material = item_data[0] + ";" + item_data[1];
                         if (!orderedBlocks.contains(item_material)) {
@@ -128,11 +142,36 @@ public class MineManager {
             }
         }
         mapAsString.delete(mapAsString.length() - 2, mapAsString.length()).append("}");
+
+        Set<String> disabledItems = disabledAutoPickupItems.get(p.getName());
+        if (disabledItems != null && !disabledItems.isEmpty()) {
+            StringBuilder disabledData = new StringBuilder();
+            for (String key : getPluginBlocks()) {
+                if (!disabledItems.contains(key)) {
+                    continue;
+                }
+                if (disabledData.length() > 0) {
+                    disabledData.append(",");
+                }
+                disabledData.append(key);
+            }
+            if (disabledData.length() > 0) {
+                mapAsString.append(";autopickupoff:")
+                        .append(disabledData);
+            }
+        }
+
         return mapAsString.toString();
     }
 
     public static @NotNull List<String> convertOnlineData(@NotNull String data) {
-        String data_1 = data.replace("{", "").replace("}", "").replace(" ", "");
+        String data_1 = data;
+        int start = data.indexOf('{');
+        int end = data.indexOf('}');
+        if (start >= 0 && end > start) {
+            data_1 = data.substring(start + 1, end);
+        }
+        data_1 = data_1.replace(" ", "");
         List<String> list = new ArrayList<>();
         List<String> testlist = new ArrayList<>();
         for (String blocklist : data_1.split(",")) {
@@ -149,6 +188,69 @@ public class MineManager {
             }
         }
         return list;
+    }
+
+    public static boolean isAutoPickupEnabledForItem(@NotNull Player player,
+                                                     @NotNull String material) {
+        if (!getToggleStatus(player)) {
+            return false;
+        }
+        Set<String> disabledItems = disabledAutoPickupItems.get(player.getName());
+        if (disabledItems == null || disabledItems.isEmpty()) {
+            return true;
+        }
+        return !disabledItems.contains(material);
+    }
+
+    public static boolean toggleItemAutoPickup(@NotNull Player player,
+                                               @NotNull String material) {
+        String playerName = player.getName();
+        Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
+        if (disabledItems == null) {
+            disabledItems = new HashSet<>();
+            disabledAutoPickupItems.put(playerName, disabledItems);
+        }
+
+        if (disabledItems.contains(material)) {
+            disabledItems.remove(material);
+            savePlayerData(player);
+            return true;
+        }
+
+        disabledItems.add(material);
+        savePlayerData(player);
+        return false;
+    }
+
+    private static void loadDisabledAutoPickupItems(@NotNull String playerName,
+                                                    @NotNull String data) {
+        disabledAutoPickupItems.remove(playerName);
+        int idx = data.indexOf(";autopickupoff:");
+        if (idx < 0) {
+            return;
+        }
+
+        String disabledData = data.substring(idx + ";autopickupoff:"
+                .length());
+        if (disabledData.isEmpty()) {
+            return;
+        }
+
+        Set<String> disabledItems = new HashSet<>();
+        for (String raw : disabledData.split(",")) {
+            if (raw == null) {
+                continue;
+            }
+            String item = raw.trim();
+            if (item.isEmpty()) {
+                continue;
+            }
+            if (getPluginBlocks().contains(item)) {
+                disabledItems.add(item);
+            }
+        }
+
+        disabledAutoPickupItems.put(playerName, disabledItems);
     }
 
     public static void setBlock(@NotNull Player p, String material, int amount) {
@@ -307,6 +409,11 @@ public class MineManager {
         refreshPermissionMaxStorage(p);
         setBlock(p, list);
 
+        String rawData = playerData.getData();
+        if (rawData != null && !rawData.isEmpty()) {
+            loadDisabledAutoPickupItems(p.getName(), rawData);
+        }
+
         if (!toggle.containsKey(p)) {
             toggle.put(p, playerData.isAutoPickup());
         }
@@ -315,7 +422,12 @@ public class MineManager {
     public static void savePlayerData(@NotNull Player p) {
         boolean autoPickup = toggle.getOrDefault(p, false);
         PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p), autoPickup);
-        Storage.db.updateTable(playerData);
+        PlayerData existing = Storage.db.getData(p.getName());
+        if (existing == null) {
+            Storage.db.createTable(playerData);
+        } else {
+            Storage.db.updateTable(playerData);
+        }
     }
 
     public static void cleanupPlayerData(@NotNull Player p) {
@@ -324,6 +436,7 @@ public class MineManager {
 
         String playerName = p.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+        disabledAutoPickupItems.remove(playerName);
     }
 
     public static boolean getToggleStatus(@NotNull Player p) {
@@ -393,7 +506,21 @@ public class MineManager {
         if (blockType.equals("GLOWING_REDSTONE_ORE")) {
             blockType = "REDSTONE_ORE";
         }
-        return blocksdrop.get(blockType + ";" + (IS_LEGACY ? block.getData() : "0"));
+        String key = blockType + ";" + (IS_LEGACY ? block.getData() : "0");
+        String drop = blocksdrop.get(key);
+        if (drop != null) {
+            return drop;
+        }
+        drop = blocksdrop.get(blockType);
+        if (drop != null) {
+            return drop;
+        }
+        if (!IS_LEGACY) {
+            String altKey = blockType + ";0";
+            drop = blocksdrop.get(altKey);
+            return drop;
+        }
+        return null;
     }
 
     public static void loadBlocks() {
@@ -406,7 +533,13 @@ public class MineManager {
         if (!inventoryDropLookup.isEmpty()) {
             inventoryDropLookup.clear();
         }
-        for (String block_break : Objects.requireNonNull(File.getConfig().getConfigurationSection("blocks")).getKeys(false)) {
+        ConfigurationSection section = File.getConfig().getConfigurationSection(
+                "blocks"
+        );
+        if (section == null) {
+            return;
+        }
+        for (String block_break : section.getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
             if (item_drop != null) {
                 if (!item_drop.contains(";")) {
@@ -439,8 +572,13 @@ public class MineManager {
         }
 
         String materialName = dropKey;
+        short dataValue = 0;
         if (dropKey.contains(";")) {
-            materialName = dropKey.split(";", 2)[0];
+            String[] parts = dropKey.split(";", 2);
+            materialName = parts[0];
+            if (IS_LEGACY && parts.length > 1) {
+                dataValue = (short) Number.getInteger(parts[1]);
+            }
         }
 
         Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
@@ -453,7 +591,8 @@ public class MineManager {
             return;
         }
 
-        inventoryDropLookup.put(material, dropKey);
+        short durability = IS_LEGACY ? dataValue : 0;
+        inventoryDropLookup.put(new InvLookupKey(material, durability), dropKey);
     }
 
     public static boolean checkBreak(@NotNull Block block) {
@@ -462,7 +601,13 @@ public class MineManager {
             blockType = "REDSTONE_ORE";
         }
         String dataKey = blockType + ";" + (IS_LEGACY ? block.getData() : "0");
-        return blocksdrop.containsKey(dataKey) || blocksdrop.containsKey(blockType);
+        if (blocksdrop.containsKey(dataKey)) {
+            return true;
+        }
+        if (blocksdrop.containsKey(blockType)) {
+            return true;
+        }
+        return !IS_LEGACY && blocksdrop.containsKey(blockType + ";0");
     }
 
     public static String normalizeMaterial(String material) {
@@ -498,7 +643,11 @@ public class MineManager {
         if (item == null) {
             return null;
         }
-        return inventoryDropLookup.get(item.getType());
+        short durability = 0;
+        if (IS_LEGACY) {
+            durability = item.getDurability();
+        }
+        return inventoryDropLookup.get(new InvLookupKey(item.getType(), durability));
     }
 
     public static boolean isBefore9() {
@@ -530,6 +679,11 @@ public class MineManager {
             return false;
         }
 
+        String rawData = data.getData();
+        if (rawData != null && !rawData.isEmpty()) {
+            loadDisabledAutoPickupItems(playerName, rawData);
+        }
+
         List<String> list = convertOnlineData(data.getData());
         for (String block : list) {
             String[] block_data = block.split(";");
@@ -555,6 +709,37 @@ public class MineManager {
         }
 
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+        disabledAutoPickupItems.remove(playerName);
+    }
+
+    private static final class InvLookupKey {
+
+        private final Material material;
+        private final short durability;
+
+        private InvLookupKey(@NotNull Material material, short durability) {
+            this.material = material;
+            this.durability = durability;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof InvLookupKey)) {
+                return false;
+            }
+            InvLookupKey that = (InvLookupKey) o;
+            return durability == that.durability && material == that.material;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = material.hashCode();
+            result = 31 * result + durability;
+            return result;
+        }
     }
 
 }

@@ -84,12 +84,17 @@ public class ConfirmationGUI implements IGUI {
         if (messageItem != null) {
             ItemMeta meta = messageItem.getItemMeta();
             if (meta != null) {
+                if (meta.hasDisplayName()) {
+                    meta.setDisplayName(ChatUtils.colorizewp(player,
+                            meta.getDisplayName().replace("#message#", message)));
+                }
                 List<String> lore = meta.getLore();
                 if (lore == null) lore = new ArrayList<>();
 
                 List<String> processedLore = new ArrayList<>();
                 for (String line : lore) {
-                    processedLore.add(ChatUtils.colorizewp(line.replace("#message#", message)));
+                    processedLore.add(ChatUtils.colorizewp(player,
+                            line.replace("#message#", message)));
                 }
                 meta.setLore(processedLore);
                 messageItem.setItemMeta(meta);

@@ -2,6 +2,7 @@ package net.danh.storage.GUI;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
@@ -429,8 +430,8 @@ public class TransferMultiGUI implements IGUI {
                 newSelectedAmount = Math.max(selectedAmount - 10, 0);
                 break;
             case DROP:
-                newSelectedAmount = optimalAmount;
-                break;
+                requestCustomAmount(material);
+                return;
         }
 
         // Update the selected amount or remove if 0
@@ -441,6 +442,36 @@ public class TransferMultiGUI implements IGUI {
         }
 
         updateGUI();
+    }
+
+    private void requestCustomAmount(String material) {
+        player.closeInventory();
+        ChatListener.chat_multi_transfer_material.put(player, material);
+        ChatListener.chat_multi_transfer_target.put(player, targetPlayer);
+        player.sendMessage(ChatUtils.colorize(
+                File.getMessage().getString("transfer.gui_enter_amount")));
+    }
+
+    public void setSelectedAmount(String material, int amount) {
+        if (material == null || material.trim().isEmpty()) {
+            return;
+        }
+
+        int currentAmount = MineManager.getPlayerBlock(player, material);
+        int optimalAmount = TransferManager.getOptimalTransferAmount(
+                player,
+                targetPlayer,
+                material,
+                currentAmount
+        );
+
+        int newSelectedAmount = Math.min(Math.max(0, amount), optimalAmount);
+
+        if (newSelectedAmount > 0) {
+            selectedAmounts.put(material, newSelectedAmount);
+        } else {
+            selectedAmounts.remove(material);
+        }
     }
 
     private void confirmTransfer() {

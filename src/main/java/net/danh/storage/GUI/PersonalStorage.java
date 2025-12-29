@@ -91,10 +91,78 @@ public class PersonalStorage implements IGUI {
                         if (slotIndex < slot_list.size()) {
                             String material = MineManager.getMaterial(item_list.get(i));
                             String name = File.getConfig().getString("items." + item_list.get(i));
-                            ItemStack itemStack = ItemManager.getItemConfig(p, material, name != null ? name : item_list.get(i).split(";")[0], config.getConfigurationSection("items.storage_item"));
+                            String autopickupStatus = MineManager.isAutoPickupEnabledForItem(
+                                    p,
+                                    material
+                            )
+                                    ? Objects.requireNonNull(
+                                    File.getMessage().getString(
+                                            "user.status.status_on"
+                                    )
+                            )
+                                    : Objects.requireNonNull(
+                                    File.getMessage().getString(
+                                            "user.status.status_off"
+                                    )
+                            );
+
+                            ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(
+                                    p,
+                                    material,
+                                    name != null
+                                            ? name
+                                            : item_list.get(i).split(";")[0],
+                                    config.getConfigurationSection(
+                                            "items.storage_item"
+                                    ),
+                                    "#autopickup_status#",
+                                    autopickupStatus
+                            );
                             InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(slotIndex))).onClick((player, clickType) -> {
                                 SoundManager.playItemSound(player, config, "items.storage_item", SoundContext.INITIAL_OPEN);
                                 SoundManager.setShouldPlayCloseSound(player, false);
+                                if (clickType == org.bukkit.event.inventory.ClickType.DROP) {
+                                    boolean enabled = MineManager.toggleItemAutoPickup(p, material);
+                                    String status = enabled
+                                            ? Objects.requireNonNull(
+                                            File.getMessage().getString(
+                                                    "user.status.status_on"
+                                            )
+                                    )
+                                            : Objects.requireNonNull(
+                                            File.getMessage().getString(
+                                                    "user.status.status_off"
+                                            )
+                                    );
+
+                                    String itemKey = "items." + item_list.get(
+                                            slotIndex +
+                                                    (currentPage * itemsPerPage)
+                                    );
+                                    String configItemName = File.getConfig()
+                                            .getString(itemKey);
+                                    String itemName = configItemName != null
+                                            ? configItemName
+                                            : item_list.get(
+                                            slotIndex +
+                                                    (currentPage * itemsPerPage)
+                                    ).split(";")[0];
+
+                                    p.sendMessage(ChatUtils.colorize(
+                                            (File.getMessage().getString(
+                                                    "user.status.item_toggle"
+                                            ) != null
+                                                    ? File.getMessage().getString(
+                                                    "user.status.item_toggle"
+                                            )
+                                                    : "#prefix# &bAuto-pickup for #item#: #status#")
+                                                    .replace("#item#", itemName)
+                                                    .replace("#status#", status)
+                                    ));
+                                    p.openInventory(new PersonalStorage(p, currentPage)
+                                            .getInventory(SoundContext.SILENT));
+                                    return;
+                                }
                                 player.openInventory(new ItemStorage(p, material, currentPage).getInventory(SoundContext.SILENT));
                             });
                             inventory.setItem(interactiveItem.getSlot(), interactiveItem);

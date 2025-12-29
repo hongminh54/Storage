@@ -13,7 +13,7 @@ gui_open_sound:
 items:
   # Decorative items
   decorates:
-    slot: 0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 50, 51, 52, 53
+    slot: 0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 51, 52, 53
     name: "&7"
     material: BLACK_STAINED_GLASS_PANE
     lore:
@@ -79,6 +79,43 @@ items:
       - "&7of &e10 &7materials per recipe"
       - "&7"
       - "&cRemove some materials first"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: true
+    enchants:
+      DURABILITY: 1
+    flags:
+      ALL: true
+
+  add_mythic_material:
+    slot: 50
+    name: "&d&lAdd MythicStorage Item"
+    material: PURPLE_DYE
+    lore:
+      - "&7Click to add a MythicMobs"
+      - "&7item from MythicStorage"
+      - "&7"
+      - "&eOpens MythicStorage item selection"
+    amount: 1
+    damage: 0
+    custom-model-data: 0
+    unbreakable: false
+    enchants: {}
+    flags: {}
+    sound:
+      enabled: true
+      name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.8
+      pitch: 1.2
+
+  add_mythic_material_disabled:
+    slot: 50
+    name: "&8&lMythicStorage Unavailable"
+    material: GRAY_DYE
+    lore:
+      - "&7MythicStorage is disabled"
+      - "&7or material limit reached"
     amount: 1
     damage: 0
     custom-model-data: 0

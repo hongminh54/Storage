@@ -26,6 +26,10 @@ public class ChatListener implements Listener {
     public static HashMap<Player, String> chat_sell = new HashMap<>();
     public static HashMap<Player, String> chat_mythic_withdraw = new HashMap<>();
     public static HashMap<Player, String> chat_mythic_deposit = new HashMap<>();
+    public static HashMap<Player, String> chat_multi_transfer_material = new HashMap<>();
+    public static HashMap<Player, String> chat_multi_transfer_target = new HashMap<>();
+    public static HashMap<Player, String> chat_multi_mythic_transfer_item = new HashMap<>();
+    public static HashMap<Player, String> chat_multi_mythic_transfer_target = new HashMap<>();
     public static HashMap<Player, String> chat_convert_from = new HashMap<>();
     public static HashMap<Player, String> chat_convert_to = new HashMap<>();
     public static HashMap<Player, Integer> chat_return_page = new HashMap<>();
@@ -46,6 +50,110 @@ public class ChatListener implements Listener {
     public void onChat(@NotNull AsyncPlayerChatEvent e) {
         Player p = e.getPlayer();
         String message = ChatColor.stripColor(e.getMessage());
+
+        if (chat_multi_transfer_material.containsKey(p)
+                && chat_multi_transfer_material.get(p) != null) {
+            if (isCancelCommand(message)) {
+                TransferMultiGUI gui = TransferMultiGUI.getActiveGUI(p);
+                String target = chat_multi_transfer_target.get(p);
+                chat_multi_transfer_material.remove(p);
+                chat_multi_transfer_target.remove(p);
+                if (gui != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            gui.getInventory(SoundContext.SILENT)));
+                } else if (target != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            new TransferMultiGUI(p, target)
+                                    .getInventory(SoundContext.SILENT)));
+                } else {
+                    handleCancel(p, () -> {
+                    });
+                }
+                e.setCancelled(true);
+                return;
+            }
+
+            int amount = Number.getInteger(message);
+            if (amount > 0) {
+                String material = chat_multi_transfer_material.get(p);
+                TransferMultiGUI gui = TransferMultiGUI.getActiveGUI(p);
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    if (gui != null) {
+                        gui.setSelectedAmount(material, amount);
+                        p.openInventory(gui.getInventory(SoundContext.SILENT));
+                    } else {
+                        String target = chat_multi_transfer_target.get(p);
+                        if (target != null) {
+                            TransferMultiGUI newGui = new TransferMultiGUI(p, target);
+                            newGui.setSelectedAmount(material, amount);
+                            p.openInventory(newGui.getInventory(SoundContext.SILENT));
+                        }
+                    }
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(
+                                File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
+            }
+            chat_multi_transfer_material.remove(p);
+            chat_multi_transfer_target.remove(p);
+            e.setCancelled(true);
+            return;
+        }
+
+        if (chat_multi_mythic_transfer_item.containsKey(p)
+                && chat_multi_mythic_transfer_item.get(p) != null) {
+            if (isCancelCommand(message)) {
+                MythicTransferMultiGUI gui = MythicTransferMultiGUI.getActiveGUI(p);
+                String target = chat_multi_mythic_transfer_target.get(p);
+                chat_multi_mythic_transfer_item.remove(p);
+                chat_multi_mythic_transfer_target.remove(p);
+                if (gui != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            gui.getInventory(SoundContext.SILENT)));
+                } else if (target != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            new MythicTransferMultiGUI(p, target)
+                                    .getInventory(SoundContext.SILENT)));
+                } else {
+                    handleCancel(p, () -> {
+                    });
+                }
+                e.setCancelled(true);
+                return;
+            }
+
+            int amount = Number.getInteger(message);
+            if (amount > 0) {
+                String itemName = chat_multi_mythic_transfer_item.get(p);
+                MythicTransferMultiGUI gui = MythicTransferMultiGUI.getActiveGUI(p);
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    if (gui != null) {
+                        gui.setSelectedAmount(itemName, amount);
+                        p.openInventory(gui.getInventory(SoundContext.SILENT));
+                    } else {
+                        String target = chat_multi_mythic_transfer_target.get(p);
+                        if (target != null) {
+                            MythicTransferMultiGUI newGui =
+                                    new MythicTransferMultiGUI(p, target);
+                            newGui.setSelectedAmount(itemName, amount);
+                            p.openInventory(newGui.getInventory(SoundContext.SILENT));
+                        }
+                    }
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(
+                                File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
+            }
+            chat_multi_mythic_transfer_item.remove(p);
+            chat_multi_mythic_transfer_target.remove(p);
+            e.setCancelled(true);
+            return;
+        }
+
         if (chat_deposit.containsKey(p) && chat_deposit.get(p) != null) {
             if (isCancelCommand(message)) {
                 int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));

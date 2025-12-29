@@ -121,6 +121,22 @@ public class MythicStorageGUI implements IGUI {
                                 if (meta != null) {
                                     int amount = MythicStorageManager.getPlayerItem(player, itemName);
                                     int maxStorage = MythicStorageManager.getMaxStorage(player);
+                                    boolean autopickupEnabled = MythicStorageManager
+                                            .isAutoPickupEnabledForItem(player,
+                                                    itemName);
+                                    String autopickupStatus = autopickupEnabled
+                                            ? ChatUtils.colorizewp(
+                                            File.getMessage().getString(
+                                                    "mythicstorage.status_enabled",
+                                                    "&aEnabled"
+                                            )
+                                    )
+                                            : ChatUtils.colorizewp(
+                                            File.getMessage().getString(
+                                                    "mythicstorage.status_disabled",
+                                                    "&cDisabled"
+                                            )
+                                    );
 
                                     if (meta.hasDisplayName()) {
                                         meta.setDisplayName(ChatUtils.colorizewp(meta.getDisplayName()));
@@ -128,7 +144,17 @@ public class MythicStorageGUI implements IGUI {
 
                                     List<String> lore = new ArrayList<>();
                                     for (String line : config.getStringList("items.mythic_item.lore")) {
-                                        lore.add(ChatUtils.colorizewp(line.replace("#item_amount#", String.valueOf(amount)).replace("#max_storage#", String.valueOf(maxStorage))));
+                                        lore.add(ChatUtils.colorizewp(line
+                                                .replace("#item_amount#",
+                                                        String.valueOf(amount))
+                                                .replace("#max_storage#",
+                                                        String.valueOf(
+                                                                maxStorage))
+                                                .replace(
+                                                        "#autopickup_status#",
+                                                        autopickupStatus
+                                                )
+                                        ));
                                     }
 
                                     meta.setLore(lore);
@@ -251,6 +277,45 @@ public class MythicStorageGUI implements IGUI {
 
     private void handleItemClick(Player player, String itemName, ClickType clickType) {
         int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+
+        if (clickType == ClickType.DROP) {
+            boolean enabled = MythicStorageManager.toggleItemAutoPickup(player,
+                    itemName);
+            String status = enabled
+                    ? ChatUtils.colorizewp(
+                    File.getMessage().getString(
+                            "mythicstorage.status_enabled",
+                            "&aEnabled"
+                    )
+            )
+                    : ChatUtils.colorizewp(
+                    File.getMessage().getString(
+                            "mythicstorage.status_disabled",
+                            "&cDisabled"
+                    )
+            );
+
+            String itemDisplay = MythicStorageManager.getItemDisplayNameOrId(
+                    itemName,
+                    player
+            );
+
+            String message = File.getMessage().getString(
+                    "mythicstorage.item_toggle"
+            );
+            if (message == null) {
+                message = "#prefix# &dMythicStorage &bAuto-pickup for #item#: #status#";
+            }
+            player.sendMessage(ChatUtils.colorizewp(
+                    message
+                            .replace("#item#", itemDisplay)
+                            .replace("#status#", status)
+            ));
+            SoundManager.setShouldPlayCloseSound(player, false);
+            player.openInventory(new MythicStorageGUI(player, currentPage)
+                    .getInventory(SoundContext.SILENT));
+            return;
+        }
 
         if (clickType == ClickType.LEFT) {
             ChatListener.chat_mythic_withdraw.put(player, itemName);

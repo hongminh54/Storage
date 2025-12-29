@@ -50,8 +50,11 @@ items:
     # Lore for item in storage
     lore:
       - "&7 "
-      - "&f#item_amount#/#max_storage# Items"
+      - "&a#item_amount#&f/&e#max_storage# &fItems"
       - "&7 "
+      - "&aStatus: #autopickup_status#"
+      - "&7 "
+      - "&ePress Q &6(Drop key)&e: &fToggle auto-pickup for this item"
     # Amount of item
     amount: 1
     # for 1.13.2 and below

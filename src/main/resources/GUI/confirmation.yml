@@ -30,7 +30,7 @@ items:
     name: "&e&lConfirmation Required"
     material: PAPER
     lore:
-      - "&7#message#"
+      - "&7Are you sure about that?"
       - "&7"
       - "&cThis action cannot be undone!"
     amount: 1
