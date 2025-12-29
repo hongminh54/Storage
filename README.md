@@ -33,6 +33,26 @@ A dedicated storage system for MythicMobs items that automatically stores drops 
 - Configure which MythicMobs items can be stored in `mythicstorage.yml`
 - Works with all MythicMobs versions (4.x, 5.x, and newer)
 
+## Crafting System
+
+A dedicated crafting system that lets players craft custom recipes using materials stored in the plugin storage (and optionally MythicStorage items) through a GUI.
+
+### How It Works
+
+ - Recipes are defined in `crafting.yml` and/or individual recipe files in the plugin data folder (`plugins/Storage/recipes/*.yml`).
+ - Players open the crafting menu with `/storage craft`.
+ - Each recipe can require:
+   - Storage materials
+   - MythicStorage items (if MythicStorage is enabled and the requirement refers to a Mythic item id).
+ - Crafting can have a configurable delay (with particles/sounds during processing).
+ - Output items support name, lore, enchants, flags, custom model data, and unbreakable.
+ - Recipe access can be restricted by per-recipe permissions (configured per recipe).
+
+### Admin Usage
+
+ - **Open recipe editor**: `/storage crafteditor`
+ - **Import held item into a new recipe**: `/storage crafteditor import`
+
 ## Commands
 
 ### User Commands
