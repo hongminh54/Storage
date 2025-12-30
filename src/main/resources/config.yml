@@ -1,5 +1,5 @@
 #Do not touch it
-config_version: 3
+config_version: 4
 
 #Database configuration
 database:
@@ -70,8 +70,6 @@ ground_store:
 
   # Notification settings for ground-store.
   # These notifications reuse the existing Storage mining notification formats.
-  # - Actionbar format: mine.actionbar.action
-  # - Title format: mine.title.title + mine.title.subtitle
   notification:
     actionbar:
       enable: true

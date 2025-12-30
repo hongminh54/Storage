@@ -1,4 +1,4 @@
-mythicstorage_version: 1
+mythicstorage_version: 2
 
 # Worlds that will not be affected by MythicStorage feature
 blacklist_world:
@@ -36,8 +36,6 @@ ground_store:
 
   # Notification settings for ground-store.
   # These notifications reuse the existing MythicStorage notification formats.
-  # - Actionbar format: notification.actionbar.item_added
-  # - Title format: notification.title.item_added.title + notification.title.item_added.subtitle
   notification:
     actionbar:
       enable: true

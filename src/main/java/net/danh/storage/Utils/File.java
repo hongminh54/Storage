@@ -15,12 +15,112 @@ import org.bukkit.entity.Player;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class File {
+
+    private static void mergeMissingKeys(
+            FileConfiguration currentConfig,
+            FileConfiguration defaultConfig
+    ) {
+        if (currentConfig == null || defaultConfig == null) {
+            return;
+        }
+
+        Set<String> keys = defaultConfig.getKeys(true);
+        for (String key : keys) {
+            if (currentConfig.contains(key)) {
+                continue;
+            }
+
+            Object value = defaultConfig.get(key);
+            if (value != null) {
+                currentConfig.set(key, value);
+            }
+        }
+    }
+
+    private static void updateVersionedConfig(
+            String fileName,
+            String versionKey,
+            String logName,
+            String... ignoredSections
+    ) {
+        java.io.File configFile = new java.io.File(
+                Storage.getStorage().getDataFolder(),
+                fileName
+        );
+        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
+                new InputStreamReader(
+                        Objects.requireNonNull(
+                                Storage.getStorage().getResource(fileName)
+                        ),
+                        StandardCharsets.UTF_8
+                )
+        );
+        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(
+                configFile
+        );
+
+        int defaultVersion = defaultConfig.getInt(versionKey);
+        int currentVersion = currentConfig.contains(versionKey)
+                ? currentConfig.getInt(versionKey)
+                : 0;
+
+        if (defaultVersion <= currentVersion) {
+            return;
+        }
+
+        Storage.getStorage().getLogger().log(
+                Level.WARNING,
+                "Your " + logName + " is updating from v" + currentVersion
+                        + " to v" + defaultVersion + "..."
+        );
+
+        mergeMissingKeys(currentConfig, defaultConfig);
+
+        try {
+            currentConfig.set(versionKey, defaultVersion);
+            currentConfig.save(configFile);
+
+            if (ignoredSections != null && ignoredSections.length > 0) {
+                ConfigUpdater.update(
+                        Storage.getStorage(),
+                        fileName,
+                        configFile,
+                        ignoredSections
+                );
+            } else {
+                ConfigUpdater.update(Storage.getStorage(), fileName, configFile);
+            }
+
+            FileConfiguration updatedConfig = YamlConfiguration.loadConfiguration(
+                    configFile
+            );
+            if (updatedConfig.getInt(versionKey) != defaultVersion) {
+                updatedConfig.set(versionKey, defaultVersion);
+                updatedConfig.save(configFile);
+            }
+
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Your " + logName
+                            + " have been updated successful to v"
+                            + defaultVersion
+            );
+        } catch (IOException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.SEVERE,
+                    "Failed to update " + logName + " file",
+                    e
+            );
+        }
+
+        getFileSetting().reload(fileName);
+    }
 
     public static int resolveMaxStorage(
             FileConfiguration config,
@@ -164,195 +264,51 @@ public class File {
     }
 
     public static void updateConfig() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "config.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("config.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_configVersion = defaultConfig.getInt("config_version");
-        int current_configVersion = currentConfig.contains("config_version") ? currentConfig.getInt("config_version") : 0;
-
-        if (default_configVersion > current_configVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your config is updating from v" + current_configVersion + " to v" + default_configVersion + "...");
-
-            List<String> default_whitelist_fortune = defaultConfig.getStringList("whitelist_fortune");
-            List<String> current_whitelist_fortune = currentConfig.getStringList("whitelist_fortune");
-            List<String> default_blacklist_world = defaultConfig.getStringList("blacklist_world");
-            List<String> current_blacklist_world = currentConfig.getStringList("blacklist_world");
-
-            if (current_whitelist_fortune.isEmpty() && !default_whitelist_fortune.isEmpty()) {
-                currentConfig.set("whitelist_fortune", default_whitelist_fortune);
-            }
-            if (current_blacklist_world.isEmpty() && !default_blacklist_world.isEmpty()) {
-                currentConfig.set("blacklist_world", default_blacklist_world);
-            }
-
-            try {
-                currentConfig.save(configFile);
-
-                ConfigUpdater.update(Storage.getStorage(), "config.yml", configFile, "items", "blocks", "worth");
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your config have been updated successful to v" + default_configVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update config file", e);
-            }
-
-            getFileSetting().reload("config.yml");
-        }
+        updateVersionedConfig(
+                "config.yml",
+                "config_version",
+                "config",
+                "items",
+                "blocks",
+                "worth"
+        );
     }
 
     public static void updateMessage() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "message.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("message.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_configVersion = defaultConfig.getInt("message_version");
-        int current_configVersion = currentConfig.contains("message_version") ? currentConfig.getInt("message_version") : 0;
-
-        if (default_configVersion > current_configVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your message is updating from v" + current_configVersion + " to v" + default_configVersion + "...");
-
-            List<String> default_admin_help = defaultConfig.getStringList("admin.help");
-            List<String> default_user_help = defaultConfig.getStringList("user.help");
-            List<String> current_admin_help = currentConfig.getStringList("admin.help");
-            List<String> current_user_help = currentConfig.getStringList("user.help");
-
-            if (default_admin_help.size() != current_admin_help.size()) {
-                currentConfig.set("admin.help", default_admin_help);
-            }
-            if (default_user_help.size() != current_user_help.size()) {
-                currentConfig.set("user.help", default_user_help);
-            }
-
-            try {
-                currentConfig.save(configFile);
-
-                ConfigUpdater.update(Storage.getStorage(), "message.yml", configFile);
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your message have been updated successful to v" + default_configVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update message file", e);
-            }
-
-            getFileSetting().reload("message.yml");
-        }
+        updateVersionedConfig("message.yml", "message_version", "message");
     }
 
     public static void updateEventConfig() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "events.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("events.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_configVersion = defaultConfig.getInt("config_version");
-        int current_configVersion = currentConfig.contains("config_version") ? currentConfig.getInt("config_version") : 0;
-
-        if (default_configVersion > current_configVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your events config is updating from v" + current_configVersion + " to v" + default_configVersion + "...");
-
-            try {
-                ConfigUpdater.update(Storage.getStorage(), "events.yml", configFile);
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your events config have been updated successful to v" + default_configVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update events config", e);
-            }
-
-            getFileSetting().reload("events.yml");
-        }
+        updateVersionedConfig("events.yml", "config_version", "events config");
     }
 
     public static void updateEnchantConfig() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "enchants.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("enchants.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_enchantVersion = defaultConfig.getInt("enchant_version");
-        int current_enchantVersion = currentConfig.contains("enchant_version") ? currentConfig.getInt("enchant_version") : 0;
-
-        if (default_enchantVersion > current_enchantVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config is updating from v" + current_enchantVersion + " to v" + default_enchantVersion + "...");
-
-            try {
-                ConfigUpdater.update(Storage.getStorage(), "enchants.yml", configFile);
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your enchants config have been updated successful to v" + default_enchantVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update enchants config", e);
-            }
-
-            getFileSetting().reload("enchants.yml");
-        }
+        updateVersionedConfig("enchants.yml", "enchant_version", "enchants config");
     }
 
     public static void updateSpecialMaterialConfig() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "special_material.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("special_material.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_specialMaterialVersion = defaultConfig.getInt("special_material_version");
-        int current_specialMaterialVersion = currentConfig.contains("special_material_version") ? currentConfig.getInt("special_material_version") : 0;
-
-        if (default_specialMaterialVersion > current_specialMaterialVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config is updating from v" + current_specialMaterialVersion + " to v" + default_specialMaterialVersion + "...");
-
-            try {
-                ConfigUpdater.update(Storage.getStorage(), "special_material.yml", configFile);
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your special materials config have been updated successful to v" + default_specialMaterialVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update special materials config", e);
-            }
-
-            getFileSetting().reload("special_material.yml");
-            SpecialMaterialManager.loadSpecialMaterials();
-        }
+        updateVersionedConfig(
+                "special_material.yml",
+                "special_materials_version",
+                "special materials config"
+        );
+        SpecialMaterialManager.loadSpecialMaterials();
     }
 
     public static void updateMythicStorageConfig() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "mythicstorage.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("mythicstorage.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_mythicStorageVersion = defaultConfig.getInt("mythicstorage_version");
-        int current_mythicStorageVersion = currentConfig.contains("mythicstorage_version") ? currentConfig.getInt("mythicstorage_version") : 0;
-
-        if (default_mythicStorageVersion > current_mythicStorageVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config is updating from v" + current_mythicStorageVersion + " to v" + default_mythicStorageVersion + "...");
-
-            List<String> default_blacklist_world = defaultConfig.getStringList("blacklist_world");
-            List<String> current_blacklist_world = currentConfig.getStringList("blacklist_world");
-
-            if (current_blacklist_world.isEmpty() && !default_blacklist_world.isEmpty()) {
-                currentConfig.set("blacklist_world", default_blacklist_world);
-            }
-
-            try {
-                currentConfig.save(configFile);
-
-                ConfigUpdater.update(Storage.getStorage(), "mythicstorage.yml", configFile);
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your mythicstorage config have been updated successful to v" + default_mythicStorageVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update mythicstorage config", e);
-            }
-
-            getFileSetting().reload("mythicstorage.yml");
-        }
+        updateVersionedConfig(
+                "mythicstorage.yml",
+                "mythicstorage_version",
+                "mythicstorage config"
+        );
     }
 
     public static void updateCraftingConfig() {
-        java.io.File configFile = new java.io.File(Storage.getStorage().getDataFolder(), "crafting.yml");
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(Storage.getStorage().getResource("crafting.yml")), StandardCharsets.UTF_8));
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        int default_craftingVersion = defaultConfig.getInt("crafting_version");
-        int current_craftingVersion = currentConfig.contains("crafting_version") ? currentConfig.getInt("crafting_version") : 0;
-
-        if (default_craftingVersion > current_craftingVersion) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "Your crafting config is updating from v" + current_craftingVersion + " to v" + default_craftingVersion + "...");
-
-            try {
-                ConfigUpdater.update(Storage.getStorage(), "crafting.yml", configFile);
-
-                Storage.getStorage().getLogger().log(Level.WARNING, "Your crafting config have been updated successful to v" + default_craftingVersion);
-            } catch (IOException e) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to update crafting config", e);
-            }
-
-            getFileSetting().reload("crafting.yml");
-        }
+        updateVersionedConfig(
+                "crafting.yml",
+                "crafting_version",
+                "crafting config"
+        );
     }
 
     public static void saveEnchantConfig() {
