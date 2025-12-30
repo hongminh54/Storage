@@ -377,7 +377,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'com.github.hongminh54:Storage:2.3.3'
+    compileOnly 'com.github.hongminh54:Storage:2.3.5'
 }
 ```
 
@@ -391,7 +391,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.hongminh54:Storage:2.3.3")
+    compileOnly("com.github.hongminh54:Storage:2.3.5")
 }
 ```
 
