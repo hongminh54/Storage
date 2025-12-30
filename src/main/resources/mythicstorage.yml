@@ -17,6 +17,33 @@ settings:
   max_storage_mode: PERMISSION
   default_auto_pickup: false
 
+ground_store:
+  # Enable/disable ground-store system for MythicStorage.
+  enabled: true
+
+  # Default toggle state for new players.
+  default_enabled: false
+
+  # MythicMobs item IDs that will be stored when picked up from the ground.
+  # IMPORTANT:
+  # - This list depends on items_drop.
+  # - If an item is not present in items_drop, it will NOT be stored.
+  # These must match the IDs used in MythicMobs configs (same IDs as items_drop).
+  # Examples:
+  # - test
+  allowed_items:
+    - test
+
+  # Notification settings for ground-store.
+  # These notifications reuse the existing MythicStorage notification formats.
+  # - Actionbar format: notification.actionbar.item_added
+  # - Title format: notification.title.item_added.title + notification.title.item_added.subtitle
+  notification:
+    actionbar:
+      enable: true
+    title:
+      enable: true
+
 # Storage limit based on permissions (MythicStorage)
 # Players with permission storage.mythicstorage.storage.<tier_name> will receive the configured max_storage
 # Priority system: higher number = higher priority (overrides lower priority)

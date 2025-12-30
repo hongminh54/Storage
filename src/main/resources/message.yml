@@ -84,6 +84,12 @@ user:
     status_off: "&cOff"
     toggle: "#prefix# &bYour storage has been toggled: #status#"
     item_toggle: "#prefix# &bAuto-pickup for &e#item#&b: #status# &7(Note: If the feature isn't working, make sure you've turned on the /storage toggle)."
+  ground_store:
+    toggle_on: "#prefix# &aGround-store mode enabled. Picked up items will be stored."
+    toggle_off: "#prefix# &cGround-store mode disabled."
+    system_disabled: "#prefix# &cGround-store mode is disabled by server configuration."
+    no_permission: "#prefix# &cYou don't have permission to use this feature."
+    notify: "#prefix# &aStored picked up items into storage"
   help:
     - "&6=== &eStorage Commands &6v2.3.4 &6==="
     - "&e/Storage &f- &7Open Gui"
@@ -309,6 +315,10 @@ mythicstorage:
   status_disabled: "&cDisabled"
   toggle_enabled: "#prefix# &dMythicStorage &aAuto-pickup enabled!"
   toggle_disabled: "#prefix# &dMythicStorage &cAuto-pickup disabled!"
+  ground_store_toggle_on: "#prefix# &dMythicStorage &aGround-store mode enabled."
+  ground_store_toggle_off: "#prefix# &dMythicStorage &cGround-store mode disabled."
+  ground_store_system_disabled: "#prefix# &cMythicStorage ground-store mode is disabled by server configuration."
+  ground_store_no_permission: "#prefix# &cYou don't have permission to use this feature."
   item_toggle: "#prefix# &dMythicStorage &bAuto-pickup for &e#item#&b: #status# &7(Note: If the feature isn't working, make sure you've turned on the /mythicstorage toggle)."
   action:
     withdraw:

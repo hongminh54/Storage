@@ -26,10 +26,13 @@ public class JoinQuit implements Listener {
     public void onQuit(@NotNull PlayerQuitEvent e) {
         Player p = e.getPlayer();
         MineManager.savePlayerData(p);
-        MythicStorageManager.savePlayerData(p);
         MineManager.cleanupPlayerData(p);
-        MythicStorageManager.cleanupPlayerData(p);
-        MythicMobDeath.cleanupPlayer(p);
+
+        if (MythicStorageManager.isSystemEnabled()) {
+            MythicStorageManager.savePlayerData(p);
+            MythicStorageManager.cleanupPlayerData(p);
+            MythicMobDeath.cleanupPlayer(p);
+        }
         PersonalStorage.playerCurrentPage.remove(p);
         MythicStorageGUI.playerCurrentPage.remove(p);
         ViewMythicStorageGUI.playerCurrentPage.remove(p);

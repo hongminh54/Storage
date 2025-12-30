@@ -35,6 +35,9 @@ public class MineManager {
             "storage.storage.max.";
     private static final HashMap<String, Set<String>> disabledAutoPickupItems =
             new HashMap<>();
+    private static final HashMap<Player, Boolean> groundStoreToggle =
+            new HashMap<>();
+    private static final String GROUND_STORE_DATA_PREFIX = ";groundstore:";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -123,6 +126,51 @@ public class MineManager {
         return playerStats;
     }
 
+    public static boolean isGroundStoreSystemEnabled() {
+        return File.getConfig().getBoolean("ground_store.enabled", true);
+    }
+
+    public static boolean isGroundStoreEnabled(@NotNull Player player) {
+        if (!isGroundStoreSystemEnabled()) {
+            return false;
+        }
+        Boolean status = groundStoreToggle.get(player);
+        if (status == null) {
+            PlayerData playerData = getPlayerDatabase(player);
+            status = parseGroundStoreStatus(playerData.getData());
+            if (status == null) {
+                status = File.getConfig().getBoolean(
+                        "ground_store.default_enabled",
+                        false
+                );
+            }
+            groundStoreToggle.put(player, status);
+        }
+        return status;
+    }
+
+    public static boolean toggleGroundStore(@NotNull Player player) {
+        boolean current = isGroundStoreEnabled(player);
+        boolean next = !current;
+        groundStoreToggle.put(player, next);
+        savePlayerData(player);
+        return next;
+    }
+
+    public static boolean isGroundStoreItemAllowed(@NotNull String dropKey) {
+        if (!getPluginBlocks().contains(dropKey)) {
+            return false;
+        }
+
+        List<String> allowed = File.getConfig().getStringList(
+                "ground_store.allowed_items"
+        );
+        if (allowed == null || allowed.isEmpty()) {
+            return false;
+        }
+        return allowed.contains(dropKey);
+    }
+
     private static @NotNull String createNewData() {
         StringBuilder mapAsString = new StringBuilder("{");
         for (String block : getPluginBlocks()) {
@@ -159,6 +207,11 @@ public class MineManager {
                 mapAsString.append(";autopickupoff:")
                         .append(disabledData);
             }
+        }
+
+        if (groundStoreToggle.containsKey(p)) {
+            mapAsString.append(GROUND_STORE_DATA_PREFIX)
+                    .append(groundStoreToggle.get(p));
         }
 
         return mapAsString.toString();
@@ -419,10 +472,21 @@ public class MineManager {
         String rawData = playerData.getData();
         if (rawData != null && !rawData.isEmpty()) {
             loadDisabledAutoPickupItems(p.getName(), rawData);
+            Boolean groundStatus = parseGroundStoreStatus(rawData);
+            if (groundStatus != null) {
+                groundStoreToggle.put(p, groundStatus);
+            }
         }
 
         if (!toggle.containsKey(p)) {
             toggle.put(p, playerData.isAutoPickup());
+        }
+
+        if (!groundStoreToggle.containsKey(p)) {
+            groundStoreToggle.put(p, File.getConfig().getBoolean(
+                    "ground_store.default_enabled",
+                    false
+            ));
         }
     }
 
@@ -440,10 +504,29 @@ public class MineManager {
     public static void cleanupPlayerData(@NotNull Player p) {
         toggle.remove(p);
         playermaxdata.remove(p);
+        groundStoreToggle.remove(p);
 
         String playerName = p.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
         disabledAutoPickupItems.remove(playerName);
+    }
+
+    private static Boolean parseGroundStoreStatus(String data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+        int idx = data.indexOf(GROUND_STORE_DATA_PREFIX);
+        if (idx < 0) {
+            return null;
+        }
+        int start = idx + GROUND_STORE_DATA_PREFIX.length();
+        int end = data.indexOf(';', start);
+        String raw = end >= 0 ? data.substring(start, end) : data.substring(start);
+        raw = raw.trim().toLowerCase(Locale.ROOT);
+        if (raw.isEmpty()) {
+            return null;
+        }
+        return "true".equals(raw);
     }
 
     public static boolean getToggleStatus(@NotNull Player p) {

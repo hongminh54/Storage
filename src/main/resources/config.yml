@@ -50,6 +50,34 @@ settings:
     #Send notification to target player when their storage is reset by admin
     notify_target_player: true
 
+ground_store:
+  # Enable/disable ground-store system.
+  enabled: true
+
+  # Default toggle state for new players.
+  default_enabled: false
+
+  # Items that will be stored when picked up from the ground.
+  # IMPORTANT:
+  # - This list depends on your configured Storage blocks section.
+  # - If an item is not present in blocks drops, it will NOT be stored.
+  # Format must match Storage internal keys: MATERIAL;DATA
+  # Examples:
+  # - COBBLESTONE;0
+  # - IRON_INGOT;0
+  allowed_items:
+    - COBBLESTONE;0
+
+  # Notification settings for ground-store.
+  # These notifications reuse the existing Storage mining notification formats.
+  # - Actionbar format: mine.actionbar.action
+  # - Title format: mine.title.title + mine.title.subtitle
+  notification:
+    actionbar:
+      enable: true
+    title:
+      enable: true
+
 # Storage limit based on permissions
 # Players with permission storage.storage.<tier_name> will receive the configured max_storage
 # Priority system: higher number = higher priority (overrides lower priority)

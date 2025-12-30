@@ -77,7 +77,7 @@ public final class Storage extends JavaPlugin {
             new PAPI().register();
             new CraftingPlaceholder(this).register();
         }
-        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace());
+        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(), new GroundStoreListener());
         new UpdateChecker(storage).fetch();
         new StorageCMD("storage");
         new MythicStorageCMD("mythicstorage");

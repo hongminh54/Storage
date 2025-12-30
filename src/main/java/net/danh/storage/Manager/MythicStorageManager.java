@@ -22,6 +22,9 @@ public class MythicStorageManager {
             "storage.mythicstorage.storage.max.";
     private static final HashMap<String, Set<String>> disabledAutoPickupItems =
             new HashMap<>();
+    private static final HashMap<Player, Boolean> groundStoreToggle =
+            new HashMap<>();
+    private static final String GROUND_STORE_DATA_PREFIX = "mythicgroundstore:";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<Player, Boolean> toggle = new HashMap<>();
     public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
@@ -65,6 +68,57 @@ public class MythicStorageManager {
 
     public static boolean isSystemEnabled() {
         return systemEnabled && mythicMobsHelper != null && mythicMobsHelper.isInitialized();
+    }
+
+    public static boolean isGroundStoreSystemEnabled() {
+        return File.getMythicStorageConfig().getBoolean(
+                "ground_store.enabled",
+                true
+        );
+    }
+
+    public static boolean isGroundStoreEnabled(@NotNull Player player) {
+        if (!isSystemEnabled() || !isGroundStoreSystemEnabled()) {
+            return false;
+        }
+
+        Boolean status = groundStoreToggle.get(player);
+        if (status != null) {
+            return status;
+        }
+
+        PlayerData data = Storage.dataStorage.getData(player.getName());
+        status = data != null ? parseGroundStoreStatus(data.getData()) : null;
+        if (status == null) {
+            status = File.getMythicStorageConfig().getBoolean(
+                    "ground_store.default_enabled",
+                    false
+            );
+        }
+        groundStoreToggle.put(player, status);
+        return status;
+    }
+
+    public static boolean toggleGroundStore(@NotNull Player player) {
+        boolean current = isGroundStoreEnabled(player);
+        boolean next = !current;
+        groundStoreToggle.put(player, next);
+        savePlayerData(player);
+        return next;
+    }
+
+    public static boolean isGroundStoreItemAllowed(@NotNull String itemName) {
+        if (!isConfiguredDrop(itemName)) {
+            return false;
+        }
+
+        List<String> allowed = File.getMythicStorageConfig().getStringList(
+                "ground_store.allowed_items"
+        );
+        if (allowed == null || allowed.isEmpty()) {
+            return false;
+        }
+        return allowed.contains(itemName);
     }
 
     public static MythicMobsHelper getMythicMobsHelper() {
@@ -411,6 +465,9 @@ public class MythicStorageManager {
                         }
                     }
                 }
+            } else if (part.startsWith("mythictoggle:")) {
+                String raw = part.substring("mythictoggle:".length()).trim();
+                toggle.put(player, "true".equalsIgnoreCase(raw));
             } else if (part.startsWith("mythicautopickupoff:")) {
                 String disabledData = part.substring("mythicautopickupoff:"
                         .length());
@@ -429,6 +486,11 @@ public class MythicStorageManager {
                                 disabledItems);
                     }
                 }
+            } else if (part.startsWith(GROUND_STORE_DATA_PREFIX)) {
+                Boolean status = parseGroundStoreStatus(part);
+                if (status != null) {
+                    groundStoreToggle.put(player, status);
+                }
             }
         }
 
@@ -441,6 +503,11 @@ public class MythicStorageManager {
                 permissionMax
         );
         playermaxdata.put(player, Math.max(0, resolvedMax));
+
+        if (!groundStoreToggle.containsKey(player)) {
+            groundStoreToggle.put(player, File.getMythicStorageConfig()
+                    .getBoolean("ground_store.default_enabled", false));
+        }
     }
 
     public static void savePlayerData(@NotNull Player player) {
@@ -496,6 +563,14 @@ public class MythicStorageManager {
             finalData.append("mythictoggle:").append(toggle.get(player));
         }
 
+        if (groundStoreToggle.containsKey(player)) {
+            if (finalData.length() > 0) {
+                finalData.append(";");
+            }
+            finalData.append(GROUND_STORE_DATA_PREFIX)
+                    .append(groundStoreToggle.get(player));
+        }
+
         Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
         if (disabledItems != null && !disabledItems.isEmpty()) {
             StringBuilder disabledData = new StringBuilder();
@@ -539,11 +614,38 @@ public class MythicStorageManager {
     public static void cleanupPlayerData(@NotNull Player player) {
         if (player == null) return;
         toggle.remove(player);
+        groundStoreToggle.remove(player);
         playermaxdata.remove(player);
         disabledAutoPickupItems.remove(player.getName());
 
         String playerName = player.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+    }
+
+    private static Boolean parseGroundStoreStatus(String data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+
+        String raw = data;
+        if (!raw.startsWith(GROUND_STORE_DATA_PREFIX)) {
+            int idx = raw.indexOf(GROUND_STORE_DATA_PREFIX);
+            if (idx < 0) {
+                return null;
+            }
+            raw = raw.substring(idx);
+        }
+
+        raw = raw.substring(GROUND_STORE_DATA_PREFIX.length());
+        int end = raw.indexOf(';');
+        if (end >= 0) {
+            raw = raw.substring(0, end);
+        }
+        raw = raw.trim().toLowerCase(Locale.ROOT);
+        if (raw.isEmpty()) {
+            return null;
+        }
+        return "true".equals(raw);
     }
 
     public static HashMap<String, Integer> getPlayerAllItems(@NotNull Player player) {

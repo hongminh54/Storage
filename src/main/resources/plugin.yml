@@ -28,6 +28,9 @@ commands:
 permissions:
   storage.toggle:
     description: Toggle permission
+  storage.groundstore:
+    description: Toggle Storage ground-store
+    default: true
   storage.admin:
     description: Admin permission
   storage.admin.add:
@@ -80,6 +83,9 @@ permissions:
     default: true
   storage.mythicstorage.toggle:
     description: Toggle MythicMobs auto-pickup
+    default: true
+  storage.mythicstorage.groundstore:
+    description: Toggle MythicStorage ground-store
     default: true
   storage.mythicstorage.view:
     description: View other players' MythicMobs storage

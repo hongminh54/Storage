@@ -3,10 +3,7 @@ package net.danh.storage.CMD;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.mythic.admin.*;
-import net.danh.storage.CMD.handler.mythic.user.MythicHelpCommand;
-import net.danh.storage.CMD.handler.mythic.user.MythicToggleCommand;
-import net.danh.storage.CMD.handler.mythic.user.MythicTransferCommand;
-import net.danh.storage.CMD.handler.mythic.user.MythicViewCommand;
+import net.danh.storage.CMD.handler.mythic.user.*;
 import net.danh.storage.Manager.MythicStorageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -26,6 +23,7 @@ public class MythicStorageCommandManager extends BaseCommand {
     private void registerCommands() {
         // User commands
         registerCommand("toggle", new MythicToggleCommand());
+        registerCommand("groundstore", new MythicGroundStoreCommand());
         registerCommand("view", new MythicViewCommand());
         registerCommand("transfer", new MythicTransferCommand());
         registerCommand("help", new MythicHelpCommand());
