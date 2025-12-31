@@ -28,27 +28,37 @@ commands:
 permissions:
   storage.toggle:
     description: Toggle permission
+    default: true
   storage.groundstore:
     description: Toggle Storage ground-store
     default: true
   storage.admin:
     description: Admin permission
+    default: op
   storage.admin.add:
     description: Admin add permission command
+    default: op
   storage.admin.remove:
     description: Admin remove permission command
+    default: op
   storage.admin.set:
     description: Admin set permission command
+    default: op
   storage.admin.max:
     description: Admin max permission command
+    default: op
   storage.admin.reload:
     description: Admin reload permission command
+    default: op
   storage.admin.specialmaterial:
     description: Admin special material permission command
+    default: op
   storage.admin.reset:
     description: Admin reset permission command
+    default: op
   storage.admin.enchant:
     description: Admin enchant permission command
+    default: op
   storage.transfer.use:
     description: Use transfer feature
     default: true
@@ -57,6 +67,7 @@ permissions:
     default: true
   storage.event.admin:
     description: Admin event management permission
+    default: op
   storage.event.view:
     description: View event status permission
     default: true

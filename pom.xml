@@ -245,21 +245,5 @@
             <version>5.5</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>io.lumine</groupId>
-            <artifactId>MythicLib-dist</artifactId>
-            <version>MythicLib-1.7.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/mythiclib/MythicLib-1.7.1-SNAPSHOT.jar</systemPath>
-        </dependency>
-
-        <dependency>
-            <groupId>net.Indyuce</groupId>
-            <artifactId>MMOItems-API</artifactId>
-            <version>MMOItems-6.10.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/mythiclib/MMOItems-6.10.1-SNAPSHOT.jar</systemPath>
-        </dependency>
     </dependencies>
 </project>
