@@ -21,9 +21,11 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.logging.Level;
 
 public class TransferMultiGUI implements IGUI {
-    private static final Map<Player, TransferMultiGUI> activeGUIs = new HashMap<>();
+    private static final Set<String> LOGGED_KEYS = new HashSet<>();
+    private static final Map<UUID, TransferMultiGUI> activeGUIs = new HashMap<>();
     private final Player player;
     private final String targetPlayer;
     private final Map<String, Integer> selectedAmounts;
@@ -47,11 +49,17 @@ public class TransferMultiGUI implements IGUI {
 
         this.inventory = Bukkit.createInventory(this, size, title);
         initializeReservedSlots();
-        activeGUIs.put(player, this);
+        activeGUIs.put(player.getUniqueId(), this);
     }
 
     public static TransferMultiGUI getActiveGUI(Player player) {
-        return activeGUIs.get(player);
+        if (player == null) return null;
+        return activeGUIs.get(player.getUniqueId());
+    }
+
+    public static void removeActiveGUI(Player player) {
+        if (player == null) return;
+        activeGUIs.remove(player.getUniqueId());
     }
 
     @NotNull
@@ -239,6 +247,15 @@ public class TransferMultiGUI implements IGUI {
             });
             return item;
         } catch (Exception e) {
+            synchronized (LOGGED_KEYS) {
+                String key = "transfer.multi.material_item." + material;
+                if (LOGGED_KEYS.add(key)) {
+                    Storage.getStorage().getLogger().log(Level.WARNING,
+                            "[Storage] Failed to build TransferMultiGUI icon for material '"
+                                    + material + "' (fallback item will be used)",
+                            e);
+                }
+            }
             ItemStack fallbackItem = ItemManager.getItemConfigWithPlaceholders(player, section,
                     "#current_amount#", String.valueOf(currentAmount),
                     "#selected_amount#", String.valueOf(selectedAmount),
@@ -446,8 +463,8 @@ public class TransferMultiGUI implements IGUI {
 
     private void requestCustomAmount(String material) {
         player.closeInventory();
-        ChatListener.chat_multi_transfer_material.put(player, material);
-        ChatListener.chat_multi_transfer_target.put(player, targetPlayer);
+        ChatListener.chat_multi_transfer_material.put(player.getUniqueId(), material);
+        ChatListener.chat_multi_transfer_target.put(player.getUniqueId(), targetPlayer);
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("transfer.gui_enter_amount")));
     }
@@ -490,13 +507,13 @@ public class TransferMultiGUI implements IGUI {
                     File.getMessage().getString("transfer.failed_multi_all")));
         }
 
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
     }
 
     private void cancelTransfer() {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
         try {
             int currentPage = PersonalStorage.getPlayerCurrentPage(player);
             player.openInventory(new PersonalStorage(player, currentPage).getInventory());

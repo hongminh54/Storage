@@ -1,16 +1,22 @@
 package net.danh.storage.Utils;
 
+import me.clip.placeholderapi.PlaceholderAPI;
+import net.danh.storage.Storage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PlaceholderUtils {
 
     private static final Pattern CUSTOM_PLACEHOLDER_PATTERN = Pattern.compile("#([a-zA-Z0-9_]+)#");
+    private static final Set<String> LOGGED_KEYS = new HashSet<>();
 
     private static Boolean papiAvailable = null;
 
@@ -33,9 +39,15 @@ public class PlaceholderUtils {
 
         if (isPlaceholderAPIAvailable() && player != null) {
             try {
-                result = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, result);
-            } catch (Exception ignored) {
-                // PlaceholderAPI not available or error occurred
+                result = PlaceholderAPI.setPlaceholders(player, result);
+            } catch (Exception e) {
+                synchronized (LOGGED_KEYS) {
+                    if (LOGGED_KEYS.add("placeholderapi.set_placeholders")) {
+                        Storage.getStorage().getLogger().log(Level.WARNING,
+                                "[Storage] Failed to apply PlaceholderAPI placeholders",
+                                e);
+                    }
+                }
             }
         }
 

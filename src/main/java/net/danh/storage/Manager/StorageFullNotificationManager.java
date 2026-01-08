@@ -6,31 +6,41 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class StorageFullNotificationManager {
 
-    private static final Map<Player, Long> lastNotificationTime = new HashMap<>();
+    private static final Map<UUID, Long> lastNotificationTime = new HashMap<>();
 
     public static void sendStorageFullNotification(Player player) {
         if (!isNotificationEnabled()) {
             return;
         }
 
+        if (player == null) {
+            return;
+        }
+
         long currentTime = System.currentTimeMillis();
         long cooldownMs = getCooldownSeconds() * 1000L;
 
-        Long lastTime = lastNotificationTime.get(player);
+        UUID playerId = player.getUniqueId();
+
+        Long lastTime = lastNotificationTime.get(playerId);
         if (lastTime == null || (currentTime - lastTime) >= cooldownMs) {
             String message = File.getMessage().getString("user.full_storage");
             if (message != null) {
                 player.sendMessage(ChatUtils.colorize(message));
             }
-            lastNotificationTime.put(player, currentTime);
+            lastNotificationTime.put(playerId, currentTime);
         }
     }
 
     public static void removePlayer(Player player) {
-        lastNotificationTime.remove(player);
+        if (player == null) {
+            return;
+        }
+        lastNotificationTime.remove(player.getUniqueId());
     }
 
     private static boolean isNotificationEnabled() {

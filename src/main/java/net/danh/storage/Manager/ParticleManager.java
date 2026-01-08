@@ -12,11 +12,12 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ParticleManager {
 
-    private static final Map<Player, Map<String, Long>> particleCooldowns = new HashMap<>();
+    private static final Map<UUID, Map<String, Long>> particleCooldowns = new HashMap<>();
     private static final Map<String, TaskWrapper> activeAnimations = new ConcurrentHashMap<>();
     private static final long PARTICLE_COOLDOWN_MS = 500;
     private static final double MAX_PARTICLE_DISTANCE = 32.0;
@@ -159,7 +160,14 @@ public class ParticleManager {
     private static boolean canPlayParticle(Player player, String particleType) {
         long currentTime = System.currentTimeMillis();
 
-        Map<String, Long> playerCooldowns = particleCooldowns.computeIfAbsent(player, k -> new HashMap<>());
+        if (player == null) {
+            return false;
+        }
+
+        UUID playerId = player.getUniqueId();
+
+        Map<String, Long> playerCooldowns = particleCooldowns.computeIfAbsent(playerId,
+                k -> new HashMap<>());
         Long lastPlayed = playerCooldowns.get(particleType);
 
         return lastPlayed == null || (currentTime - lastPlayed) >= PARTICLE_COOLDOWN_MS;
@@ -168,8 +176,22 @@ public class ParticleManager {
     private static void recordParticlePlayed(Player player, String particleType) {
         long currentTime = System.currentTimeMillis();
 
-        Map<String, Long> playerCooldowns = particleCooldowns.computeIfAbsent(player, k -> new HashMap<>());
+        if (player == null) {
+            return;
+        }
+
+        UUID playerId = player.getUniqueId();
+
+        Map<String, Long> playerCooldowns = particleCooldowns.computeIfAbsent(playerId,
+                k -> new HashMap<>());
         playerCooldowns.put(particleType, currentTime);
+    }
+
+    public static void cleanupPlayer(Player player) {
+        if (player == null) {
+            return;
+        }
+        particleCooldowns.remove(player.getUniqueId());
     }
 
     public static void playTransferSuccessParticle(Player player) {

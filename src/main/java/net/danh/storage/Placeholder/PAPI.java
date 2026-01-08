@@ -27,9 +27,22 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class PAPI extends PlaceholderExpansion {
+
+    private static final Set<String> LOGGED_KEYS = new HashSet<>();
+
+    private static void logOnce(String key, String message, Exception e) {
+        synchronized (LOGGED_KEYS) {
+            if (!LOGGED_KEYS.add(key)) {
+                return;
+            }
+        }
+        Storage.getStorage().getLogger().log(Level.WARNING, message, e);
+    }
+
     @Override
     public @NotNull String getIdentifier() {
         return "storage";
@@ -167,7 +180,10 @@ public class PAPI extends PlaceholderExpansion {
             int totalItems = MineManager.getOrderedPluginBlocks().size();
             return Math.max(1, (int) Math.ceil((double) totalItems
                     / (double) itemsPerPage));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            logOnce("papi.storage_total_pages",
+                    "[Storage] Failed to calculate storage total pages",
+                    e);
             return 1;
         }
     }
@@ -186,7 +202,10 @@ public class PAPI extends PlaceholderExpansion {
             int totalItems = MythicStorageManager.getConfiguredDrops().size();
             return Math.max(1, (int) Math.ceil((double) totalItems
                     / (double) itemsPerPage));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            logOnce("papi.mythic_total_pages",
+                    "[Storage] Failed to calculate mythic storage total pages",
+                    e);
             return 1;
         }
     }
@@ -472,7 +491,10 @@ public class PAPI extends PlaceholderExpansion {
                         nextSeconds = Math.max(0, (nextTime - System.currentTimeMillis()) / 1000);
                     }
                 } catch (Exception e) {
-                    // Fallback to default
+                    logOnce("papi.event_next_time." + eventType.getConfigKey(),
+                            "[Storage] Failed to calculate next schedule time for event: "
+                                    + eventType.getDisplayName(),
+                            e);
                 }
             }
         }
@@ -576,6 +598,9 @@ public class PAPI extends PlaceholderExpansion {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
             return dateTime.format(formatter);
         } catch (Exception e) {
+            logOnce("papi.format_timestamp." + pattern,
+                    "[Storage] Failed to format timestamp with pattern: " + pattern,
+                    e);
             return "N/A";
         }
     }

@@ -68,8 +68,8 @@ public class ItemStorage implements IGUI {
                             if (action_left.equalsIgnoreCase("deposit")) {
                                 SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                                 if (type_left.equalsIgnoreCase("chat")) {
-                                    ChatListener.chat_deposit.put(p, material);
-                                    ChatListener.chat_return_page.put(p, returnPage);
+                                    ChatListener.chat_deposit.put(p.getUniqueId(), material);
+                                    ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                     p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.closeInventory();
@@ -82,8 +82,8 @@ public class ItemStorage implements IGUI {
                             if (action_left.equalsIgnoreCase("withdraw")) {
                                 SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                                 if (type_left.equalsIgnoreCase("chat")) {
-                                    ChatListener.chat_withdraw.put(p, material);
-                                    ChatListener.chat_return_page.put(p, returnPage);
+                                    ChatListener.chat_withdraw.put(p.getUniqueId(), material);
+                                    ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                     p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.closeInventory();
@@ -96,8 +96,8 @@ public class ItemStorage implements IGUI {
                             if (action_left.equalsIgnoreCase("sell")) {
                                 SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                                 if (type_left.equalsIgnoreCase("chat")) {
-                                    ChatListener.chat_sell.put(p, material);
-                                    ChatListener.chat_return_page.put(p, returnPage);
+                                    ChatListener.chat_sell.put(p.getUniqueId(), material);
+                                    ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                     p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.chat_number")));
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.closeInventory();
@@ -124,8 +124,8 @@ public class ItemStorage implements IGUI {
                             if (action_right.equalsIgnoreCase("deposit")) {
                                 SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                                 if (type_right.equalsIgnoreCase("chat")) {
-                                    ChatListener.chat_deposit.put(p, material);
-                                    ChatListener.chat_return_page.put(p, returnPage);
+                                    ChatListener.chat_deposit.put(p.getUniqueId(), material);
+                                    ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                     p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.closeInventory();
@@ -138,8 +138,8 @@ public class ItemStorage implements IGUI {
                             if (action_right.equalsIgnoreCase("withdraw")) {
                                 SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                                 if (type_right.equalsIgnoreCase("chat")) {
-                                    ChatListener.chat_withdraw.put(p, material);
-                                    ChatListener.chat_return_page.put(p, returnPage);
+                                    ChatListener.chat_withdraw.put(p.getUniqueId(), material);
+                                    ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                     p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.closeInventory();
@@ -152,8 +152,8 @@ public class ItemStorage implements IGUI {
                             if (action_right.equalsIgnoreCase("sell")) {
                                 SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                                 if (type_right.equalsIgnoreCase("chat")) {
-                                    ChatListener.chat_sell.put(p, material);
-                                    ChatListener.chat_return_page.put(p, returnPage);
+                                    ChatListener.chat_sell.put(p.getUniqueId(), material);
+                                    ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                     p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.chat_number")));
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.closeInventory();
@@ -188,8 +188,8 @@ public class ItemStorage implements IGUI {
                         if (action_left.equalsIgnoreCase("deposit")) {
                             SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                             if (type_left.equalsIgnoreCase("chat")) {
-                                ChatListener.chat_deposit.put(p, material);
-                                ChatListener.chat_return_page.put(p, returnPage);
+                                ChatListener.chat_deposit.put(p.getUniqueId(), material);
+                                ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
                                 SoundManager.setShouldPlayCloseSound(p, false);
                                 p.closeInventory();
@@ -202,8 +202,8 @@ public class ItemStorage implements IGUI {
                         if (action_left.equalsIgnoreCase("withdraw")) {
                             SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                             if (type_left.equalsIgnoreCase("chat")) {
-                                ChatListener.chat_withdraw.put(p, material);
-                                ChatListener.chat_return_page.put(p, returnPage);
+                                ChatListener.chat_withdraw.put(p.getUniqueId(), material);
+                                ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
                                 SoundManager.setShouldPlayCloseSound(p, false);
                                 p.closeInventory();
@@ -216,8 +216,8 @@ public class ItemStorage implements IGUI {
                         if (action_left.equalsIgnoreCase("sell")) {
                             SoundManager.playActionSound(player, "items." + item_tag + ".action.left", config);
                             if (type_left.equalsIgnoreCase("chat")) {
-                                ChatListener.chat_sell.put(p, material);
-                                ChatListener.chat_return_page.put(p, returnPage);
+                                ChatListener.chat_sell.put(p.getUniqueId(), material);
+                                ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.chat_number")));
                                 SoundManager.setShouldPlayCloseSound(p, false);
                                 p.closeInventory();
@@ -244,8 +244,8 @@ public class ItemStorage implements IGUI {
                         if (action_right.equalsIgnoreCase("deposit")) {
                             SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                             if (type_right.equalsIgnoreCase("chat")) {
-                                ChatListener.chat_deposit.put(p, material);
-                                ChatListener.chat_return_page.put(p, returnPage);
+                                ChatListener.chat_deposit.put(p.getUniqueId(), material);
+                                ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.deposit.chat_number")));
                                 SoundManager.setShouldPlayCloseSound(p, false);
                                 p.closeInventory();
@@ -258,8 +258,8 @@ public class ItemStorage implements IGUI {
                         if (action_right.equalsIgnoreCase("withdraw")) {
                             SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                             if (type_right.equalsIgnoreCase("chat")) {
-                                ChatListener.chat_withdraw.put(p, material);
-                                ChatListener.chat_return_page.put(p, returnPage);
+                                ChatListener.chat_withdraw.put(p.getUniqueId(), material);
+                                ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.withdraw.chat_number")));
                                 SoundManager.setShouldPlayCloseSound(p, false);
                                 p.closeInventory();
@@ -272,8 +272,8 @@ public class ItemStorage implements IGUI {
                         if (action_right.equalsIgnoreCase("sell")) {
                             SoundManager.playActionSound(player, "items." + item_tag + ".action.right", config);
                             if (type_right.equalsIgnoreCase("chat")) {
-                                ChatListener.chat_sell.put(p, material);
-                                ChatListener.chat_return_page.put(p, returnPage);
+                                ChatListener.chat_sell.put(p.getUniqueId(), material);
+                                ChatListener.chat_return_page.put(p.getUniqueId(), returnPage);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.chat_number")));
                                 SoundManager.setShouldPlayCloseSound(p, false);
                                 p.closeInventory();

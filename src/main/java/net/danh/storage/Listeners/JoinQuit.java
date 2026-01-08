@@ -33,12 +33,12 @@ public class JoinQuit implements Listener {
             MythicStorageManager.cleanupPlayerData(p);
             MythicMobDeath.cleanupPlayer(p);
         }
-        PersonalStorage.playerCurrentPage.remove(p);
-        MythicStorageGUI.playerCurrentPage.remove(p);
-        ViewMythicStorageGUI.playerCurrentPage.remove(p);
-        ChatListener.chat_return_page.remove(p);
-        ChatListener.chat_mythic_withdraw.remove(p);
-        ChatListener.chat_mythic_deposit.remove(p);
+        PersonalStorage.playerCurrentPage.remove(p.getUniqueId());
+        MythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
+        ViewMythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
+        ChatListener.chat_return_page.remove(p.getUniqueId());
+        ChatListener.chat_mythic_withdraw.remove(p.getUniqueId());
+        ChatListener.chat_mythic_deposit.remove(p.getUniqueId());
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);
@@ -68,6 +68,9 @@ public class JoinQuit implements Listener {
         // Cleanup sound tracking data
         SoundManager.cleanupPlayer(p);
 
+        // Cleanup particle tracking data
+        ParticleManager.cleanupPlayer(p);
+
         // Cleanup crafting data
         CraftingManager.cancelCrafting(p);
         ChatListener.craftingRequests.remove(p.getUniqueId());
@@ -77,15 +80,15 @@ public class JoinQuit implements Listener {
         RecipeEditorGUI.cleanupBackup(p.getUniqueId());
 
         // Cleanup remaining chat data
-        ChatListener.chat_deposit.remove(p);
-        ChatListener.chat_withdraw.remove(p);
-        ChatListener.chat_sell.remove(p);
-        ChatListener.chat_convert_from.remove(p);
-        ChatListener.chat_convert_to.remove(p);
+        ChatListener.chat_deposit.remove(p.getUniqueId());
+        ChatListener.chat_withdraw.remove(p.getUniqueId());
+        ChatListener.chat_sell.remove(p.getUniqueId());
+        ChatListener.chat_convert_from.remove(p.getUniqueId());
+        ChatListener.chat_convert_to.remove(p.getUniqueId());
 
         // Cleanup GUI page tracking
-        ViewStorageGUI.playerCurrentPage.remove(p);
-        ConvertOreGUI.playerCurrentPage.remove(p);
+        ViewStorageGUI.playerCurrentPage.remove(p.getUniqueId());
+        ConvertOreGUI.playerCurrentPage.remove(p.getUniqueId());
 
         // Cleanup GUI item mapper
         GUI.getItemMapper().remove(p.getUniqueId());

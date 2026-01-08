@@ -32,6 +32,10 @@ public class MythicMobsHelper {
     private Object apiInstance;
     private String packageName = "";
     private boolean initialized = false;
+    private boolean warnedScanPackage;
+    private boolean warnedIsMythicMob;
+    private boolean warnedGetInternalName;
+    private boolean warnedGetItemManager;
     private Method cachedIsMythicMobMethod;
     private Method cachedGetMythicMobInstanceMethod;
     private Method cachedGetTypeMethod;
@@ -54,7 +58,15 @@ public class MythicMobsHelper {
                 initialized = true;
                 cacheCommonMethods();
                 return;
-            } catch (Exception ignored) {
+            } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
+            } catch (Exception e) {
+                if (!warnedScanPackage) {
+                    warnedScanPackage = true;
+                    Storage.getStorage().getLogger().log(Level.WARNING,
+                            "[MythicStorage] Failed to probe MythicMobs API package: "
+                                    + packagee,
+                            e);
+                }
             }
         }
         Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] MythicMobs API not found! MythicStorage feature will be disabled.");
@@ -65,7 +77,9 @@ public class MythicMobsHelper {
             cachedIsMythicMobMethod = apiInstance.getClass().getMethod("isMythicMob", Entity.class);
             cachedGetMythicMobInstanceMethod = apiInstance.getClass().getMethod("getMythicMobInstance", Entity.class);
         } catch (Exception e) {
-            Storage.getStorage().getLogger().log(Level.WARNING, "[MythicStorage] Failed to cache methods: " + e.getMessage());
+            Storage.getStorage().getLogger().log(Level.WARNING,
+                    "[MythicStorage] Failed to cache MythicMobs API methods",
+                    e);
         }
     }
 
@@ -78,6 +92,13 @@ public class MythicMobsHelper {
         try {
             return (boolean) cachedIsMythicMobMethod.invoke(apiInstance, entity);
         } catch (Exception e) {
+            if (!warnedIsMythicMob) {
+                warnedIsMythicMob = true;
+                Storage.getStorage().getLogger().log(Level.WARNING,
+                        "[MythicStorage] Failed to check isMythicMob for entity: "
+                                + entity.getType(),
+                        e);
+            }
             return false;
         }
     }
@@ -100,6 +121,13 @@ public class MythicMobsHelper {
             }
             return (String) cachedGetInternalNameMethod.invoke(mobType);
         } catch (Exception e) {
+            if (!warnedGetInternalName) {
+                warnedGetInternalName = true;
+                Storage.getStorage().getLogger().log(Level.WARNING,
+                        "[MythicStorage] Failed to get MythicMob internal name for entity: "
+                                + entity.getType(),
+                        e);
+            }
             return null;
         }
     }
@@ -120,7 +148,7 @@ public class MythicMobsHelper {
                 if (result != null) {
                     return result;
                 }
-            } catch (NoSuchMethodException e) {
+            } catch (NoSuchMethodException ignored) {
             }
 
             try {
@@ -384,8 +412,14 @@ public class MythicMobsHelper {
                     } catch (Exception ignored) {
                     }
                 }
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException ignored) {
             } catch (Exception e) {
+                if (!warnedGetItemManager) {
+                    warnedGetItemManager = true;
+                    Storage.getStorage().getLogger().log(Level.WARNING,
+                            "[MythicStorage] Failed to resolve MythicMobs ItemManager via reflection",
+                            e);
+                }
             }
         }
 
@@ -438,8 +472,10 @@ public class MythicMobsHelper {
                 return itemStack.getItemMeta().getDisplayName();
             }
 
-        } catch (Exception ignored) {
-            // Silent fail - this is expected for items without display names
+        } catch (Exception e) {
+            Storage.getStorage().getLogger().log(Level.WARNING,
+                    "[MythicStorage] Failed to resolve display name for item '" + itemName + "'",
+                    e);
         }
 
         return null;

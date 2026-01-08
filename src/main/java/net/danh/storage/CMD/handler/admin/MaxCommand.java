@@ -36,7 +36,7 @@ public class MaxCommand extends BaseCommand {
             return;
         }
 
-        MineManager.playermaxdata.put(target, amount);
+        MineManager.playermaxdata.put(target.getUniqueId(), amount);
 
         String[] placeholders = {"#player#", "#amount#"};
         String[] replacements = {target.getName(), String.valueOf(amount)};

@@ -153,9 +153,9 @@ public class ConvertOptionGUI implements IGUI {
             SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, returnPage).getInventory(SoundContext.SILENT));
         } else {
-            ChatListener.chat_convert_from.put(clickPlayer, option.getFromMaterial());
-            ChatListener.chat_convert_to.put(clickPlayer, option.getToMaterial());
-            ChatListener.chat_return_page.put(clickPlayer, returnPage);
+            ChatListener.chat_convert_from.put(clickPlayer.getUniqueId(), option.getFromMaterial());
+            ChatListener.chat_convert_to.put(clickPlayer.getUniqueId(), option.getToMaterial());
+            ChatListener.chat_return_page.put(clickPlayer.getUniqueId(), returnPage);
             clickPlayer.sendMessage(ChatUtils.colorize(File.getMessage().getString("convert.chat_amount")));
             SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.closeInventory();

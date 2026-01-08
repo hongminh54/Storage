@@ -25,7 +25,7 @@ import java.util.*;
 
 public class MythicStorageGUI implements IGUI {
 
-    public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
+    public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player player;
     private final FileConfiguration config;
     private final int currentPage;
@@ -38,11 +38,12 @@ public class MythicStorageGUI implements IGUI {
         this.player = player;
         this.currentPage = Math.max(0, page);
         this.config = File.getMythicStorageGUIConfig();
-        playerCurrentPage.put(player, this.currentPage);
+        playerCurrentPage.put(player.getUniqueId(), this.currentPage);
     }
 
     public static int getPlayerCurrentPage(Player player) {
-        return playerCurrentPage.getOrDefault(player, 0);
+        if (player == null) return 0;
+        return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
     }
 
     @NotNull
@@ -318,8 +319,8 @@ public class MythicStorageGUI implements IGUI {
         }
 
         if (clickType == ClickType.LEFT) {
-            ChatListener.chat_mythic_withdraw.put(player, itemName);
-            ChatListener.chat_return_page.put(player, currentPage);
+            ChatListener.chat_mythic_withdraw.put(player.getUniqueId(), itemName);
+            ChatListener.chat_return_page.put(player.getUniqueId(), currentPage);
             player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.action.withdraw.chat_number")));
             SoundManager.setShouldPlayCloseSound(player, false);
             player.closeInventory();
@@ -338,8 +339,8 @@ public class MythicStorageGUI implements IGUI {
             player.openInventory(new MythicStorageGUI(player, currentPage).getInventory(SoundContext.SILENT));
 
         } else if (clickType == ClickType.RIGHT) {
-            ChatListener.chat_mythic_deposit.put(player, itemName);
-            ChatListener.chat_return_page.put(player, currentPage);
+            ChatListener.chat_mythic_deposit.put(player.getUniqueId(), itemName);
+            ChatListener.chat_return_page.put(player.getUniqueId(), currentPage);
             player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.action.deposit.chat_number")));
             SoundManager.setShouldPlayCloseSound(player, false);
             player.closeInventory();

@@ -21,18 +21,18 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
-    public static HashMap<Player, String> chat_deposit = new HashMap<>();
-    public static HashMap<Player, String> chat_withdraw = new HashMap<>();
-    public static HashMap<Player, String> chat_sell = new HashMap<>();
-    public static HashMap<Player, String> chat_mythic_withdraw = new HashMap<>();
-    public static HashMap<Player, String> chat_mythic_deposit = new HashMap<>();
-    public static HashMap<Player, String> chat_multi_transfer_material = new HashMap<>();
-    public static HashMap<Player, String> chat_multi_transfer_target = new HashMap<>();
-    public static HashMap<Player, String> chat_multi_mythic_transfer_item = new HashMap<>();
-    public static HashMap<Player, String> chat_multi_mythic_transfer_target = new HashMap<>();
-    public static HashMap<Player, String> chat_convert_from = new HashMap<>();
-    public static HashMap<Player, String> chat_convert_to = new HashMap<>();
-    public static HashMap<Player, Integer> chat_return_page = new HashMap<>();
+    public static HashMap<UUID, String> chat_deposit = new HashMap<>();
+    public static HashMap<UUID, String> chat_withdraw = new HashMap<>();
+    public static HashMap<UUID, String> chat_sell = new HashMap<>();
+    public static HashMap<UUID, String> chat_mythic_withdraw = new HashMap<>();
+    public static HashMap<UUID, String> chat_mythic_deposit = new HashMap<>();
+    public static HashMap<UUID, String> chat_multi_transfer_material = new HashMap<>();
+    public static HashMap<UUID, String> chat_multi_transfer_target = new HashMap<>();
+    public static HashMap<UUID, String> chat_multi_mythic_transfer_item = new HashMap<>();
+    public static HashMap<UUID, String> chat_multi_mythic_transfer_target = new HashMap<>();
+    public static HashMap<UUID, String> chat_convert_from = new HashMap<>();
+    public static HashMap<UUID, String> chat_convert_to = new HashMap<>();
+    public static HashMap<UUID, Integer> chat_return_page = new HashMap<>();
     public static HashMap<UUID, String> craftingRequests = new HashMap<>();
 
     private boolean isCancelCommand(String message) {
@@ -49,15 +49,16 @@ public class ChatListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onChat(@NotNull AsyncPlayerChatEvent e) {
         Player p = e.getPlayer();
+        UUID playerId = p.getUniqueId();
         String message = ChatColor.stripColor(e.getMessage());
 
-        if (chat_multi_transfer_material.containsKey(p)
-                && chat_multi_transfer_material.get(p) != null) {
+        if (chat_multi_transfer_material.containsKey(playerId)
+                && chat_multi_transfer_material.get(playerId) != null) {
             if (isCancelCommand(message)) {
                 TransferMultiGUI gui = TransferMultiGUI.getActiveGUI(p);
-                String target = chat_multi_transfer_target.get(p);
-                chat_multi_transfer_material.remove(p);
-                chat_multi_transfer_target.remove(p);
+                String target = chat_multi_transfer_target.get(playerId);
+                chat_multi_transfer_material.remove(playerId);
+                chat_multi_transfer_target.remove(playerId);
                 if (gui != null) {
                     handleCancel(p, () -> p.openInventory(
                             gui.getInventory(SoundContext.SILENT)));
@@ -75,14 +76,14 @@ public class ChatListener implements Listener {
 
             int amount = Number.getInteger(message);
             if (amount > 0) {
-                String material = chat_multi_transfer_material.get(p);
+                String material = chat_multi_transfer_material.get(playerId);
                 TransferMultiGUI gui = TransferMultiGUI.getActiveGUI(p);
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     if (gui != null) {
                         gui.setSelectedAmount(material, amount);
                         p.openInventory(gui.getInventory(SoundContext.SILENT));
                     } else {
-                        String target = chat_multi_transfer_target.get(p);
+                        String target = chat_multi_transfer_target.get(playerId);
                         if (target != null) {
                             TransferMultiGUI newGui = new TransferMultiGUI(p, target);
                             newGui.setSelectedAmount(material, amount);
@@ -96,19 +97,19 @@ public class ChatListener implements Listener {
                                 File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
             }
-            chat_multi_transfer_material.remove(p);
-            chat_multi_transfer_target.remove(p);
+            chat_multi_transfer_material.remove(playerId);
+            chat_multi_transfer_target.remove(playerId);
             e.setCancelled(true);
             return;
         }
 
-        if (chat_multi_mythic_transfer_item.containsKey(p)
-                && chat_multi_mythic_transfer_item.get(p) != null) {
+        if (chat_multi_mythic_transfer_item.containsKey(playerId)
+                && chat_multi_mythic_transfer_item.get(playerId) != null) {
             if (isCancelCommand(message)) {
                 MythicTransferMultiGUI gui = MythicTransferMultiGUI.getActiveGUI(p);
-                String target = chat_multi_mythic_transfer_target.get(p);
-                chat_multi_mythic_transfer_item.remove(p);
-                chat_multi_mythic_transfer_target.remove(p);
+                String target = chat_multi_mythic_transfer_target.get(playerId);
+                chat_multi_mythic_transfer_item.remove(playerId);
+                chat_multi_mythic_transfer_target.remove(playerId);
                 if (gui != null) {
                     handleCancel(p, () -> p.openInventory(
                             gui.getInventory(SoundContext.SILENT)));
@@ -126,14 +127,14 @@ public class ChatListener implements Listener {
 
             int amount = Number.getInteger(message);
             if (amount > 0) {
-                String itemName = chat_multi_mythic_transfer_item.get(p);
+                String itemName = chat_multi_mythic_transfer_item.get(playerId);
                 MythicTransferMultiGUI gui = MythicTransferMultiGUI.getActiveGUI(p);
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     if (gui != null) {
                         gui.setSelectedAmount(itemName, amount);
                         p.openInventory(gui.getInventory(SoundContext.SILENT));
                     } else {
-                        String target = chat_multi_mythic_transfer_target.get(p);
+                        String target = chat_multi_mythic_transfer_target.get(playerId);
                         if (target != null) {
                             MythicTransferMultiGUI newGui =
                                     new MythicTransferMultiGUI(p, target);
@@ -148,25 +149,28 @@ public class ChatListener implements Listener {
                                 File.getMessage().getString("user.unknown_number"))
                         .replace("<number>", message)));
             }
-            chat_multi_mythic_transfer_item.remove(p);
-            chat_multi_mythic_transfer_target.remove(p);
+            chat_multi_mythic_transfer_item.remove(playerId);
+            chat_multi_mythic_transfer_target.remove(playerId);
             e.setCancelled(true);
             return;
         }
 
-        if (chat_deposit.containsKey(p) && chat_deposit.get(p) != null) {
+        if (chat_deposit.containsKey(playerId)
+                && chat_deposit.get(playerId) != null) {
             if (isCancelCommand(message)) {
-                int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        PersonalStorage.getPlayerCurrentPage(p));
                 handleCancel(p, () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
-                chat_deposit.remove(p);
-                chat_return_page.remove(p);
+                chat_deposit.remove(playerId);
+                chat_return_page.remove(playerId);
                 e.setCancelled(true);
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                String material = chat_deposit.get(p);
+                String material = chat_deposit.get(playerId);
                 int amount = Number.getInteger(message);
-                int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        PersonalStorage.getPlayerCurrentPage(p));
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new Deposit(p, material, (long) amount).doAction();
                     SoundManager.playChatDepositSound(p);
@@ -176,23 +180,26 @@ public class ChatListener implements Listener {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
-            chat_deposit.remove(p);
-            chat_return_page.remove(p);
+            chat_deposit.remove(playerId);
+            chat_return_page.remove(playerId);
             e.setCancelled(true);
         }
-        if (chat_withdraw.containsKey(p) && chat_withdraw.get(p) != null) {
+        if (chat_withdraw.containsKey(playerId)
+                && chat_withdraw.get(playerId) != null) {
             if (isCancelCommand(message)) {
-                int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        PersonalStorage.getPlayerCurrentPage(p));
                 handleCancel(p, () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
-                chat_withdraw.remove(p);
-                chat_return_page.remove(p);
+                chat_withdraw.remove(playerId);
+                chat_return_page.remove(playerId);
                 e.setCancelled(true);
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                String material = chat_withdraw.get(p);
+                String material = chat_withdraw.get(playerId);
                 int amount = Number.getInteger(message);
-                int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        PersonalStorage.getPlayerCurrentPage(p));
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new Withdraw(p, material, amount).doAction();
                     SoundManager.playChatWithdrawSound(p);
@@ -202,23 +209,26 @@ public class ChatListener implements Listener {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
-            chat_withdraw.remove(p);
-            chat_return_page.remove(p);
+            chat_withdraw.remove(playerId);
+            chat_return_page.remove(playerId);
             e.setCancelled(true);
         }
-        if (chat_sell.containsKey(p) && chat_sell.get(p) != null) {
+        if (chat_sell.containsKey(playerId)
+                && chat_sell.get(playerId) != null) {
             if (isCancelCommand(message)) {
-                int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        PersonalStorage.getPlayerCurrentPage(p));
                 handleCancel(p, () -> p.openInventory(new PersonalStorage(p, returnPage).getInventory(SoundContext.SILENT)));
-                chat_sell.remove(p);
-                chat_return_page.remove(p);
+                chat_sell.remove(playerId);
+                chat_return_page.remove(playerId);
                 e.setCancelled(true);
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                String material = chat_sell.get(p);
+                String material = chat_sell.get(playerId);
                 int amount = Number.getInteger(message);
-                int returnPage = chat_return_page.getOrDefault(p, PersonalStorage.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        PersonalStorage.getPlayerCurrentPage(p));
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new Sell(p, material, amount).doAction();
                     SoundManager.playChatSellSound(p);
@@ -228,24 +238,27 @@ public class ChatListener implements Listener {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
-            chat_sell.remove(p);
-            chat_return_page.remove(p);
+            chat_sell.remove(playerId);
+            chat_return_page.remove(playerId);
             e.setCancelled(true);
         }
 
-        if (chat_mythic_withdraw.containsKey(p) && chat_mythic_withdraw.get(p) != null) {
+        if (chat_mythic_withdraw.containsKey(playerId)
+                && chat_mythic_withdraw.get(playerId) != null) {
             if (isCancelCommand(message)) {
-                int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MythicStorageGUI.getPlayerCurrentPage(p));
                 handleCancel(p, () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
-                chat_mythic_withdraw.remove(p);
-                chat_return_page.remove(p);
+                chat_mythic_withdraw.remove(playerId);
+                chat_return_page.remove(playerId);
                 e.setCancelled(true);
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                String itemName = chat_mythic_withdraw.get(p);
+                String itemName = chat_mythic_withdraw.get(playerId);
                 int amount = Number.getInteger(message);
-                int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MythicStorageGUI.getPlayerCurrentPage(p));
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new MythicWithdraw(p, itemName, amount).doAction();
                     SoundManager.playChatWithdrawSound(p);
@@ -255,24 +268,27 @@ public class ChatListener implements Listener {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
-            chat_mythic_withdraw.remove(p);
-            chat_return_page.remove(p);
+            chat_mythic_withdraw.remove(playerId);
+            chat_return_page.remove(playerId);
             e.setCancelled(true);
         }
 
-        if (chat_mythic_deposit.containsKey(p) && chat_mythic_deposit.get(p) != null) {
+        if (chat_mythic_deposit.containsKey(playerId)
+                && chat_mythic_deposit.get(playerId) != null) {
             if (isCancelCommand(message)) {
-                int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MythicStorageGUI.getPlayerCurrentPage(p));
                 handleCancel(p, () -> p.openInventory(new MythicStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
-                chat_mythic_deposit.remove(p);
-                chat_return_page.remove(p);
+                chat_mythic_deposit.remove(playerId);
+                chat_return_page.remove(playerId);
                 e.setCancelled(true);
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                String itemName = chat_mythic_deposit.get(p);
+                String itemName = chat_mythic_deposit.get(playerId);
                 int amount = Number.getInteger(message);
-                int returnPage = chat_return_page.getOrDefault(p, MythicStorageGUI.getPlayerCurrentPage(p));
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MythicStorageGUI.getPlayerCurrentPage(p));
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new MythicDeposit(p, itemName, amount).doAction();
                     SoundManager.playChatDepositSound(p);
@@ -282,28 +298,29 @@ public class ChatListener implements Listener {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
-            chat_mythic_deposit.remove(p);
-            chat_return_page.remove(p);
+            chat_mythic_deposit.remove(playerId);
+            chat_return_page.remove(playerId);
             e.setCancelled(true);
         }
 
         // Handle convert amount input
-        if (chat_convert_from.containsKey(p) && chat_convert_from.get(p) != null) {
+        if (chat_convert_from.containsKey(playerId)
+                && chat_convert_from.get(playerId) != null) {
             if (isCancelCommand(message)) {
-                String fromMaterial = chat_convert_from.get(p);
-                int returnPage = chat_return_page.getOrDefault(p, 0);
-                chat_convert_from.remove(p);
-                chat_convert_to.remove(p);
-                chat_return_page.remove(p);
+                String fromMaterial = chat_convert_from.get(playerId);
+                int returnPage = chat_return_page.getOrDefault(playerId, 0);
+                chat_convert_from.remove(playerId);
+                chat_convert_to.remove(playerId);
+                chat_return_page.remove(playerId);
                 handleCancel(p, () -> p.openInventory(new ConvertOptionGUI(p, fromMaterial, returnPage).getInventory(SoundContext.SILENT)));
                 e.setCancelled(true);
                 return;
             }
             if (Number.getInteger(message) > 0) {
-                String fromMaterial = chat_convert_from.get(p);
-                String toMaterial = chat_convert_to.get(p);
+                String fromMaterial = chat_convert_from.get(playerId);
+                String toMaterial = chat_convert_to.get(playerId);
                 int amount = Number.getInteger(message);
-                int returnPage = chat_return_page.getOrDefault(p, 0);
+                int returnPage = chat_return_page.getOrDefault(playerId, 0);
 
                 SchedulerUtil.runTask(Storage.getStorage(), () -> {
                     new ConvertOre(p, fromMaterial, toMaterial, amount).doAction();
@@ -314,9 +331,9 @@ public class ChatListener implements Listener {
                 SoundManager.playChatErrorSound(p);
                 p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number")).replace("<number>", message)));
             }
-            chat_convert_from.remove(p);
-            chat_convert_to.remove(p);
-            chat_return_page.remove(p);
+            chat_convert_from.remove(playerId);
+            chat_convert_to.remove(playerId);
+            chat_return_page.remove(playerId);
             e.setCancelled(true);
         }
 

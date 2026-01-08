@@ -9,12 +9,13 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class SoundManager {
 
-    private static final Map<Player, Map<String, Long>> soundCooldowns = new HashMap<>();
+    private static final Map<UUID, Map<String, Long>> soundCooldowns = new HashMap<>();
     private static final long SOUND_COOLDOWN_MS = 100;
-    private static final Map<Player, Boolean> shouldPlayCloseSound = new HashMap<>();
+    private static final Map<UUID, Boolean> shouldPlayCloseSound = new HashMap<>();
 
     public static void playSound(Player player, SoundType soundType) {
         if (player == null || !player.isOnline()) return;
@@ -58,7 +59,14 @@ public class SoundManager {
     private static boolean canPlaySound(Player player, String soundName) {
         long currentTime = System.currentTimeMillis();
 
-        Map<String, Long> playerCooldowns = soundCooldowns.computeIfAbsent(player, k -> new HashMap<>());
+        if (player == null) {
+            return false;
+        }
+
+        UUID playerId = player.getUniqueId();
+
+        Map<String, Long> playerCooldowns = soundCooldowns.computeIfAbsent(playerId,
+                k -> new HashMap<>());
         Long lastPlayed = playerCooldowns.get(soundName);
 
         return lastPlayed == null || (currentTime - lastPlayed) >= SOUND_COOLDOWN_MS;
@@ -67,7 +75,14 @@ public class SoundManager {
     private static void recordSoundPlayed(Player player, String soundName) {
         long currentTime = System.currentTimeMillis();
 
-        Map<String, Long> playerCooldowns = soundCooldowns.computeIfAbsent(player, k -> new HashMap<>());
+        if (player == null) {
+            return;
+        }
+
+        UUID playerId = player.getUniqueId();
+
+        Map<String, Long> playerCooldowns = soundCooldowns.computeIfAbsent(playerId,
+                k -> new HashMap<>());
         playerCooldowns.put(soundName, currentTime);
     }
 
@@ -236,20 +251,27 @@ public class SoundManager {
 
     // Close sound tracking methods
     public static void setShouldPlayCloseSound(Player player, boolean shouldPlay) {
-        if (player != null) {
-            shouldPlayCloseSound.put(player, shouldPlay);
+        if (player == null) {
+            return;
         }
+        shouldPlayCloseSound.put(player.getUniqueId(), shouldPlay);
     }
 
     public static boolean getShouldPlayCloseSound(Player player) {
-        return shouldPlayCloseSound.getOrDefault(player, true);
+        if (player == null) {
+            return true;
+        }
+        return shouldPlayCloseSound.getOrDefault(player.getUniqueId(), true);
     }
 
     public static void cleanupPlayer(Player player) {
-        if (player != null) {
-            soundCooldowns.remove(player);
-            shouldPlayCloseSound.remove(player);
+        if (player == null) {
+            return;
         }
+
+        UUID playerId = player.getUniqueId();
+        soundCooldowns.remove(playerId);
+        shouldPlayCloseSound.remove(playerId);
     }
 
     public enum SoundType {

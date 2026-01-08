@@ -22,7 +22,7 @@ import java.util.*;
 
 public class ConvertOreGUI implements IGUI {
 
-    public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
+    public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player player;
     private final FileConfiguration config;
     private final int currentPage;
@@ -35,11 +35,12 @@ public class ConvertOreGUI implements IGUI {
         this.player = player;
         this.currentPage = Math.max(0, page);
         this.config = File.getConvertOreConfig();
-        playerCurrentPage.put(player, this.currentPage);
+        playerCurrentPage.put(player.getUniqueId(), this.currentPage);
     }
 
     public static int getPlayerCurrentPage(Player player) {
-        return playerCurrentPage.getOrDefault(player, 0);
+        if (player == null) return 0;
+        return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
     }
 
     @NotNull

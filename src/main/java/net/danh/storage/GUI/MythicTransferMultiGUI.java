@@ -20,10 +20,12 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class MythicTransferMultiGUI implements IGUI {
-    private static final Map<Player, MythicTransferMultiGUI> activeGUIs = new HashMap<>();
+    private static final Set<String> LOGGED_KEYS = new HashSet<>();
+    private static final Map<UUID, MythicTransferMultiGUI> activeGUIs = new HashMap<>();
     private final Player player;
     private final String targetPlayer;
     private final Map<String, Integer> selectedAmounts;
@@ -47,15 +49,17 @@ public class MythicTransferMultiGUI implements IGUI {
 
         this.inventory = Bukkit.createInventory(this, size, title);
         initializeReservedSlots();
-        activeGUIs.put(player, this);
+        activeGUIs.put(player.getUniqueId(), this);
     }
 
     public static MythicTransferMultiGUI getActiveGUI(Player player) {
-        return activeGUIs.get(player);
+        if (player == null) return null;
+        return activeGUIs.get(player.getUniqueId());
     }
 
     public static void removeActiveGUI(Player player) {
-        activeGUIs.remove(player);
+        if (player == null) return;
+        activeGUIs.remove(player.getUniqueId());
     }
 
     @NotNull
@@ -225,7 +229,16 @@ public class MythicTransferMultiGUI implements IGUI {
                 });
                 return item;
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            synchronized (LOGGED_KEYS) {
+                String key = "mythictransfer.multi.item." + itemName;
+                if (LOGGED_KEYS.add(key)) {
+                    net.danh.storage.Storage.getStorage().getLogger().log(Level.WARNING,
+                            "[MythicStorage] Failed to build GUI icon for item '" + itemName
+                                    + "' (fallback item will be used)",
+                            e);
+                }
+            }
         }
 
         ItemStack fallbackItem = ItemManager.getItemConfigWithPlaceholders(player, section, "#current_amount#", String.valueOf(currentAmount), "#selected_amount#", String.valueOf(selectedAmount));
@@ -413,8 +426,8 @@ public class MythicTransferMultiGUI implements IGUI {
 
     private void requestCustomAmount(String itemName) {
         player.closeInventory();
-        ChatListener.chat_multi_mythic_transfer_item.put(player, itemName);
-        ChatListener.chat_multi_mythic_transfer_target.put(player, targetPlayer);
+        ChatListener.chat_multi_mythic_transfer_item.put(player.getUniqueId(), itemName);
+        ChatListener.chat_multi_mythic_transfer_target.put(player.getUniqueId(), targetPlayer);
         player.sendMessage(ChatUtils.colorize(
                 File.getMessage().getString("mythicstorage.transfer.gui_enter_amount")));
     }

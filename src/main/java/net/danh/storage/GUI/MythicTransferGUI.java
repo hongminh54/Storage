@@ -19,12 +19,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
 
 public class MythicTransferGUI implements IGUI {
-    private static final Map<Player, MythicTransferGUI> activeGUIs = new HashMap<>();
-    private static final Map<Player, Boolean> waitingForInput = new HashMap<>();
+    private static final Set<String> LOGGED_KEYS = new HashSet<>();
+    private static final Map<UUID, MythicTransferGUI> activeGUIs = new HashMap<>();
+    private static final Map<UUID, Boolean> waitingForInput = new HashMap<>();
     private final Player player;
     private final String targetPlayer;
     private final String itemName;
@@ -44,26 +45,31 @@ public class MythicTransferGUI implements IGUI {
         int size = guiConfig.getInt("size", 6) * 9;
 
         this.inventory = Bukkit.createInventory(this, size, title);
-        activeGUIs.put(player, this);
+        activeGUIs.put(player.getUniqueId(), this);
     }
 
     public static MythicTransferGUI getActiveGUI(Player player) {
-        return activeGUIs.get(player);
+        if (player == null) return null;
+        return activeGUIs.get(player.getUniqueId());
     }
 
     public static void removeActiveGUI(Player player) {
-        activeGUIs.remove(player);
+        if (player == null) return;
+        activeGUIs.remove(player.getUniqueId());
     }
 
     public static boolean isWaitingForInput(Player player) {
-        return waitingForInput.getOrDefault(player, false);
+        if (player == null) return false;
+        return waitingForInput.getOrDefault(player.getUniqueId(), false);
     }
 
     public static void setWaitingForInput(Player player, boolean waiting) {
+        if (player == null) return;
+        UUID playerId = player.getUniqueId();
         if (waiting) {
-            waitingForInput.put(player, true);
+            waitingForInput.put(playerId, true);
         } else {
-            waitingForInput.remove(player);
+            waitingForInput.remove(playerId);
         }
     }
 
@@ -157,7 +163,16 @@ public class MythicTransferGUI implements IGUI {
                 });
                 return item;
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            synchronized (LOGGED_KEYS) {
+                String key = "mythictransfer.item_display." + itemName;
+                if (LOGGED_KEYS.add(key)) {
+                    Storage.getStorage().getLogger().log(Level.WARNING,
+                            "[MythicStorage] Failed to build transfer GUI icon for item '"
+                                    + itemName + "' (fallback item will be used)",
+                            e);
+                }
+            }
         }
 
         // Fallback to config item
@@ -310,7 +325,7 @@ public class MythicTransferGUI implements IGUI {
     private void requestCustomAmount() {
         player.closeInventory();
         player.sendMessage(ChatUtils.colorize(File.getMessage().getString("mythicstorage.transfer.gui_enter_amount")));
-        waitingForInput.put(player, true);
+        waitingForInput.put(player.getUniqueId(), true);
     }
 
     private void setMaxAmount() {
@@ -323,13 +338,13 @@ public class MythicTransferGUI implements IGUI {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
         MythicTransferManager.executeTransfer(player, targetPlayer, itemName, transferAmount);
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
     }
 
     private void cancelTransfer() {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
         try {
             player.openInventory(new MythicStorageGUI(player).getInventory());
         } catch (Exception e) {

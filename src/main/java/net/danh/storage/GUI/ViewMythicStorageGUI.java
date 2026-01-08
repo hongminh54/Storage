@@ -22,7 +22,7 @@ import java.util.*;
 
 public class ViewMythicStorageGUI implements IGUI {
 
-    public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
+    public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player viewer;
     private final Player target;
     private final String targetName;
@@ -39,7 +39,7 @@ public class ViewMythicStorageGUI implements IGUI {
         this.targetName = target.getName();
         this.currentPage = Math.max(0, page);
         this.config = File.getViewMythicStorageGUIConfig();
-        playerCurrentPage.put(viewer, this.currentPage);
+        playerCurrentPage.put(viewer.getUniqueId(), this.currentPage);
     }
 
     public ViewMythicStorageGUI(Player viewer, String targetName) {
@@ -52,11 +52,12 @@ public class ViewMythicStorageGUI implements IGUI {
         this.targetName = targetName;
         this.currentPage = Math.max(0, page);
         this.config = File.getViewMythicStorageGUIConfig();
-        playerCurrentPage.put(viewer, this.currentPage);
+        playerCurrentPage.put(viewer.getUniqueId(), this.currentPage);
     }
 
     public static int getPlayerCurrentPage(Player player) {
-        return playerCurrentPage.getOrDefault(player, 0);
+        if (player == null) return 0;
+        return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
     }
 
     @NotNull

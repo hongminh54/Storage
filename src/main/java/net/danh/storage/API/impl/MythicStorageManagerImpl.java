@@ -103,7 +103,7 @@ public class MythicStorageManagerImpl implements IMythicStorageManager {
     @Override
     public void setMaxStorage(@NotNull Player player, int amount) {
         if (!isSystemEnabled()) return;
-        MythicStorageManager.playermaxdata.put(player, Math.max(0, amount));
+        MythicStorageManager.playermaxdata.put(player.getUniqueId(), Math.max(0, amount));
     }
 
     @Override

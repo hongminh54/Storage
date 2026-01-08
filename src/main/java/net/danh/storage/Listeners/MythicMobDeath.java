@@ -19,18 +19,23 @@ import java.util.*;
 
 public class MythicMobDeath implements Listener {
 
-    private static final Map<Player, Long> lastStorageFullNotification = new HashMap<>();
+    private static final Map<UUID, Long> lastStorageFullNotification = new HashMap<>();
 
     private static final Map<Class<?>, MythicDeathEventAccessors> eventAccessorsCache =
             new HashMap<>();
 
     private static boolean canShowStorageFullNotification(Player player, int cooldownSeconds) {
+        if (player == null) {
+            return false;
+        }
         long currentTime = System.currentTimeMillis();
         long cooldownMs = cooldownSeconds * 1000L;
 
-        Long lastTime = lastStorageFullNotification.get(player);
+        UUID playerId = player.getUniqueId();
+
+        Long lastTime = lastStorageFullNotification.get(playerId);
         if (lastTime == null || (currentTime - lastTime) >= cooldownMs) {
-            lastStorageFullNotification.put(player, currentTime);
+            lastStorageFullNotification.put(playerId, currentTime);
             return true;
         }
 
@@ -38,9 +43,10 @@ public class MythicMobDeath implements Listener {
     }
 
     public static void cleanupPlayer(Player player) {
-        if (player != null) {
-            lastStorageFullNotification.remove(player);
+        if (player == null) {
+            return;
         }
+        lastStorageFullNotification.remove(player.getUniqueId());
     }
 
     public static void registerListener(org.bukkit.plugin.Plugin plugin) {

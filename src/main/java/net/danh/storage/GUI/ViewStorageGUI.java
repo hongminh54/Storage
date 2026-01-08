@@ -20,7 +20,7 @@ import java.util.*;
 
 public class ViewStorageGUI implements IGUI {
 
-    public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
+    public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player viewer; // Player viewing the storage
     private final Player target;  // Player whose storage is being viewed
     private final String targetName;
@@ -37,7 +37,7 @@ public class ViewStorageGUI implements IGUI {
         this.targetName = target.getName();
         this.currentPage = Math.max(0, page);
         config = File.getViewStorageConfig();
-        playerCurrentPage.put(viewer, this.currentPage);
+        playerCurrentPage.put(viewer.getUniqueId(), this.currentPage);
     }
 
     public ViewStorageGUI(Player viewer, String targetName) {
@@ -50,11 +50,12 @@ public class ViewStorageGUI implements IGUI {
         this.targetName = targetName;
         this.currentPage = Math.max(0, page);
         config = File.getViewStorageConfig();
-        playerCurrentPage.put(viewer, this.currentPage);
+        playerCurrentPage.put(viewer.getUniqueId(), this.currentPage);
     }
 
     public static int getPlayerCurrentPage(Player player) {
-        return playerCurrentPage.getOrDefault(player, 0);
+        if (player == null) return 0;
+        return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
     }
 
     @NotNull

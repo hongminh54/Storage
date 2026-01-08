@@ -20,10 +20,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class TransferGUI implements IGUI {
-    private static final Map<Player, TransferGUI> activeGUIs = new HashMap<>();
-    private static final Map<Player, Boolean> waitingForInput = new HashMap<>();
+    private static final Map<UUID, TransferGUI> activeGUIs = new HashMap<>();
+    private static final Map<UUID, Boolean> waitingForInput = new HashMap<>();
     private final Player player;
     private final String targetPlayer;
     private final String material;
@@ -43,22 +44,26 @@ public class TransferGUI implements IGUI {
         int size = guiConfig.getInt("size", 6) * 9;
 
         this.inventory = Bukkit.createInventory(this, size, title);
-        activeGUIs.put(player, this);
+        activeGUIs.put(player.getUniqueId(), this);
     }
 
     public static TransferGUI getActiveGUI(Player player) {
-        return activeGUIs.get(player);
+        if (player == null) return null;
+        return activeGUIs.get(player.getUniqueId());
     }
 
     public static boolean isWaitingForInput(Player player) {
-        return waitingForInput.getOrDefault(player, false);
+        if (player == null) return false;
+        return waitingForInput.getOrDefault(player.getUniqueId(), false);
     }
 
     public static void setWaitingForInput(Player player, boolean waiting) {
+        if (player == null) return;
+        UUID playerId = player.getUniqueId();
         if (waiting) {
-            waitingForInput.put(player, true);
+            waitingForInput.put(playerId, true);
         } else {
-            waitingForInput.remove(player);
+            waitingForInput.remove(playerId);
         }
     }
 
@@ -304,7 +309,7 @@ public class TransferGUI implements IGUI {
     private void requestCustomAmount() {
         player.closeInventory();
         player.sendMessage(ChatUtils.colorize(File.getMessage().getString("transfer.gui_enter_amount")));
-        waitingForInput.put(player, true);
+        waitingForInput.put(player.getUniqueId(), true);
     }
 
     private void setMaxAmount() {
@@ -318,13 +323,13 @@ public class TransferGUI implements IGUI {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
         TransferManager.executeTransfer(player, targetPlayer, material, transferAmount);
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
     }
 
     private void cancelTransfer() {
         SoundManager.setShouldPlayCloseSound(player, false);
         player.closeInventory();
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
         try {
             int currentPage = PersonalStorage.getPlayerCurrentPage(player);
             player.openInventory(new PersonalStorage(player, currentPage).getInventory());

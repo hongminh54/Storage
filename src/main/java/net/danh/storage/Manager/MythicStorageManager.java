@@ -22,12 +22,12 @@ public class MythicStorageManager {
             "storage.mythicstorage.storage.max.";
     private static final HashMap<String, Set<String>> disabledAutoPickupItems =
             new HashMap<>();
-    private static final HashMap<Player, Boolean> groundStoreToggle =
+    private static final HashMap<UUID, Boolean> groundStoreToggle =
             new HashMap<>();
     private static final String GROUND_STORE_DATA_PREFIX = "mythicgroundstore:";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
-    public static HashMap<Player, Boolean> toggle = new HashMap<>();
-    public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
+    public static HashMap<UUID, Boolean> toggle = new HashMap<>();
+    public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     private static List<String> configuredDrops = new ArrayList<>();
     private static List<String> invalidItems = new ArrayList<>();
     private static MythicMobsHelper mythicMobsHelper;
@@ -82,7 +82,8 @@ public class MythicStorageManager {
             return false;
         }
 
-        Boolean status = groundStoreToggle.get(player);
+        UUID playerId = player.getUniqueId();
+        Boolean status = groundStoreToggle.get(playerId);
         if (status != null) {
             return status;
         }
@@ -95,14 +96,14 @@ public class MythicStorageManager {
                     false
             );
         }
-        groundStoreToggle.put(player, status);
+        groundStoreToggle.put(playerId, status);
         return status;
     }
 
     public static boolean toggleGroundStore(@NotNull Player player) {
         boolean current = isGroundStoreEnabled(player);
         boolean next = !current;
-        groundStoreToggle.put(player, next);
+        groundStoreToggle.put(player.getUniqueId(), next);
         savePlayerData(player);
         return next;
     }
@@ -227,7 +228,11 @@ public class MythicStorageManager {
     }
 
     public static int getMaxStorage(@NotNull Player player) {
-        return playermaxdata.getOrDefault(player, File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
+        return playermaxdata.getOrDefault(player.getUniqueId(),
+                File.getMythicStorageConfig().getInt(
+                        "settings.default_max_storage",
+                        100000
+                ));
     }
 
     public static int getPermissionMaxStorage(@NotNull Player player) {
@@ -299,20 +304,21 @@ public class MythicStorageManager {
 
     public static void refreshPermissionMaxStorage(@NotNull Player player) {
         int computed = getPermissionMaxStorage(player);
-        playermaxdata.put(player, Math.max(0, computed));
+        playermaxdata.put(player.getUniqueId(), Math.max(0, computed));
     }
 
     public static boolean getToggleStatus(@NotNull Player player) {
-        Boolean status = toggle.get(player);
+        UUID playerId = player.getUniqueId();
+        Boolean status = toggle.get(playerId);
         if (status == null) {
             status = File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false);
-            toggle.put(player, status);
+            toggle.put(playerId, status);
         }
         return status;
     }
 
     public static void setToggleStatus(@NotNull Player player, boolean status) {
-        toggle.put(player, status);
+        toggle.put(player.getUniqueId(), status);
     }
 
     public static boolean isAutoPickupEnabledForItem(@NotNull Player player,
@@ -425,19 +431,27 @@ public class MythicStorageManager {
 
         disabledAutoPickupItems.remove(player.getName());
 
+        UUID playerId = player.getUniqueId();
+
         PlayerData data = Storage.dataStorage.getData(player.getName());
         if (data == null) {
             int permissionMax = Math.max(0, getPermissionMaxStorage(player));
-            playermaxdata.put(player, permissionMax);
-            toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
+            playermaxdata.put(playerId, permissionMax);
+            toggle.put(playerId, File.getMythicStorageConfig().getBoolean(
+                    "settings.default_auto_pickup",
+                    false
+            ));
             return;
         }
 
         String dataString = data.getData();
         if (dataString == null || dataString.isEmpty()) {
             int permissionMax = Math.max(0, getPermissionMaxStorage(player));
-            playermaxdata.put(player, permissionMax);
-            toggle.put(player, File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false));
+            playermaxdata.put(playerId, permissionMax);
+            toggle.put(playerId, File.getMythicStorageConfig().getBoolean(
+                    "settings.default_auto_pickup",
+                    false
+            ));
             return;
         }
 
@@ -467,7 +481,7 @@ public class MythicStorageManager {
                 }
             } else if (part.startsWith("mythictoggle:")) {
                 String raw = part.substring("mythictoggle:".length()).trim();
-                toggle.put(player, "true".equalsIgnoreCase(raw));
+                toggle.put(playerId, "true".equalsIgnoreCase(raw));
             } else if (part.startsWith("mythicautopickupoff:")) {
                 String disabledData = part.substring("mythicautopickupoff:"
                         .length());
@@ -489,7 +503,7 @@ public class MythicStorageManager {
             } else if (part.startsWith(GROUND_STORE_DATA_PREFIX)) {
                 Boolean status = parseGroundStoreStatus(part);
                 if (status != null) {
-                    groundStoreToggle.put(player, status);
+                    groundStoreToggle.put(playerId, status);
                 }
             }
         }
@@ -502,10 +516,10 @@ public class MythicStorageManager {
                 databaseMax,
                 permissionMax
         );
-        playermaxdata.put(player, Math.max(0, resolvedMax));
+        playermaxdata.put(playerId, Math.max(0, resolvedMax));
 
-        if (!groundStoreToggle.containsKey(player)) {
-            groundStoreToggle.put(player, File.getMythicStorageConfig()
+        if (!groundStoreToggle.containsKey(playerId)) {
+            groundStoreToggle.put(playerId, File.getMythicStorageConfig()
                     .getBoolean("ground_store.default_enabled", false));
         }
     }
@@ -515,6 +529,7 @@ public class MythicStorageManager {
 
         StringBuilder mythicData = new StringBuilder();
         String playerName = player.getName();
+        UUID playerId = player.getUniqueId();
 
         for (String drop : configuredDrops) {
             String key = playerName + "_" + drop;
@@ -556,19 +571,19 @@ public class MythicStorageManager {
             finalData.append("mythic:").append(mythicData);
         }
 
-        if (toggle.containsKey(player)) {
+        if (toggle.containsKey(playerId)) {
             if (finalData.length() > 0) {
                 finalData.append(";");
             }
-            finalData.append("mythictoggle:").append(toggle.get(player));
+            finalData.append("mythictoggle:").append(toggle.get(playerId));
         }
 
-        if (groundStoreToggle.containsKey(player)) {
+        if (groundStoreToggle.containsKey(playerId)) {
             if (finalData.length() > 0) {
                 finalData.append(";");
             }
             finalData.append(GROUND_STORE_DATA_PREFIX)
-                    .append(groundStoreToggle.get(player));
+                    .append(groundStoreToggle.get(playerId));
         }
 
         Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
@@ -593,10 +608,10 @@ public class MythicStorageManager {
             }
         }
 
-        int maxStorage = playermaxdata.getOrDefault(player,
+        int maxStorage = playermaxdata.getOrDefault(playerId,
                 File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
 
-        boolean autoPickup = toggle.getOrDefault(player,
+        boolean autoPickup = toggle.getOrDefault(playerId,
                 File.getMythicStorageConfig().getBoolean(
                         "settings.default_auto_pickup",
                         false
@@ -613,9 +628,10 @@ public class MythicStorageManager {
 
     public static void cleanupPlayerData(@NotNull Player player) {
         if (player == null) return;
-        toggle.remove(player);
-        groundStoreToggle.remove(player);
-        playermaxdata.remove(player);
+        UUID playerId = player.getUniqueId();
+        toggle.remove(playerId);
+        groundStoreToggle.remove(playerId);
+        playermaxdata.remove(playerId);
         disabledAutoPickupItems.remove(player.getName());
 
         String playerName = player.getName();

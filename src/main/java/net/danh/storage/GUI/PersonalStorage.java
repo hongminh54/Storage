@@ -21,7 +21,7 @@ import java.util.*;
 
 public class PersonalStorage implements IGUI {
 
-    public static HashMap<Player, Integer> playerCurrentPage = new HashMap<>();
+    public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player p;
     private final FileConfiguration config;
     private final int currentPage;
@@ -34,11 +34,12 @@ public class PersonalStorage implements IGUI {
         this.p = p;
         this.currentPage = Math.max(0, page);
         config = File.getGUIStorage();
-        playerCurrentPage.put(p, this.currentPage);
+        playerCurrentPage.put(p.getUniqueId(), this.currentPage);
     }
 
     public static int getPlayerCurrentPage(Player player) {
-        return playerCurrentPage.getOrDefault(player, 0);
+        if (player == null) return 0;
+        return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
     }
 
     @NotNull

@@ -35,14 +35,14 @@ public class MineManager {
             "storage.storage.max.";
     private static final HashMap<String, Set<String>> disabledAutoPickupItems =
             new HashMap<>();
-    private static final HashMap<Player, Boolean> groundStoreToggle =
+    private static final HashMap<UUID, Boolean> groundStoreToggle =
             new HashMap<>();
     private static final String GROUND_STORE_DATA_PREFIX = ";groundstore:";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
-    public static HashMap<Player, Integer> playermaxdata = new HashMap<>();
+    public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
     public static HashMap<String, String> blocksdrop = new HashMap<>();
-    public static HashMap<Player, Boolean> toggle = new HashMap<>();
+    public static HashMap<UUID, Boolean> toggle = new HashMap<>();
 
     public static int getPlayerBlock(@NotNull Player p, String material) {
         return playerdata.getOrDefault(p.getName() + "_" + material, 0);
@@ -57,7 +57,7 @@ public class MineManager {
             return File.getConfig().getInt("settings.default_max_storage",
                     100000);
         }
-        return playermaxdata.getOrDefault(p, File.getConfig().getInt(
+        return playermaxdata.getOrDefault(p.getUniqueId(), File.getConfig().getInt(
                 "settings.default_max_storage",
                 100000
         ));
@@ -118,9 +118,9 @@ public class MineManager {
             boolean defaultAutoPickup = File.getConfig().getBoolean("settings.default_auto_pickup");
             playerStats = new PlayerData(player.getName(), createNewData(), File.getConfig().getInt("settings.default_max_storage"), defaultAutoPickup);
             Storage.db.createTable(playerStats);
-            toggle.put(player, defaultAutoPickup);
+            toggle.put(player.getUniqueId(), defaultAutoPickup);
         } else {
-            toggle.put(player, playerStats.isAutoPickup());
+            toggle.put(player.getUniqueId(), playerStats.isAutoPickup());
         }
 
         return playerStats;
@@ -134,7 +134,8 @@ public class MineManager {
         if (!isGroundStoreSystemEnabled()) {
             return false;
         }
-        Boolean status = groundStoreToggle.get(player);
+        UUID playerId = player.getUniqueId();
+        Boolean status = groundStoreToggle.get(playerId);
         if (status == null) {
             PlayerData playerData = getPlayerDatabase(player);
             status = parseGroundStoreStatus(playerData.getData());
@@ -144,7 +145,7 @@ public class MineManager {
                         false
                 );
             }
-            groundStoreToggle.put(player, status);
+            groundStoreToggle.put(playerId, status);
         }
         return status;
     }
@@ -152,7 +153,7 @@ public class MineManager {
     public static boolean toggleGroundStore(@NotNull Player player) {
         boolean current = isGroundStoreEnabled(player);
         boolean next = !current;
-        groundStoreToggle.put(player, next);
+        groundStoreToggle.put(player.getUniqueId(), next);
         savePlayerData(player);
         return next;
     }
@@ -209,9 +210,10 @@ public class MineManager {
             }
         }
 
-        if (groundStoreToggle.containsKey(p)) {
+        UUID playerId = p.getUniqueId();
+        if (groundStoreToggle.containsKey(playerId)) {
             mapAsString.append(GROUND_STORE_DATA_PREFIX)
-                    .append(groundStoreToggle.get(p));
+                    .append(groundStoreToggle.get(playerId));
         }
 
         return mapAsString.toString();
@@ -465,7 +467,7 @@ public class MineManager {
                 databaseMax,
                 permissionMax
         );
-        playermaxdata.put(p, Math.max(0, resolvedMax));
+        playermaxdata.put(p.getUniqueId(), Math.max(0, resolvedMax));
 
         setBlock(p, list);
 
@@ -474,16 +476,16 @@ public class MineManager {
             loadDisabledAutoPickupItems(p.getName(), rawData);
             Boolean groundStatus = parseGroundStoreStatus(rawData);
             if (groundStatus != null) {
-                groundStoreToggle.put(p, groundStatus);
+                groundStoreToggle.put(p.getUniqueId(), groundStatus);
             }
         }
 
-        if (!toggle.containsKey(p)) {
-            toggle.put(p, playerData.isAutoPickup());
+        if (!toggle.containsKey(p.getUniqueId())) {
+            toggle.put(p.getUniqueId(), playerData.isAutoPickup());
         }
 
-        if (!groundStoreToggle.containsKey(p)) {
-            groundStoreToggle.put(p, File.getConfig().getBoolean(
+        if (!groundStoreToggle.containsKey(p.getUniqueId())) {
+            groundStoreToggle.put(p.getUniqueId(), File.getConfig().getBoolean(
                     "ground_store.default_enabled",
                     false
             ));
@@ -491,7 +493,7 @@ public class MineManager {
     }
 
     public static void savePlayerData(@NotNull Player p) {
-        boolean autoPickup = toggle.getOrDefault(p, false);
+        boolean autoPickup = toggle.getOrDefault(p.getUniqueId(), false);
         PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p), autoPickup);
         PlayerData existing = Storage.db.getData(p.getName());
         if (existing == null) {
@@ -502,9 +504,10 @@ public class MineManager {
     }
 
     public static void cleanupPlayerData(@NotNull Player p) {
-        toggle.remove(p);
-        playermaxdata.remove(p);
-        groundStoreToggle.remove(p);
+        UUID playerId = p.getUniqueId();
+        toggle.remove(playerId);
+        playermaxdata.remove(playerId);
+        groundStoreToggle.remove(playerId);
 
         String playerName = p.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
@@ -530,11 +533,12 @@ public class MineManager {
     }
 
     public static boolean getToggleStatus(@NotNull Player p) {
-        Boolean status = toggle.get(p);
+        UUID playerId = p.getUniqueId();
+        Boolean status = toggle.get(playerId);
         if (status == null) {
             PlayerData playerData = getPlayerDatabase(p);
             status = playerData.isAutoPickup();
-            toggle.put(p, status);
+            toggle.put(playerId, status);
         }
         return status;
     }
@@ -553,7 +557,7 @@ public class MineManager {
             enabled = event.getNewState();
         }
 
-        toggle.put(p, enabled);
+        toggle.put(p.getUniqueId(), enabled);
 
         if (fireEvent) {
             StorageHookAPI.callAfterToggle(p, enabled);
