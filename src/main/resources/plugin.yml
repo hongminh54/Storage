@@ -11,6 +11,9 @@ softdepend:
   - PlaceholderAPI
   - MythicMobs
   - LuckPerms
+  - MMOItems
+  - MythicLib
+
 commands:
   storage:
     description: Main command
@@ -25,6 +28,7 @@ commands:
       - khoquaivat
       - kqv
       - khoqv
+
 permissions:
   storage.toggle:
     description: Toggle permission
