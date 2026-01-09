@@ -456,13 +456,13 @@ public class MythicTransferMultiGUI implements IGUI {
         boolean success = MythicTransferManager.executeMultiTransfer(player, targetPlayer, new HashMap<>(selectedAmounts));
         if (success) {
             player.closeInventory();
-            activeGUIs.remove(player);
+            activeGUIs.remove(player.getUniqueId());
         }
     }
 
     private void cancelTransfer() {
         player.closeInventory();
-        activeGUIs.remove(player);
+        activeGUIs.remove(player.getUniqueId());
     }
 
     private void clearSelection() {

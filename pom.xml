@@ -45,6 +45,10 @@
                             <pattern>de.tr7zw.changeme.nbtapi</pattern>
                             <shadedPattern>net.danh.nbtapi</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.codemc.worldguardwrapper</pattern>
+                            <shadedPattern>net.danh.worldguardwrapper</shadedPattern>
+                        </relocation>
                     </relocations>
                     <!-- Here you can remove the classes you don't use. -->
                     <!-- These are some examples. -->

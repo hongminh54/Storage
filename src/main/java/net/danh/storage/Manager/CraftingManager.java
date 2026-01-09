@@ -12,6 +12,7 @@ import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
+import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -834,21 +835,33 @@ public class CraftingManager {
         ParticleManager.playCraftingProcessingAnimation(player, craftingDelay);
 
         CraftingTask craftingTask = new CraftingTask(player, recipe, amount);
-        activeCrafting.put(player.getUniqueId().toString(), craftingTask);
+        String playerKey = player.getUniqueId().toString();
+        activeCrafting.put(playerKey, craftingTask);
 
-        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
-            ParticleManager.stopCraftingProcessingAnimation(player);
+        TaskWrapper scheduled = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            try {
+                if (craftingTask.isCancelled()) {
+                    return;
+                }
 
-            if (completeCrafting(player, recipe, amount)) {
-                ParticleManager.playCraftingSuccessParticle(player);
-                playCraftingSuccessSound(player);
-            } else {
-                ParticleManager.playCraftingFailedParticle(player);
-                playCraftingFailedSound(player);
+                if (activeCrafting.get(playerKey) != craftingTask) {
+                    return;
+                }
+
+                ParticleManager.stopCraftingProcessingAnimation(player);
+
+                if (completeCrafting(player, recipe, amount)) {
+                    ParticleManager.playCraftingSuccessParticle(player);
+                    playCraftingSuccessSound(player);
+                } else {
+                    ParticleManager.playCraftingFailedParticle(player);
+                    playCraftingFailedSound(player);
+                }
+            } finally {
+                activeCrafting.remove(playerKey);
             }
-
-            activeCrafting.remove(player.getUniqueId().toString());
         }, craftingDelay * 20L);
+        craftingTask.setScheduledTask(scheduled);
     }
 
     private static boolean completeCrafting(Player player, Recipe recipe, int amount) {
@@ -1034,6 +1047,7 @@ public class CraftingManager {
         private final Recipe recipe;
         private final int amount;
         private boolean cancelled = false;
+        private TaskWrapper scheduledTask;
 
         public CraftingTask(Player player, Recipe recipe, int amount) {
             this.player = player;
@@ -1041,8 +1055,16 @@ public class CraftingManager {
             this.amount = amount;
         }
 
+        public void setScheduledTask(TaskWrapper scheduledTask) {
+            this.scheduledTask = scheduledTask;
+        }
+
         public void cancel() {
             this.cancelled = true;
+
+            if (scheduledTask != null && !scheduledTask.isCancelled()) {
+                scheduledTask.cancel();
+            }
         }
 
         public boolean isCancelled() {

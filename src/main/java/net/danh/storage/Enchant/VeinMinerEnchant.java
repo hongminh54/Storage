@@ -154,7 +154,8 @@ public class VeinMinerEnchant {
 
                     if (totalAmount > 0) {
                         // Check storage integration setting
-                        if (enchantData.storageIntegration && MineManager.toggle.get(player)) {
+                        if (enchantData.storageIntegration
+                                && MineManager.getToggleStatus(player)) {
                             // Add to storage if autopickup is enabled and storage integration is true
                             if (MineManager.addBlockAmount(player, drop, totalAmount)) {
                                 EventManager.onPlayerMine(player, drop, amount);
