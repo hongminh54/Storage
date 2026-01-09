@@ -6,7 +6,16 @@ import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.*;
+import net.danh.storage.Listeners.LuckPerms.LuckPermsListener;
+import net.danh.storage.Listeners.Mythic.MythicMobDeath;
+import net.danh.storage.Listeners.Mythic.MythicMobsLoadListener;
 import net.danh.storage.Manager.*;
+import net.danh.storage.Manager.Crafting.CraftingManager;
+import net.danh.storage.Manager.Crafting.RecipeEditManager;
+import net.danh.storage.Manager.Event.EventManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicTransferManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Placeholder.CraftingPlaceholder;
 import net.danh.storage.Placeholder.PAPI;
@@ -77,8 +86,9 @@ public final class Storage extends JavaPlugin {
             new PAPI().register();
             new CraftingPlaceholder(this).register();
         }
-        registerEvents(new UpdateChecker(storage), new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(), new GroundStoreListener());
-        new UpdateChecker(storage).fetch();
+        UpdateChecker updateChecker = new UpdateChecker(storage);
+        registerEvents(updateChecker, new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(), new GroundStoreListener());
+        updateChecker.fetch();
         new StorageCMD("storage");
         new MythicStorageCMD("mythicstorage");
 

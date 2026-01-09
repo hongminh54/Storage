@@ -1,9 +1,11 @@
-package net.danh.storage.Manager;
+package net.danh.storage.Manager.Crafting;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.MaterialEditorGUI;
-import net.danh.storage.GUI.RecipeEditorGUI;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.*;

@@ -1,7 +1,7 @@
 package net.danh.storage.CMD.handler.mythic.admin;
 
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;

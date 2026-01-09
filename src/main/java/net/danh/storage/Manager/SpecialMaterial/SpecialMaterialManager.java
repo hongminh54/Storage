@@ -1,8 +1,10 @@
-package net.danh.storage.Manager;
+package net.danh.storage.Manager.SpecialMaterial;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 import net.danh.storage.Enchant.MultiplierEnchant;
+import net.danh.storage.Manager.EnchantManager;
+import net.danh.storage.Manager.ParticleManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;

@@ -1,7 +1,7 @@
 package net.danh.storage.CMD.handler.mythic;
 
 import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import org.bukkit.command.CommandSender;

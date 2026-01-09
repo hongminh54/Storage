@@ -1,7 +1,7 @@
 package net.danh.storage.CMD.handler.user;
 
 import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.GUI.RecipeListGUI;
+import net.danh.storage.GUI.Crafting.RecipeListGUI;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.command.CommandSender;

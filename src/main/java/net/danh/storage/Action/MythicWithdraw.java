@@ -1,6 +1,6 @@
 package net.danh.storage.Action;
 
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.ChatUtils;

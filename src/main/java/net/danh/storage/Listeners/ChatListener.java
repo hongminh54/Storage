@@ -1,9 +1,16 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Action.*;
-import net.danh.storage.GUI.*;
-import net.danh.storage.Manager.CraftingManager;
-import net.danh.storage.Manager.RecipeEditManager;
+import net.danh.storage.GUI.ConvertOptionGUI;
+import net.danh.storage.GUI.Crafting.RecipeListGUI;
+import net.danh.storage.GUI.Mythic.MythicStorageGUI;
+import net.danh.storage.GUI.Mythic.MythicTransferGUI;
+import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
+import net.danh.storage.GUI.PersonalStorage;
+import net.danh.storage.GUI.TransferGUI;
+import net.danh.storage.GUI.TransferMultiGUI;
+import net.danh.storage.Manager.Crafting.CraftingManager;
+import net.danh.storage.Manager.Crafting.RecipeEditManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.*;

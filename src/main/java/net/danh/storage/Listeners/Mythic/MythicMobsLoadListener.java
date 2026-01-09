@@ -1,7 +1,7 @@
-package net.danh.storage.Listeners;
+package net.danh.storage.Listeners.Mythic;
 
-import net.danh.storage.Manager.MythicStorageManager;
-import net.danh.storage.Manager.MythicTransferManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;

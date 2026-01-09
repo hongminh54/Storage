@@ -3,7 +3,7 @@ package net.danh.storage.Listeners;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;

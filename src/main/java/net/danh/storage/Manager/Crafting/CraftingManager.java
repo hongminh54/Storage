@@ -1,4 +1,4 @@
-package net.danh.storage.Manager;
+package net.danh.storage.Manager.Crafting;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
@@ -7,6 +7,10 @@ import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.API.events.RecipeCraftEvent;
 import net.danh.storage.API.events.RecipeCreateEvent;
 import net.danh.storage.Listeners.ChatListener;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.ParticleManager;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;

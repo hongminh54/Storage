@@ -1,8 +1,9 @@
-package net.danh.storage.GUI;
+package net.danh.storage.GUI.Crafting;
 
+import net.danh.storage.GUI.ConfirmationGUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Manager.CraftingManager;
+import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;

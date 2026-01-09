@@ -8,12 +8,13 @@ import net.danh.storage.Event.EventType;
 import net.danh.storage.Event.Events.CommunityEvent;
 import net.danh.storage.Event.Events.DoubleDropEvent;
 import net.danh.storage.Event.Events.MiningContestEvent;
-import net.danh.storage.GUI.MythicStorageGUI;
+import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
-import net.danh.storage.Manager.EventManager;
+import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
@@ -703,7 +704,7 @@ public class PAPI extends PlaceholderExpansion {
     }
 
     private String handleMythicTransferPlaceholders(Player p, String placeholder) {
-        MythicTransferDatabase transferDb = net.danh.storage.Manager.MythicTransferManager.getTransferDatabase();
+        MythicTransferDatabase transferDb = MythicTransferManager.getTransferDatabase();
         if (transferDb == null) {
             return "0";
         }

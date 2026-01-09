@@ -1,9 +1,14 @@
 package net.danh.storage.GUI;
 
 import com.cryptomorin.xseries.XMaterial;
+import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Manager.*;
+import net.danh.storage.Manager.Crafting.CraftingManager;
+import net.danh.storage.Manager.Crafting.RecipeEditManager;
+import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;

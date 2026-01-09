@@ -6,7 +6,7 @@ import net.danh.storage.Event.EventType;
 import net.danh.storage.Event.Events.CommunityEvent;
 import net.danh.storage.Event.Events.DoubleDropEvent;
 import net.danh.storage.Event.Events.MiningContestEvent;
-import net.danh.storage.Manager.EventManager;
+import net.danh.storage.Manager.Event.EventManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

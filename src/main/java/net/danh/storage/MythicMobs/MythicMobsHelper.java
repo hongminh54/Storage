@@ -1,6 +1,6 @@
 package net.danh.storage.MythicMobs;
 
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Storage;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;

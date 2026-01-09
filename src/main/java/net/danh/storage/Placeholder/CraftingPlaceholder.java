@@ -1,7 +1,7 @@
 package net.danh.storage.Placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.danh.storage.Manager.CraftingManager;
+import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
 import org.bukkit.entity.Player;

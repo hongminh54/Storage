@@ -177,6 +177,7 @@ public class PersonalStorage implements IGUI {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                             boolean currentStatus = MineManager.getToggleStatus(p);
                             MineManager.setToggleStatus(p, !currentStatus);
+                            MineManager.savePlayerData(p);
                             p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                             SoundManager.setShouldPlayCloseSound(p, false);
                             p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));
@@ -188,6 +189,7 @@ public class PersonalStorage implements IGUI {
                         SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
                         boolean currentStatus = MineManager.getToggleStatus(p);
                         MineManager.setToggleStatus(p, !currentStatus);
+                        MineManager.savePlayerData(p);
                         p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.status.toggle")).replace("#status#", ItemManager.getStatus(p))));
                         SoundManager.setShouldPlayCloseSound(p, false);
                         p.openInventory(new PersonalStorage(p, currentPage).getInventory(SoundContext.SILENT));

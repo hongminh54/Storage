@@ -2,7 +2,7 @@ package net.danh.storage.API;
 
 import net.danh.storage.API.exceptions.StorageException;
 import net.danh.storage.API.exceptions.StorageFullException;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

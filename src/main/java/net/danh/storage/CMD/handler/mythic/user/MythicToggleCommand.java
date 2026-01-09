@@ -1,7 +1,7 @@
 package net.danh.storage.CMD.handler.mythic.user;
 
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -27,6 +27,7 @@ public class MythicToggleCommand extends MythicCommand {
         boolean newStatus = !currentStatus;
 
         MythicStorageManager.setToggleStatus(player, newStatus);
+        MythicStorageManager.savePlayerData(player);
 
         String messageKey = newStatus ? "toggle_enabled" : "toggle_disabled";
         sendMessage(sender, messageKey);

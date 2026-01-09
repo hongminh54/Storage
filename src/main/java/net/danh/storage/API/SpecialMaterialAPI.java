@@ -1,7 +1,7 @@
 package net.danh.storage.API;
 
 import net.danh.storage.API.events.SpecialMaterialDropEvent;
-import net.danh.storage.Manager.SpecialMaterialManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

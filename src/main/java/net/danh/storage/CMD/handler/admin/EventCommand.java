@@ -2,7 +2,7 @@ package net.danh.storage.CMD.handler.admin;
 
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.Event.EventType;
-import net.danh.storage.Manager.EventManager;
+import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Utils.File;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;

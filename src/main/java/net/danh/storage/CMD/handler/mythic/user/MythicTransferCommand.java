@@ -1,10 +1,10 @@
 package net.danh.storage.CMD.handler.mythic.user;
 
 import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.GUI.MythicTransferGUI;
-import net.danh.storage.GUI.MythicTransferMultiGUI;
-import net.danh.storage.Manager.MythicStorageManager;
-import net.danh.storage.Manager.MythicTransferManager;
+import net.danh.storage.GUI.Mythic.MythicTransferGUI;
+import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Utils.Number;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

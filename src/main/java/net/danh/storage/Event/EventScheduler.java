@@ -1,6 +1,6 @@
 package net.danh.storage.Event;
 
-import net.danh.storage.Manager.EventManager;
+import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;

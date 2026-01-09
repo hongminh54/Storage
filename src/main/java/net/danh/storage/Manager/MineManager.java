@@ -38,6 +38,7 @@ public class MineManager {
     private static final HashMap<UUID, Boolean> groundStoreToggle =
             new HashMap<>();
     private static final String GROUND_STORE_DATA_PREFIX = ";groundstore:";
+    private static final String TOGGLE_DATA_PREFIX = ";toggle:";
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -215,6 +216,9 @@ public class MineManager {
             mapAsString.append(GROUND_STORE_DATA_PREFIX)
                     .append(groundStoreToggle.get(playerId));
         }
+
+        mapAsString.append(TOGGLE_DATA_PREFIX)
+                .append(getToggleStatus(p));
 
         return mapAsString.toString();
     }
@@ -478,6 +482,11 @@ public class MineManager {
             if (groundStatus != null) {
                 groundStoreToggle.put(p.getUniqueId(), groundStatus);
             }
+
+            Boolean toggleStatus = parseToggleStatus(rawData);
+            if (toggleStatus != null) {
+                toggle.put(p.getUniqueId(), toggleStatus);
+            }
         }
 
         if (!toggle.containsKey(p.getUniqueId())) {
@@ -493,7 +502,7 @@ public class MineManager {
     }
 
     public static void savePlayerData(@NotNull Player p) {
-        boolean autoPickup = toggle.getOrDefault(p.getUniqueId(), false);
+        boolean autoPickup = getToggleStatus(p);
         PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p), autoPickup);
         PlayerData existing = Storage.db.getData(p.getName());
         if (existing == null) {
@@ -532,12 +541,31 @@ public class MineManager {
         return "true".equals(raw);
     }
 
+    private static Boolean parseToggleStatus(String data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+        int idx = data.indexOf(TOGGLE_DATA_PREFIX);
+        if (idx < 0) {
+            return null;
+        }
+        int start = idx + TOGGLE_DATA_PREFIX.length();
+        int end = data.indexOf(';', start);
+        String raw = end >= 0 ? data.substring(start, end) : data.substring(start);
+        raw = raw.trim().toLowerCase(Locale.ROOT);
+        if (raw.isEmpty()) {
+            return null;
+        }
+        return "true".equals(raw);
+    }
+
     public static boolean getToggleStatus(@NotNull Player p) {
         UUID playerId = p.getUniqueId();
         Boolean status = toggle.get(playerId);
         if (status == null) {
             PlayerData playerData = getPlayerDatabase(p);
-            status = playerData.isAutoPickup();
+            Boolean parsed = parseToggleStatus(playerData.getData());
+            status = parsed != null ? parsed : playerData.isAutoPickup();
             toggle.put(playerId, status);
         }
         return status;

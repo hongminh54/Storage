@@ -1,4 +1,4 @@
-package net.danh.storage.Manager;
+package net.danh.storage.Manager.Mythic;
 
 import net.danh.storage.API.events.MythicStorageDepositEvent;
 import net.danh.storage.API.events.MythicStorageWithdrawEvent;

@@ -1,4 +1,4 @@
-package net.danh.storage.Manager;
+package net.danh.storage.Manager.Event;
 
 import net.danh.storage.Event.BaseEvent;
 import net.danh.storage.Event.EventScheduler;

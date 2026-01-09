@@ -1,7 +1,7 @@
 package net.danh.storage.CMD.handler.admin;
 
 import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.Manager.SpecialMaterialManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 

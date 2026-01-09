@@ -1,8 +1,8 @@
-package net.danh.storage.Listeners;
+package net.danh.storage.Listeners.Mythic;
 
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;

@@ -2,6 +2,7 @@ package net.danh.storage.API;
 
 import net.danh.storage.API.exceptions.StorageException;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +101,16 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Void> loadPlayerDataAsync(@NotNull Player player) {
-        return CompletableFuture.runAsync(() -> MineManager.loadPlayerData(player));
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), () -> {
+            try {
+                MineManager.loadPlayerData(player);
+                future.complete(null);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            }
+        });
+        return future;
     }
 
     /**
@@ -111,7 +121,16 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Void> savePlayerDataAsync(@NotNull Player player) {
-        return CompletableFuture.runAsync(() -> MineManager.savePlayerData(player));
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), () -> {
+            try {
+                MineManager.savePlayerData(player);
+                future.complete(null);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            }
+        });
+        return future;
     }
 
     /**
@@ -214,18 +233,20 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Integer> saveAllPlayersAsync() {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), () -> {
             int count = 0;
-            for (Player player : Bukkit.getOnlinePlayers()) {
+            for (Player online : Bukkit.getOnlinePlayers()) {
                 try {
-                    MineManager.savePlayerData(player);
+                    MineManager.savePlayerData(online);
                     count++;
                 } catch (Exception e) {
-                    // Log error but continue
+                    // Continue saving other players
                 }
             }
-            return count;
+            future.complete(count);
         });
+        return future;
     }
 
     /**

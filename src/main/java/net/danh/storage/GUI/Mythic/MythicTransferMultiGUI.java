@@ -1,11 +1,11 @@
-package net.danh.storage.GUI;
+package net.danh.storage.GUI.Mythic;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Manager.ItemManager;
-import net.danh.storage.Manager.MythicStorageManager;
-import net.danh.storage.Manager.MythicTransferManager;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;

@@ -4,7 +4,8 @@ import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.mythic.admin.*;
 import net.danh.storage.CMD.handler.mythic.user.*;
-import net.danh.storage.Manager.MythicStorageManager;
+import net.danh.storage.GUI.Mythic.MythicStorageGUI;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -80,7 +81,7 @@ public class MythicStorageCommandManager extends BaseCommand {
         }
 
         try {
-            player.openInventory(new net.danh.storage.GUI.MythicStorageGUI(player).getInventory());
+            player.openInventory(new MythicStorageGUI(player).getInventory());
         } catch (IndexOutOfBoundsException e) {
             sendMessage(sender, "mythicstorage.admin.not_enough_slot");
         } catch (Exception e) {

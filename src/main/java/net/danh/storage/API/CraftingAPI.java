@@ -1,6 +1,6 @@
 package net.danh.storage.API;
 
-import net.danh.storage.Manager.CraftingManager;
+import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Recipe.Recipe;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
