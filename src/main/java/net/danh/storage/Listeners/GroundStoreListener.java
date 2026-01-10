@@ -37,7 +37,7 @@ public class GroundStoreListener implements Listener {
         }
 
         Player player = (Player) entity;
-        if (!MineManager.isGroundStoreEnabled(player)) {
+        if (!isAnyGroundStoreEnabled(player)) {
             return;
         }
 
@@ -61,7 +61,7 @@ public class GroundStoreListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerPickupLegacy(@NotNull PlayerPickupItemEvent event) {
         Player player = event.getPlayer();
-        if (!MineManager.isGroundStoreEnabled(player)) {
+        if (!isAnyGroundStoreEnabled(player)) {
             return;
         }
 
@@ -139,6 +139,13 @@ public class GroundStoreListener implements Listener {
         }
 
         return false;
+    }
+
+    private boolean isAnyGroundStoreEnabled(@NotNull Player player) {
+        if (MineManager.isGroundStoreEnabled(player)) {
+            return true;
+        }
+        return MythicStorageManager.isGroundStoreEnabled(player);
     }
 
     private boolean isStorageWorldBlacklisted(@NotNull Player player) {

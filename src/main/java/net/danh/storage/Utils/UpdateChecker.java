@@ -95,7 +95,7 @@ public class UpdateChecker implements Listener {
                     if (devBuildVersion) {
                         plugin.getLogger().warning("You are using DevBuild version of Storage Plugin");
                         plugin.getLogger().warning("Most of things in DevBuild has fix bug and new features for the next version and it can be include another issues");
-                        plugin.getLogger().warning("So if you have any issues, please go to my Discord and report it to Danh!");
+                        plugin.getLogger().warning("So if you have any issues, please report at https://github.com/hongminh54/Storage/issues!");
                     }
                     if (updateAvailable) {
                         plugin.getLogger().warning("An update for Storage (v" + getSpigotVersion() + ") is available at:");
