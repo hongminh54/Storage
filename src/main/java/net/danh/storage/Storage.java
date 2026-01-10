@@ -24,14 +24,19 @@ import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.UpdateChecker;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.logging.Level;
 
 public final class Storage extends JavaPlugin {
+
+    // Debug Storage
+    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = true;
 
     public static IDataStorage dataStorage;
     public static Database db;
@@ -47,6 +52,32 @@ public final class Storage extends JavaPlugin {
         return WorldGuard;
     }
 
+    private static String toTitleCase(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String cleaned = raw.trim();
+        if (cleaned.isEmpty()) {
+            return "";
+        }
+
+        String[] parts = cleaned.toLowerCase(Locale.ENGLISH).split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) {
+                sb.append(part.substring(1));
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     public void onLoad() {
         storage = this;
@@ -59,6 +90,13 @@ public final class Storage extends JavaPlugin {
             net.danh.storage.WorldGuard.WorldGuard.register(storage);
             getLogger().log(Level.INFO, "Hook with WorldGuard");
         }
+    }
+
+    public void applyDebugVanillaStorageConfigIfEnabled() {
+        if (!DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA) {
+            return;
+        }
+        applyDebugVanillaStorageConfig();
     }
 
     @Override
@@ -82,6 +120,8 @@ public final class Storage extends JavaPlugin {
         File.updateSpecialMaterialConfig();
         File.updateMythicStorageConfig();
         File.updateCraftingConfig();
+
+        applyDebugVanillaStorageConfigIfEnabled();
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
             new CraftingPlaceholder(this).register();
@@ -123,6 +163,82 @@ public final class Storage extends JavaPlugin {
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
             getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
             getLogger().log(Level.WARNING, "If the material doesn't work, you should go to the GitHub Issues section and report it to the author!");
+        }
+    }
+
+    private void applyDebugVanillaStorageConfig() {
+        long startNs = System.nanoTime();
+        try {
+            ConfigurationSection blocksSection = File.getConfig()
+                    .getConfigurationSection("blocks");
+            if (blocksSection == null) {
+                blocksSection = File.getConfig().createSection("blocks");
+            }
+
+            ConfigurationSection itemsSection = File.getConfig()
+                    .getConfigurationSection("items");
+            if (itemsSection == null) {
+                itemsSection = File.getConfig().createSection("items");
+            }
+
+            Set<String> blockKeys = new LinkedHashSet<>();
+            int addedBlocks = 0;
+            int addedItems = 0;
+
+            for (Material material : Material.values()) {
+                if (material == null || !material.isBlock()) {
+                    continue;
+                }
+                if (material == Material.AIR
+                        || material.name().endsWith("_AIR")) {
+                    continue;
+                }
+
+                String key = material.name() + ";0";
+                blockKeys.add(key);
+
+                if (!blocksSection.contains(key + ".drop")) {
+                    blocksSection.set(key + ".drop", key);
+                    addedBlocks++;
+                }
+
+                if (!itemsSection.contains(key)) {
+                    String display = toTitleCase(material.name());
+                    itemsSection.set(key, "&7" + display);
+                    addedItems++;
+                }
+            }
+
+            List<String> allowed = File.getConfig().getStringList(
+                    "ground_store.allowed_items"
+            );
+            Set<String> mergedAllowed = new LinkedHashSet<>();
+            if (allowed != null) {
+                mergedAllowed.addAll(allowed);
+            }
+            int beforeAllowed = mergedAllowed.size();
+            mergedAllowed.addAll(blockKeys);
+            int addedAllowed = mergedAllowed.size() - beforeAllowed;
+            File.getConfig().set(
+                    "ground_store.allowed_items",
+                    new ArrayList<>(mergedAllowed)
+            );
+
+            long elapsedMs = (System.nanoTime() - startNs) / 1_000_000L;
+            getLogger().log(
+                    Level.WARNING,
+                    "[DEBUG] Storage debug mode applied: blocks="
+                            + blockKeys.size() + ", added_blocks="
+                            + addedBlocks + ", added_items="
+                            + addedItems + ", added_allowed_items="
+                            + addedAllowed + " (" + elapsedMs + "ms)"
+            );
+        } catch (Exception ex) {
+            getLogger().log(
+                    Level.SEVERE,
+                    "[DEBUG] Failed to apply vanilla debug storage config",
+                    ex
+            );
         }
     }
 

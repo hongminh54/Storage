@@ -19,6 +19,12 @@ public class ReloadCommand extends BaseCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         File.reloadFiles();
+
+        Storage plugin = Storage.getStorage();
+        if (plugin != null) {
+            plugin.applyDebugVanillaStorageConfigIfEnabled();
+        }
+
         MineManager.loadBlocks();
         AutoSaveManager.restartAutoSave();
         EventManager.reloadEvents();
