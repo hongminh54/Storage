@@ -172,6 +172,7 @@ public class StorageAPI {
         if (!isInitialized()) {
             return;
         }
+        MineManager.setMaxStorageOverride(player, amount);
         MineManager.playermaxdata.put(player.getUniqueId(), Math.max(0, amount));
     }
 

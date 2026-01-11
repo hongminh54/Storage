@@ -25,6 +25,8 @@ public class MythicStorageManager {
     private static final HashMap<UUID, Boolean> groundStoreToggle =
             new HashMap<>();
     private static final String GROUND_STORE_DATA_PREFIX = "mythicgroundstore:";
+    private static final String MAX_OVERRIDE_DATA_PREFIX = "mythicmaxoverride:";
+    private static final HashMap<UUID, Integer> maxOverrideData = new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Boolean> toggle = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
@@ -64,6 +66,24 @@ public class MythicStorageManager {
 
         Storage.getStorage().getLogger().info("[MythicStorage] Initialization completed!");
         Storage.getStorage().getLogger().info("[MythicStorage] ===================================");
+    }
+
+    private static Integer parseMaxOverride(@NotNull String part) {
+        if (part == null || part.isEmpty()) {
+            return null;
+        }
+        if (!part.startsWith(MAX_OVERRIDE_DATA_PREFIX)) {
+            return null;
+        }
+        String raw = part.substring(MAX_OVERRIDE_DATA_PREFIX.length()).trim();
+        if (raw.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     public static boolean isSystemEnabled() {
@@ -233,6 +253,19 @@ public class MythicStorageManager {
                         "settings.default_max_storage",
                         100000
                 ));
+    }
+
+    public static Integer getMaxStorageOverride(@NotNull Player player) {
+        return maxOverrideData.get(player.getUniqueId());
+    }
+
+    public static void setMaxStorageOverride(@NotNull Player player,
+                                             int maxStorage) {
+        maxOverrideData.put(player.getUniqueId(), Math.max(0, maxStorage));
+    }
+
+    public static void clearMaxStorageOverride(@NotNull Player player) {
+        maxOverrideData.remove(player.getUniqueId());
     }
 
     public static int getPermissionMaxStorage(@NotNull Player player) {
@@ -482,6 +515,13 @@ public class MythicStorageManager {
             } else if (part.startsWith("mythictoggle:")) {
                 String raw = part.substring("mythictoggle:".length()).trim();
                 toggle.put(playerId, "true".equalsIgnoreCase(raw));
+            } else if (part.startsWith(MAX_OVERRIDE_DATA_PREFIX)) {
+                Integer parsed = parseMaxOverride(part);
+                if (parsed != null) {
+                    setMaxStorageOverride(player, Math.max(0, parsed));
+                } else {
+                    clearMaxStorageOverride(player);
+                }
             } else if (part.startsWith("mythicautopickupoff:")) {
                 String disabledData = part.substring("mythicautopickupoff:"
                         .length());
@@ -510,12 +550,18 @@ public class MythicStorageManager {
 
         int databaseMax = Math.max(0, data.getMax());
         int permissionMax = Math.max(0, getPermissionMaxStorage(player));
-        int resolvedMax = File.resolveMaxStorage(
-                File.getMythicStorageConfig(),
-                "settings.max_storage_mode",
-                databaseMax,
-                permissionMax
-        );
+        Integer overrideMax = maxOverrideData.get(playerId);
+        int resolvedMax;
+        if (overrideMax != null) {
+            resolvedMax = overrideMax;
+        } else {
+            resolvedMax = File.resolveMaxStorage(
+                    File.getMythicStorageConfig(),
+                    "settings.max_storage_mode",
+                    databaseMax,
+                    permissionMax
+            );
+        }
         playermaxdata.put(playerId, Math.max(0, resolvedMax));
 
         if (!groundStoreToggle.containsKey(playerId)) {
@@ -578,6 +624,15 @@ public class MythicStorageManager {
             finalData.append("mythictoggle:").append(toggle.get(playerId));
         }
 
+        Integer maxOverride = maxOverrideData.get(playerId);
+        if (maxOverride != null) {
+            if (finalData.length() > 0) {
+                finalData.append(";");
+            }
+            finalData.append(MAX_OVERRIDE_DATA_PREFIX)
+                    .append(Math.max(0, maxOverride));
+        }
+
         if (groundStoreToggle.containsKey(playerId)) {
             if (finalData.length() > 0) {
                 finalData.append(";");
@@ -608,8 +663,15 @@ public class MythicStorageManager {
             }
         }
 
-        int maxStorage = playermaxdata.getOrDefault(playerId,
-                File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000));
+        int maxStorage;
+        if (existingData != null) {
+            maxStorage = existingData.getMax();
+        } else {
+            maxStorage = File.getMythicStorageConfig().getInt(
+                    "settings.default_max_storage",
+                    100000
+            );
+        }
 
         boolean autoPickup = toggle.getOrDefault(playerId,
                 File.getMythicStorageConfig().getBoolean(
@@ -617,7 +679,12 @@ public class MythicStorageManager {
                         false
                 ));
 
-        PlayerData newData = new PlayerData(playerName, finalData.toString(), maxStorage, autoPickup);
+        PlayerData newData = new PlayerData(
+                playerName,
+                finalData.toString(),
+                Math.max(0, maxStorage),
+                autoPickup
+        );
 
         if (existingData == null) {
             Storage.dataStorage.createTable(newData);
@@ -632,6 +699,7 @@ public class MythicStorageManager {
         toggle.remove(playerId);
         groundStoreToggle.remove(playerId);
         playermaxdata.remove(playerId);
+        clearMaxStorageOverride(player);
         disabledAutoPickupItems.remove(player.getName());
 
         String playerName = player.getName();

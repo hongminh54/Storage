@@ -108,6 +108,7 @@ public class StorageManagerImpl implements IStorageManager {
 
     @Override
     public void setMaxStorage(@NotNull Player player, int amount) {
+        MineManager.setMaxStorageOverride(player, amount);
         MineManager.playermaxdata.put(player.getUniqueId(), Math.max(0, amount));
     }
 

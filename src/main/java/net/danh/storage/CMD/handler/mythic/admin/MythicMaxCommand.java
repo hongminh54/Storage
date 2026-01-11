@@ -1,7 +1,7 @@
-package net.danh.storage.CMD.handler.admin;
+package net.danh.storage.CMD.handler.mythic.admin;
 
-import net.danh.storage.CMD.handler.BaseCommand;
-import net.danh.storage.Manager.MineManager;
+import net.danh.storage.CMD.handler.mythic.MythicCommand;
+import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Utils.Number;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MaxCommand extends BaseCommand {
+public class MythicMaxCommand extends MythicCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
@@ -22,7 +22,7 @@ public class MaxCommand extends BaseCommand {
 
         Player target = getPlayer(args[0]);
         if (target == null) {
-            sendInvalidPlayer(sender, args[0]);
+            sendPlayerNotFound(sender, args[0]);
             return;
         }
 
@@ -36,13 +36,12 @@ public class MaxCommand extends BaseCommand {
             return;
         }
 
-        MineManager.setMaxStorageOverride(target, amount);
-        MineManager.playermaxdata.put(target.getUniqueId(), amount);
-        MineManager.savePlayerData(target);
+        MythicStorageManager.setMaxStorageOverride(target, amount);
+        MythicStorageManager.playermaxdata.put(target.getUniqueId(), amount);
+        MythicStorageManager.savePlayerData(target);
 
-        String[] placeholders = {"#player#", "#amount#"};
-        String[] replacements = {target.getName(), String.valueOf(amount)};
-        sendMessage(sender, "admin.set_max_storage", placeholders, replacements);
+        sendMessage(sender, "admin.set_max_storage", new String[]{"#player#",
+                "#amount#"}, new String[]{target.getName(), String.valueOf(amount)});
     }
 
     @Override
@@ -50,8 +49,7 @@ public class MaxCommand extends BaseCommand {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> playerNames = getOnlinePlayerNames();
-            StringUtil.copyPartialMatches(args[0], playerNames, completions);
+            StringUtil.copyPartialMatches(args[0], getOnlinePlayerNames(), completions);
         }
 
         if (args.length == 2) {
@@ -63,16 +61,16 @@ public class MaxCommand extends BaseCommand {
 
     @Override
     public String getPermission() {
-        return "storage.admin.max";
+        return "storage.mythicstorage.admin";
     }
 
     @Override
     public String getUsage() {
-        return "/storage max <player> <amount>";
+        return "/mythicstorage max <player> <amount>";
     }
 
     @Override
     public String getDescription() {
-        return "Set max storage for a player";
+        return "Set max MythicStorage for a player";
     }
 }

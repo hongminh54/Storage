@@ -39,6 +39,9 @@ public class MineManager {
             new HashMap<>();
     private static final String GROUND_STORE_DATA_PREFIX = ";groundstore:";
     private static final String TOGGLE_DATA_PREFIX = ";toggle:";
+    private static final String MAX_OVERRIDE_DATA_PREFIX = ";maxoverride:";
+    private static final HashMap<UUID, Integer> maxOverrideData =
+            new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -51,6 +54,19 @@ public class MineManager {
 
     public static boolean hasPlayerBlock(@NotNull Player p, String material) {
         return playerdata.containsKey(p.getName() + "_" + material);
+    }
+
+    public static Integer getMaxStorageOverride(@NotNull Player player) {
+        return maxOverrideData.get(player.getUniqueId());
+    }
+
+    public static void setMaxStorageOverride(@NotNull Player player,
+                                             int maxStorage) {
+        maxOverrideData.put(player.getUniqueId(), Math.max(0, maxStorage));
+    }
+
+    public static void clearMaxStorageOverride(@NotNull Player player) {
+        maxOverrideData.remove(player.getUniqueId());
     }
 
     public static int getMaxBlock(Player p) {
@@ -219,6 +235,12 @@ public class MineManager {
 
         mapAsString.append(TOGGLE_DATA_PREFIX)
                 .append(getToggleStatus(p));
+
+        Integer maxOverride = getMaxStorageOverride(p);
+        if (maxOverride != null) {
+            mapAsString.append(MAX_OVERRIDE_DATA_PREFIX)
+                    .append(Math.max(0, maxOverride));
+        }
 
         return mapAsString.toString();
     }
@@ -465,19 +487,20 @@ public class MineManager {
 
         int databaseMax = Math.max(0, playerData.getMax());
         int permissionMax = Math.max(0, getPermissionMaxStorage(p));
-        int resolvedMax = File.resolveMaxStorage(
-                File.getConfig(),
-                "settings.max_storage_mode",
-                databaseMax,
-                permissionMax
-        );
-        playermaxdata.put(p.getUniqueId(), Math.max(0, resolvedMax));
+        Integer overrideMax = null;
 
         setBlock(p, list);
 
         String rawData = playerData.getData();
         if (rawData != null && !rawData.isEmpty()) {
             loadDisabledAutoPickupItems(p.getName(), rawData);
+            Integer parsedMaxOverride = parseMaxOverride(rawData);
+            if (parsedMaxOverride != null) {
+                overrideMax = Math.max(0, parsedMaxOverride);
+                setMaxStorageOverride(p, overrideMax);
+            } else {
+                clearMaxStorageOverride(p);
+            }
             Boolean groundStatus = parseGroundStoreStatus(rawData);
             if (groundStatus != null) {
                 groundStoreToggle.put(p.getUniqueId(), groundStatus);
@@ -499,12 +522,39 @@ public class MineManager {
                     false
             ));
         }
+
+        int resolvedMax;
+        if (overrideMax != null) {
+            resolvedMax = overrideMax;
+        } else {
+            resolvedMax = File.resolveMaxStorage(
+                    File.getConfig(),
+                    "settings.max_storage_mode",
+                    databaseMax,
+                    permissionMax
+            );
+        }
+        playermaxdata.put(p.getUniqueId(), Math.max(0, resolvedMax));
     }
 
     public static void savePlayerData(@NotNull Player p) {
         boolean autoPickup = getToggleStatus(p);
-        PlayerData playerData = new PlayerData(p.getName(), convertOfflineData(p), getMaxBlock(p), autoPickup);
         PlayerData existing = Storage.db.getData(p.getName());
+        int maxToSave;
+        if (existing != null) {
+            maxToSave = existing.getMax();
+        } else {
+            maxToSave = File.getConfig().getInt(
+                    "settings.default_max_storage",
+                    100000
+            );
+        }
+        PlayerData playerData = new PlayerData(
+                p.getName(),
+                convertOfflineData(p),
+                Math.max(0, maxToSave),
+                autoPickup
+        );
         if (existing == null) {
             Storage.db.createTable(playerData);
         } else {
@@ -516,6 +566,7 @@ public class MineManager {
         UUID playerId = p.getUniqueId();
         toggle.remove(playerId);
         playermaxdata.remove(playerId);
+        clearMaxStorageOverride(p);
         groundStoreToggle.remove(playerId);
 
         String playerName = p.getName();
@@ -539,6 +590,31 @@ public class MineManager {
             return null;
         }
         return "true".equals(raw);
+    }
+
+    private static Integer parseMaxOverride(String data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+        int idx = data.indexOf(MAX_OVERRIDE_DATA_PREFIX);
+        if (idx < 0) {
+            return null;
+        }
+        int start = idx + MAX_OVERRIDE_DATA_PREFIX.length();
+        int end = data.indexOf(';', start);
+        String raw = end >= 0 ? data.substring(start, end) : data.substring(start);
+        if (raw == null) {
+            return null;
+        }
+        raw = raw.trim();
+        if (raw.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     private static Boolean parseToggleStatus(String data) {

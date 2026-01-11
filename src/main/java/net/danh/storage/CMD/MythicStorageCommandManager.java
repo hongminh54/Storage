@@ -32,6 +32,8 @@ public class MythicStorageCommandManager extends BaseCommand {
         // Admin commands
         registerCommand("add", new MythicAddCommand());
         registerCommand("remove", new MythicRemoveCommand());
+        registerCommand("max", new MythicMaxCommand());
+        registerCommand("resetlimit", new MythicResetLimitCommand());
         registerCommand("set", new MythicSetCommand());
         registerCommand("reset", new MythicResetCommand());
         registerCommand("reload", new MythicReloadCommand());

@@ -151,6 +151,7 @@ public class StoragePlayer {
      * @param amount New maximum capacity
      */
     public void setMaxStorage(int amount) {
+        MineManager.setMaxStorageOverride(player, amount);
         MineManager.playermaxdata.put(player.getUniqueId(), Math.max(0, amount));
     }
 
