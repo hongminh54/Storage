@@ -88,15 +88,17 @@ public class GroundStoreListener implements Listener {
             return false;
         }
 
-        if (MythicStorageManager.isSystemEnabled()
-                && !isMythicStorageWorldBlacklisted(player)
-                && MythicStorageManager.isGroundStoreEnabled(player)) {
-            String mythicItemName = null;
+        String mythicItemName = null;
+        if (MythicStorageManager.isSystemEnabled()) {
             if (MythicStorageManager.getMythicMobsHelper() != null) {
                 mythicItemName = MythicStorageManager.getMythicMobsHelper()
                         .getMythicItemInternalName(itemStack);
             }
+        }
 
+        if (MythicStorageManager.isSystemEnabled()
+                && !isMythicStorageWorldBlacklisted(player)
+                && MythicStorageManager.isGroundStoreEnabled(player)) {
             if (mythicItemName != null
                     && MythicStorageManager.isConfiguredDrop(mythicItemName)
                     && MythicStorageManager.isGroundStoreItemAllowed(mythicItemName)) {
@@ -121,6 +123,11 @@ public class GroundStoreListener implements Listener {
 
         if (MineManager.isGroundStoreEnabled(player)
                 && !isStorageWorldBlacklisted(player)) {
+            if (mythicItemName != null
+                    && MythicStorageManager.isSystemEnabled()
+                    && MythicStorageManager.isConfiguredDrop(mythicItemName)) {
+                return false;
+            }
             String storageDrop = MineManager.getItemStackDrop(itemStack);
             if (storageDrop != null
                     && MineManager.isGroundStoreItemAllowed(storageDrop)) {

@@ -239,6 +239,27 @@ public class MythicStorageGUI implements IGUI {
                                 String status = toggleStatus ? ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.status_enabled", "&aEnabled")) : ChatUtils.colorizewp(File.getMessage().getString("mythicstorage.status_disabled", "&cDisabled"));
 
                                 itemStack = ItemManager.getItemConfigWithPlaceholders(player, section, "#status#", status);
+                            } else if (itemTag.equalsIgnoreCase("groundstore_item")) {
+                                boolean enabled = MythicStorageManager
+                                        .isGroundStoreEnabled(player);
+                                String status = enabled
+                                        ? ChatUtils.colorizewp(
+                                        File.getMessage().getString(
+                                                "user.status.status_on"
+                                        )
+                                )
+                                        : ChatUtils.colorizewp(
+                                        File.getMessage().getString(
+                                                "user.status.status_off"
+                                        )
+                                );
+
+                                itemStack = ItemManager.getItemConfigWithPlaceholders(
+                                        player,
+                                        section,
+                                        "#status#",
+                                        status
+                                );
                             } else {
                                 itemStack = ItemManager.getItemConfig(Objects.requireNonNull(section));
                             }
@@ -263,6 +284,71 @@ public class MythicStorageGUI implements IGUI {
 
                                     SoundManager.setShouldPlayCloseSound(p, false);
                                     p.openInventory(new MythicStorageGUI(p, currentPage).getInventory(SoundContext.SILENT));
+                                });
+                            } else if (itemTag.equalsIgnoreCase("groundstore_item")) {
+                                item.onClick((p, clickType) -> {
+                                    SoundManager.playItemSound(p, config,
+                                            "items." + itemTag,
+                                            SoundContext.INITIAL_OPEN);
+
+                                    if (!p.hasPermission(
+                                            "storage.mythicstorage.groundstore"
+                                    )) {
+                                        String msg = File.getMessage().getString(
+                                                "mythicstorage.ground_store_no_permission"
+                                        );
+                                        p.sendMessage(ChatUtils.colorizewp(msg));
+                                        return;
+                                    }
+
+                                    if (!MythicStorageManager
+                                            .isGroundStoreSystemEnabled()) {
+                                        String msg = File.getMessage().getString(
+                                                "mythicstorage.ground_store_system_disabled"
+                                        );
+                                        p.sendMessage(ChatUtils.colorizewp(msg));
+                                        return;
+                                    }
+
+                                    if (File.getMythicStorageConfig()
+                                            .contains("blacklist_world")
+                                            && File.getMythicStorageConfig()
+                                            .getStringList("blacklist_world")
+                                            .contains(p.getWorld().getName())) {
+                                        String msg = File.getMessage().getString(
+                                                "admin.world_blacklisted"
+                                        );
+                                        p.sendMessage(ChatUtils.colorize(msg
+                                                .replace("#feature#",
+                                                        "MythicStorage")
+                                                .replace("#world#",
+                                                        p.getWorld().getName())));
+                                        return;
+                                    }
+
+                                    boolean enabled = MythicStorageManager
+                                            .toggleGroundStore(p);
+                                    String key = enabled
+                                            ? "mythicstorage.ground_store_toggle_on"
+                                            : "mythicstorage.ground_store_toggle_off";
+                                    String msg = File.getMessage().getString(
+                                            key,
+                                            enabled
+                                                    ? "#prefix# &dMythicStorage &aGround-store mode enabled."
+                                                    : "#prefix# &dMythicStorage &cGround-store mode disabled."
+                                    );
+                                    p.sendMessage(ChatUtils.colorizewp(msg));
+
+                                    SoundManager.setShouldPlayCloseSound(p,
+                                            false);
+                                    p.openInventory(
+                                            new MythicStorageGUI(
+                                                    p,
+                                                    currentPage
+                                            ).getInventory(
+                                                    SoundContext.SILENT
+                                            )
+                                    );
                                 });
                             }
 

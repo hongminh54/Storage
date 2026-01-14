@@ -196,18 +196,159 @@ public class PersonalStorage implements IGUI {
                     });
                     inventory.setItem(item.getSlot(), item);
                 }
+            } else if (item_tag.equalsIgnoreCase("groundstore_item")) {
+                ConfigurationSection section = config.getConfigurationSection(
+                        "items." + item_tag
+                );
+                if (section == null) {
+                    continue;
+                }
+
+                String status = MineManager.isGroundStoreEnabled(p)
+                        ? ChatUtils.colorizewp(
+                        File.getMessage().getString(
+                                "user.status.status_on"
+                        )
+                )
+                        : ChatUtils.colorizewp(
+                        File.getMessage().getString(
+                                "user.status.status_off"
+                        )
+                );
+
+                ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(
+                        p,
+                        section,
+                        "#status#",
+                        status
+                );
+
+                if (slot.contains(",")) {
+                    for (String slot_string : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(
+                                itemStack,
+                                Number.getInteger(slot_string)
+                        ).onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config,
+                                    "items." + item_tag,
+                                    SoundContext.INITIAL_OPEN);
+
+                            if (!player.hasPermission("storage.groundstore")) {
+                                player.sendMessage(ChatUtils.colorize(
+                                        Objects.requireNonNull(File.getMessage()
+                                                .getString(
+                                                        "user.ground_store.no_permission"
+                                                ))
+                                ));
+                                return;
+                            }
+
+                            if (!MineManager.isGroundStoreSystemEnabled()) {
+                                player.sendMessage(ChatUtils.colorize(
+                                        Objects.requireNonNull(File.getMessage()
+                                                .getString(
+                                                        "user.ground_store.system_disabled"
+                                                ))
+                                ));
+                                return;
+                            }
+
+                            if (File.getConfig().contains("blacklist_world")
+                                    && File.getConfig().getStringList(
+                                    "blacklist_world"
+                            ).contains(player.getWorld().getName())) {
+                                String msg = Objects.requireNonNull(
+                                        File.getMessage().getString(
+                                                "admin.world_blacklisted"
+                                        )
+                                );
+                                player.sendMessage(ChatUtils.colorize(msg
+                                        .replace("#feature#", "Storage")
+                                        .replace("#world#",
+                                                player.getWorld().getName())));
+                                return;
+                            }
+
+                            boolean enabled = MineManager.toggleGroundStore(p);
+                            player.sendMessage(ChatUtils.colorize(
+                                    Objects.requireNonNull(File.getMessage().getString(
+                                            enabled
+                                                    ? "user.ground_store.toggle_on"
+                                                    : "user.ground_store.toggle_off"
+                                    ))
+                            ));
+
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new PersonalStorage(p, currentPage)
+                                    .getInventory(SoundContext.SILENT));
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(
+                            itemStack,
+                            Number.getInteger(slot)
+                    ).onClick((player, clickType) -> {
+                        SoundManager.playItemSound(player, config,
+                                "items." + item_tag,
+                                SoundContext.INITIAL_OPEN);
+
+                        if (!player.hasPermission("storage.groundstore")) {
+                            player.sendMessage(ChatUtils.colorize(
+                                    Objects.requireNonNull(File.getMessage()
+                                            .getString(
+                                                    "user.ground_store.no_permission"
+                                            ))
+                            ));
+                            return;
+                        }
+
+                        if (!MineManager.isGroundStoreSystemEnabled()) {
+                            player.sendMessage(ChatUtils.colorize(
+                                    Objects.requireNonNull(File.getMessage()
+                                            .getString(
+                                                    "user.ground_store.system_disabled"
+                                            ))
+                            ));
+                            return;
+                        }
+
+                        if (File.getConfig().contains("blacklist_world")
+                                && File.getConfig().getStringList("blacklist_world")
+                                .contains(player.getWorld().getName())) {
+                            String msg = Objects.requireNonNull(
+                                    File.getMessage().getString(
+                                            "admin.world_blacklisted"
+                                    )
+                            );
+                            player.sendMessage(ChatUtils.colorize(msg
+                                    .replace("#feature#", "Storage")
+                                    .replace("#world#",
+                                            player.getWorld().getName())));
+                            return;
+                        }
+
+                        boolean enabled = MineManager.toggleGroundStore(p);
+                        player.sendMessage(ChatUtils.colorize(
+                                Objects.requireNonNull(File.getMessage().getString(
+                                        enabled
+                                                ? "user.ground_store.toggle_on"
+                                                : "user.ground_store.toggle_off"
+                                ))
+                        ));
+
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new PersonalStorage(p, currentPage)
+                                .getInventory(SoundContext.SILENT));
+                    });
+                    inventory.setItem(item.getSlot(), item);
+                }
             } else if (item_tag.equalsIgnoreCase("convert_button")) {
                 if (slot.contains(",")) {
                     for (String slot_string : slot.split(",")) {
-                        InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(p, Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
-                            if (!player.hasPermission("storage.convert")) {
-                                player.sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("admin.no_permission"))));
-                                player.closeInventory();
-                                return;
-                            }
+                        InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), Number.getInteger(slot_string)).onClick((player, clickType) -> {
                             SoundManager.playItemSound(player, config, "items." + item_tag, SoundContext.INITIAL_OPEN);
-                            SoundManager.setShouldPlayCloseSound(player, false);
-                            player.openInventory(new ConvertOreGUI(p, 0).getInventory(SoundContext.SILENT));
+                            player.openInventory(new ConvertOreGUI(player).getInventory(SoundContext.SILENT));
                         });
                         inventory.setItem(item.getSlot(), item);
                     }

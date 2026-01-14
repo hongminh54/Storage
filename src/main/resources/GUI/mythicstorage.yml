@@ -79,7 +79,7 @@ items:
   # This item setting for toggle auto-pickup | Name can't be change
   toggle_item:
     # Slot of item (same position as main Storage GUI)
-    slot: 40
+    slot: 41
     # Display name of item
     name: "&dMythicMobs Toggle"
     material: CHEST
@@ -87,6 +87,39 @@ items:
       - "&7 "
       - "&fStatus: #status#"
       - "&7&oClick to toggle use mythicmobs storage"
+      - "&7 "
+    # Amount of item
+    amount: 1
+    # for 1.13.2 and below
+    damage: 0
+    # for 1.14 and above
+    custom-model-data: 1
+    # Item will be unbreakable?
+    unbreakable: true
+    # Enchantments for item
+    enchants:
+      DURABILITY: 1
+    # Flag for item | If you use ALL: true -> All flag will be applied to item
+    flags:
+      ALL: true
+    # Sound when click
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.8
+      pitch: 1.0
+  
+  # This item setting for ground-store toggle | Name can't be change
+  groundstore_item:
+    # Slot of item
+    slot: 39
+    # Display name of item
+    name: "&aGroundStore Toggle"
+    material: HOPPER
+    lore:
+      - "&7 "
+      - "&fGroundStore: #status#"
+      - "&7&oClick to toggle mythic ground-store"
       - "&7 "
     # Amount of item
     amount: 1
