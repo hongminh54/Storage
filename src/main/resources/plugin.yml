@@ -20,6 +20,7 @@ commands:
     aliases:
       - kho
       - kks
+      - khokhoangsan
 
   mythicstorage:
     description: MythicMobs storage command
