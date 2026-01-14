@@ -83,28 +83,9 @@ public class GroundStoreListener implements Listener {
 
     private boolean handlePickup(@NotNull Player player,
                                  @NotNull ItemStack itemStack) {
-        if (isStorageWorldBlacklisted(player)) {
-            return false;
-        }
-
         int amount = itemStack.getAmount();
         if (amount <= 0) {
             return false;
-        }
-
-        String storageDrop = MineManager.getItemStackDrop(itemStack);
-        if (storageDrop != null
-                && MineManager.isGroundStoreItemAllowed(storageDrop)) {
-            if (MineManager.addBlockAmount(player, storageDrop, amount)) {
-                int newStoredAmount = MineManager.getPlayerBlock(player,
-                        storageDrop);
-                int maxStorage = MineManager.getMaxBlock(player);
-                String name = File.getConfig().getString("items." + storageDrop);
-                String itemName = name != null ? name : storageDrop.replace("_", " ");
-                sendGroundStoreMessage(player, NOTIFY_TYPE_STORAGE, itemName,
-                        amount, newStoredAmount, maxStorage);
-                return true;
-            }
         }
 
         if (MythicStorageManager.isSystemEnabled()
@@ -133,6 +114,27 @@ public class GroundStoreListener implements Listener {
                             .getItemDisplayNameOrId(mythicItemName, player);
                     sendGroundStoreMessage(player, NOTIFY_TYPE_MYTHIC,
                             displayName, amount, currentStorage, maxStorage);
+                    return true;
+                }
+            }
+        }
+
+        if (MineManager.isGroundStoreEnabled(player)
+                && !isStorageWorldBlacklisted(player)) {
+            String storageDrop = MineManager.getItemStackDrop(itemStack);
+            if (storageDrop != null
+                    && MineManager.isGroundStoreItemAllowed(storageDrop)) {
+                if (MineManager.addBlockAmount(player, storageDrop, amount)) {
+                    int newStoredAmount = MineManager.getPlayerBlock(player,
+                            storageDrop);
+                    int maxStorage = MineManager.getMaxBlock(player);
+                    String name = File.getConfig().getString(
+                            "items." + storageDrop
+                    );
+                    String itemName = name != null ? name : storageDrop
+                            .replace("_", " ");
+                    sendGroundStoreMessage(player, NOTIFY_TYPE_STORAGE, itemName,
+                            amount, newStoredAmount, maxStorage);
                     return true;
                 }
             }
