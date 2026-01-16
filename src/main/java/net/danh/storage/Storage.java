@@ -28,6 +28,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -36,13 +37,17 @@ import java.util.logging.Level;
 public final class Storage extends JavaPlugin {
 
     // Debug Storage
-    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = true;
+    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = false;
 
     public static IDataStorage dataStorage;
     public static Database db;
     private static Storage storage;
 
     private static boolean WorldGuard;
+    private static boolean MMOItems;
+    private static boolean MythicLib;
+
+    private static boolean debugVanillaConfigApplied;
 
     public static Storage getStorage() {
         return storage;
@@ -50,6 +55,56 @@ public final class Storage extends JavaPlugin {
 
     public static boolean isWorldGuardInstalled() {
         return WorldGuard;
+    }
+
+    public static boolean isMMOItemsInstalled() {
+        return MMOItems;
+    }
+
+    public static boolean isMythicLibInstalled() {
+        return MythicLib;
+    }
+
+    public static void updateMmoitemsHookState(boolean enabled) {
+        MMOItems = enabled;
+        Storage plugin = getStorage();
+        if (plugin != null) {
+            plugin.getLogger().log(
+                    Level.INFO,
+                    enabled ? "Hook with MMOItems" : "Unhook MMOItems"
+            );
+        }
+    }
+
+    public static void updateMythicLibHookState(boolean enabled) {
+        MythicLib = enabled;
+
+        Storage plugin = getStorage();
+        if (plugin != null) {
+            plugin.getLogger().log(
+                    Level.INFO,
+                    enabled ? "Hook with MythicLib" : "Unhook MythicLib"
+            );
+        }
+
+        if (enabled) {
+            if (plugin == null) {
+                return;
+            }
+            if (!DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA) {
+                return;
+            }
+            if (debugVanillaConfigApplied) {
+                return;
+            }
+            SchedulerUtil.runTask(plugin, () -> {
+                try {
+                    plugin.applyDebugVanillaStorageConfigIfEnabled();
+                } finally {
+                    debugVanillaConfigApplied = true;
+                }
+            });
+        }
     }
 
     private static String toTitleCase(String raw) {
@@ -109,6 +164,17 @@ public final class Storage extends JavaPlugin {
             getLogger().log(Level.INFO, "Detected Bukkit/Spigot/Paper server - Using standard scheduler");
         }
 
+        MMOItems = Bukkit.getPluginManager().getPlugin("MMOItems") != null
+                && Bukkit.getPluginManager().isPluginEnabled("MMOItems");
+        if (MMOItems) {
+            getLogger().log(Level.INFO, "Hook with MMOItems");
+        }
+        MythicLib = Bukkit.getPluginManager().getPlugin("MythicLib") != null
+                && Bukkit.getPluginManager().isPluginEnabled("MythicLib");
+        if (MythicLib) {
+            getLogger().log(Level.INFO, "Hook with MythicLib");
+        }
+
         GUI.register(storage);
         SimpleConfigurationManager.register(storage);
         File.loadFiles();
@@ -122,12 +188,14 @@ public final class Storage extends JavaPlugin {
         File.updateCraftingConfig();
 
         applyDebugVanillaStorageConfigIfEnabled();
+        debugVanillaConfigApplied = DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA
+                && Bukkit.getPluginManager().isPluginEnabled("MythicLib");
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PAPI().register();
             new CraftingPlaceholder(this).register();
         }
         UpdateChecker updateChecker = new UpdateChecker(storage);
-        registerEvents(updateChecker, new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(), new GroundStoreListener());
+        registerEvents(updateChecker, new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(), new GroundStoreListener(), new PluginLoadListener());
         updateChecker.fetch();
         new StorageCMD("storage");
         new MythicStorageCMD("mythicstorage");
@@ -169,6 +237,7 @@ public final class Storage extends JavaPlugin {
     private void applyDebugVanillaStorageConfig() {
         long startNs = System.nanoTime();
         try {
+            boolean legacyItemData = new NMSAssistant().isVersionLessThanOrEqualTo(12);
             ConfigurationSection blocksSection = File.getConfig()
                     .getConfigurationSection("blocks");
             if (blocksSection == null) {
@@ -182,8 +251,11 @@ public final class Storage extends JavaPlugin {
             }
 
             Set<String> blockKeys = new LinkedHashSet<>();
+            Set<String> autoSmeltDropKeys = new LinkedHashSet<>();
             int addedBlocks = 0;
+            int addedAutoSmeltBlocks = 0;
             int addedItems = 0;
+            int addedAutoSmeltItems = 0;
 
             for (Material material : Material.values()) {
                 if (material == null || !material.isBlock()) {
@@ -202,6 +274,46 @@ public final class Storage extends JavaPlugin {
                     addedBlocks++;
                 }
 
+                if (MythicLib && !blocksSection.contains(key + ".drop_autosmelt")) {
+                    String autoSmeltDropKey = null;
+                    try {
+                        io.lumine.mythic.lib.version.OreDrops drops =
+                                io.lumine.mythic.lib.MythicLib.plugin
+                                        .getVersion()
+                                        .getWrapper()
+                                        .getOreDrops(material);
+                        if (drops != null) {
+                            ItemStack generated = drops.generate(0);
+                            autoSmeltDropKey = getDebugDropKey(
+                                    generated,
+                                    legacyItemData
+                            );
+                        }
+                    } catch (Throwable ignored) {
+                        autoSmeltDropKey = null;
+                    }
+
+                    if (autoSmeltDropKey != null
+                            && !autoSmeltDropKey.equalsIgnoreCase(key)) {
+                        blocksSection.set(
+                                key + ".drop_autosmelt",
+                                autoSmeltDropKey
+                        );
+                        addedAutoSmeltBlocks++;
+                        autoSmeltDropKeys.add(autoSmeltDropKey);
+
+                        if (!itemsSection.contains(autoSmeltDropKey)) {
+                            String[] parts = autoSmeltDropKey.split(";");
+                            String display = toTitleCase(parts[0]);
+                            itemsSection.set(
+                                    autoSmeltDropKey,
+                                    "&7" + display
+                            );
+                            addedAutoSmeltItems++;
+                        }
+                    }
+                }
+
                 if (!itemsSection.contains(key)) {
                     String display = toTitleCase(material.name());
                     itemsSection.set(key, "&7" + display);
@@ -218,6 +330,7 @@ public final class Storage extends JavaPlugin {
             }
             int beforeAllowed = mergedAllowed.size();
             mergedAllowed.addAll(blockKeys);
+            mergedAllowed.addAll(autoSmeltDropKeys);
             int addedAllowed = mergedAllowed.size() - beforeAllowed;
             File.getConfig().set(
                     "ground_store.allowed_items",
@@ -231,7 +344,11 @@ public final class Storage extends JavaPlugin {
                             + blockKeys.size() + ", added_blocks="
                             + addedBlocks + ", added_items="
                             + addedItems + ", added_allowed_items="
-                            + addedAllowed + " (" + elapsedMs + "ms)"
+                            + addedAllowed + ", added_autosmelt_blocks="
+                            + addedAutoSmeltBlocks
+                            + ", added_autosmelt_items="
+                            + addedAutoSmeltItems
+                            + " (" + elapsedMs + "ms)"
             );
         } catch (Exception ex) {
             getLogger().log(
@@ -240,6 +357,21 @@ public final class Storage extends JavaPlugin {
                     ex
             );
         }
+    }
+
+    private String getDebugDropKey(ItemStack itemStack, boolean legacyItemData) {
+        if (itemStack == null || itemStack.getType() == null) {
+            return null;
+        }
+        Material type = itemStack.getType();
+        if (type == Material.AIR || type.name().endsWith("_AIR")) {
+            return null;
+        }
+        if (legacyItemData) {
+            short durability = itemStack.getDurability();
+            return type.name() + ";" + durability;
+        }
+        return type.name() + ";0";
     }
 
     @Override

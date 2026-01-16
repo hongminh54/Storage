@@ -1,5 +1,5 @@
 #Do not touch it
-config_version: 4
+config_version: 5
 
 #Database configuration
 database:
@@ -49,6 +49,19 @@ settings:
   reset_notification:
     #Send notification to target player when their storage is reset by admin
     notify_target_player: true
+
+hooks:
+  mmoitems_autosmelt:
+    # Enable MMOItems AutoSmelt integration.
+    #
+    # When enabled, Storage can use an alternative drop mapping for blocks
+    # when the player's tool has the MMOItems AutoSmelt flag.
+    #
+    # Notes:
+    # - Requires MMOItems + MythicLib installed.
+    # - If disabled, Storage will ignore MMOItems AutoSmelt and always use
+    #   the normal 'drop' mapping.
+    enabled: true
 
 ground_store:
   # Enable/disable ground-store system.
@@ -162,10 +175,24 @@ blocks:
   #MUST REMEMBER: DON'T CONFIG 2 SAME MATERIAL_1 BELOW THIS!
   #MATERIAL_1;DATA_NUMBER:
   # drop: MATERIAL_2;DATA_NUMBER
+  # drop_autosmelt: MATERIAL_3;DATA_NUMBER
   #For 1.12.2 and below, MATERIAL;0 | 0 -> item data
   #For example, If you want LAPIS_LAZULI for 1.12.2 and below -> INK_SACK;4
   #If you want diamond for all versions -> DIAMOND;0
   #Don't remove ;0 if you don't want to make a new issue!
+  #
+  # Optional:
+  # - drop_autosmelt is used ONLY when the player is using an MMOItems tool
+  #   with AutoSmelt enabled. This allows you to configure different drops
+  #   for normal tools vs AutoSmelt tools.
+  #
+  # Example (1.17+):
+  # - Normal pickaxe: IRON_ORE -> RAW_IRON
+  # - MMOItems AutoSmelt pickaxe: IRON_ORE -> IRON_INGOT
+  #
+  # IRON_ORE;0:
+  #   drop: RAW_IRON;0
+  #   drop_autosmelt: IRON_INGOT;0
   COBBLESTONE;0:
     drop: COBBLESTONE;0
   STONE;0:

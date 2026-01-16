@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * API for asynchronous storage operations
@@ -20,6 +21,21 @@ import java.util.concurrent.CompletableFuture;
  * @version 2.3.3
  */
 public class StorageAsyncAPI {
+
+    @NotNull
+    private static <T> CompletableFuture<T> supplyOnMainThread(
+            @NotNull Supplier<T> supplier
+    ) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), () -> {
+            try {
+                future.complete(supplier.get());
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
+        return future;
+    }
 
     /**
      * Asynchronously add item to player's storage
@@ -76,7 +92,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Integer> getItemAmountAsync(@NotNull Player player, @NotNull String material) {
-        return CompletableFuture.supplyAsync(() -> StorageAPI.getItemAmount(player, material));
+        return supplyOnMainThread(() -> StorageAPI.getItemAmount(player, material));
     }
 
     /**
@@ -87,7 +103,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Map<String, Integer>> getStoredMaterialsAsync(@NotNull Player player) {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyOnMainThread(() -> {
             StoragePlayer storagePlayer = StorageAPI.getStoragePlayer(player);
             return storagePlayer.getStoredMaterialsWithAmounts();
         });
@@ -167,7 +183,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Map<String, Integer>> getTopPlayersByMaterialAsync(@NotNull String material, int limit) {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyOnMainThread(() -> {
             Map<String, Integer> topPlayers = new HashMap<>();
 
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -192,7 +208,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Long> getServerTotalAsync(@NotNull String material) {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyOnMainThread(() -> {
             long total = 0;
             for (Player player : Bukkit.getOnlinePlayers()) {
                 total += StorageAPI.getItemAmount(player, material);
@@ -208,7 +224,7 @@ public class StorageAsyncAPI {
      */
     @NotNull
     public static CompletableFuture<Map<String, Long>> getServerTotalsAsync() {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyOnMainThread(() -> {
             Map<String, Long> totals = new HashMap<>();
             List<String> materials = StorageAPI.getStorableMaterials();
 
@@ -259,7 +275,7 @@ public class StorageAsyncAPI {
     @NotNull
     public static CompletableFuture<Boolean> hasAllMaterialsAsync(@NotNull Player player,
                                                                   @NotNull Map<String, Integer> materials) {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyOnMainThread(() -> {
             for (Map.Entry<String, Integer> entry : materials.entrySet()) {
                 int playerAmount = StorageAPI.getItemAmount(player, entry.getKey());
                 if (playerAmount < entry.getValue()) {

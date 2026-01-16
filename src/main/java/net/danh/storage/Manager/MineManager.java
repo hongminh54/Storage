@@ -46,6 +46,7 @@ public class MineManager {
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
     public static HashMap<String, String> blocksdrop = new HashMap<>();
+    public static HashMap<String, String> blocksdropAutoSmelt = new HashMap<>();
     public static HashMap<UUID, Boolean> toggle = new HashMap<>();
 
     public static int getPlayerBlock(@NotNull Player p, String material) {
@@ -96,30 +97,41 @@ public class MineManager {
         }
         for (String block_break : section.getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
-            if (item_drop != null) {
-                if (!item_drop.contains(";")) {
-                    String material = item_drop + ";0";
-                    if (!orderedBlocks.contains(material)) {
-                        orderedBlocks.add(material);
-                    }
-                } else {
-                    if (IS_LEGACY) {
-                        String[] item_data = item_drop.split(";");
-                        String item_material = item_data[0] + ";" + item_data[1];
-                        if (!orderedBlocks.contains(item_material)) {
-                            orderedBlocks.add(item_material);
-                        }
-                    } else {
-                        String[] item_data = item_drop.split(";");
-                        String material = item_data[0] + ";0";
-                        if (!orderedBlocks.contains(material)) {
-                            orderedBlocks.add(material);
-                        }
-                    }
-                }
-            }
+            String item_drop_autosmelt = File.getConfig().getString(
+                    "blocks." + block_break + ".drop_autosmelt"
+            );
+
+            addOrderedDrop(orderedBlocks, item_drop);
+            addOrderedDrop(orderedBlocks, item_drop_autosmelt);
         }
         return orderedBlocks;
+    }
+
+    private static void addOrderedDrop(@NotNull List<String> orderedBlocks,
+                                       String configuredDrop) {
+        if (configuredDrop == null) {
+            return;
+        }
+        if (!configuredDrop.contains(";")) {
+            String material = configuredDrop + ";0";
+            if (!orderedBlocks.contains(material)) {
+                orderedBlocks.add(material);
+            }
+            return;
+        }
+
+        String[] item_data = configuredDrop.split(";");
+        if (IS_LEGACY) {
+            String item_material = item_data[0] + ";" + item_data[1];
+            if (!orderedBlocks.contains(item_material)) {
+                orderedBlocks.add(item_material);
+            }
+        } else {
+            String material = item_data[0] + ";0";
+            if (!orderedBlocks.contains(material)) {
+                orderedBlocks.add(material);
+            }
+        }
     }
 
     public static void addPluginBlocks(String material) {
@@ -700,11 +712,34 @@ public class MineManager {
     }
 
     public static String getDrop(@NotNull Block block) {
+        return getDrop(block, false);
+    }
+
+    public static String getDrop(@NotNull Block block, boolean preferAutoSmelt) {
         String blockType = block.getType().name();
         if (blockType.equals("GLOWING_REDSTONE_ORE")) {
             blockType = "REDSTONE_ORE";
         }
         String key = blockType + ";" + (IS_LEGACY ? block.getData() : "0");
+
+        if (preferAutoSmelt) {
+            String autoDrop = blocksdropAutoSmelt.get(key);
+            if (autoDrop != null) {
+                return autoDrop;
+            }
+            autoDrop = blocksdropAutoSmelt.get(blockType);
+            if (autoDrop != null) {
+                return autoDrop;
+            }
+            if (!IS_LEGACY) {
+                String altKey = blockType + ";0";
+                autoDrop = blocksdropAutoSmelt.get(altKey);
+                if (autoDrop != null) {
+                    return autoDrop;
+                }
+            }
+        }
+
         String drop = blocksdrop.get(key);
         if (drop != null) {
             return drop;
@@ -725,6 +760,9 @@ public class MineManager {
         if (!blocksdrop.isEmpty()) {
             blocksdrop.clear();
         }
+        if (!blocksdropAutoSmelt.isEmpty()) {
+            blocksdropAutoSmelt.clear();
+        }
         if (!blocksdata.isEmpty()) {
             blocksdata.clear();
         }
@@ -739,6 +777,9 @@ public class MineManager {
         }
         for (String block_break : section.getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
+            String item_drop_autosmelt = File.getConfig().getString(
+                    "blocks." + block_break + ".drop_autosmelt"
+            );
             if (item_drop != null) {
                 if (!item_drop.contains(";")) {
                     String normalizedDrop = item_drop + ";0";
@@ -757,6 +798,29 @@ public class MineManager {
                         String normalizedDrop = item_data[0] + ";0";
                         addPluginBlocks(normalizedDrop);
                         blocksdrop.put(block_break, normalizedDrop);
+                        addInventoryLookupEntry(normalizedDrop);
+                    }
+                }
+            }
+
+            if (item_drop_autosmelt != null) {
+                if (!item_drop_autosmelt.contains(";")) {
+                    String normalizedDrop = item_drop_autosmelt + ";0";
+                    addPluginBlocks(normalizedDrop);
+                    blocksdropAutoSmelt.put(block_break, normalizedDrop);
+                    addInventoryLookupEntry(normalizedDrop);
+                } else {
+                    if (IS_LEGACY) {
+                        String[] item_data = item_drop_autosmelt.split(";");
+                        String item_material = item_data[0] + ";" + item_data[1];
+                        addPluginBlocks(item_material);
+                        blocksdropAutoSmelt.put(block_break, item_material);
+                        addInventoryLookupEntry(item_material);
+                    } else {
+                        String[] item_data = item_drop_autosmelt.split(";");
+                        String normalizedDrop = item_data[0] + ";0";
+                        addPluginBlocks(normalizedDrop);
+                        blocksdropAutoSmelt.put(block_break, normalizedDrop);
                         addInventoryLookupEntry(normalizedDrop);
                     }
                 }
@@ -802,10 +866,19 @@ public class MineManager {
         if (blocksdrop.containsKey(dataKey)) {
             return true;
         }
+        if (blocksdropAutoSmelt.containsKey(dataKey)) {
+            return true;
+        }
         if (blocksdrop.containsKey(blockType)) {
             return true;
         }
-        return !IS_LEGACY && blocksdrop.containsKey(blockType + ";0");
+        if (blocksdropAutoSmelt.containsKey(blockType)) {
+            return true;
+        }
+        if (!IS_LEGACY && blocksdrop.containsKey(blockType + ";0")) {
+            return true;
+        }
+        return !IS_LEGACY && blocksdropAutoSmelt.containsKey(blockType + ";0");
     }
 
     public static String normalizeMaterial(String material) {

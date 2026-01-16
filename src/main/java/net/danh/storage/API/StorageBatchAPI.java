@@ -2,6 +2,7 @@ package net.danh.storage.API;
 
 import net.danh.storage.API.exceptions.StorageException;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -254,6 +255,15 @@ public class StorageBatchAPI {
     @NotNull
     public static CompletableFuture<Map<Player, Map<String, Integer>>> getMultiplePlayersStorageAsync(
             @NotNull List<Player> players) {
-        return CompletableFuture.supplyAsync(() -> getMultiplePlayersStorage(players));
+        CompletableFuture<Map<Player, Map<String, Integer>>> future =
+                new CompletableFuture<>();
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), () -> {
+            try {
+                future.complete(getMultiplePlayersStorage(players));
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
+        return future;
     }
 }

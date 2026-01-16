@@ -76,7 +76,7 @@ public class AutoSaveManager {
 
     private static void saveAllPlayerData() {
         if (async) {
-            SchedulerUtil.runTaskAsynchronously(Storage.getStorage(), () -> {
+            SchedulerUtil.runTask(Storage.getStorage(), () -> {
                 performSave();
             });
         } else {

@@ -20,6 +20,8 @@ import net.danh.storage.Utils.Number;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,11 +32,72 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class BlockBreak implements Listener {
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    private static final long MMOITEMS_CAPTURE_TTL_MS = 2000L;
+    private final Map<MmoitemsCaptureKey, MmoitemsCapture> mmoitemsCapture =
+            new HashMap<>();
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onBreakCapture(@NotNull BlockBreakEvent e) {
+        Player p = e.getPlayer();
+        Block block = e.getBlock();
+        boolean breakable = MineManager.checkBreak(block);
+        if (!breakable) {
+            return;
+        }
+        if (!MineManager.getToggleStatus(p)) {
+            return;
+        }
+        if (Storage.isWorldGuardInstalled()) {
+            if (!WorldGuard.handleForLocation(p, block.getLocation())) {
+                return;
+            }
+        }
+        boolean placedBlock = isPlacedBlock(block);
+        if (File.getConfig().getBoolean("prevent_rebreak") && placedBlock) {
+            return;
+        }
+        if (File.getConfig().contains("blacklist_world")) {
+            if (File.getConfig().getStringList("blacklist_world")
+                    .contains(p.getWorld().getName())) {
+                return;
+            }
+        }
+
+        ItemStack tool = p.getInventory().getItemInMainHand();
+        if (!isMmoitemsAutoSmeltTool(tool)) {
+            return;
+        }
+        String drop = MineManager.getDrop(block, true);
+        if (drop == null) {
+            return;
+        }
+        if (!MineManager.isAutoPickupEnabledForItem(p, drop)) {
+            return;
+        }
+
+        cleanupOldCaptures();
+        mmoitemsCapture.put(new MmoitemsCaptureKey(
+                p.getUniqueId(),
+                block.getWorld().getUID(),
+                block.getX(),
+                block.getY(),
+                block.getZ()
+        ), new MmoitemsCapture(
+                block.getType().name(),
+                MineManager.isBefore9() ? (short) block.getData() : 0,
+                drop,
+                System.currentTimeMillis()
+        ));
+    }
+
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGHEST)
     public void onBreak(@NotNull BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
@@ -53,17 +116,25 @@ public class BlockBreak implements Listener {
             if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
         }
 
+        if (e.isCancelled()) {
+            if (handleMmoitemsAutoSmeltCancelledBreak(p, block)) {
+                return;
+            }
+            return;
+        }
+
         if (MineManager.getToggleStatus(p) && breakable) {
             if (inv_full) {
                 processInventoryItems(p);
             }
-            String drop = MineManager.getDrop(block);
+            ItemStack hand = p.getInventory().getItemInMainHand();
+            boolean preferAutoSmelt = isMmoitemsAutoSmeltTool(hand);
+            String drop = MineManager.getDrop(block, preferAutoSmelt);
             if (drop != null) {
                 if (!MineManager.isAutoPickupEnabledForItem(p, drop)) {
                     return;
                 }
                 int amount;
-                ItemStack hand = p.getInventory().getItemInMainHand();
                 Enchantment fortune = XEnchantment.FORTUNE.get();
                 if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || fortune == null || !hand.containsEnchantment(fortune)) {
                     amount = getDropAmount(block, hand);
@@ -100,8 +171,6 @@ public class BlockBreak implements Listener {
                         String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
                         int newStoredAmount = MineManager.getPlayerBlock(p, drop);
                         int maxStorage = MineManager.getMaxBlock(p);
-                        String storageValue = String.valueOf(newStoredAmount);
-                        String maxValue = String.valueOf(maxStorage);
 
                         if (actionBarEnabled) {
                             String template = File.getConfig().getString("mine.actionbar.action");
@@ -109,8 +178,8 @@ public class BlockBreak implements Listener {
                                 String msg = template
                                         .replace("#item#", itemName)
                                         .replace("#amount#", displayAmount)
-                                        .replace("#storage#", storageValue)
-                                        .replace("#max#", maxValue);
+                                        .replace("#storage#", String.valueOf(newStoredAmount))
+                                        .replace("#max#", String.valueOf(maxStorage));
                                 ActionBar.sendActionBar(Storage.getStorage(), p, ChatUtils.colorizewp(msg));
                             }
                         }
@@ -121,13 +190,13 @@ public class BlockBreak implements Listener {
                                 String title = titleTemplate
                                         .replace("#item#", itemName)
                                         .replace("#amount#", displayAmount)
-                                        .replace("#storage#", storageValue)
-                                        .replace("#max#", maxValue);
+                                        .replace("#storage#", String.valueOf(newStoredAmount))
+                                        .replace("#max#", String.valueOf(maxStorage));
                                 String subtitle = subtitleTemplate
                                         .replace("#item#", itemName)
                                         .replace("#amount#", displayAmount)
-                                        .replace("#storage#", storageValue)
-                                        .replace("#max#", maxValue);
+                                        .replace("#storage#", String.valueOf(newStoredAmount))
+                                        .replace("#max#", String.valueOf(maxStorage));
                                 Titles.sendTitle(p, ChatUtils.colorizewp(title),
                                         ChatUtils.colorizewp(subtitle));
                             }
@@ -289,4 +358,292 @@ public class BlockBreak implements Listener {
         return false;
     }
 
+    private boolean handleMmoitemsAutoSmeltCancelledBreak(
+            @NotNull Player player,
+            @NotNull Block block
+    ) {
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        if (!isMmoitemsAutoSmeltTool(tool)) {
+            return false;
+        }
+
+        cleanupOldCaptures();
+        MmoitemsCaptureKey key = new MmoitemsCaptureKey(
+                player.getUniqueId(),
+                block.getWorld().getUID(),
+                block.getX(),
+                block.getY(),
+                block.getZ()
+        );
+        MmoitemsCapture capture = mmoitemsCapture.remove(key);
+        if (capture == null) {
+            return false;
+        }
+        if (!MineManager.isAutoPickupEnabledForItem(player, capture.dropKey)) {
+            return false;
+        }
+
+        ItemStack generated = generateMmoitemsAutoSmeltDrop(
+                capture.materialName
+        );
+        if (generated == null || generated.getAmount() <= 0) {
+            return false;
+        }
+
+        int fortuneLevel = 0;
+        Enchantment fortune = XEnchantment.FORTUNE.get();
+        if (fortune != null && tool != null
+                && !tool.getType().name().equals("AIR")
+                && tool.getAmount() > 0
+                && tool.containsEnchantment(fortune)) {
+            fortuneLevel = tool.getEnchantmentLevel(fortune);
+        }
+
+        generated = generateMmoitemsAutoSmeltDrop(capture.materialName,
+                fortuneLevel);
+        if (generated == null || generated.getAmount() <= 0) {
+            return false;
+        }
+
+        removeNearbyDroppedItems(block, generated);
+
+        String dropKey = MineManager.getItemStackDrop(generated);
+        if (dropKey == null) {
+            dropKey = capture.dropKey;
+        }
+        if (dropKey == null) {
+            return false;
+        }
+
+        int amount = generated.getAmount();
+        boolean stored = MineManager.addBlockAmount(player, dropKey, amount);
+        if (!stored) {
+            StorageFullNotificationManager.sendStorageFullNotification(player);
+            return true;
+        }
+
+        EventManager.onPlayerMine(player, dropKey, amount);
+        boolean actionBarEnabled = File.getConfig().getBoolean(
+                "mine.actionbar.enable"
+        );
+        boolean titleEnabled = File.getConfig().getBoolean(
+                "mine.title.enable"
+        );
+        if (actionBarEnabled || titleEnabled) {
+            String name = File.getConfig().getString("items." + dropKey);
+            String itemName = name != null ? name : dropKey.replace("_", " ");
+            String displayAmount = String.valueOf(amount);
+            int newStoredAmount = MineManager.getPlayerBlock(player, dropKey);
+            int maxStorage = MineManager.getMaxBlock(player);
+
+            if (actionBarEnabled) {
+                String template = File.getConfig().getString(
+                        "mine.actionbar.action"
+                );
+                if (template != null) {
+                    String msg = template
+                            .replace("#item#", itemName)
+                            .replace("#amount#", displayAmount)
+                            .replace("#storage#",
+                                    String.valueOf(newStoredAmount))
+                            .replace("#max#", String.valueOf(maxStorage));
+                    ActionBar.sendActionBar(Storage.getStorage(), player,
+                            ChatUtils.colorizewp(msg));
+                }
+            }
+            if (titleEnabled) {
+                String titleTemplate = File.getConfig().getString(
+                        "mine.title.title"
+                );
+                String subtitleTemplate = File.getConfig().getString(
+                        "mine.title.subtitle"
+                );
+                if (titleTemplate != null && subtitleTemplate != null) {
+                    String title = titleTemplate
+                            .replace("#item#", itemName)
+                            .replace("#amount#", displayAmount)
+                            .replace("#storage#",
+                                    String.valueOf(newStoredAmount))
+                            .replace("#max#", String.valueOf(maxStorage));
+                    String subtitle = subtitleTemplate
+                            .replace("#item#", itemName)
+                            .replace("#amount#", displayAmount)
+                            .replace("#storage#",
+                                    String.valueOf(newStoredAmount))
+                            .replace("#max#", String.valueOf(maxStorage));
+                    Titles.sendTitle(player, ChatUtils.colorizewp(title),
+                            ChatUtils.colorizewp(subtitle));
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isMmoitemsAutoSmeltTool(ItemStack tool) {
+        if (tool == null || tool.getType().name().equals("AIR")
+                || tool.getAmount() <= 0) {
+            return false;
+        }
+        if (!File.getConfig().getBoolean(
+                "hooks.mmoitems_autosmelt.enabled",
+                true
+        )) {
+            return false;
+        }
+        try {
+            if (!Storage.isMMOItemsInstalled()) {
+                return false;
+            }
+            if (!Storage.isMythicLibInstalled()) {
+                return false;
+            }
+            io.lumine.mythic.lib.api.item.NBTItem nbtItem =
+                    io.lumine.mythic.lib.MythicLib.plugin.getVersion()
+                            .getWrapper().getNBTItem(tool);
+            return nbtItem != null && nbtItem.getBoolean(
+                    "MMOITEMS_AUTOSMELT"
+            );
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private ItemStack generateMmoitemsAutoSmeltDrop(String materialName,
+                                                    int fortuneLevel) {
+        if (materialName == null || materialName.isEmpty()) {
+            return null;
+        }
+        try {
+            if (!Storage.isMythicLibInstalled()) {
+                return null;
+            }
+            org.bukkit.Material mat = org.bukkit.Material.getMaterial(
+                    materialName
+            );
+            if (mat == null) {
+                return null;
+            }
+            io.lumine.mythic.lib.version.OreDrops drops =
+                    io.lumine.mythic.lib.MythicLib.plugin.getVersion()
+                            .getWrapper().getOreDrops(mat);
+            if (drops == null) {
+                return null;
+            }
+            return drops.generate(Math.max(0, fortuneLevel));
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private ItemStack generateMmoitemsAutoSmeltDrop(String materialName) {
+        return generateMmoitemsAutoSmeltDrop(materialName, 0);
+    }
+
+    private void removeNearbyDroppedItems(@NotNull Block block,
+                                          @NotNull ItemStack target) {
+        if (target.getAmount() <= 0) {
+            return;
+        }
+        int remaining = target.getAmount();
+
+        for (Entity entity : block.getWorld().getNearbyEntities(
+                block.getLocation().add(0.5, 0.5, 0.5),
+                1.5,
+                1.5,
+                1.5
+        )) {
+            if (!(entity instanceof Item)) {
+                continue;
+            }
+            if (entity.getTicksLived() > 2) {
+                continue;
+            }
+            Item itemEntity = (Item) entity;
+            ItemStack stack = itemEntity.getItemStack();
+            if (stack == null) {
+                continue;
+            }
+            if (stack.getType() != target.getType()) {
+                continue;
+            }
+
+            int take = Math.min(remaining, stack.getAmount());
+            remaining -= take;
+            if (take >= stack.getAmount()) {
+                itemEntity.remove();
+            } else {
+                stack.setAmount(stack.getAmount() - take);
+                itemEntity.setItemStack(stack);
+            }
+
+            if (remaining <= 0) {
+                break;
+            }
+        }
+    }
+
+    private void cleanupOldCaptures() {
+        long now = System.currentTimeMillis();
+        mmoitemsCapture.entrySet().removeIf(entry ->
+                now - entry.getValue().createdAtMs > MMOITEMS_CAPTURE_TTL_MS
+        );
+    }
+
+    private static final class MmoitemsCaptureKey {
+        private final UUID playerId;
+        private final UUID worldId;
+        private final int x;
+        private final int y;
+        private final int z;
+
+        private MmoitemsCaptureKey(UUID playerId, UUID worldId,
+                                   int x, int y, int z) {
+            this.playerId = playerId;
+            this.worldId = worldId;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof MmoitemsCaptureKey)) {
+                return false;
+            }
+            MmoitemsCaptureKey that = (MmoitemsCaptureKey) o;
+            return x == that.x
+                    && y == that.y
+                    && z == that.z
+                    && playerId.equals(that.playerId)
+                    && worldId.equals(that.worldId);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = playerId.hashCode();
+            result = 31 * result + worldId.hashCode();
+            result = 31 * result + x;
+            result = 31 * result + y;
+            result = 31 * result + z;
+            return result;
+        }
+    }
+
+    private static final class MmoitemsCapture {
+        private final String materialName;
+        private final short data;
+        private final String dropKey;
+        private final long createdAtMs;
+
+        private MmoitemsCapture(String materialName, short data,
+                                String dropKey, long createdAtMs) {
+            this.materialName = materialName;
+            this.data = data;
+            this.dropKey = dropKey;
+            this.createdAtMs = createdAtMs;
+        }
+    }
 }
