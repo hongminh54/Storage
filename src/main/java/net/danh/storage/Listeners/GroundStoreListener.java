@@ -16,7 +16,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+
+import java.lang.reflect.Method;
 
 public class GroundStoreListener implements Listener {
 
@@ -128,6 +131,10 @@ public class GroundStoreListener implements Listener {
                     && MythicStorageManager.isConfiguredDrop(mythicItemName)) {
                 return false;
             }
+
+            if (!isVanillaStorageCandidate(itemStack)) {
+                return false;
+            }
             String storageDrop = MineManager.getItemStackDrop(itemStack);
             if (storageDrop != null
                     && MineManager.isGroundStoreItemAllowed(storageDrop)) {
@@ -148,6 +155,50 @@ public class GroundStoreListener implements Listener {
         }
 
         return false;
+    }
+
+    private boolean isVanillaStorageCandidate(@NotNull ItemStack itemStack) {
+        if (!itemStack.hasItemMeta()) {
+            return true;
+        }
+
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) {
+            return true;
+        }
+
+        if (meta.hasDisplayName() || meta.hasLore() || meta.hasEnchants()) {
+            return false;
+        }
+
+        if (meta.getItemFlags() != null && !meta.getItemFlags().isEmpty()) {
+            return false;
+        }
+
+        if (invokeBoolean(meta, "hasCustomModelData")) {
+            return false;
+        }
+
+        if (invokeBoolean(meta, "isUnbreakable")) {
+            return false;
+        }
+
+        if (invokeBoolean(meta, "hasAttributeModifiers")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean invokeBoolean(@NotNull Object target,
+                                 @NotNull String methodName) {
+        try {
+            Method method = target.getClass().getMethod(methodName);
+            Object result = method.invoke(target);
+            return result instanceof Boolean && (Boolean) result;
+        } catch (ReflectiveOperationException ignored) {
+            return false;
+        }
     }
 
     private boolean isAnyGroundStoreEnabled(@NotNull Player player) {
