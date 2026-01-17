@@ -15,11 +15,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.util.Set;
+import java.util.logging.Level;
 
 public class GroundStoreListener implements Listener {
 
@@ -132,9 +135,10 @@ public class GroundStoreListener implements Listener {
                 return false;
             }
 
-            if (!isVanillaStorageCandidate(itemStack)) {
+            if (!isPlainVanillaItem(itemStack)) {
                 return false;
             }
+
             String storageDrop = MineManager.getItemStackDrop(itemStack);
             if (storageDrop != null
                     && MineManager.isGroundStoreItemAllowed(storageDrop)) {
@@ -157,7 +161,7 @@ public class GroundStoreListener implements Listener {
         return false;
     }
 
-    private boolean isVanillaStorageCandidate(@NotNull ItemStack itemStack) {
+    private boolean isPlainVanillaItem(@NotNull ItemStack itemStack) {
         if (!itemStack.hasItemMeta()) {
             return true;
         }
@@ -171,34 +175,72 @@ public class GroundStoreListener implements Listener {
             return false;
         }
 
-        if (meta.getItemFlags() != null && !meta.getItemFlags().isEmpty()) {
+        Set<ItemFlag> flags = meta.getItemFlags();
+        if (flags != null && !flags.isEmpty()) {
             return false;
         }
 
-        if (invokeBoolean(meta, "hasCustomModelData")) {
-            return false;
+        try {
+            Method hasCustomModelData = meta.getClass().getMethod(
+                    "hasCustomModelData"
+            );
+            Object result = hasCustomModelData.invoke(meta);
+            if (result instanceof Boolean && (Boolean) result) {
+                return false;
+            }
+        } catch (NoSuchMethodException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Failed to check custom model data (method missing).",
+                    e
+            );
+        } catch (ReflectiveOperationException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Failed to check custom model data (reflection error).",
+                    e
+            );
+        } catch (RuntimeException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Failed to check custom model data (runtime error).",
+                    e
+            );
         }
 
-        if (invokeBoolean(meta, "isUnbreakable")) {
-            return false;
-        }
-
-        if (invokeBoolean(meta, "hasAttributeModifiers")) {
-            return false;
+        try {
+            Method getPdc = meta.getClass().getMethod(
+                    "getPersistentDataContainer"
+            );
+            Object container = getPdc.invoke(meta);
+            if (container != null) {
+                Method getKeys = container.getClass().getMethod("getKeys");
+                Object keys = getKeys.invoke(container);
+                if (keys instanceof Set && !((Set<?>) keys).isEmpty()) {
+                    return false;
+                }
+            }
+        } catch (NoSuchMethodException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Failed to check persistent data container (method missing).",
+                    e
+            );
+        } catch (ReflectiveOperationException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Failed to check persistent data container (reflection error).",
+                    e
+            );
+        } catch (RuntimeException e) {
+            Storage.getStorage().getLogger().log(
+                    Level.WARNING,
+                    "Failed to check persistent data container (runtime error).",
+                    e
+            );
         }
 
         return true;
-    }
-
-    private boolean invokeBoolean(@NotNull Object target,
-                                 @NotNull String methodName) {
-        try {
-            Method method = target.getClass().getMethod(methodName);
-            Object result = method.invoke(target);
-            return result instanceof Boolean && (Boolean) result;
-        } catch (ReflectiveOperationException ignored) {
-            return false;
-        }
     }
 
     private boolean isAnyGroundStoreEnabled(@NotNull Player player) {
