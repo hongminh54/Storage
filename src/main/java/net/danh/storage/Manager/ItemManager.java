@@ -3,10 +3,12 @@ package net.danh.storage.Manager;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.PlaceholderUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -15,13 +17,38 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ItemManager {
 
     private static final NMSAssistant NMS = new NMSAssistant();
+    private static final Method MATERIAL_IS_ITEM = resolveMaterialIsItem();
+    private static final Set<String> INVALID_MATERIAL_LOGGED = new HashSet<>();
+
+    private static Method resolveMaterialIsItem() {
+        try {
+            return Material.class.getMethod("isItem");
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private static boolean isItemMaterial(Material material) {
+        if (material == null) return false;
+        if (MATERIAL_IS_ITEM != null) {
+            try {
+                return (boolean) MATERIAL_IS_ITEM.invoke(material);
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return material != Material.AIR;
+    }
 
     private static ItemStack createBaseItem(ConfigurationSection section, String materialOverride) {
         if (section == null) return null;
@@ -29,11 +56,25 @@ public class ItemManager {
         String materialString = materialOverride != null ? materialOverride : section.getString("material");
         Optional<XMaterial> xMaterialOptional = XMaterial.matchXMaterial(materialString != null ? materialString : "BLACK_STAINED_GLASS_PANE");
 
-        if (!xMaterialOptional.isPresent() || xMaterialOptional.get().parseItem() == null) {
-            return null;
+        if (!xMaterialOptional.isPresent()) {
+            logInvalidMaterial(materialString, section, "unknown material");
+            return new ItemStack(Material.AIR);
         }
 
-        ItemStack itemStack = xMaterialOptional.get().parseItem();
+        Material material = xMaterialOptional.get().get();
+        if (!isItemMaterial(material)) {
+            logInvalidMaterial(materialString, section, "not an item material");
+            return new ItemStack(Material.AIR);
+        }
+
+        ItemStack itemStack;
+        try {
+            itemStack = xMaterialOptional.get().parseItem();
+        } catch (IllegalArgumentException ignored) {
+            logInvalidMaterial(materialString, section, "material cannot be created as item");
+            return new ItemStack(Material.AIR);
+        }
+        if (itemStack == null) return new ItemStack(Material.AIR);
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null) return itemStack;
 
@@ -87,6 +128,19 @@ public class ItemManager {
 
         itemStack.setItemMeta(meta);
         return itemStack;
+    }
+
+    private static void logInvalidMaterial(String material, ConfigurationSection section, String reason) {
+        String safeMaterial = material == null ? "null" : material;
+        String path = section == null ? "unknown" : section.getCurrentPath();
+        String key = safeMaterial + "|" + path + "|" + reason;
+        synchronized (INVALID_MATERIAL_LOGGED) {
+            if (!INVALID_MATERIAL_LOGGED.add(key)) return;
+        }
+        Storage.getStorage().getLogger().warning(
+                "[Storage] Invalid GUI material '" + safeMaterial
+                        + "' at '" + path + "' (" + reason + ")"
+        );
     }
 
     private static ItemStack applyPlaceholders(Player player, ItemStack item, List<String> loreTemplate, String displayNameTemplate, String... replacements) {

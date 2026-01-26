@@ -37,7 +37,7 @@ import java.util.logging.Level;
 public final class Storage extends JavaPlugin {
 
     // Debug Storage
-    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = false;
+    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = true;
 
     public static IDataStorage dataStorage;
     public static Database db;

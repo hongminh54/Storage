@@ -10,6 +10,7 @@ import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -119,6 +120,10 @@ public class PersonalStorage implements IGUI {
                                     "#autopickup_status#",
                                     autopickupStatus
                             );
+
+                            if (itemStack == null || itemStack.getType() == Material.AIR) {
+                                continue;
+                            }
                             InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(slotIndex))).onClick((player, clickType) -> {
                                 SoundManager.playItemSound(player, config, "items.storage_item", SoundContext.INITIAL_OPEN);
                                 SoundManager.setShouldPlayCloseSound(player, false);

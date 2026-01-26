@@ -14,25 +14,24 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class InteractiveItem extends ItemStack {
+    private static final Method MATERIAL_IS_ITEM = resolveMaterialIsItem();
     private static boolean nbtWarningLogged = false;
-
     /**
      * The slot of the item in the GUI. Optional, but recommended. Default to -1.
      */
     private final int slot;
-
     private BiConsumer<Player, ClickType> clickCallback;
     private Consumer<Player> leftClickCallback;
     private Consumer<Player> rightClickCallback;
     private boolean playSoundOnClick = false;
-
     public InteractiveItem(Material material, int slot, String displayName, String... lore) {
-        super(material);
+        super(sanitizeMaterial(material));
 
         this.slot = slot;
 
@@ -44,31 +43,64 @@ public class InteractiveItem extends ItemStack {
             this.setItemMeta(meta);
         }
 
-        createMapping();
+        if (this.getType() != Material.AIR) {
+            createMapping();
+        }
     }
-
     public InteractiveItem(Material material, int slot) {
-        super(material);
+        super(sanitizeMaterial(material));
 
         this.slot = slot;
 
-        createMapping();
+        if (this.getType() != Material.AIR) {
+            createMapping();
+        }
     }
-
     public InteractiveItem(ItemStack itemStack, int slot) {
-        super(itemStack);
+        super(itemStack != null && isItemMaterial(itemStack.getType())
+                ? itemStack
+                : new ItemStack(Material.AIR));
 
         this.slot = slot;
 
-        createMapping();
+        if (this.getType() != Material.AIR) {
+            createMapping();
+        }
     }
 
     public InteractiveItem(Material material) {
-        super(material);
+        super(sanitizeMaterial(material));
 
         this.slot = -1;
 
-        createMapping();
+        if (this.getType() != Material.AIR) {
+            createMapping();
+        }
+    }
+
+    private static Method resolveMaterialIsItem() {
+        try {
+            return Material.class.getMethod("isItem");
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private static boolean isItemMaterial(Material material) {
+        if (material == null) return false;
+        if (MATERIAL_IS_ITEM != null) {
+            try {
+                return (boolean) MATERIAL_IS_ITEM.invoke(material);
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+        return material != Material.AIR;
+    }
+
+    private static Material sanitizeMaterial(Material material) {
+        if (!isItemMaterial(material)) return Material.AIR;
+        return material;
     }
 
     private void createMapping() {

@@ -10,6 +10,7 @@ import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -159,6 +160,10 @@ public class ViewStorageGUI implements IGUI {
                     ItemStack itemStack = ItemManager.getItemConfig(targetName, material,
                             name != null ? name : item_list.get(i).split(";")[0],
                             config.getConfigurationSection("items.storage_item"));
+
+                    if (itemStack == null || itemStack.getType() == Material.AIR) {
+                        continue;
+                    }
 
                     // Make item read-only - no click action
                     InteractiveItem interactiveItem = new InteractiveItem(itemStack,
