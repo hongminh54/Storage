@@ -2,6 +2,7 @@ package net.danh.storage.Utils;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
 import net.danh.storage.Manager.ConvertOreManager;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
@@ -24,8 +25,7 @@ public class File {
 
     private static void mergeMissingKeys(
             FileConfiguration currentConfig,
-            FileConfiguration defaultConfig
-    ) {
+            FileConfiguration defaultConfig) {
         if (currentConfig == null || defaultConfig == null) {
             return;
         }
@@ -47,23 +47,17 @@ public class File {
             String fileName,
             String versionKey,
             String logName,
-            String... ignoredSections
-    ) {
+            String... ignoredSections) {
         java.io.File configFile = new java.io.File(
                 Storage.getStorage().getDataFolder(),
-                fileName
-        );
+                fileName);
         FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
                 new InputStreamReader(
                         Objects.requireNonNull(
-                                Storage.getStorage().getResource(fileName)
-                        ),
-                        StandardCharsets.UTF_8
-                )
-        );
+                                Storage.getStorage().getResource(fileName)),
+                        StandardCharsets.UTF_8));
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(
-                configFile
-        );
+                configFile);
 
         int defaultVersion = defaultConfig.getInt(versionKey);
         int currentVersion = currentConfig.contains(versionKey)
@@ -77,8 +71,7 @@ public class File {
         Storage.getStorage().getLogger().log(
                 Level.WARNING,
                 "Your " + logName + " is updating from v" + currentVersion
-                        + " to v" + defaultVersion + "..."
-        );
+                        + " to v" + defaultVersion + "...");
 
         mergeMissingKeys(currentConfig, defaultConfig);
 
@@ -91,15 +84,13 @@ public class File {
                         Storage.getStorage(),
                         fileName,
                         configFile,
-                        ignoredSections
-                );
+                        ignoredSections);
             } else {
                 ConfigUpdater.update(Storage.getStorage(), fileName, configFile);
             }
 
             FileConfiguration updatedConfig = YamlConfiguration.loadConfiguration(
-                    configFile
-            );
+                    configFile);
             if (updatedConfig.getInt(versionKey) != defaultVersion) {
                 updatedConfig.set(versionKey, defaultVersion);
                 updatedConfig.save(configFile);
@@ -109,14 +100,12 @@ public class File {
                     Level.WARNING,
                     "Your " + logName
                             + " have been updated successful to v"
-                            + defaultVersion
-            );
+                            + defaultVersion);
         } catch (IOException e) {
             Storage.getStorage().getLogger().log(
                     Level.SEVERE,
                     "Failed to update " + logName + " file",
-                    e
-            );
+                    e);
         }
 
         getFileSetting().reload(fileName);
@@ -126,8 +115,7 @@ public class File {
             FileConfiguration config,
             String modePath,
             int databaseValue,
-            int permissionValue
-    ) {
+            int permissionValue) {
         if (config == null) {
             return permissionValue;
         }
@@ -203,6 +191,18 @@ public class File {
         return getFileSetting().get("mythicstorage.yml");
     }
 
+    public static FileConfiguration getCropStorageConfig() {
+        return getFileSetting().get("cropstorage.yml");
+    }
+
+    public static FileConfiguration getCropStorageGUIConfig() {
+        return getFileSetting().get("GUI/cropstorage.yml");
+    }
+
+    public static FileConfiguration getViewCropStorageGUIConfig() {
+        return getFileSetting().get("GUI/view-cropstorage.yml");
+    }
+
     public static FileConfiguration getCraftingConfig() {
         return getFileSetting().get("crafting.yml");
     }
@@ -240,12 +240,20 @@ public class File {
     }
 
     public static void loadFiles() {
-        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml");
+        getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml",
+                "special_material.yml", "mythicstorage.yml", "cropstorage.yml", "crafting.yml");
         copyExampleFiles();
     }
 
     public static void reloadFiles() {
-        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml", "mythicstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");
+        getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml",
+                "mythicstorage.yml", "cropstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml",
+                "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml",
+                "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml",
+                "GUI/view-cropstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml",
+                "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml",
+                "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml",
+                "GUI/confirmation.yml");
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MineManager.loadPlayerData(p);
@@ -254,13 +262,23 @@ public class File {
                 MythicStorageManager.savePlayerData(p);
                 MythicStorageManager.loadPlayerData(p);
             }
+
+            if (CropStorageManager.isSystemEnabled()) {
+                CropStorageManager.savePlayerData(p);
+                CropStorageManager.loadPlayerData(p);
+            }
         }
         ConvertOreManager.loadConvertOptions();
         SpecialMaterialManager.loadSpecialMaterials();
     }
 
     public static void loadGUI() {
-        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");
+        getFileSetting().build("", false, "GUI/storage.yml", "GUI/items.yml", "GUI/transfer.yml",
+                "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml",
+                "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml", "GUI/view-cropstorage.yml",
+                "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml",
+                "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml",
+                "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");
     }
 
     public static void updateConfig() {
@@ -270,8 +288,7 @@ public class File {
                 "config",
                 "items",
                 "blocks",
-                "worth"
-        );
+                "worth");
     }
 
     public static void updateMessage() {
@@ -290,8 +307,7 @@ public class File {
         updateVersionedConfig(
                 "special_material.yml",
                 "special_materials_version",
-                "special materials config"
-        );
+                "special materials config");
         SpecialMaterialManager.loadSpecialMaterials();
     }
 
@@ -299,16 +315,21 @@ public class File {
         updateVersionedConfig(
                 "mythicstorage.yml",
                 "mythicstorage_version",
-                "mythicstorage config"
-        );
+                "mythicstorage config");
+    }
+
+    public static void updateCropStorageConfig() {
+        updateVersionedConfig(
+                "cropstorage.yml",
+                "cropstorage_version",
+                "cropstorage config");
     }
 
     public static void updateCraftingConfig() {
         updateVersionedConfig(
                 "crafting.yml",
                 "crafting_version",
-                "crafting config"
-        );
+                "crafting config");
     }
 
     public static void saveEnchantConfig() {
@@ -327,9 +348,11 @@ public class File {
         if (!exampleFile.exists()) {
             try {
                 Storage.getStorage().saveResource("particles-examples.yml", false);
-                Storage.getStorage().getLogger().log(Level.INFO, "Created particles-examples.yml - Check this file for Advanced Geometric Patterns examples!");
+                Storage.getStorage().getLogger().log(Level.INFO,
+                        "Created particles-examples.yml - Check this file for Advanced Geometric Patterns examples!");
             } catch (Exception e) {
-                Storage.getStorage().getLogger().log(Level.WARNING, "Could not create particles-examples.yml: " + e.getMessage());
+                Storage.getStorage().getLogger().log(Level.WARNING,
+                        "Could not create particles-examples.yml: " + e.getMessage());
             }
         }
     }

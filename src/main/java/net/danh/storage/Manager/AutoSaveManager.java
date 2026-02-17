@@ -1,5 +1,6 @@
 package net.danh.storage.Manager;
 
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -48,7 +49,8 @@ public class AutoSaveManager {
         }, intervalTicks, intervalTicks);
 
         if (logActivity) {
-            String message = File.getMessage().getString("admin.autosave.started", "Auto-save started with interval: #minutes# minutes");
+            String message = File.getMessage().getString("admin.autosave.started",
+                    "Auto-save started with interval: #minutes# minutes");
             Storage.getStorage().getLogger().log(Level.INFO,
                     message.replace("#minutes#", String.valueOf(intervalMinutes)));
         }
@@ -92,11 +94,15 @@ public class AutoSaveManager {
                 if (MythicStorageManager.isSystemEnabled()) {
                     MythicStorageManager.savePlayerData(player);
                 }
+                if (CropStorageManager.isSystemEnabled()) {
+                    CropStorageManager.savePlayerData(player);
+                }
                 playerCount++;
             }
 
             if (logActivity && playerCount > 0) {
-                String message = File.getMessage().getString("admin.autosave.completed", "Auto-save completed for #count# players");
+                String message = File.getMessage().getString("admin.autosave.completed",
+                        "Auto-save completed for #count# players");
                 Storage.getStorage().getLogger().log(Level.INFO,
                         message.replace("#count#", String.valueOf(playerCount)));
             }

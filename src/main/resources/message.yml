@@ -1,4 +1,4 @@
-message_version: 4
+message_version: 5
 admin:
   new_version_available: "#prefix# &6&lNew version is available. You are using &e&lv#old_version#&6&l, new version &e&lv#new_version#"
   add_material_amount: "#prefix# &bAdded &6#amount# #material# &bto &e#player#"
@@ -416,6 +416,73 @@ mythicstorage:
       - "&e/mythicstorage set &a<player> &b<item> &6<amount> &f- &7Set item amount for player"
       - "&e/mythicstorage reset &a<player> &b[item] &f- &7Reset player's storage (all or specific item)"
       - "&e/mythicstorage reload &f- &7Reload MythicStorage configuration"
+
+cropstorage:
+  viewing_storage: "#prefix# &aViewing &e#player#'s &aCrop storage"
+  player_not_found: "#prefix# &cPlayer &e#player# &cnot found or offline"
+  invalid_item: "#prefix# &cInvalid crop item: &e#item#"
+  system_disabled: "#prefix# &cCropStorage feature is disabled!"
+  no_items: "#prefix# &cYou don't have this item in storage!"
+  status_enabled: "&aEnabled"
+  status_disabled: "&cDisabled"
+  toggle_enabled: "#prefix# &aCropStorage &aAuto-pickup enabled!"
+  toggle_disabled: "#prefix# &aCropStorage &cAuto-pickup disabled!"
+  ground_store_toggle_on: "#prefix# &aCropStorage &aGround-store mode enabled."
+  ground_store_toggle_off: "#prefix# &aCropStorage &cGround-store mode disabled."
+  ground_store_system_disabled: "#prefix# &cCropStorage ground-store mode is disabled by server configuration."
+  ground_store_no_permission: "#prefix# &cYou don't have permission to use this feature."
+  item_toggle: "#prefix# &aCropStorage &bAuto-pickup for &e#item#&b: #status# &7(Note: If the feature isn't working, make sure you've turned on the /cropstorage toggle)."
+  action:
+    withdraw:
+      chat_number: "#prefix# &aHow many items do you want to withdraw? &7(Type 'cancel' to exit)"
+      withdraw_item: "#prefix# &aYou withdrew &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      not_enough: "#prefix# &cYou don't have enough items! You only have &e#amount#"
+      inventory_full: "#prefix# &cYour inventory is full! Cannot withdraw more items"
+    deposit:
+      chat_number: "#prefix# &aHow many items do you want to deposit? &7(Type 'cancel' to exit)"
+      deposit_item: "#prefix# &aYou deposited &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      full_storage: "#prefix# &cStorage is full &8(#item_amount#/#max_storage#)&c, cannot deposit &e#amount# #material#"
+      no_items: "#prefix# &cYou don't have this crop item in your inventory!"
+  user:
+    help:
+      - "&6=== &eCropStorage Commands &6==="
+      - "&e/cropstorage &f- &7Open CropStorage GUI"
+      - "&e/cropstorage toggle &f- &7Toggle auto-pickup"
+      - "&e/cropstorage view &a<player> &f- &7View player's storage"
+      - "&e/cropstorage help &f- &7Show this help"
+  admin:
+    add_success: "#prefix# &aAdded &e#amount#x #item# &ato &6#player#'s CropStorage"
+    add_notify: "#prefix# &a+ #amount#x #item# &7[From #player#]"
+    set_max_storage: "#prefix# &aSet crop storage max of &e#player# &ato &b#amount#"
+    reset_limit_storage: "#prefix# &aReset crop storage limit of &e#player# &ato default/permission"
+    remove_success: "#prefix# &aRemoved &e#amount#x #item# &afrom &6#player#'s CropStorage"
+    remove_notify: "#prefix# &c- #amount#x #item# &7[From #player#]"
+    set_success: "#prefix# &aSet &e#item# &ato &6#amount# &afor &6#player#"
+    set_notify: "#prefix# &c[~] #amount#x #item# &7[From #player#]"
+    reset_all_success: "#prefix# &aReset all CropStorage items for &6#player#"
+    reset_item_success: "#prefix# &aReset &e#item# &afor &6#player#"
+    reset_notify: "#prefix# &cYour CropStorage has been reset by &e#player#"
+    reset_item_notify: "#prefix# &cYour #item# &cstorage has been reset by &e#player#"
+    reload_success: "#prefix# &aCropStorage configuration reloaded!"
+    storage_full: "#prefix# &cStorage is full for &e#player#&c! Cannot add more items"
+    not_enough_items: "#prefix# &c#player# doesn't have enough &e#item# &cin storage!"
+    error_opening_gui: "#prefix# &cError opening GUI! Please try again"
+    only_players: "#prefix# &cOnly players can use this command"
+    no_permission: "#prefix# &cYou don't have permission to use this command"
+    unknown_command: "#prefix# &cUnknown command '&e#command#&c'. Type &e/cropstorage help &cfor available commands."
+    invalid_number: "#prefix# &c'&e#number#&c' is not a valid number!"
+    number_too_low: "#prefix# &cNumber must be greater than 0!"
+    not_enough_slot: "#prefix# &cYou need to add more slot in GUI/cropstorage.yml -> crop_item to open this gui. Slot isn't enough for item you had been config"
+    invalid_usage: "#prefix# &cInvalid usage! &eUsage: #usage#"
+    help:
+      - "&6=== &eCropStorage Admin Commands &6==="
+      - "&e/cropstorage add &a<player> &b<item> &6<amount> &f- &7Add items to player's storage"
+      - "&e/cropstorage remove &a<player> &b<item> &6<amount> &f- &7Remove items from player's storage"
+      - "&e/cropstorage max &a<player> &6<amount> &f- &7Set max items player can store (override)"
+      - "&e/cropstorage resetlimit &a<player> &f- &7Remove max override and use permission/default"
+      - "&e/cropstorage set &a<player> &b<item> &6<amount> &f- &7Set item amount for player"
+      - "&e/cropstorage reset &a<player> &b[item] &f- &7Reset player's storage (all or specific item)"
+      - "&e/cropstorage reload &f- &7Reload CropStorage configuration"
 
 crafting:
   no_permission: "#prefix# &cYou don't have permission to craft &e#recipe#"

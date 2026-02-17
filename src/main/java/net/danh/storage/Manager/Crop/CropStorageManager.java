@@ -1,12 +1,10 @@
-package net.danh.storage.Manager.Mythic;
+package net.danh.storage.Manager.Crop;
 
-import net.danh.storage.API.events.MythicStorageDepositEvent;
-import net.danh.storage.API.events.MythicStorageWithdrawEvent;
 import net.danh.storage.Database.PlayerData;
-import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -14,58 +12,48 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class MythicStorageManager {
+public class CropStorageManager {
 
-    private static final String STORAGE_LIMIT_PERMISSION_PREFIX = "storage.mythicstorage.storage.";
-    private static final String STORAGE_LIMIT_PERMISSION_MAX_PREFIX = "storage.mythicstorage.storage.max.";
+    private static final String STORAGE_LIMIT_PERMISSION_PREFIX = "storage.cropstorage.storage.";
+    private static final String STORAGE_LIMIT_PERMISSION_MAX_PREFIX = "storage.cropstorage.storage.max.";
     private static final HashMap<String, Set<String>> disabledAutoPickupItems = new HashMap<>();
     private static final HashMap<UUID, Boolean> groundStoreToggle = new HashMap<>();
-    private static final String GROUND_STORE_DATA_PREFIX = "mythicgroundstore:";
-    private static final String MAX_OVERRIDE_DATA_PREFIX = "mythicmaxoverride:";
+    private static final String GROUND_STORE_DATA_PREFIX = "cropgroundstore:";
+    private static final String MAX_OVERRIDE_DATA_PREFIX = "cropmaxoverride:";
     private static final HashMap<UUID, Integer> maxOverrideData = new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Boolean> toggle = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     private static List<String> configuredDrops = new ArrayList<>();
     private static List<String> invalidItems = new ArrayList<>();
-    private static MythicMobsHelper mythicMobsHelper;
     private static boolean systemEnabled = false;
 
     public static void initialize() {
-        Storage.getStorage().getLogger().info("[MythicStorage] Initializing MythicStorage feature...");
-        mythicMobsHelper = new MythicMobsHelper();
-        if (!mythicMobsHelper.isInitialized()) {
-            Storage.getStorage().getLogger()
-                    .warning("[MythicStorage] MythicMobs not found! MythicStorage feature will be disabled.");
-            systemEnabled = false;
-            return;
-        }
+        Storage.getStorage().getLogger().info("[CropStorage] Initializing CropStorage feature...");
 
-        systemEnabled = File.getMythicStorageConfig().getBoolean("settings.enabled", true);
+        systemEnabled = File.getCropStorageConfig().getBoolean("settings.enabled", true);
         if (!systemEnabled) {
-            Storage.getStorage().getLogger().info("[MythicStorage] Feature is disabled in config");
+            Storage.getStorage().getLogger().info("[CropStorage] Feature is disabled in config");
             return;
         }
 
         loadConfiguredDrops();
 
-        Storage.getStorage().getLogger().info("[MythicStorage] ========== INITIALIZATION SUMMARY ==========");
-        Storage.getStorage().getLogger().info("[MythicStorage] Valid items loaded: " + configuredDrops.size());
+        Storage.getStorage().getLogger().info("[CropStorage] ========== INITIALIZATION SUMMARY ==========");
+        Storage.getStorage().getLogger().info("[CropStorage] Valid items loaded: " + configuredDrops.size());
 
         if (!invalidItems.isEmpty()) {
-            Storage.getStorage().getLogger().warning("[MythicStorage] Invalid items found: " + invalidItems.size());
+            Storage.getStorage().getLogger().warning("[CropStorage] Invalid items found: " + invalidItems.size());
             Storage.getStorage().getLogger()
-                    .warning("[MythicStorage] Items with errors: " + String.join(", ", invalidItems));
-            Storage.getStorage().getLogger().warning("[MythicStorage] These items will NOT appear in the GUI!");
-            Storage.getStorage().getLogger()
-                    .warning("[MythicStorage] Check the detailed error messages above for fixes");
+                    .warning("[CropStorage] Items with errors: " + String.join(", ", invalidItems));
+            Storage.getStorage().getLogger().warning("[CropStorage] These items will NOT appear in the GUI!");
         } else {
             Storage.getStorage().getLogger()
-                    .info("[MythicStorage] No invalid items found - all items loaded successfully!");
+                    .info("[CropStorage] No invalid items found - all items loaded successfully!");
         }
 
-        Storage.getStorage().getLogger().info("[MythicStorage] Initialization completed!");
-        Storage.getStorage().getLogger().info("[MythicStorage] ===================================");
+        Storage.getStorage().getLogger().info("[CropStorage] Initialization completed!");
+        Storage.getStorage().getLogger().info("[CropStorage] ===================================");
     }
 
     private static Integer parseMaxOverride(@NotNull String part) {
@@ -87,11 +75,11 @@ public class MythicStorageManager {
     }
 
     public static boolean isSystemEnabled() {
-        return systemEnabled && mythicMobsHelper != null && mythicMobsHelper.isInitialized();
+        return systemEnabled;
     }
 
     public static boolean isGroundStoreSystemEnabled() {
-        return File.getMythicStorageConfig().getBoolean(
+        return File.getCropStorageConfig().getBoolean(
                 "ground_store.enabled",
                 true);
     }
@@ -110,7 +98,7 @@ public class MythicStorageManager {
         PlayerData data = Storage.dataStorage.getData(player.getName());
         status = data != null ? parseGroundStoreStatus(data.getData()) : null;
         if (status == null) {
-            status = File.getMythicStorageConfig().getBoolean(
+            status = File.getCropStorageConfig().getBoolean(
                     "ground_store.default_enabled",
                     false);
         }
@@ -131,7 +119,7 @@ public class MythicStorageManager {
             return false;
         }
 
-        List<String> allowed = File.getMythicStorageConfig().getStringList(
+        List<String> allowed = File.getCropStorageConfig().getStringList(
                 "ground_store.allowed_items");
         if (allowed == null || allowed.isEmpty()) {
             return false;
@@ -139,12 +127,8 @@ public class MythicStorageManager {
         return allowed.contains(itemName);
     }
 
-    public static MythicMobsHelper getMythicMobsHelper() {
-        return mythicMobsHelper;
-    }
-
     private static void loadConfiguredDrops() {
-        List<String> items = File.getMythicStorageConfig().getStringList("items_drop");
+        List<String> items = File.getCropStorageConfig().getStringList("items_drop");
         if (items == null) {
             configuredDrops = new ArrayList<>();
             invalidItems = new ArrayList<>();
@@ -158,35 +142,32 @@ public class MythicStorageManager {
             if (itemName == null || itemName.trim().isEmpty()) {
                 invalidItems.add(itemName);
                 Storage.getStorage().getLogger().severe("========================================");
-                Storage.getStorage().getLogger().severe("[MythicStorage] INVALID ITEM CONFIGURATION");
+                Storage.getStorage().getLogger().severe("[CropStorage] INVALID ITEM CONFIGURATION");
                 Storage.getStorage().getLogger().severe("Item: <empty or null>");
                 Storage.getStorage().getLogger().severe("Error: Item name is empty or null");
                 Storage.getStorage().getLogger()
-                        .severe("Fix: Remove empty lines from items_drop list in mythicstorage.yml");
+                        .severe("Fix: Remove empty lines from items_drop list in cropstorage.yml");
                 Storage.getStorage().getLogger().severe("========================================");
                 continue;
             }
 
-            if (!mythicMobsHelper.isValidMythicItem(itemName)) {
+            // Validate against Material enum
+            try {
+                Material mat = Material.valueOf(itemName.toUpperCase());
+                if (mat == null) {
+                    throw new IllegalArgumentException("Material not found");
+                }
+            } catch (IllegalArgumentException e) {
                 invalidItems.add(itemName);
                 Storage.getStorage().getLogger().severe("========================================");
-                Storage.getStorage().getLogger().severe("[MythicStorage] INVALID ITEM CONFIGURATION");
+                Storage.getStorage().getLogger().severe("[CropStorage] INVALID ITEM CONFIGURATION");
                 Storage.getStorage().getLogger().severe("Item: " + itemName);
-                Storage.getStorage().getLogger().severe("Error: Item does not exist in MythicMobs configuration");
-                Storage.getStorage().getLogger().severe("Possible causes:");
-                Storage.getStorage().getLogger().severe("  1. Item ID is misspelled or does not exist");
-                Storage.getStorage().getLogger().severe("  2. MythicMobs has not loaded this item yet");
-                Storage.getStorage().getLogger().severe("  3. Item configuration file is missing or invalid");
-                Storage.getStorage().getLogger()
-                        .severe("Fix: Use the item ID (not filename) from your MythicMobs configuration");
-                Storage.getStorage().getLogger().severe(
-                        "Example: In 'MythicMobs/Items/weapons.yml' with item 'crown:', use 'crown' in items_drop");
-                Storage.getStorage().getLogger()
-                        .severe("Note: The item ID is the key name inside the yml file, NOT the filename");
+                Storage.getStorage().getLogger().severe("Error: Material does not exist in Minecraft");
+                Storage.getStorage().getLogger().severe("Fix: Use a valid Material name (e.g., WHEAT, CARROT, POTATO)");
                 Storage.getStorage().getLogger().severe("========================================");
                 continue;
             }
-            configuredDrops.add(itemName);
+            configuredDrops.add(itemName.toUpperCase());
         }
     }
 
@@ -195,22 +176,19 @@ public class MythicStorageManager {
             return;
         loadConfiguredDrops();
 
-        Storage.getStorage().getLogger().info("[MythicStorage] ========== RELOAD SUMMARY ==========");
-        Storage.getStorage().getLogger().info("[MythicStorage] Valid items loaded: " + configuredDrops.size());
+        Storage.getStorage().getLogger().info("[CropStorage] ========== RELOAD SUMMARY ==========");
+        Storage.getStorage().getLogger().info("[CropStorage] Valid items loaded: " + configuredDrops.size());
 
         if (!invalidItems.isEmpty()) {
-            Storage.getStorage().getLogger().warning("[MythicStorage] Invalid items found: " + invalidItems.size());
+            Storage.getStorage().getLogger().warning("[CropStorage] Invalid items found: " + invalidItems.size());
             Storage.getStorage().getLogger()
-                    .warning("[MythicStorage] Items with errors: " + String.join(", ", invalidItems));
-            Storage.getStorage().getLogger().warning("[MythicStorage] These items will NOT appear in the GUI!");
-            Storage.getStorage().getLogger()
-                    .warning("[MythicStorage] Check the detailed error messages above for fixes");
+                    .warning("[CropStorage] Items with errors: " + String.join(", ", invalidItems));
         } else {
             Storage.getStorage().getLogger()
-                    .info("[MythicStorage] No invalid items found - all items loaded successfully!");
+                    .info("[CropStorage] No invalid items found - all items loaded successfully!");
         }
 
-        Storage.getStorage().getLogger().info("[MythicStorage] ===================================");
+        Storage.getStorage().getLogger().info("[CropStorage] ===================================");
     }
 
     public static List<String> getConfiguredDrops() {
@@ -226,35 +204,53 @@ public class MythicStorageManager {
     }
 
     public static boolean isConfiguredDrop(@NotNull String itemName) {
-        return configuredDrops.contains(itemName);
+        return configuredDrops.contains(itemName.toUpperCase());
     }
 
     @NotNull
-    public static String getItemDisplayNameOrId(@NotNull String itemName, @NotNull Player player) {
-        if (!isSystemEnabled() || mythicMobsHelper == null) {
-            return itemName;
+    public static String getItemDisplayName(@NotNull String itemName) {
+        // Try custom display name from config
+        String displayName = File.getCropStorageConfig().getString(
+                "crop_display_names." + itemName.toUpperCase());
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            return displayName;
         }
 
-        String displayName = mythicMobsHelper.getItemDisplayName(itemName);
-
-        if (displayName == null || displayName.trim().isEmpty()) {
-            return itemName;
+        // Format Material name: WHEAT -> Wheat, NETHER_WART -> Nether Wart
+        String[] parts = itemName.toLowerCase().split("_");
+        StringBuilder formatted = new StringBuilder();
+        for (String part : parts) {
+            if (formatted.length() > 0) {
+                formatted.append(" ");
+            }
+            formatted.append(part.substring(0, 1).toUpperCase()).append(part.substring(1));
         }
+        return formatted.toString();
+    }
 
-        return displayName;
+    /**
+     * Get the Material for a crop item.
+     */
+    @NotNull
+    public static Material getItemMaterial(@NotNull String itemName) {
+        try {
+            return Material.valueOf(itemName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Material.BARRIER;
+        }
     }
 
     public static int getPlayerItem(@NotNull Player player, @NotNull String itemName) {
-        return playerdata.getOrDefault(player.getName() + "_" + itemName, 0);
+        return playerdata.getOrDefault(player.getName() + "_crop_" + itemName.toUpperCase(), 0);
     }
 
     public static boolean hasPlayerItem(@NotNull Player player, @NotNull String itemName) {
-        return playerdata.containsKey(player.getName() + "_" + itemName);
+        return playerdata.containsKey(player.getName() + "_crop_" + itemName.toUpperCase());
     }
 
     public static int getMaxStorage(@NotNull Player player) {
         return playermaxdata.getOrDefault(player.getUniqueId(),
-                File.getMythicStorageConfig().getInt(
+                File.getCropStorageConfig().getInt(
                         "settings.default_max_storage",
                         100000));
     }
@@ -273,7 +269,7 @@ public class MythicStorageManager {
     }
 
     public static int getPermissionMaxStorage(@NotNull Player player) {
-        int defaultMax = File.getMythicStorageConfig().getInt(
+        int defaultMax = File.getCropStorageConfig().getInt(
                 "settings.default_max_storage",
                 100000);
 
@@ -284,7 +280,7 @@ public class MythicStorageManager {
         int bestLimit = -1;
         int bestPriority = Integer.MIN_VALUE;
 
-        // Numeric permission: storage.storage.max.<n>
+        // Numeric permission: storage.cropstorage.storage.max.<n>
         for (PermissionAttachmentInfo pai : player.getEffectivePermissions()) {
             String perm = pai.getPermission();
             if (perm == null || !pai.getValue()) {
@@ -307,8 +303,8 @@ public class MythicStorageManager {
             }
         }
 
-        ConfigurationSection section = File.getMythicStorageConfig().getConfigurationSection(
-                "mythic_storage_permissions");
+        ConfigurationSection section = File.getCropStorageConfig().getConfigurationSection(
+                "crop_storage_permissions");
         if (section != null) {
             for (String key : section.getKeys(false)) {
                 if (key == null || key.trim().isEmpty()) {
@@ -343,7 +339,7 @@ public class MythicStorageManager {
         UUID playerId = player.getUniqueId();
         Boolean status = toggle.get(playerId);
         if (status == null) {
-            status = File.getMythicStorageConfig().getBoolean("settings.default_auto_pickup", false);
+            status = File.getCropStorageConfig().getBoolean("settings.default_auto_pickup", false);
             toggle.put(playerId, status);
         }
         return status;
@@ -362,7 +358,7 @@ public class MythicStorageManager {
         if (disabledItems == null || disabledItems.isEmpty()) {
             return true;
         }
-        return !disabledItems.contains(itemName);
+        return !disabledItems.contains(itemName.toUpperCase());
     }
 
     public static boolean isItemAutoPickupDisabled(@NotNull Player player,
@@ -371,25 +367,26 @@ public class MythicStorageManager {
         if (disabledItems == null || disabledItems.isEmpty()) {
             return false;
         }
-        return disabledItems.contains(itemName);
+        return disabledItems.contains(itemName.toUpperCase());
     }
 
     public static boolean toggleItemAutoPickup(@NotNull Player player,
                                                @NotNull String itemName) {
         String playerName = player.getName();
+        String upperItem = itemName.toUpperCase();
         Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
         if (disabledItems == null) {
             disabledItems = new HashSet<>();
             disabledAutoPickupItems.put(playerName, disabledItems);
         }
 
-        if (disabledItems.contains(itemName)) {
-            disabledItems.remove(itemName);
+        if (disabledItems.contains(upperItem)) {
+            disabledItems.remove(upperItem);
             savePlayerData(player);
             return true;
         }
 
-        disabledItems.add(itemName);
+        disabledItems.add(upperItem);
         savePlayerData(player);
         return false;
     }
@@ -403,7 +400,7 @@ public class MythicStorageManager {
         if (!isSystemEnabled() || !isConfiguredDrop(itemName) || amount <= 0)
             return false;
 
-        String key = player.getName() + "_" + itemName;
+        String key = player.getName() + "_crop_" + itemName.toUpperCase();
         int current = playerdata.getOrDefault(key, 0);
         int max = getMaxStorage(player);
         if (current >= max)
@@ -413,14 +410,7 @@ public class MythicStorageManager {
         if (amountToAdd <= 0)
             return false;
 
-        if (fireEvent) {
-            MythicStorageDepositEvent event = new MythicStorageDepositEvent(player, itemName, amountToAdd);
-            Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled())
-                return false;
-            amountToAdd = Math.min(event.getAmount(), max - current);
-        }
-
+        // Note: No custom event for CropStorage in MVP
         playerdata.put(key, current + amountToAdd);
         return true;
     }
@@ -434,21 +424,12 @@ public class MythicStorageManager {
         if (!isSystemEnabled() || amount <= 0)
             return false;
 
-        String key = player.getName() + "_" + itemName;
+        String key = player.getName() + "_crop_" + itemName.toUpperCase();
         int current = playerdata.getOrDefault(key, 0);
         if (current < amount)
             return false;
 
         int amountToRemove = amount;
-
-        if (fireEvent) {
-            MythicStorageWithdrawEvent event = new MythicStorageWithdrawEvent(player, itemName, amountToRemove);
-            Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled())
-                return false;
-            amountToRemove = event.getAmount();
-        }
-
         int newValue = current - amountToRemove;
         if (newValue <= 0) {
             playerdata.remove(key);
@@ -459,7 +440,7 @@ public class MythicStorageManager {
     }
 
     public static void setItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
-        String key = player.getName() + "_" + itemName;
+        String key = player.getName() + "_crop_" + itemName.toUpperCase();
         if (amount <= 0) {
             playerdata.remove(key);
         } else {
@@ -479,7 +460,7 @@ public class MythicStorageManager {
         if (data == null) {
             int permissionMax = Math.max(0, getPermissionMaxStorage(player));
             playermaxdata.put(playerId, permissionMax);
-            toggle.put(playerId, File.getMythicStorageConfig().getBoolean(
+            toggle.put(playerId, File.getCropStorageConfig().getBoolean(
                     "settings.default_auto_pickup",
                     false));
             return;
@@ -489,30 +470,30 @@ public class MythicStorageManager {
         if (dataString == null || dataString.isEmpty()) {
             int permissionMax = Math.max(0, getPermissionMaxStorage(player));
             playermaxdata.put(playerId, permissionMax);
-            toggle.put(playerId, File.getMythicStorageConfig().getBoolean(
+            toggle.put(playerId, File.getCropStorageConfig().getBoolean(
                     "settings.default_auto_pickup",
                     false));
             return;
         }
 
-        // Parse data format: "mythic:item1:amount1,item2:amount2;mythictoggle:true"
+        // Parse data format: "crop:WHEAT:100,CARROT:50;croptoggle:true"
         String[] dataParts = dataString.split(";");
         for (String part : dataParts) {
             if (part == null || part.isEmpty())
                 continue;
 
-            if (part.startsWith("mythic:")) {
-                String mythicData = part.substring(7);
-                if (mythicData.isEmpty())
+            if (part.startsWith("crop:")) {
+                String cropData = part.substring(5);
+                if (cropData.isEmpty())
                     continue;
 
-                String[] items = mythicData.split(",");
+                String[] items = cropData.split(",");
                 for (String item : items) {
                     if (item == null || item.isEmpty())
                         continue;
                     String[] itemParts = item.split(":");
                     if (itemParts.length == 2) {
-                        String key = player.getName() + "_" + itemParts[0];
+                        String key = player.getName() + "_crop_" + itemParts[0].toUpperCase();
                         try {
                             int value = Integer.parseInt(itemParts[1]);
                             if (value > 0) {
@@ -522,8 +503,8 @@ public class MythicStorageManager {
                         }
                     }
                 }
-            } else if (part.startsWith("mythictoggle:")) {
-                String raw = part.substring("mythictoggle:".length()).trim();
+            } else if (part.startsWith("croptoggle:")) {
+                String raw = part.substring("croptoggle:".length()).trim();
                 toggle.put(playerId, "true".equalsIgnoreCase(raw));
             } else if (part.startsWith(MAX_OVERRIDE_DATA_PREFIX)) {
                 Integer parsed = parseMaxOverride(part);
@@ -532,19 +513,19 @@ public class MythicStorageManager {
                 } else {
                     clearMaxStorageOverride(player);
                 }
-            } else if (part.startsWith("mythicautopickupoff:")) {
-                String disabledData = part.substring("mythicautopickupoff:"
+            } else if (part.startsWith("cropautopickupoff:")) {
+                String disabledData = part.substring("cropautopickupoff:"
                         .length());
                 if (!disabledData.isEmpty()) {
                     Set<String> disabledItems = new HashSet<>();
                     for (String raw : disabledData.split(",")) {
                         if (raw == null)
                             continue;
-                        String item = raw.trim();
-                        if (item.isEmpty())
+                        String cropItem = raw.trim().toUpperCase();
+                        if (cropItem.isEmpty())
                             continue;
-                        if (isConfiguredDrop(item)) {
-                            disabledItems.add(item);
+                        if (isConfiguredDrop(cropItem)) {
+                            disabledItems.add(cropItem);
                         }
                     }
                     if (!disabledItems.isEmpty()) {
@@ -568,7 +549,7 @@ public class MythicStorageManager {
             resolvedMax = overrideMax;
         } else {
             resolvedMax = File.resolveMaxStorage(
-                    File.getMythicStorageConfig(),
+                    File.getCropStorageConfig(),
                     "settings.max_storage_mode",
                     databaseMax,
                     permissionMax);
@@ -576,7 +557,7 @@ public class MythicStorageManager {
         playermaxdata.put(playerId, Math.max(0, resolvedMax));
 
         if (!groundStoreToggle.containsKey(playerId)) {
-            groundStoreToggle.put(playerId, File.getMythicStorageConfig()
+            groundStoreToggle.put(playerId, File.getCropStorageConfig()
                     .getBoolean("ground_store.default_enabled", false));
         }
     }
@@ -585,19 +566,19 @@ public class MythicStorageManager {
         if (!isSystemEnabled())
             return;
 
-        StringBuilder mythicData = new StringBuilder();
+        StringBuilder cropData = new StringBuilder();
         String playerName = player.getName();
         UUID playerId = player.getUniqueId();
 
         for (String drop : configuredDrops) {
-            String key = playerName + "_" + drop;
+            String key = playerName + "_crop_" + drop;
             if (playerdata.containsKey(key)) {
                 int amount = playerdata.get(key);
                 if (amount > 0) {
-                    if (mythicData.length() > 0) {
-                        mythicData.append(",");
+                    if (cropData.length() > 0) {
+                        cropData.append(",");
                     }
-                    mythicData.append(drop).append(":").append(amount);
+                    cropData.append(drop).append(":").append(amount);
                 }
             }
         }
@@ -610,9 +591,9 @@ public class MythicStorageManager {
             String[] existingParts = existingDataString.split(";");
 
             for (String part : existingParts) {
-                if (!part.startsWith("mythic:")
-                        && !part.startsWith("mythictoggle:")
-                        && !part.startsWith("mythicautopickupoff:")
+                if (!part.startsWith("crop:")
+                        && !part.startsWith("croptoggle:")
+                        && !part.startsWith("cropautopickupoff:")
                         && !part.startsWith(GROUND_STORE_DATA_PREFIX)
                         && !part.startsWith(MAX_OVERRIDE_DATA_PREFIX)
                         && !part.isEmpty()) {
@@ -624,18 +605,18 @@ public class MythicStorageManager {
             }
         }
 
-        if (mythicData.length() > 0) {
+        if (cropData.length() > 0) {
             if (finalData.length() > 0) {
                 finalData.append(";");
             }
-            finalData.append("mythic:").append(mythicData);
+            finalData.append("crop:").append(cropData);
         }
 
         if (toggle.containsKey(playerId)) {
             if (finalData.length() > 0) {
                 finalData.append(";");
             }
-            finalData.append("mythictoggle:").append(toggle.get(playerId));
+            finalData.append("croptoggle:").append(toggle.get(playerId));
         }
 
         Integer maxOverride = maxOverrideData.get(playerId);
@@ -672,7 +653,7 @@ public class MythicStorageManager {
                 if (finalData.length() > 0) {
                     finalData.append(";");
                 }
-                finalData.append("mythicautopickupoff:")
+                finalData.append("cropautopickupoff:")
                         .append(disabledData);
             }
         }
@@ -681,13 +662,13 @@ public class MythicStorageManager {
         if (existingData != null) {
             maxStorage = existingData.getMax();
         } else {
-            maxStorage = File.getMythicStorageConfig().getInt(
+            maxStorage = File.getCropStorageConfig().getInt(
                     "settings.default_max_storage",
                     100000);
         }
 
         boolean autoPickup = toggle.getOrDefault(playerId,
-                File.getMythicStorageConfig().getBoolean(
+                File.getCropStorageConfig().getBoolean(
                         "settings.default_auto_pickup",
                         false));
 
@@ -715,7 +696,7 @@ public class MythicStorageManager {
         disabledAutoPickupItems.remove(player.getName());
 
         String playerName = player.getName();
-        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_crop_"));
     }
 
     private static Boolean parseGroundStoreStatus(String data) {
@@ -749,7 +730,7 @@ public class MythicStorageManager {
         String playerName = player.getName();
 
         for (String drop : configuredDrops) {
-            String key = playerName + "_" + drop;
+            String key = playerName + "_crop_" + drop;
             if (playerdata.containsKey(key)) {
                 items.put(drop, playerdata.get(key));
             }
@@ -759,11 +740,11 @@ public class MythicStorageManager {
     }
 
     public static int getPlayerItem(@NotNull String playerName, @NotNull String itemName) {
-        return playerdata.getOrDefault(playerName + "_" + itemName, 0);
+        return playerdata.getOrDefault(playerName + "_crop_" + itemName.toUpperCase(), 0);
     }
 
     public static int getMaxStorage(@NotNull String playerName) {
-        return File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000);
+        return File.getCropStorageConfig().getInt("settings.default_max_storage", 100000);
     }
 
     public static boolean loadOfflinePlayerData(@NotNull String playerName) {
@@ -772,18 +753,18 @@ public class MythicStorageManager {
 
         Player onlinePlayer = Bukkit.getPlayer(playerName);
         if (onlinePlayer != null) {
-            return true; // Player is online, data already loaded
+            return true;
         }
 
         for (String key : playerdata.keySet()) {
-            if (key.startsWith(playerName + "_")) {
-                return true; // Data already loaded
+            if (key.startsWith(playerName + "_crop_")) {
+                return true;
             }
         }
 
         PlayerData data = Storage.dataStorage.getData(playerName);
         if (data == null) {
-            return false; // Player has no data
+            return false;
         }
 
         String dataString = data.getData();
@@ -798,18 +779,18 @@ public class MythicStorageManager {
             if (part == null || part.isEmpty())
                 continue;
 
-            if (part.startsWith("mythic:")) {
-                String mythicData = part.substring(7);
-                if (mythicData.isEmpty())
+            if (part.startsWith("crop:")) {
+                String cropData = part.substring(5);
+                if (cropData.isEmpty())
                     continue;
 
-                String[] items = mythicData.split(",");
+                String[] items = cropData.split(",");
                 for (String item : items) {
                     if (item == null || item.isEmpty())
                         continue;
                     String[] itemParts = item.split(":");
                     if (itemParts.length == 2) {
-                        String key = playerName + "_" + itemParts[0];
+                        String key = playerName + "_crop_" + itemParts[0].toUpperCase();
                         try {
                             int value = Integer.parseInt(itemParts[1]);
                             if (value > 0) {
@@ -819,19 +800,19 @@ public class MythicStorageManager {
                         }
                     }
                 }
-            } else if (part.startsWith("mythicautopickupoff:")) {
-                String disabledData = part.substring("mythicautopickupoff:"
+            } else if (part.startsWith("cropautopickupoff:")) {
+                String disabledData = part.substring("cropautopickupoff:"
                         .length());
                 if (!disabledData.isEmpty()) {
                     disabledItems = new HashSet<>();
                     for (String raw : disabledData.split(",")) {
                         if (raw == null)
                             continue;
-                        String item = raw.trim();
-                        if (item.isEmpty())
+                        String cropItem = raw.trim().toUpperCase();
+                        if (cropItem.isEmpty())
                             continue;
-                        if (isConfiguredDrop(item)) {
-                            disabledItems.add(item);
+                        if (isConfiguredDrop(cropItem)) {
+                            disabledItems.add(cropItem);
                         }
                     }
                 }
@@ -857,8 +838,26 @@ public class MythicStorageManager {
             return;
         }
 
-        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
+        playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_crop_"));
 
         disabledAutoPickupItems.remove(playerName);
+    }
+
+    /**
+     * Get the block-to-drop mapping for crop harvesting.
+     * Maps block Material name -> drop Material name.
+     */
+    public static Map<String, String> getCropBlockMapping() {
+        Map<String, String> mapping = new HashMap<>();
+        ConfigurationSection section = File.getCropStorageConfig().getConfigurationSection("crop_block_mapping");
+        if (section != null) {
+            for (String blockKey : section.getKeys(false)) {
+                String dropItem = section.getString(blockKey);
+                if (dropItem != null && !dropItem.isEmpty()) {
+                    mapping.put(blockKey.toUpperCase(), dropItem.toUpperCase());
+                }
+            }
+        }
+        return mapping;
     }
 }

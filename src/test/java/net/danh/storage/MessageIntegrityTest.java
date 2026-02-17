@@ -210,6 +210,18 @@ class MessageIntegrityTest {
                 }
             }
         }
+
+        if (filePath.contains("CMD" + separator + "handler" + separator + "crop")) {
+            if (fileName.equals("CropCommand.java")) {
+                return "cropstorage.";
+            }
+            for (String line : lines) {
+                if (line.contains("extends CropCommand")) {
+                    return "cropstorage.";
+                }
+            }
+        }
+
         return "";
     }
 

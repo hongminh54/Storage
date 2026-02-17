@@ -6,6 +6,8 @@ import net.danh.storage.Enchant.TNTEnchant;
 import net.danh.storage.Enchant.VeinMinerEnchant;
 import net.danh.storage.GUI.*;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
+import net.danh.storage.GUI.Crop.CropStorageGUI;
+import net.danh.storage.GUI.Crop.ViewCropStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
@@ -13,6 +15,7 @@ import net.danh.storage.GUI.Mythic.ViewMythicStorageGUI;
 import net.danh.storage.Listeners.Mythic.MythicMobDeath;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
@@ -30,6 +33,7 @@ public class JoinQuit implements Listener {
         Player p = e.getPlayer();
         MineManager.loadPlayerData(p);
         MythicStorageManager.loadPlayerData(p);
+        CropStorageManager.loadPlayerData(p);
     }
 
     @EventHandler
@@ -43,12 +47,20 @@ public class JoinQuit implements Listener {
             MythicStorageManager.cleanupPlayerData(p);
             MythicMobDeath.cleanupPlayer(p);
         }
+        if (CropStorageManager.isSystemEnabled()) {
+            CropStorageManager.savePlayerData(p);
+            CropStorageManager.cleanupPlayerData(p);
+        }
         PersonalStorage.playerCurrentPage.remove(p.getUniqueId());
         MythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ViewMythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
+        CropStorageGUI.playerCurrentPage.remove(p.getUniqueId());
+        ViewCropStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ChatListener.chat_return_page.remove(p.getUniqueId());
         ChatListener.chat_mythic_withdraw.remove(p.getUniqueId());
         ChatListener.chat_mythic_deposit.remove(p.getUniqueId());
+        ChatListener.chat_crop_withdraw.remove(p.getUniqueId());
+        ChatListener.chat_crop_deposit.remove(p.getUniqueId());
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);
@@ -56,7 +68,8 @@ public class JoinQuit implements Listener {
         TransferManager.cancelTransfer(p);
         MythicTransferManager.cancelTransfer(p);
 
-        // Cleanup transfer GUI data (TransferGUI and TransferMultiGUI auto-cleanup on close)
+        // Cleanup transfer GUI data (TransferGUI and TransferMultiGUI auto-cleanup on
+        // close)
 
         if (MythicTransferGUI.getActiveGUI(p) != null) {
             MythicTransferGUI.removeActiveGUI(p);

@@ -49,6 +49,12 @@ public class GUIClickListener implements Listener {
 
         boolean isGUIInv = e.getClickedInventory() != null && e.getClickedInventory().getHolder() != null && e.getClickedInventory().getHolder() instanceof IGUI;
 
+        // Check if top inventory is a GUI - prevent shift-click from player inventory
+        boolean isTopInventoryGUI = e.getView() != null
+                && e.getView().getTopInventory() != null
+                && e.getView().getTopInventory().getHolder() != null
+                && e.getView().getTopInventory().getHolder() instanceof IGUI;
+
         ItemStack currentItem = e.getCurrentItem();
         boolean isInteractiveItem = false;
 
@@ -62,7 +68,19 @@ public class GUIClickListener implements Listener {
             }
         }
 
-        if (isGUIInv || isInteractiveItem) {
+        boolean shouldCancel = isGUIInv || isInteractiveItem;
+
+        if (!shouldCancel && isTopInventoryGUI && e.getClickedInventory() != null) {
+            // Check if clicking from bottom inventory (player inv) with shift click
+            boolean isClickingBottomInventory = e.getClickedInventory().equals(e.getView().getBottomInventory());
+            boolean isShiftClick = e.isShiftClick();
+
+            if (isClickingBottomInventory && isShiftClick) {
+                shouldCancel = true;
+            }
+        }
+
+        if (shouldCancel) {
             e.setCancelled(true);
             // updateInventory() is deprecated since 1.19 and not needed for 1.9+
             if (new net.danh.storage.NMS.NMSAssistant().isVersionLessThan(9)) {

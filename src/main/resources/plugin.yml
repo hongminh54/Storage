@@ -13,6 +13,9 @@ softdepend:
   - LuckPerms
   - MMOItems
   - MythicLib
+  - PlayerPoints
+  - VaultUnlocked
+  - ShopGUIPlus
 
 commands:
   storage:
@@ -31,6 +34,14 @@ commands:
       - kqv
       - khoqv
 
+  cropstorage:
+    description: Crop storage command
+    aliases:
+      - cstorage
+      - khonongsan
+      - khons
+      - cropss
+      
 permissions:
   storage.toggle:
     description: Toggle permission
@@ -130,4 +141,19 @@ permissions:
     default: true
   storage.craft.admin:
     description: Admin commands for crafting system
+    default: op
+  storage.cropstorage.use:
+    description: Use crop storage feature
+    default: true
+  storage.cropstorage.toggle:
+    description: Toggle crop auto-pickup
+    default: true
+  storage.cropstorage.groundstore:
+    description: Toggle CropStorage ground-store
+    default: true
+  storage.cropstorage.view:
+    description: View other players' crop storage
+    default: true
+  storage.cropstorage.admin:
+    description: Admin commands for crop storage
     default: op

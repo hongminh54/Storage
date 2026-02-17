@@ -1,0 +1,331 @@
+package net.danh.storage.GUI.Crop;
+
+import net.danh.storage.GUI.manager.IGUI;
+import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.Manager.Crop.CropStorageManager;
+import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Utils.ChatUtils;
+import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SoundContext;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
+
+public class ViewCropStorageGUI implements IGUI {
+
+    public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
+    private final Player viewer;
+    private final Player target;
+    private final String targetName;
+    private final FileConfiguration config;
+    private final int currentPage;
+
+    public ViewCropStorageGUI(Player viewer, Player target) {
+        this(viewer, target, 0);
+    }
+
+    public ViewCropStorageGUI(Player viewer, Player target, int page) {
+        this.viewer = viewer;
+        this.target = target;
+        this.targetName = target.getName();
+        this.currentPage = Math.max(0, page);
+        this.config = File.getViewCropStorageGUIConfig();
+        playerCurrentPage.put(viewer.getUniqueId(), this.currentPage);
+    }
+
+    public ViewCropStorageGUI(Player viewer, String targetName) {
+        this(viewer, targetName, 0);
+    }
+
+    public ViewCropStorageGUI(Player viewer, String targetName, int page) {
+        this.viewer = viewer;
+        this.target = null;
+        this.targetName = targetName;
+        this.currentPage = Math.max(0, page);
+        this.config = File.getViewCropStorageGUIConfig();
+        playerCurrentPage.put(viewer.getUniqueId(), this.currentPage);
+    }
+
+    public static int getPlayerCurrentPage(Player player) {
+        if (player == null)
+            return 0;
+        return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
+    }
+
+    @NotNull
+    @Override
+    public Inventory getInventory() {
+        return getInventory(SoundContext.INITIAL_OPEN);
+    }
+
+    @NotNull
+    @Override
+    public Inventory getInventory(SoundContext context) {
+        SoundManager.playItemSound(viewer, config, "gui_open_sound", context);
+
+        String title = ChatUtils.colorizewp(viewer, Objects.requireNonNull(
+                config.getString("title")).replace("#player#", targetName));
+
+        Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
+
+        List<String> configuredDrops = CropStorageManager.getConfiguredDrops();
+        int itemsPerPage = Objects.requireNonNull(config.getString("items.crop_item.slot")).split(",").length;
+        int totalPages = Math.max(1, (int) Math.ceil((double) configuredDrops.size() / itemsPerPage));
+        boolean hasMultiplePages = totalPages > 1;
+
+        Set<Integer> navigationSlots = new HashSet<>();
+        if (hasMultiplePages) {
+            if (config.contains("items.previous_page.slot")) {
+                String prevSlot = config.getString("items.previous_page.slot");
+                if (prevSlot != null) {
+                    for (String s : prevSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
+            }
+            if (config.contains("items.next_page.slot")) {
+                String nextSlot = config.getString("items.next_page.slot");
+                if (nextSlot != null) {
+                    for (String s : nextSlot.split(",")) {
+                        navigationSlots.add(Number.getInteger(s.trim()));
+                    }
+                }
+            }
+        }
+
+        // Notify admin if there are invalid items
+        if (CropStorageManager.hasInvalidItems() && viewer.hasPermission("storage.cropstorage.admin")) {
+            viewer.sendMessage(ChatUtils.colorizewp("&c&l[!] CropStorage Warning:"));
+            viewer.sendMessage(ChatUtils.colorizewp("&e" + CropStorageManager.getInvalidItems().size()
+                    + " &7invalid item(s) detected: &c" + String.join(", ", CropStorageManager.getInvalidItems())));
+            viewer.sendMessage(ChatUtils.colorizewp("&7Use &e/cropstorage reload &7to see detailed errors"));
+        }
+
+        for (String itemTag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
+            String slot = Objects.requireNonNull(config.getString("items." + itemTag + ".slot")).replace(" ", "");
+
+            if (itemTag.equalsIgnoreCase("crop_item")) {
+                setupCropItems(inventory, slot, configuredDrops, itemsPerPage);
+            } else if (itemTag.equalsIgnoreCase("previous_page")) {
+                setupPreviousPage(inventory, slot, hasMultiplePages, totalPages);
+            } else if (itemTag.equalsIgnoreCase("next_page")) {
+                setupNextPage(inventory, slot, hasMultiplePages, totalPages);
+            } else if (itemTag.equalsIgnoreCase("view_info")) {
+                setupViewInfo(inventory, slot);
+            } else if (itemTag.equalsIgnoreCase("back_button")) {
+                setupBackButton(inventory, slot);
+            } else {
+                setupDecorativeItems(inventory, slot, itemTag, hasMultiplePages, navigationSlots);
+            }
+        }
+        return inventory;
+    }
+
+    public Player getTarget() {
+        return target;
+    }
+
+    public String getTargetName() {
+        return targetName;
+    }
+
+    public FileConfiguration getConfig() {
+        return config;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    private ItemStack getNavigationItem(String itemTag, int currentPage, int totalPages) {
+        return ItemManager.getItemConfigWithPlaceholders(viewer,
+                Objects.requireNonNull(config.getConfigurationSection("items." + itemTag)), "#current_page#",
+                String.valueOf(currentPage + 1), "#total_pages#", String.valueOf(totalPages));
+    }
+
+    private void setupCropItems(Inventory inventory, String slot, List<String> configuredDrops, int itemsPerPage) {
+        if (slot.contains(",")) {
+            List<String> slotList = new ArrayList<>(Arrays.asList(slot.split(",")));
+            int startIndex = currentPage * itemsPerPage;
+            int endIndex = Math.min(startIndex + itemsPerPage, configuredDrops.size());
+
+            for (int i = startIndex; i < endIndex; i++) {
+                int slotIndex = i - startIndex;
+                if (slotIndex < slotList.size()) {
+                    String itemName = configuredDrops.get(i);
+                    Material material;
+                    try {
+                        material = Material.valueOf(itemName.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        continue;
+                    }
+
+                    ItemStack displayItem = new ItemStack(material, 1);
+                    ItemMeta meta = displayItem.getItemMeta();
+
+                    if (meta != null) {
+                        int amount = CropStorageManager.getPlayerItem(targetName, itemName);
+                        int maxStorage = CropStorageManager.getMaxStorage(targetName);
+
+                        String displayName = CropStorageManager.getItemDisplayName(itemName);
+                        meta.setDisplayName(ChatUtils.colorizewp(displayName));
+
+                        List<String> lore = new ArrayList<>();
+                        for (String line : config.getStringList("items.crop_item.lore")) {
+                            lore.add(ChatUtils.colorizewp(line.replace("#item_amount#", String.valueOf(amount))
+                                    .replace("#max_storage#", String.valueOf(maxStorage))));
+                        }
+
+                        meta.setLore(lore);
+                        displayItem.setItemMeta(meta);
+                    }
+
+                    InteractiveItem interactiveItem = new InteractiveItem(displayItem,
+                            Number.getInteger(slotList.get(slotIndex)));
+                    inventory.setItem(interactiveItem.getSlot(), interactiveItem);
+                }
+            }
+        }
+    }
+
+    private void setupPreviousPage(Inventory inventory, String slot, boolean hasMultiplePages, int totalPages) {
+        if (hasMultiplePages && currentPage > 0) {
+            ItemStack prevPageItem = getNavigationItem("previous_page", currentPage, totalPages);
+            if (prevPageItem != null) {
+                if (slot.contains(",")) {
+                    for (String slotString : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(prevPageItem.clone(),
+                                Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.previous_page",
+                                    SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            player.openInventory(new ViewCropStorageGUI(viewer, targetName, currentPage - 1)
+                                    .getInventory(SoundContext.SILENT));
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(prevPageItem, Number.getInteger(slot))
+                            .onClick((player, clickType) -> {
+                                SoundManager.playItemSound(player, config, "items.previous_page",
+                                        SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(player, false);
+                                player.openInventory(new ViewCropStorageGUI(viewer, targetName, currentPage - 1)
+                                        .getInventory(SoundContext.SILENT));
+                            });
+                    inventory.setItem(item.getSlot(), item);
+                }
+            }
+        }
+    }
+
+    private void setupNextPage(Inventory inventory, String slot, boolean hasMultiplePages, int totalPages) {
+        if (hasMultiplePages && currentPage < totalPages - 1) {
+            ItemStack nextPageItem = getNavigationItem("next_page", currentPage, totalPages);
+            if (nextPageItem != null) {
+                if (slot.contains(",")) {
+                    for (String slotString : slot.split(",")) {
+                        InteractiveItem item = new InteractiveItem(nextPageItem.clone(),
+                                Number.getInteger(slotString.trim())).onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.next_page",
+                                    SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            player.openInventory(new ViewCropStorageGUI(viewer, targetName, currentPage + 1)
+                                    .getInventory(SoundContext.SILENT));
+                        });
+                        inventory.setItem(item.getSlot(), item);
+                    }
+                } else {
+                    InteractiveItem item = new InteractiveItem(nextPageItem, Number.getInteger(slot))
+                            .onClick((player, clickType) -> {
+                                SoundManager.playItemSound(player, config, "items.next_page",
+                                        SoundContext.INITIAL_OPEN);
+                                SoundManager.setShouldPlayCloseSound(player, false);
+                                player.openInventory(new ViewCropStorageGUI(viewer, targetName, currentPage + 1)
+                                        .getInventory(SoundContext.SILENT));
+                            });
+                    inventory.setItem(item.getSlot(), item);
+                }
+            }
+        }
+    }
+
+    private void setupViewInfo(Inventory inventory, String slot) {
+        ItemStack viewInfoItem = ItemManager.getItemConfigWithPlaceholders(viewer,
+                Objects.requireNonNull(config.getConfigurationSection("items.view_info")), "#player#", targetName);
+
+        if (slot.contains(",")) {
+            for (String slotString : slot.split(",")) {
+                InteractiveItem item = new InteractiveItem(viewInfoItem.clone(), Number.getInteger(slotString.trim()));
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            InteractiveItem item = new InteractiveItem(viewInfoItem, Number.getInteger(slot));
+            inventory.setItem(item.getSlot(), item);
+        }
+    }
+
+    private void setupBackButton(Inventory inventory, String slot) {
+        ItemStack backItem = ItemManager
+                .getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items.back_button")));
+
+        if (slot.contains(",")) {
+            for (String slotString : slot.split(",")) {
+                InteractiveItem item = new InteractiveItem(backItem.clone(), Number.getInteger(slotString.trim()))
+                        .onClick((player, clickType) -> {
+                            SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
+                            SoundManager.setShouldPlayCloseSound(player, false);
+                            int viewerCurrentPage = CropStorageGUI.getPlayerCurrentPage(viewer);
+                            player.openInventory(
+                                    new CropStorageGUI(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
+                        });
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            InteractiveItem item = new InteractiveItem(backItem, Number.getInteger(slot))
+                    .onClick((player, clickType) -> {
+                        SoundManager.playItemSound(player, config, "items.back_button", SoundContext.INITIAL_OPEN);
+                        SoundManager.setShouldPlayCloseSound(player, false);
+                        int viewerCurrentPage = CropStorageGUI.getPlayerCurrentPage(viewer);
+                        player.openInventory(
+                                new CropStorageGUI(viewer, viewerCurrentPage).getInventory(SoundContext.SILENT));
+                    });
+            inventory.setItem(item.getSlot(), item);
+        }
+    }
+
+    private void setupDecorativeItems(Inventory inventory, String slot, String itemTag, boolean hasMultiplePages,
+                                      Set<Integer> navigationSlots) {
+        if (slot.contains(",")) {
+            for (String slotString : slot.split(",")) {
+                int slotNumber = Number.getInteger(slotString);
+                if (hasMultiplePages && navigationSlots.contains(slotNumber)) {
+                    continue;
+                }
+                InteractiveItem item = new InteractiveItem(
+                        ItemManager.getItemConfig(
+                                Objects.requireNonNull(config.getConfigurationSection("items." + itemTag))),
+                        slotNumber);
+                inventory.setItem(item.getSlot(), item);
+            }
+        } else {
+            int slotNumber = Number.getInteger(slot);
+            if (!(hasMultiplePages && navigationSlots.contains(slotNumber))) {
+                InteractiveItem item = new InteractiveItem(
+                        ItemManager.getItemConfig(
+                                Objects.requireNonNull(config.getConfigurationSection("items." + itemTag))),
+                        slotNumber);
+                inventory.setItem(item.getSlot(), item);
+            }
+        }
+    }
+}

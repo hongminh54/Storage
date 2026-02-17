@@ -2,8 +2,10 @@ package net.danh.storage.Listeners;
 
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
@@ -28,12 +30,16 @@ public class GroundStoreListener implements Listener {
 
     private static final String NOTIFY_TYPE_STORAGE = "storage";
     private static final String NOTIFY_TYPE_MYTHIC = "mythic";
+    private static final String NOTIFY_TYPE_CROP = "crop";
 
     private static final String STORAGE_TITLE_PATH = "mine.title";
     private static final String STORAGE_ACTIONBAR_PATH = "mine.actionbar";
 
     private static final String MYTHIC_TITLE_PATH = "notification.title";
     private static final String MYTHIC_ACTIONBAR_PATH = "notification.actionbar";
+
+    private static final String CROP_TITLE_PATH = "notification.title";
+    private static final String CROP_ACTIONBAR_PATH = "notification.actionbar";
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityPickup(@NotNull EntityPickupItemEvent event) {
@@ -120,9 +126,33 @@ public class GroundStoreListener implements Listener {
                     int maxStorage = MythicStorageManager.getMaxStorage(player);
                     String displayName = MythicStorageManager
                             .getItemDisplayNameOrId(mythicItemName, player);
+                    SoundManager.playActionSound(player, "ground_store",
+                            File.getMythicStorageConfig());
                     sendGroundStoreMessage(player, NOTIFY_TYPE_MYTHIC,
                             displayName, amount, currentStorage, maxStorage);
                     return true;
+                }
+            }
+        }
+
+        if (CropStorageManager.isSystemEnabled()
+                && !isCropStorageWorldBlacklisted(player)
+                && CropStorageManager.isGroundStoreEnabled(player)) {
+            if (mythicItemName == null
+                    && isPlainVanillaItem(itemStack)) {
+                String cropItemName = itemStack.getType().name();
+                if (CropStorageManager.isConfiguredDrop(cropItemName)
+                        && CropStorageManager.isGroundStoreItemAllowed(cropItemName)) {
+                    if (CropStorageManager.addItemAmount(player, cropItemName, amount)) {
+                        int currentStorage = CropStorageManager.getPlayerItem(player, cropItemName);
+                        int maxStorage = CropStorageManager.getMaxStorage(player);
+                        String displayName = CropStorageManager.getItemDisplayName(cropItemName);
+                        SoundManager.playActionSound(player, "ground_store",
+                                File.getCropStorageConfig());
+                        sendGroundStoreMessage(player, NOTIFY_TYPE_CROP,
+                                displayName, amount, currentStorage, maxStorage);
+                        return true;
+                    }
                 }
             }
         }
@@ -151,6 +181,8 @@ public class GroundStoreListener implements Listener {
                     );
                     String itemName = name != null ? name : storageDrop
                             .replace("_", " ");
+                    SoundManager.playActionSound(player, "ground_store",
+                            File.getConfig());
                     sendGroundStoreMessage(player, NOTIFY_TYPE_STORAGE, itemName,
                             amount, newStoredAmount, maxStorage);
                     return true;
@@ -247,7 +279,10 @@ public class GroundStoreListener implements Listener {
         if (MineManager.isGroundStoreEnabled(player)) {
             return true;
         }
-        return MythicStorageManager.isGroundStoreEnabled(player);
+        if (MythicStorageManager.isGroundStoreEnabled(player)) {
+            return true;
+        }
+        return CropStorageManager.isGroundStoreEnabled(player);
     }
 
     private boolean isStorageWorldBlacklisted(@NotNull Player player) {
@@ -259,6 +294,12 @@ public class GroundStoreListener implements Listener {
     private boolean isMythicStorageWorldBlacklisted(@NotNull Player player) {
         return File.getMythicStorageConfig().contains("blacklist_world")
                 && File.getMythicStorageConfig().getStringList("blacklist_world")
+                .contains(player.getWorld().getName());
+    }
+
+    private boolean isCropStorageWorldBlacklisted(@NotNull Player player) {
+        return File.getCropStorageConfig().contains("blacklist_world")
+                && File.getCropStorageConfig().getStringList("blacklist_world")
                 .contains(player.getWorld().getName());
     }
 
@@ -311,6 +352,66 @@ public class GroundStoreListener implements Listener {
                 );
                 String subtitleTemplate = File.getMythicStorageConfig().getString(
                         MYTHIC_TITLE_PATH + ".item_added.subtitle",
+                        ""
+                );
+                if (titleTemplate != null && subtitleTemplate != null) {
+                    String title = titleTemplate
+                            .replace("#amount#", displayAmount)
+                            .replace("#item#", itemName)
+                            .replace("#storage#", storageValue)
+                            .replace("#max#", maxValue);
+                    String subtitle = subtitleTemplate
+                            .replace("#amount#", displayAmount)
+                            .replace("#item#", itemName)
+                            .replace("#storage#", storageValue)
+                            .replace("#max#", maxValue);
+                    Titles.sendTitle(player,
+                            ChatUtils.colorizewp(title),
+                            ChatUtils.colorizewp(subtitle));
+                }
+            }
+            return;
+        }
+
+        if (NOTIFY_TYPE_CROP.equalsIgnoreCase(type)) {
+            boolean actionBarEnabled = File.getCropStorageConfig().getBoolean(
+                    CROP_ACTIONBAR_PATH + ".enable",
+                    true
+            ) && File.getCropStorageConfig().getBoolean(
+                    "ground_store.notification.actionbar.enable",
+                    true
+            );
+            boolean titleEnabled = File.getCropStorageConfig().getBoolean(
+                    CROP_TITLE_PATH + ".enable",
+                    false
+            ) && File.getCropStorageConfig().getBoolean(
+                    "ground_store.notification.title.enable",
+                    true
+            );
+
+            if (actionBarEnabled) {
+                String template = File.getCropStorageConfig().getString(
+                        CROP_ACTIONBAR_PATH + ".item_added",
+                        ""
+                );
+                if (template != null) {
+                    String msg = template
+                            .replace("#amount#", displayAmount)
+                            .replace("#item#", itemName)
+                            .replace("#storage#", storageValue)
+                            .replace("#max#", maxValue);
+                    ActionBar.sendActionBar(Storage.getStorage(), player,
+                            ChatUtils.colorizewp(msg));
+                }
+            }
+
+            if (titleEnabled) {
+                String titleTemplate = File.getCropStorageConfig().getString(
+                        CROP_TITLE_PATH + ".item_added.title",
+                        ""
+                );
+                String subtitleTemplate = File.getCropStorageConfig().getString(
+                        CROP_TITLE_PATH + ".item_added.subtitle",
                         ""
                 );
                 if (titleTemplate != null && subtitleTemplate != null) {

@@ -30,6 +30,7 @@ public class InteractiveItem extends ItemStack {
     private Consumer<Player> leftClickCallback;
     private Consumer<Player> rightClickCallback;
     private boolean playSoundOnClick = false;
+
     public InteractiveItem(Material material, int slot, String displayName, String... lore) {
         super(sanitizeMaterial(material));
 
@@ -47,6 +48,7 @@ public class InteractiveItem extends ItemStack {
             createMapping();
         }
     }
+
     public InteractiveItem(Material material, int slot) {
         super(sanitizeMaterial(material));
 
@@ -56,6 +58,7 @@ public class InteractiveItem extends ItemStack {
             createMapping();
         }
     }
+
     public InteractiveItem(ItemStack itemStack, int slot) {
         super(itemStack != null && isItemMaterial(itemStack.getType())
                 ? itemStack

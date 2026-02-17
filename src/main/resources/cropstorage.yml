@@ -1,0 +1,146 @@
+cropstorage_version: 1
+
+# Worlds that will not be affected by CropStorage feature
+blacklist_world:
+  - defaultworld
+  - exampleworld
+
+settings:
+  enabled: true
+  default_max_storage: 5000
+  #How to resolve max storage between database/commands and permissions.
+  # PERMISSION: Always use permission-based value.
+  # DATABASE: Always use database value (set by commands or external systems).
+  # MAX: Use the higher value between permission and database.
+  # MIN: Use the lower value between permission and database.
+  # Default: PERMISSION
+  max_storage_mode: PERMISSION
+  default_auto_pickup: false
+
+ground_store:
+  # Enable/disable ground-store system for CropStorage.
+  enabled: true
+
+  # Default toggle state for new players.
+  default_enabled: false
+
+  # Crop items that will be stored when picked up from the ground.
+  # IMPORTANT:
+  # - This list depends on items_drop.
+  # - If an item is not present in items_drop, it will NOT be stored.
+  # These must match the Material names used in items_drop.
+  # Examples:
+  # - WHEAT
+  # - CARROT
+  allowed_items:
+    - WHEAT
+    - CARROT
+
+  # Notification settings for ground-store.
+  notification:
+    actionbar:
+      enable: true
+    title:
+      enable: true
+
+  sound:
+    enabled: true
+    name: ENTITY_ITEM_PICKUP
+    volume: 0.7
+    pitch: 1.0
+
+# Storage limit based on permissions (CropStorage)
+# Players with permission storage.cropstorage.storage.<tier_name> will receive the configured max_storage
+# Priority system: higher number = higher priority (overrides lower priority)
+# If the player has multiple CropStorage limit permissions, the highest priority will be used
+# If no CropStorage limit permission is found, settings.default_max_storage will be used
+crop_storage_permissions:
+  vip:
+    max_storage: 200
+    priority: 1
+  premium:
+    max_storage: 500
+    priority: 2
+  ultimate:
+    max_storage: 1000
+    priority: 3
+  # You can add more permissions here.
+  # abc:
+  #  max_storage: 5000
+  #  priority: 4
+
+storage_full_notification:
+  enabled: true
+  cooldown_seconds: 10
+
+notification:
+  title:
+    enable: false
+    item_added:
+      title: "&a+ #amount# #item#"
+      subtitle: "&a#storage#&7/&a#max#"
+    storage_full:
+      title: "&cStorage Full!"
+      subtitle: "&7(&c#storage#&7/&c#max#&7)"
+  actionbar:
+    enable: true
+    # Placeholders: #item#, #amount#, #storage#, #max#
+    item_added: "&a+ #amount# #item# &7| &a#storage#&7/&a#max#"
+    storage_full: "&cStorage Full! &7(&c#storage#&7/&c#max#&7)"
+
+# Vanilla Minecraft crop items that can be stored
+# Use the Material name (e.g., WHEAT, CARROT, POTATO)
+# The display name in GUI will be auto-generated from the Material name
+# You can also configure custom display names below
+items_drop:
+  - WHEAT
+  - CARROT
+  - POTATO
+  - BEETROOT
+  - NETHER_WART
+  - SUGAR_CANE
+  - COCOA_BEANS
+  - MELON_SLICE
+  - PUMPKIN
+  - SWEET_BERRIES
+  - KELP
+  - BAMBOO
+  - CACTUS
+
+# Custom display names for crop items (optional)
+# If not set, the Material name will be used with proper formatting
+# Format: MATERIAL_NAME: "Display Name"
+crop_display_names:
+  WHEAT: "&eWheat"
+  CARROT: "&6Carrot"
+  POTATO: "&ePotato"
+  BEETROOT: "&cBeetroot"
+  NETHER_WART: "&4Nether Wart"
+  SUGAR_CANE: "&aSugar Cane"
+  COCOA_BEANS: "&6Cocoa Beans"
+  MELON_SLICE: "&aMelon Slice"
+  PUMPKIN: "&6Pumpkin"
+  SWEET_BERRIES: "&cSweet Berries"
+  KELP: "&2Kelp"
+  BAMBOO: "&aBamboo"
+  CACTUS: "&2Cactus"
+
+# Block-to-Drop mapping for crop harvesting
+# Maps the block type to the item that should be added to storage
+# Format: BLOCK_MATERIAL: DROP_MATERIAL
+# This is used by the CropBreak listener to determine what to store
+crop_block_mapping:
+  WHEAT: WHEAT
+  CARROTS: CARROT
+  POTATOES: POTATO
+  BEETROOTS: BEETROOT
+  NETHER_WART: NETHER_WART
+  SUGAR_CANE: SUGAR_CANE
+  COCOA: COCOA_BEANS
+  MELON: MELON_SLICE
+  PUMPKIN: PUMPKIN
+  SWEET_BERRY_BUSH: SWEET_BERRIES
+  KELP: KELP
+  KELP_PLANT: KELP
+  BAMBOO: BAMBOO
+  CACTUS: CACTUS

@@ -48,14 +48,16 @@ public abstract class BaseCommand implements CommandHandler {
         }
     }
 
-    protected void sendColorizedMessage(CommandSender sender, String messageKey, String placeholder, String replacement) {
+    protected void sendColorizedMessage(CommandSender sender, String messageKey, String placeholder,
+                                        String replacement) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
             sender.sendMessage(ChatUtils.colorizewp(message.replace(placeholder, replacement)));
         }
     }
 
-    protected void sendColorizedMessage(CommandSender sender, String messageKey, String[] placeholders, String[] replacements) {
+    protected void sendColorizedMessage(CommandSender sender, String messageKey, String[] placeholders,
+                                        String[] replacements) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
             for (int i = 0; i < placeholders.length && i < replacements.length; i++) {
@@ -118,9 +120,8 @@ public abstract class BaseCommand implements CommandHandler {
     }
 
     protected String getStatusMessage(boolean status) {
-        return status ?
-                Objects.requireNonNull(File.getMessage().getString("user.status.status_on")) :
-                Objects.requireNonNull(File.getMessage().getString("user.status.status_off"));
+        return status ? Objects.requireNonNull(File.getMessage().getString("user.status.status_on"))
+                : Objects.requireNonNull(File.getMessage().getString("user.status.status_off"));
     }
 
     protected void sendUsage(CommandSender sender) {
@@ -132,8 +133,8 @@ public abstract class BaseCommand implements CommandHandler {
     }
 
     protected void sendInvalidMaterial(CommandSender sender, String material, List<String> availableMaterials) {
-        String materialsStr = String.join(", ", availableMaterials.size() > 10 ?
-                availableMaterials.subList(0, 10) : availableMaterials);
+        String materialsStr = String.join(", ",
+                availableMaterials.size() > 10 ? availableMaterials.subList(0, 10) : availableMaterials);
         if (availableMaterials.size() > 10) {
             materialsStr += "...";
         }
@@ -155,17 +156,27 @@ public abstract class BaseCommand implements CommandHandler {
     }
 
     protected boolean isStorageWorldBlacklisted(Player player) {
-        if (player == null) return false;
+        if (player == null)
+            return false;
         String worldName = player.getWorld().getName();
         return File.getConfig().contains("blacklist_world") &&
                 File.getConfig().getStringList("blacklist_world").contains(worldName);
     }
 
     protected boolean isMythicStorageWorldBlacklisted(Player player) {
-        if (player == null) return false;
+        if (player == null)
+            return false;
         String worldName = player.getWorld().getName();
         return File.getMythicStorageConfig().contains("blacklist_world") &&
                 File.getMythicStorageConfig().getStringList("blacklist_world").contains(worldName);
+    }
+
+    protected boolean isCropStorageWorldBlacklisted(Player player) {
+        if (player == null)
+            return false;
+        String worldName = player.getWorld().getName();
+        return File.getCropStorageConfig().contains("blacklist_world") &&
+                File.getCropStorageConfig().getStringList("blacklist_world").contains(worldName);
     }
 
     protected void sendWorldBlacklisted(CommandSender sender, String featureName, String worldName) {

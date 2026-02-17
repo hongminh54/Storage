@@ -42,6 +42,12 @@ ground_store:
     title:
       enable: true
 
+  sound:
+    enabled: true
+    name: ENTITY_ITEM_PICKUP
+    volume: 0.7
+    pitch: 1.0
+
 # Storage limit based on permissions (MythicStorage)
 # Players with permission storage.mythicstorage.storage.<tier_name> will receive the configured max_storage
 # Priority system: higher number = higher priority (overrides lower priority)

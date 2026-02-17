@@ -1,17 +1,20 @@
 package net.danh.storage;
 
 import net.danh.storage.API.StorageAPI;
+import net.danh.storage.CMD.CropStorageCMD;
 import net.danh.storage.CMD.MythicStorageCMD;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.*;
+import net.danh.storage.Listeners.Crop.CropBreak;
 import net.danh.storage.Listeners.LuckPerms.LuckPermsListener;
 import net.danh.storage.Listeners.Mythic.MythicMobDeath;
 import net.danh.storage.Listeners.Mythic.MythicMobsLoadListener;
 import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
@@ -71,8 +74,7 @@ public final class Storage extends JavaPlugin {
         if (plugin != null) {
             plugin.getLogger().log(
                     Level.INFO,
-                    enabled ? "Hook with MMOItems" : "Unhook MMOItems"
-            );
+                    enabled ? "Hook with MMOItems" : "Unhook MMOItems");
         }
     }
 
@@ -83,8 +85,7 @@ public final class Storage extends JavaPlugin {
         if (plugin != null) {
             plugin.getLogger().log(
                     Level.INFO,
-                    enabled ? "Hook with MythicLib" : "Unhook MythicLib"
-            );
+                    enabled ? "Hook with MythicLib" : "Unhook MythicLib");
         }
 
         if (enabled) {
@@ -186,6 +187,7 @@ public final class Storage extends JavaPlugin {
         File.updateSpecialMaterialConfig();
         File.updateMythicStorageConfig();
         File.updateCraftingConfig();
+        File.updateCropStorageConfig();
 
         applyDebugVanillaStorageConfigIfEnabled();
         debugVanillaConfigApplied = DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA
@@ -195,10 +197,12 @@ public final class Storage extends JavaPlugin {
             new CraftingPlaceholder(this).register();
         }
         UpdateChecker updateChecker = new UpdateChecker(storage);
-        registerEvents(updateChecker, new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(), new GroundStoreListener(), new PluginLoadListener());
+        registerEvents(updateChecker, new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(),
+                new GroundStoreListener(), new PluginLoadListener());
         updateChecker.fetch();
         new StorageCMD("storage");
         new MythicStorageCMD("mythicstorage");
+        new CropStorageCMD("cropstorage");
 
         dataStorage = DatabaseFactory.createDatabase(this);
         dataStorage.load();
@@ -223,14 +227,19 @@ public final class Storage extends JavaPlugin {
         // Initialize MythicStorage if MythicMobs is available
         initializeMythicStorage();
 
+        // Initialize CropStorage
+        initializeCropStorage();
+
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
             LuckPermsListener.register(this);
         }
 
         getLogger().log(Level.INFO, "Loading completed. Have fun!");
         if (new NMSAssistant().isVersionLessThanOrEqualTo(12)) {
-            getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server (" + new NMSAssistant().getNMSVersion() + ")");
-            getLogger().log(Level.WARNING, "If the material doesn't work, you should go to the GitHub Issues section and report it to the author!");
+            getLogger().log(Level.WARNING, "Some material can working incorrect way with your version server ("
+                    + new NMSAssistant().getNMSVersion() + ")");
+            getLogger().log(Level.WARNING,
+                    "If the material doesn't work, you should go to the GitHub Issues section and report it to the author!");
         }
     }
 
@@ -277,17 +286,15 @@ public final class Storage extends JavaPlugin {
                 if (MythicLib && !blocksSection.contains(key + ".drop_autosmelt")) {
                     String autoSmeltDropKey = null;
                     try {
-                        io.lumine.mythic.lib.version.OreDrops drops =
-                                io.lumine.mythic.lib.MythicLib.plugin
-                                        .getVersion()
-                                        .getWrapper()
-                                        .getOreDrops(material);
+                        io.lumine.mythic.lib.version.OreDrops drops = io.lumine.mythic.lib.MythicLib.plugin
+                                .getVersion()
+                                .getWrapper()
+                                .getOreDrops(material);
                         if (drops != null) {
                             ItemStack generated = drops.generate(0);
                             autoSmeltDropKey = getDebugDropKey(
                                     generated,
-                                    legacyItemData
-                            );
+                                    legacyItemData);
                         }
                     } catch (Throwable ignored) {
                         autoSmeltDropKey = null;
@@ -297,8 +304,7 @@ public final class Storage extends JavaPlugin {
                             && !autoSmeltDropKey.equalsIgnoreCase(key)) {
                         blocksSection.set(
                                 key + ".drop_autosmelt",
-                                autoSmeltDropKey
-                        );
+                                autoSmeltDropKey);
                         addedAutoSmeltBlocks++;
                         autoSmeltDropKeys.add(autoSmeltDropKey);
 
@@ -307,8 +313,7 @@ public final class Storage extends JavaPlugin {
                             String display = toTitleCase(parts[0]);
                             itemsSection.set(
                                     autoSmeltDropKey,
-                                    "&7" + display
-                            );
+                                    "&7" + display);
                             addedAutoSmeltItems++;
                         }
                     }
@@ -322,8 +327,7 @@ public final class Storage extends JavaPlugin {
             }
 
             List<String> allowed = File.getConfig().getStringList(
-                    "ground_store.allowed_items"
-            );
+                    "ground_store.allowed_items");
             Set<String> mergedAllowed = new LinkedHashSet<>();
             if (allowed != null) {
                 mergedAllowed.addAll(allowed);
@@ -334,8 +338,7 @@ public final class Storage extends JavaPlugin {
             int addedAllowed = mergedAllowed.size() - beforeAllowed;
             File.getConfig().set(
                     "ground_store.allowed_items",
-                    new ArrayList<>(mergedAllowed)
-            );
+                    new ArrayList<>(mergedAllowed));
 
             long elapsedMs = (System.nanoTime() - startNs) / 1_000_000L;
             getLogger().log(
@@ -348,14 +351,12 @@ public final class Storage extends JavaPlugin {
                             + addedAutoSmeltBlocks
                             + ", added_autosmelt_items="
                             + addedAutoSmeltItems
-                            + " (" + elapsedMs + "ms)"
-            );
+                            + " (" + elapsedMs + "ms)");
         } catch (Exception ex) {
             getLogger().log(
                     Level.SEVERE,
                     "[DEBUG] Failed to apply vanilla debug storage config",
-                    ex
-            );
+                    ex);
         }
     }
 
@@ -382,9 +383,11 @@ public final class Storage extends JavaPlugin {
         for (Player p : Bukkit.getOnlinePlayers()) {
             MineManager.savePlayerData(p);
             MythicStorageManager.savePlayerData(p);
+            CropStorageManager.savePlayerData(p);
             // Cleanup player-specific data from managers
             MineManager.cleanupPlayerData(p);
             MythicStorageManager.cleanupPlayerData(p);
+            CropStorageManager.cleanupPlayerData(p);
             SoundManager.cleanupPlayer(p);
         }
         TransferManager.cancelAllTransfers();
@@ -417,6 +420,21 @@ public final class Storage extends JavaPlugin {
         } else {
             getLogger().info("[MythicStorage] MythicMobs not loaded yet, waiting for plugin enable...");
             registerEvents(new MythicMobsLoadListener());
+        }
+    }
+
+    private void initializeCropStorage() {
+        CropStorageManager.initialize();
+        if (CropStorageManager.isSystemEnabled()) {
+            getLogger().info("[CropStorage] System enabled, registering crop break listener...");
+            registerEvents(new CropBreak());
+
+            // Load data for online players (in case of reload)
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                CropStorageManager.loadPlayerData(p);
+            }
+        } else {
+            getLogger().info("[CropStorage] System disabled in config.");
         }
     }
 }
