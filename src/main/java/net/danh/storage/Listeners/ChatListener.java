@@ -42,6 +42,7 @@ public class ChatListener implements Listener {
     public static HashMap<UUID, String> chat_convert_to = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_withdraw = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_deposit = new HashMap<>();
+    public static HashMap<UUID, String> chat_crop_sell = new HashMap<>();
     public static HashMap<UUID, Integer> chat_return_page = new HashMap<>();
     public static HashMap<UUID, String> craftingRequests = new HashMap<>();
 
@@ -391,6 +392,40 @@ public class ChatListener implements Listener {
                                 .replace("<number>", message)));
             }
             chat_crop_deposit.remove(playerId);
+            chat_return_page.remove(playerId);
+            e.setCancelled(true);
+        }
+
+        // Handle CropStorage sell input
+        if (chat_crop_sell.containsKey(playerId)
+                && chat_crop_sell.get(playerId) != null) {
+            if (isCancelCommand(message)) {
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        CropStorageGUI.getPlayerCurrentPage(p));
+                handleCancel(p,
+                        () -> p.openInventory(new CropStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                chat_crop_sell.remove(playerId);
+                chat_return_page.remove(playerId);
+                e.setCancelled(true);
+                return;
+            }
+            if (Number.getInteger(message) > 0) {
+                String itemName = chat_crop_sell.get(playerId);
+                int amount = Number.getInteger(message);
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        CropStorageGUI.getPlayerCurrentPage(p));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new CropSell(p, itemName, amount).doAction();
+                    SoundManager.playChatSellSound(p);
+                    p.openInventory(new CropStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(
+                        ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                                .replace("<number>", message)));
+            }
+            chat_crop_sell.remove(playerId);
             chat_return_page.remove(playerId);
             e.setCancelled(true);
         }

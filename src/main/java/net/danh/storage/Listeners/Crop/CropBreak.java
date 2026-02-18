@@ -25,12 +25,15 @@ import java.util.Map;
  * Listens for crop block break events and stores drops in CropStorage.
  * Mirrors BlockBreak logic but specifically for vanilla crop harvesting.
  */
+//TODO: Fix kelp harvesting errors underwater
 public class CropBreak implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCropBreak(@NotNull BlockBreakEvent e) {
         Player player = e.getPlayer();
         Block block = e.getBlock();
+
+        boolean canDisableDrops = new NMSAssistant().isVersionGreaterThanOrEqualTo(12);
 
         // Check if CropStorage is enabled
         if (!CropStorageManager.isSystemEnabled()) {
@@ -70,6 +73,61 @@ public class CropBreak implements Listener {
             return;
         }
 
+        // Special handling for tall column crops: sugar cane, cactus, bamboo, kelp.
+        // When breaking any block of the column, store the whole column and prevent
+        // the rest of the column from dropping items on the ground.
+        if (isTallColumnCrop(block.getType(), dropItem)) {
+            String scanMode = File.getCropStorageConfig().getString("tall_crops.scan_mode", "any_segment");
+            boolean baseOnly = "base_only".equalsIgnoreCase(scanMode);
+            boolean aboveOnly = "above_only".equalsIgnoreCase(scanMode);
+
+            if (baseOnly && !isTallColumnBase(block)) {
+                return;
+            }
+
+            Block scanStart;
+            if (aboveOnly) {
+                scanStart = block;
+            } else {
+                scanStart = findTallColumnBase(block);
+            }
+
+            if (scanStart == null) {
+                return;
+            }
+
+            int columnCount = countTallColumnBlocks(scanStart);
+            if (columnCount <= 0) {
+                return;
+            }
+
+            int currentAmount = CropStorageManager.getPlayerItem(player, dropItem);
+            int maxStorage = CropStorageManager.getMaxStorage(player);
+            if (currentAmount + columnCount > maxStorage) {
+                // Not enough storage capacity -> let vanilla drops happen.
+                return;
+            }
+
+            boolean stored = CropStorageManager.addItemAmount(player, dropItem, columnCount);
+            if (!stored) {
+                return;
+            }
+
+            // Remove the scanned column blocks without dropping items.
+            removeTallColumnBlocks(scanStart);
+
+            if (canDisableDrops) {
+                e.setDropItems(false);
+            } else {
+                // 1.8 - 1.11: prevent vanilla drops by cancelling the break.
+                e.setCancelled(true);
+            }
+
+            // Send notification once.
+            sendNotification(player, dropItem, columnCount);
+            return;
+        }
+
         // For ageable crops (wheat, carrots, potatoes, beetroot, nether wart),
         // only harvest when fully grown
         if (isAgeableCrop(block) && !isFullyGrown(block)) {
@@ -85,15 +143,144 @@ public class CropBreak implements Listener {
         // Try to store the crop
         boolean stored = CropStorageManager.addItemAmount(player, dropItem, amount);
         if (stored) {
-            // Cancel drops since we stored them
-            if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
+            if ("WHEAT".equalsIgnoreCase(dropItem) || "BEETROOT".equalsIgnoreCase(dropItem)) {
+                dropExtraDrops(block, player, Material.getMaterial(dropItem));
+            }
+
+            if (canDisableDrops) {
                 e.setDropItems(false);
+            } else {
+                // 1.8 - 1.11: cancel and remove the block manually to prevent dup drops.
+                e.setCancelled(true);
+                setBlockToAirNoDrops(block);
             }
 
             // Send notification
             sendNotification(player, dropItem, amount);
         }
         // If storage is full, let the items drop normally
+    }
+
+    private boolean isTallColumnCrop(@NotNull Material blockType,
+                                     @NotNull String dropItem) {
+        String upper = dropItem.toUpperCase();
+        if ("SUGAR_CANE".equals(upper) || "CACTUS".equals(upper) || "BAMBOO".equals(upper)) {
+            return true;
+        }
+        // Kelp: block can be KELP or KELP_PLANT, drop is KELP
+        if ("KELP".equals(upper)) {
+            return blockType.name().equalsIgnoreCase("KELP")
+                    || blockType.name().equalsIgnoreCase("KELP_PLANT");
+        }
+        return false;
+    }
+
+    private Block findTallColumnBase(@NotNull Block start) {
+        Material type = start.getType();
+        Block base = start;
+        for (int i = 0; i < 256; i++) {
+            Block below = base.getRelative(0, -1, 0);
+            Material belowType = below.getType();
+            if (!isSameTallCropType(type, belowType)) {
+                break;
+            }
+            base = below;
+        }
+        return base;
+    }
+
+    private boolean isTallColumnBase(@NotNull Block block) {
+        Material type = block.getType();
+        Material belowType = block.getRelative(0, -1, 0).getType();
+        return !isSameTallCropType(type, belowType);
+    }
+
+    private boolean isSameTallCropType(@NotNull Material reference,
+                                       @NotNull Material candidate) {
+        // Kelp: both KELP and KELP_PLANT are part of the same column.
+        if (reference.name().equalsIgnoreCase("KELP") || reference.name().equalsIgnoreCase("KELP_PLANT")) {
+            return candidate.name().equalsIgnoreCase("KELP")
+                    || candidate.name().equalsIgnoreCase("KELP_PLANT");
+        }
+
+        return candidate == reference;
+    }
+
+    private int countTallColumnBlocks(@NotNull Block start) {
+        Material type = start.getType();
+        int count = 0;
+        for (int i = 0; i < 256; i++) {
+            Block b = start.getRelative(0, i, 0);
+            Material t = b.getType();
+
+            if (type.name().equalsIgnoreCase("KELP") || type.name().equalsIgnoreCase("KELP_PLANT")) {
+                if (!(t.name().equalsIgnoreCase("KELP") || t.name().equalsIgnoreCase("KELP_PLANT"))) {
+                    break;
+                }
+            } else {
+                if (t != type) {
+                    break;
+                }
+            }
+            count++;
+        }
+        return count;
+    }
+
+    private void removeTallColumnBlocks(@NotNull Block start) {
+        Material type = start.getType();
+        for (int i = 0; i < 256; i++) {
+            Block b = start.getRelative(0, i, 0);
+            Material t = b.getType();
+
+            boolean matches;
+            if (type.name().equalsIgnoreCase("KELP") || type.name().equalsIgnoreCase("KELP_PLANT")) {
+                matches = t.name().equalsIgnoreCase("KELP") || t.name().equalsIgnoreCase("KELP_PLANT");
+            } else {
+                matches = t == type;
+            }
+
+            if (!matches) {
+                break;
+            }
+            setBlockToAirNoDrops(b);
+        }
+    }
+
+    private void setBlockToAirNoDrops(@NotNull Block block) {
+        try {
+            // 1.13+ has setType(Material, boolean) to control physics
+            block.setType(Material.AIR, false);
+        } catch (Throwable ignored) {
+            block.setType(Material.AIR);
+        }
+    }
+
+    private void dropExtraDrops(@NotNull Block block,
+                                @NotNull Player player,
+                                Material mainDrop) {
+        if (mainDrop == null) {
+            return;
+        }
+
+        ItemStack tool = player.getInventory().getItemInMainHand();
+
+        try {
+            for (ItemStack drop : (tool != null ? block.getDrops(tool) : block.getDrops())) {
+                if (drop == null) {
+                    continue;
+                }
+                if (drop.getType() == mainDrop) {
+                    continue;
+                }
+                if (drop.getAmount() <= 0) {
+                    continue;
+                }
+                block.getWorld().dropItemNaturally(block.getLocation(), drop.clone());
+            }
+        } catch (Exception ignored) {
+            // If getDrops(tool) fails in some versions/edge cases, just do nothing.
+        }
     }
 
     /**

@@ -61,6 +61,7 @@ public class JoinQuit implements Listener {
         ChatListener.chat_mythic_deposit.remove(p.getUniqueId());
         ChatListener.chat_crop_withdraw.remove(p.getUniqueId());
         ChatListener.chat_crop_deposit.remove(p.getUniqueId());
+        ChatListener.chat_crop_sell.remove(p.getUniqueId());
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);

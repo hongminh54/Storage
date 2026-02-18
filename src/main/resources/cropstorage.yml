@@ -17,6 +17,36 @@ settings:
   max_storage_mode: PERMISSION
   default_auto_pickup: false
 
+# Controls how autopickup handles tall column crops
+# base_only: only scan/store the whole column when breaking the base block.
+# any_segment: breaking any block in the column will scan/store the whole column.
+# above_only: breaking any block will scan/store that block + blocks above it (keeps the lower blocks so it can regrow).
+tall_crops:
+  scan_mode: above_only
+
+# Commands executed when selling crops. Placeholders: #player#, #money#
+sell:
+  - "eco give #player# #money#"
+
+# Number format used for money when selling crops
+number_format: "#.##"
+
+# Worth per crop item. Key supports both MATERIAL and MATERIAL;0.
+worth:
+  WHEAT: 1.4
+  CARROT: 1.2
+  POTATO: 1.2
+  BEETROOT: 2.1
+  NETHER_WART: 3
+  SUGAR_CANE: 1.2
+  COCOA_BEANS: 3.4
+  MELON_SLICE: 2.43
+  PUMPKIN: 2.45
+  SWEET_BERRIES: 3
+  KELP: 2.4
+  BAMBOO: 2
+  CACTUS: 2.5
+
 ground_store:
   # Enable/disable ground-store system for CropStorage.
   enabled: true
@@ -49,7 +79,7 @@ ground_store:
     volume: 0.7
     pitch: 1.0
 
-# Storage limit based on permissions (CropStorage)
+# CropStorage limit based on permissions
 # Players with permission storage.cropstorage.storage.<tier_name> will receive the configured max_storage
 # Priority system: higher number = higher priority (overrides lower priority)
 # If the player has multiple CropStorage limit permissions, the highest priority will be used

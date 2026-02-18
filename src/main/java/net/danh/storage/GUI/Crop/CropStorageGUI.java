@@ -2,7 +2,6 @@ package net.danh.storage.GUI.Crop;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
-import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.SoundManager;
@@ -358,8 +357,6 @@ public class CropStorageGUI implements IGUI {
     }
 
     private void handleItemClick(Player player, String itemName, ClickType clickType) {
-        int currentAmount = CropStorageManager.getPlayerItem(player, itemName);
-
         if (clickType == ClickType.DROP) {
             boolean enabled = CropStorageManager.toggleItemAutoPickup(player, itemName);
             String status = enabled
@@ -384,42 +381,9 @@ public class CropStorageGUI implements IGUI {
             return;
         }
 
-        if (clickType == ClickType.LEFT) {
-            ChatListener.chat_crop_withdraw.put(player.getUniqueId(), itemName);
-            ChatListener.chat_return_page.put(player.getUniqueId(), currentPage);
-            player.sendMessage(
-                    ChatUtils.colorizewp(File.getMessage().getString("cropstorage.action.withdraw.chat_number")));
-            SoundManager.setShouldPlayCloseSound(player, false);
-            player.closeInventory();
-
-        } else if (clickType == ClickType.SHIFT_LEFT) {
-            if (currentAmount <= 0) {
-                player.sendMessage(
-                        ChatUtils.colorizewp(File.getMessage().getString("cropstorage.action.withdraw.not_enough", "")
-                                .replace("#amount#", String.valueOf(currentAmount))));
-                SoundManager.playErrorSound(player);
-                return;
-            }
-
-            new net.danh.storage.Action.CropWithdraw(player, itemName, currentAmount).doAction();
-            SoundManager.playWithdrawSound(player);
-            SoundManager.setShouldPlayCloseSound(player, false);
-            player.openInventory(new CropStorageGUI(player, currentPage).getInventory(SoundContext.SILENT));
-
-        } else if (clickType == ClickType.RIGHT) {
-            ChatListener.chat_crop_deposit.put(player.getUniqueId(), itemName);
-            ChatListener.chat_return_page.put(player.getUniqueId(), currentPage);
-            player.sendMessage(
-                    ChatUtils.colorizewp(File.getMessage().getString("cropstorage.action.deposit.chat_number")));
-            SoundManager.setShouldPlayCloseSound(player, false);
-            player.closeInventory();
-
-        } else if (clickType == ClickType.SHIFT_RIGHT) {
-            new net.danh.storage.Action.CropDeposit(player, itemName, Integer.MAX_VALUE).doAction();
-            SoundManager.playDepositSound(player);
-            SoundManager.setShouldPlayCloseSound(player, false);
-            player.openInventory(new CropStorageGUI(player, currentPage).getInventory(SoundContext.SILENT));
-        }
+        SoundManager.setShouldPlayCloseSound(player, false);
+        player.openInventory(new CropItemStorage(player, itemName, currentPage)
+                .getInventory(SoundContext.SILENT));
     }
 
     private ItemStack getNavigationItem(String itemTag, int currentPage, int totalPages) {

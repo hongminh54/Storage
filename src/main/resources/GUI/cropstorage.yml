@@ -49,10 +49,6 @@ items:
       - "&7 "
       - "&aStatus: #autopickup_status#"
       - "&7 "
-      - "&eLeft-Click: &aWithdraw (enter amount)"
-      - "&eShift+Left-Click: &aWithdraw all"
-      - "&eRight-Click: &aDeposit (enter amount)"
-      - "&eShift+Right-Click: &aDeposit all"
       - "&ePress Q &6(Drop key)&e: &aToggle auto-pickup for this item"
       - "&7 "
     # Amount of item

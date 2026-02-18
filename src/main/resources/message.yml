@@ -438,11 +438,21 @@ cropstorage:
       withdraw_item: "#prefix# &aYou withdrew &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
       not_enough: "#prefix# &cYou don't have enough items! You only have &e#amount#"
       inventory_full: "#prefix# &cYour inventory is full! Cannot withdraw more items"
+      not_enough_in_storage: "#prefix# &cYou don't have enough items in storage! You only have #amount#"
     deposit:
       chat_number: "#prefix# &aHow many items do you want to deposit? &7(Type 'cancel' to exit)"
       deposit_item: "#prefix# &aYou deposited &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
       full_storage: "#prefix# &cStorage is full &8(#item_amount#/#max_storage#)&c, cannot deposit &e#amount# #material#"
       no_items: "#prefix# &cYou don't have this crop item in your inventory!"
+      no_items_short: "#prefix# &cNo items found to deposit."
+    sell:
+      chat_number: "#prefix# &aHow many items do you want to sell? &7(Type 'cancel' to exit)"
+      not_enough: "#prefix# &cYou haven't enough item, you only have <amount>"
+      sell_item: "#prefix# &aYou sold #amount# #material# and got #money#$ | #item_amount#/#max_storage# Items"
+      can_not_sell: "#prefix# &cThis item can't be sell"
+      no_worth_config: "#prefix# &cSell system is not configured! Please contact administrator."
+      item_not_sellable: "#prefix# &cThis item is not sellable!"
+      failed_to_remove: "#prefix# &cFailed to remove items from storage! Please try again."
   user:
     help:
       - "&6=== &eCropStorage Commands &6==="
