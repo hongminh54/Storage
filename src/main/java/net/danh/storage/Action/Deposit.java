@@ -40,7 +40,8 @@ public class Deposit {
     public String getMaterialData() {
         if (!material.contains(";")) {
             return material + ";0";
-        } else return material;
+        } else
+            return material;
     }
 
     public void doAction() {
@@ -58,19 +59,53 @@ public class Deposit {
                     String replacement = String.valueOf(new_data >= max_storage ? min : getAmount());
                     if (material.contains(";")) {
                         if (MineManager.addBlockAmount(getPlayer(), material, Integer.parseInt(replacement))) {
-                            getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                            getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                    .requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
+                                    .replace("#amount#", replacement)
+                                    .replace("#material#",
+                                            File.getConfig().getString("items." + material, material.split(";")[0]))
+                                    .replace("#player#", getPlayer().getName())
+                                    .replace("#item_amount#",
+                                            String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                             removeItems(Long.parseLong(replacement));
                         } else
-                            getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                            getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                    .requireNonNull(File.getMessage().getString("user.action.deposit.full_storage"))
+                                    .replace("#amount#", replacement)
+                                    .replace("#material#",
+                                            File.getConfig().getString("items." + material, material.split(";")[0]))
+                                    .replace("#player#", getPlayer().getName())
+                                    .replace("#item_amount#",
+                                            String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                     } else {
                         if (MineManager.addBlockAmount(getPlayer(), getMaterialData(), Integer.parseInt(replacement))) {
-                            getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                            getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                    .requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
+                                    .replace("#amount#", replacement)
+                                    .replace("#material#",
+                                            File.getConfig().getString("items." + material, material.split(";")[0]))
+                                    .replace("#player#", getPlayer().getName())
+                                    .replace("#item_amount#",
+                                            String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                             removeItems(Long.parseLong(replacement));
                         } else
-                            getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                            getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                    .requireNonNull(File.getMessage().getString("user.action.deposit.full_storage"))
+                                    .replace("#amount#", replacement)
+                                    .replace("#material#",
+                                            File.getConfig().getString("items." + material, material.split(";")[0]))
+                                    .replace("#player#", getPlayer().getName())
+                                    .replace("#item_amount#",
+                                            String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                    .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                     }
                 } else {
-                    getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items")).replace("<amount>", String.valueOf(amount))));
+                    getPlayer().sendMessage(ChatUtils
+                            .colorize(Objects.requireNonNull(File.getMessage().getString("user.not_enough_items"))
+                                    .replace("<amount>", String.valueOf(amount))));
                 }
             } else {
                 int old_data = MineManager.getPlayerBlock(getPlayer(), getMaterialData());
@@ -82,23 +117,55 @@ public class Deposit {
                 String replacement = String.valueOf(new_data >= max_storage ? min : amount);
                 if (material.contains(";")) {
                     if (MineManager.addBlockAmount(getPlayer(), material, Integer.parseInt(replacement))) {
-                        getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                .requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
+                                .replace("#amount#", replacement)
+                                .replace("#material#",
+                                        File.getConfig().getString("items." + material, material.split(";")[0]))
+                                .replace("#player#", getPlayer().getName())
+                                .replace("#item_amount#",
+                                        String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                         removeItems(Long.parseLong(replacement));
                     } else
-                        getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                .requireNonNull(File.getMessage().getString("user.action.deposit.full_storage"))
+                                .replace("#amount#", replacement)
+                                .replace("#material#",
+                                        File.getConfig().getString("items." + material, material.split(";")[0]))
+                                .replace("#player#", getPlayer().getName())
+                                .replace("#item_amount#",
+                                        String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                 } else {
                     if (MineManager.addBlockAmount(getPlayer(), getMaterialData(), Integer.parseInt(replacement))) {
-                        getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                .requireNonNull(File.getMessage().getString("user.action.deposit.deposit_item"))
+                                .replace("#amount#", replacement)
+                                .replace("#material#",
+                                        File.getConfig().getString("items." + material, material.split(";")[0]))
+                                .replace("#player#", getPlayer().getName())
+                                .replace("#item_amount#",
+                                        String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                         removeItems(Long.parseLong(replacement));
                     } else
-                        getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.full_storage")).replace("#amount#", replacement).replace("#material#", Objects.requireNonNull(File.getConfig().getString("items." + material))).replace("#player#", getPlayer().getName()).replace("#item_amount#", String.valueOf(MineManager.getPlayerBlock(getPlayer(), material))).replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
+                        getPlayer().sendMessage(ChatUtils.colorize(Objects
+                                .requireNonNull(File.getMessage().getString("user.action.deposit.full_storage"))
+                                .replace("#amount#", replacement)
+                                .replace("#material#",
+                                        File.getConfig().getString("items." + material, material.split(";")[0]))
+                                .replace("#player#", getPlayer().getName())
+                                .replace("#item_amount#",
+                                        String.valueOf(MineManager.getPlayerBlock(getPlayer(), material)))
+                                .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(getPlayer())))));
                 }
             }
         } else {
-            getPlayer().sendMessage(ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.invalid_item"))));
+            getPlayer().sendMessage(ChatUtils
+                    .colorize(Objects.requireNonNull(File.getMessage().getString("user.action.deposit.invalid_item"))));
         }
     }
-
 
     public ItemStack getItemStack() {
         Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(material);

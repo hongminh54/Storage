@@ -33,12 +33,16 @@ public class GUIClickListener implements Listener {
 
     private static void logNBTWarning(Exception e) {
         if (!nbtWarningLogged) {
-            Storage.getStorage().getLogger().warning("NBT-API error detected in GUI interactions. Interactive items may not work properly.");
+            Storage.getStorage().getLogger()
+                    .warning("NBT-API error detected in GUI interactions. Interactive items may not work properly.");
             Storage.getStorage().getLogger().warning("Your Minecraft version may not be fully supported by NBT-API.");
             Storage.getStorage().getLogger().warning("Error: " + e.getMessage());
-            Storage.getStorage().getLogger().warning("Please consider updating to a newer version of NBT-API or Minecraft.");
-            Storage.getStorage().getLogger().warning("If you are using a custom NBT-API version, please ensure it is compatible with your Minecraft version.");
-            Storage.getStorage().getLogger().warning("If an error occurs, please report it to me at https://github.com/hongminh54/Storage/issues.");
+            Storage.getStorage().getLogger()
+                    .warning("Please consider updating to a newer version of NBT-API or Minecraft.");
+            Storage.getStorage().getLogger().warning(
+                    "If you are using a custom NBT-API version, please ensure it is compatible with your Minecraft version.");
+            Storage.getStorage().getLogger().warning(
+                    "If an error occurs, please report it to me at https://github.com/hongminh54/Storage/issues.");
             nbtWarningLogged = true;
         }
     }
@@ -47,13 +51,13 @@ public class GUIClickListener implements Listener {
     public void onInventoryClick(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
 
-        boolean isGUIInv = e.getClickedInventory() != null && e.getClickedInventory().getHolder() != null && e.getClickedInventory().getHolder() instanceof IGUI;
+        boolean isGUIInv = e.getClickedInventory() != null && e.getClickedInventory().getHolder() != null
+                && e.getClickedInventory().getHolder() instanceof IGUI;
 
         // Check if top inventory is a GUI - prevent shift-click from player inventory
-        boolean isTopInventoryGUI = e.getView() != null
-                && e.getView().getTopInventory() != null
-                && e.getView().getTopInventory().getHolder() != null
-                && e.getView().getTopInventory().getHolder() instanceof IGUI;
+        boolean isTopInventoryGUI = e.getInventory() != null
+                && e.getInventory().getHolder() != null
+                && e.getInventory().getHolder() instanceof IGUI;
 
         ItemStack currentItem = e.getCurrentItem();
         boolean isInteractiveItem = false;
@@ -72,7 +76,7 @@ public class GUIClickListener implements Listener {
 
         if (!shouldCancel && isTopInventoryGUI && e.getClickedInventory() != null) {
             // Check if clicking from bottom inventory (player inv) with shift click
-            boolean isClickingBottomInventory = e.getClickedInventory().equals(e.getView().getBottomInventory());
+            boolean isClickingBottomInventory = e.getClickedInventory().equals(e.getWhoClicked().getInventory());
             boolean isShiftClick = e.isShiftClick();
 
             if (isClickingBottomInventory && isShiftClick) {
@@ -115,7 +119,8 @@ public class GUIClickListener implements Listener {
 
             UUID uuid = nbtItem.getUUID("storage:id");
 
-            if (GUI.getItemMapper().containsKey(uuid) && System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)) {
+            if (GUI.getItemMapper().containsKey(uuid)
+                    && System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)) {
                 GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), e.getAction());
 
                 interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L);
@@ -130,23 +135,29 @@ public class GUIClickListener implements Listener {
     @EventHandler
     public void onAnimation(PlayerAnimationEvent e) {
         try {
-            if (e.getAnimationType() != PlayerAnimationType.ARM_SWING || e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
+            if (e.getAnimationType() != PlayerAnimationType.ARM_SWING
+                    || e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR
+                    || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
                 return;
         } catch (Exception ex) {
-            if (e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
+            if (e.getPlayer().getTargetBlock(new HashSet<>(), 5).getType() == Material.AIR
+                    || e.getPlayer().getGameMode() != GameMode.ADVENTURE)
                 return;
         }
 
         ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR || item.getAmount() <= 0) return;
+        if (item.getType() == Material.AIR || item.getAmount() <= 0)
+            return;
 
         try {
             NBTItem nbtItem = new NBTItem(item);
-            if (!nbtItem.hasTag("storage:id")) return;
+            if (!nbtItem.hasTag("storage:id"))
+                return;
 
             UUID uuid = nbtItem.getUUID("storage:id");
 
-            if (System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L) && GUI.getItemMapper().containsKey(uuid)) {
+            if (System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)
+                    && GUI.getItemMapper().containsKey(uuid)) {
                 GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), Action.RIGHT_CLICK_BLOCK);
 
                 interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L);
@@ -194,12 +205,15 @@ public class GUIClickListener implements Listener {
 
         if (e.getInventory().getHolder() instanceof IGUI) {
             if (e.getInventory().getHolder() instanceof RecipeEditorGUI) {
-                if (RecipeEditorGUI.getShouldRestoreOnClose(player) && RecipeEditorGUI.hasActiveSession(player.getUniqueId())) {
+                if (RecipeEditorGUI.getShouldRestoreOnClose(player)
+                        && RecipeEditorGUI.hasActiveSession(player.getUniqueId())) {
                     String recipeName = RecipeEditorGUI.getBackupRecipeName(player.getUniqueId());
 
                     if (RecipeEditorGUI.restoreAndSaveBackup(player.getUniqueId())) {
                         player.sendMessage(net.danh.storage.Utils.ChatUtils.colorize(
-                                File.getMessage().getString("crafting.editor_discarded", "&7Changes discarded for recipe: &e#recipe#")
+                                File.getMessage()
+                                        .getString("crafting.editor_discarded",
+                                                "&7Changes discarded for recipe: &e#recipe#")
                                         .replace("#recipe#", recipeName)));
                     }
                     RecipeEditorGUI.cleanupBackup(player.getUniqueId());
