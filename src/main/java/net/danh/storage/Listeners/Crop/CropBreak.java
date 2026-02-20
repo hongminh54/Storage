@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,7 +26,6 @@ import java.util.Map;
  * Listens for crop block break events and stores drops in CropStorage.
  * Mirrors BlockBreak logic but specifically for vanilla crop harvesting.
  */
-//TODO: Fix kelp harvesting errors underwater
 public class CropBreak implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -114,7 +114,7 @@ public class CropBreak implements Listener {
             }
 
             // Remove the scanned column blocks without dropping items.
-            removeTallColumnBlocks(scanStart);
+            removeTallColumnBlocks(scanStart, columnCount, block, canDisableDrops);
 
             if (canDisableDrops) {
                 e.setDropItems(false);
@@ -162,7 +162,7 @@ public class CropBreak implements Listener {
     }
 
     private boolean isTallColumnCrop(@NotNull Material blockType,
-                                     @NotNull String dropItem) {
+            @NotNull String dropItem) {
         String upper = dropItem.toUpperCase();
         if ("SUGAR_CANE".equals(upper) || "CACTUS".equals(upper) || "BAMBOO".equals(upper)) {
             return true;
@@ -196,7 +196,7 @@ public class CropBreak implements Listener {
     }
 
     private boolean isSameTallCropType(@NotNull Material reference,
-                                       @NotNull Material candidate) {
+            @NotNull Material candidate) {
         // Kelp: both KELP and KELP_PLANT are part of the same column.
         if (reference.name().equalsIgnoreCase("KELP") || reference.name().equalsIgnoreCase("KELP_PLANT")) {
             return candidate.name().equalsIgnoreCase("KELP")
@@ -227,28 +227,39 @@ public class CropBreak implements Listener {
         return count;
     }
 
-    private void removeTallColumnBlocks(@NotNull Block start) {
-        Material type = start.getType();
-        for (int i = 0; i < 256; i++) {
+    private void removeTallColumnBlocks(@NotNull Block start, int count, @NotNull Block brokenBlock,
+            boolean canDisableDrops) {
+        for (int i = count - 1; i >= 0; i--) {
             Block b = start.getRelative(0, i, 0);
-            Material t = b.getType();
-
-            boolean matches;
-            if (type.name().equalsIgnoreCase("KELP") || type.name().equalsIgnoreCase("KELP_PLANT")) {
-                matches = t.name().equalsIgnoreCase("KELP") || t.name().equalsIgnoreCase("KELP_PLANT");
-            } else {
-                matches = t == type;
+            if (canDisableDrops && b.equals(brokenBlock)) {
+                continue;
             }
 
-            if (!matches) {
-                break;
-            }
             setBlockToAirNoDrops(b);
         }
     }
 
     private void setBlockToAirNoDrops(@NotNull Block block) {
         try {
+            String name = block.getType().name();
+            // Kelp and seagrass are water blocks
+            if (name.contains("KELP") || name.equals("SEAGRASS") || name.equals("TALL_SEAGRASS")) {
+                block.setType(Material.valueOf("WATER"), false);
+                return;
+            }
+
+            // Check if block is waterlogged (1.13+)
+            try {
+                BlockData data = block.getBlockData();
+                if (data instanceof Waterlogged) {
+                    if (((Waterlogged) data).isWaterlogged()) {
+                        block.setType(Material.valueOf("WATER"), false);
+                        return;
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+
             // 1.13+ has setType(Material, boolean) to control physics
             block.setType(Material.AIR, false);
         } catch (Throwable ignored) {
@@ -257,8 +268,8 @@ public class CropBreak implements Listener {
     }
 
     private void dropExtraDrops(@NotNull Block block,
-                                @NotNull Player player,
-                                Material mainDrop) {
+            @NotNull Player player,
+            Material mainDrop) {
         if (mainDrop == null) {
             return;
         }
