@@ -42,13 +42,13 @@ public class Sell {
         int amount = MineManager.getPlayerBlock(p, getMaterialData());
         if (this.amount > 0) {
             if (amount >= this.amount) {
-                if (MineManager.removeBlockAmount(p, getMaterialData(), this.amount)) {
-                    ConfigurationSection section = config.getConfigurationSection("worth");
-                    if (section != null) {
-                        String worthKey = resolveWorthKey(section, getMaterialData());
-                        if (worthKey != null) {
-                            double worth = section.getDouble(worthKey);
-                            if (worth > 0) {
+                ConfigurationSection section = config.getConfigurationSection("worth");
+                if (section != null) {
+                    String worthKey = resolveWorthKey(section, getMaterialData());
+                    if (worthKey != null) {
+                        double worth = section.getDouble(worthKey);
+                        if (worth > 0) {
+                            if (MineManager.removeBlockAmount(p, getMaterialData(), this.amount)) {
                                 double money = worth * this.amount;
                                 String money_round_up = roundWithDecimalFormat(money);
                                 double m_ru = Double.parseDouble(money_round_up);
@@ -65,18 +65,19 @@ public class Sell {
                                         .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                             } else {
                                 p.sendMessage(ChatUtils
-                                        .colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
+                                        .colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
                             }
                         } else {
                             p.sendMessage(ChatUtils
-                                    .colorize(File.getMessage().getString("user.action.sell.item_not_sellable")));
+                                    .colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                         }
                     } else {
-                        p.sendMessage(
-                                ChatUtils.colorize(File.getMessage().getString("user.action.sell.no_worth_config")));
+                        p.sendMessage(ChatUtils
+                                .colorize(File.getMessage().getString("user.action.sell.item_not_sellable")));
                     }
                 } else {
-                    p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
+                    p.sendMessage(
+                            ChatUtils.colorize(File.getMessage().getString("user.action.sell.no_worth_config")));
                 }
             } else {
                 p.sendMessage(
@@ -84,13 +85,13 @@ public class Sell {
                                 .replace("<amount>", String.valueOf(amount))));
             }
         } else {
-            if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
-                ConfigurationSection section = config.getConfigurationSection("worth");
-                if (section != null) {
-                    String worthKey = resolveWorthKey(section, getMaterialData());
-                    if (worthKey != null) {
-                        double worth = section.getDouble(worthKey);
-                        if (worth > 0) {
+            ConfigurationSection section = config.getConfigurationSection("worth");
+            if (section != null) {
+                String worthKey = resolveWorthKey(section, getMaterialData());
+                if (worthKey != null) {
+                    double worth = section.getDouble(worthKey);
+                    if (worth > 0) {
+                        if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                             double money = worth * amount;
                             String money_round_up = roundWithDecimalFormat(money);
                             double m_ru = Double.parseDouble(money_round_up);
@@ -106,18 +107,19 @@ public class Sell {
                                                     String.valueOf(MineManager.getPlayerBlock(p, getMaterialData())))
                                             .replace("#max_storage#", String.valueOf(MineManager.getMaxBlock(p)))));
                         } else {
-                            p.sendMessage(
-                                    ChatUtils.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
+                            p.sendMessage(ChatUtils
+                                    .colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
                         }
                     } else {
                         p.sendMessage(
-                                ChatUtils.colorize(File.getMessage().getString("user.action.sell.item_not_sellable")));
+                                ChatUtils.colorize(File.getMessage().getString("user.action.sell.can_not_sell")));
                     }
                 } else {
-                    p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.no_worth_config")));
+                    p.sendMessage(
+                            ChatUtils.colorize(File.getMessage().getString("user.action.sell.item_not_sellable")));
                 }
             } else {
-                p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.failed_to_remove")));
+                p.sendMessage(ChatUtils.colorize(File.getMessage().getString("user.action.sell.no_worth_config")));
             }
         }
     }
