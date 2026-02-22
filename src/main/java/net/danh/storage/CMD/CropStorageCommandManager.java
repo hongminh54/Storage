@@ -3,10 +3,7 @@ package net.danh.storage.CMD;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.CMD.handler.CommandHandler;
 import net.danh.storage.CMD.handler.crop.admin.*;
-import net.danh.storage.CMD.handler.crop.user.CropGroundStoreCommand;
-import net.danh.storage.CMD.handler.crop.user.CropHelpCommand;
-import net.danh.storage.CMD.handler.crop.user.CropToggleCommand;
-import net.danh.storage.CMD.handler.crop.user.CropViewCommand;
+import net.danh.storage.CMD.handler.crop.user.*;
 import net.danh.storage.GUI.Crop.CropStorageGUI;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import org.bukkit.command.CommandSender;
@@ -30,6 +27,10 @@ public class CropStorageCommandManager extends BaseCommand {
         registerCommand("groundstore", new CropGroundStoreCommand());
         registerCommand("view", new CropViewCommand());
         registerCommand("help", new CropHelpCommand());
+        registerCommand("deposit", new CropDepositCommand());
+        registerCommand("withdraw", new CropWithdrawCommand());
+        registerCommand("sell", new CropSellCommand());
+        registerCommand("status", new CropStatusCommand());
 
         // Admin commands
         registerCommand("add", new CropAddCommand());

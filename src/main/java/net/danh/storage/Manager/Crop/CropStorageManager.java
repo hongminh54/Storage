@@ -1,5 +1,6 @@
 package net.danh.storage.Manager.Crop;
 
+import net.danh.storage.API.events.*;
 import net.danh.storage.Database.PlayerData;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -27,6 +28,47 @@ public class CropStorageManager {
     private static List<String> configuredDrops = new ArrayList<>();
     private static List<String> invalidItems = new ArrayList<>();
     private static boolean systemEnabled = false;
+
+    @NotNull
+    public static String getSellableSymbol(@NotNull String itemName) {
+        String normalized = itemName.replace(":", ";").toUpperCase();
+
+        ConfigurationSection worthSection = File.getCropStorageConfig().getConfigurationSection("worth");
+        if (worthSection == null) {
+            return File.getMessage().getString("cropstorage.sellable.no", "&c✘");
+        }
+
+        String worthKey = resolveWorthKey(worthSection, normalized);
+        if (worthKey == null) {
+            return File.getMessage().getString("cropstorage.sellable.no", "&c✘");
+        }
+
+        boolean sellable = worthSection.getDouble(worthKey) > 0;
+        return File.getMessage().getString(
+                sellable ? "cropstorage.sellable.yes" : "cropstorage.sellable.no",
+                sellable ? "&a✔" : "&c✘"
+        ).replace("#item#", itemName);
+    }
+
+    private static String resolveWorthKey(@NotNull ConfigurationSection section, @NotNull String itemKey) {
+        if (section.contains(itemKey)) {
+            return itemKey;
+        }
+
+        if (itemKey.endsWith(";0")) {
+            String noData = itemKey.substring(0, itemKey.length() - 2);
+            if (section.contains(noData)) {
+                return noData;
+            }
+        }
+
+        String withZero = itemKey + ";0";
+        if (section.contains(withZero)) {
+            return withZero;
+        }
+
+        return null;
+    }
 
     public static void initialize() {
         Storage.getStorage().getLogger().info("[CropStorage] Initializing CropStorage feature...");
@@ -107,11 +149,29 @@ public class CropStorageManager {
     }
 
     public static boolean toggleGroundStore(@NotNull Player player) {
+        return toggleGroundStore(player, false);
+    }
+
+    public static boolean toggleGroundStore(@NotNull Player player, boolean fireEvent) {
         boolean current = isGroundStoreEnabled(player);
         boolean next = !current;
-        groundStoreToggle.put(player.getUniqueId(), next);
-        savePlayerData(player);
+
+        if (fireEvent) {
+            CropStorageGroundStoreToggleEvent event = new CropStorageGroundStoreToggleEvent(player, next);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return current;
+            }
+            next = event.getNewState();
+        }
+
+        setGroundStoreEnabled(player, next);
         return next;
+    }
+
+    public static void setGroundStoreEnabled(@NotNull Player player, boolean enabled) {
+        groundStoreToggle.put(player.getUniqueId(), enabled);
+        savePlayerData(player);
     }
 
     public static boolean isGroundStoreItemAllowed(@NotNull String itemName) {
@@ -349,6 +409,24 @@ public class CropStorageManager {
         toggle.put(player.getUniqueId(), status);
     }
 
+    public static boolean setToggleStatus(@NotNull Player player, boolean status, boolean fireEvent) {
+        boolean current = getToggleStatus(player);
+        boolean next = status;
+
+        if (fireEvent) {
+            CropStorageToggleEvent event = new CropStorageToggleEvent(player, next);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return current;
+            }
+            next = event.getNewState();
+        }
+
+        toggle.put(player.getUniqueId(), next);
+        savePlayerData(player);
+        return next;
+    }
+
     public static boolean isAutoPickupEnabledForItem(@NotNull Player player,
                                                      @NotNull String itemName) {
         if (!getToggleStatus(player)) {
@@ -372,27 +450,48 @@ public class CropStorageManager {
 
     public static boolean toggleItemAutoPickup(@NotNull Player player,
                                                @NotNull String itemName) {
+        return toggleItemAutoPickup(player, itemName, false);
+    }
+
+    public static boolean toggleItemAutoPickup(@NotNull Player player,
+                                               @NotNull String itemName,
+                                               boolean fireEvent) {
         String playerName = player.getName();
         String upperItem = itemName.toUpperCase();
+
+        if (!isConfiguredDrop(upperItem)) {
+            return isAutoPickupEnabledForItem(player, upperItem);
+        }
+
+        boolean currentEnabled = isAutoPickupEnabledForItem(player, upperItem);
+        boolean nextEnabled = !currentEnabled;
+
+        if (fireEvent) {
+            CropStorageItemToggleEvent event = new CropStorageItemToggleEvent(player, upperItem, nextEnabled);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return currentEnabled;
+            }
+            nextEnabled = event.getNewState();
+        }
+
         Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
         if (disabledItems == null) {
             disabledItems = new HashSet<>();
             disabledAutoPickupItems.put(playerName, disabledItems);
         }
 
-        if (disabledItems.contains(upperItem)) {
+        if (nextEnabled) {
             disabledItems.remove(upperItem);
-            savePlayerData(player);
-            return true;
+        } else {
+            disabledItems.add(upperItem);
         }
-
-        disabledItems.add(upperItem);
         savePlayerData(player);
-        return false;
+        return nextEnabled;
     }
 
     public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
-        return addItemAmount(player, itemName, amount, true);
+        return addItemAmount(player, itemName, amount, false);
     }
 
     public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount,
@@ -400,23 +499,35 @@ public class CropStorageManager {
         if (!isSystemEnabled() || !isConfiguredDrop(itemName) || amount <= 0)
             return false;
 
+        int requestedAmount = amount;
+        if (fireEvent) {
+            CropStorageDepositEvent event = new CropStorageDepositEvent(player, itemName.toUpperCase(), amount);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return false;
+            }
+            requestedAmount = event.getAmount();
+            if (requestedAmount <= 0) {
+                return false;
+            }
+        }
+
         String key = player.getName() + "_crop_" + itemName.toUpperCase();
         int current = playerdata.getOrDefault(key, 0);
         int max = getMaxStorage(player);
         if (current >= max)
             return false;
 
-        int amountToAdd = Math.min(amount, max - current);
+        int amountToAdd = Math.min(requestedAmount, max - current);
         if (amountToAdd <= 0)
             return false;
 
-        // Note: No custom event for CropStorage in MVP
         playerdata.put(key, current + amountToAdd);
         return true;
     }
 
     public static boolean removeItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
-        return removeItemAmount(player, itemName, amount, true);
+        return removeItemAmount(player, itemName, amount, false);
     }
 
     public static boolean removeItemAmount(@NotNull Player player, @NotNull String itemName, int amount,
@@ -424,12 +535,25 @@ public class CropStorageManager {
         if (!isSystemEnabled() || amount <= 0)
             return false;
 
+        int requestedAmount = amount;
+        if (fireEvent) {
+            CropStorageWithdrawEvent event = new CropStorageWithdrawEvent(player, itemName.toUpperCase(), amount);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return false;
+            }
+            requestedAmount = event.getAmount();
+            if (requestedAmount <= 0) {
+                return false;
+            }
+        }
+
         String key = player.getName() + "_crop_" + itemName.toUpperCase();
         int current = playerdata.getOrDefault(key, 0);
-        if (current < amount)
+        if (current < requestedAmount)
             return false;
 
-        int amountToRemove = amount;
+        int amountToRemove = requestedAmount;
         int newValue = current - amountToRemove;
         if (newValue <= 0) {
             playerdata.remove(key);
@@ -744,7 +868,43 @@ public class CropStorageManager {
     }
 
     public static int getMaxStorage(@NotNull String playerName) {
-        return File.getCropStorageConfig().getInt("settings.default_max_storage", 100000);
+        int defaultMax = File.getCropStorageConfig().getInt("settings.default_max_storage", 100000);
+
+        PlayerData data = Storage.dataStorage.getData(playerName);
+        if (data == null) {
+            return defaultMax;
+        }
+
+        Integer overrideMax = null;
+        String rawData = data.getData();
+        if (rawData != null && !rawData.isEmpty()) {
+            int idx = rawData.indexOf(MAX_OVERRIDE_DATA_PREFIX);
+            if (idx >= 0) {
+                int start = idx + MAX_OVERRIDE_DATA_PREFIX.length();
+                int end = rawData.indexOf(';', start);
+                String raw = end >= 0
+                        ? rawData.substring(start, end)
+                        : rawData.substring(start);
+                raw = raw.trim();
+                try {
+                    overrideMax = Integer.parseInt(raw);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        if (overrideMax != null) {
+            return Math.max(0, overrideMax);
+        }
+
+        int databaseMax = Math.max(0, data.getMax());
+        int permissionMaxFallback = Math.max(0, defaultMax);
+        int resolved = File.resolveMaxStorage(
+                File.getCropStorageConfig(),
+                "settings.max_storage_mode",
+                databaseMax,
+                permissionMaxFallback);
+        return Math.max(0, resolved);
     }
 
     public static boolean loadOfflinePlayerData(@NotNull String playerName) {

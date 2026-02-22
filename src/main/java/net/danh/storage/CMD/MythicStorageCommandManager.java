@@ -27,6 +27,8 @@ public class MythicStorageCommandManager extends BaseCommand {
         registerCommand("groundstore", new MythicGroundStoreCommand());
         registerCommand("view", new MythicViewCommand());
         registerCommand("transfer", new MythicTransferCommand());
+        registerCommand("deposit", new MythicDepositCommand());
+        registerCommand("withdraw", new MythicWithdrawCommand());
         registerCommand("help", new MythicHelpCommand());
 
         // Admin commands

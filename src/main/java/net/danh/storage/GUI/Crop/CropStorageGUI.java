@@ -137,6 +137,8 @@ public class CropStorageGUI implements IGUI {
                                 String displayName = CropStorageManager.getItemDisplayName(itemName);
                                 meta.setDisplayName(ChatUtils.colorizewp(displayName));
 
+                                String sellable = CropStorageManager.getSellableSymbol(itemName);
+
                                 List<String> lore = new ArrayList<>();
                                 for (String line : config.getStringList("items.crop_item.lore")) {
                                     lore.add(ChatUtils.colorizewp(line
@@ -145,7 +147,8 @@ public class CropStorageGUI implements IGUI {
                                             .replace("#max_storage#",
                                                     String.valueOf(maxStorage))
                                             .replace("#autopickup_status#",
-                                                    autopickupStatus)));
+                                                    autopickupStatus)
+                                            .replace("#sellable#", sellable)));
                                 }
 
                                 meta.setLore(lore);
@@ -277,9 +280,16 @@ public class CropStorageGUI implements IGUI {
 
                                     boolean currentStatus = CropStorageManager.getToggleStatus(p);
                                     boolean newStatus = !currentStatus;
-                                    CropStorageManager.setToggleStatus(p, newStatus);
+                                    boolean applied = CropStorageManager.setToggleStatus(p, newStatus, true);
 
-                                    String message = newStatus
+                                    if (applied == currentStatus) {
+                                        SoundManager.setShouldPlayCloseSound(p, false);
+                                        p.openInventory(
+                                                new CropStorageGUI(p, currentPage).getInventory(SoundContext.SILENT));
+                                        return;
+                                    }
+
+                                    String message = applied
                                             ? File.getMessage().getString("cropstorage.toggle_enabled",
                                             "&aAuto-pickup enabled!")
                                             : File.getMessage().getString("cropstorage.toggle_disabled",
@@ -327,8 +337,15 @@ public class CropStorageGUI implements IGUI {
                                         return;
                                     }
 
-                                    boolean enabled = CropStorageManager
-                                            .toggleGroundStore(p);
+                                    boolean before = CropStorageManager.isGroundStoreEnabled(p);
+                                    boolean enabled = CropStorageManager.toggleGroundStore(p, true);
+                                    if (enabled == before) {
+                                        SoundManager.setShouldPlayCloseSound(p, false);
+                                        p.openInventory(
+                                                new CropStorageGUI(
+                                                        p, currentPage).getInventory(SoundContext.SILENT));
+                                        return;
+                                    }
                                     String key = enabled
                                             ? "cropstorage.ground_store_toggle_on"
                                             : "cropstorage.ground_store_toggle_off";
@@ -358,7 +375,7 @@ public class CropStorageGUI implements IGUI {
 
     private void handleItemClick(Player player, String itemName, ClickType clickType) {
         if (clickType == ClickType.DROP) {
-            boolean enabled = CropStorageManager.toggleItemAutoPickup(player, itemName);
+            boolean enabled = CropStorageManager.toggleItemAutoPickup(player, itemName, true);
             String status = enabled
                     ? ChatUtils.colorizewp(
                     File.getMessage().getString("cropstorage.status_enabled", "&aEnabled"))

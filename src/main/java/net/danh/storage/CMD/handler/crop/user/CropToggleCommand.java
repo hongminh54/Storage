@@ -26,10 +26,12 @@ public class CropToggleCommand extends CropCommand {
         boolean currentStatus = CropStorageManager.getToggleStatus(player);
         boolean newStatus = !currentStatus;
 
-        CropStorageManager.setToggleStatus(player, newStatus);
-        CropStorageManager.savePlayerData(player);
+        boolean applied = CropStorageManager.setToggleStatus(player, newStatus, true);
+        if (applied == currentStatus) {
+            return;
+        }
 
-        String messageKey = newStatus ? "toggle_enabled" : "toggle_disabled";
+        String messageKey = applied ? "toggle_enabled" : "toggle_disabled";
         sendMessage(sender, messageKey);
     }
 

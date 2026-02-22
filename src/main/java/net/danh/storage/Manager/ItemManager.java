@@ -30,6 +30,50 @@ public class ItemManager {
     private static final Method MATERIAL_IS_ITEM = resolveMaterialIsItem();
     private static final Set<String> INVALID_MATERIAL_LOGGED = new HashSet<>();
 
+    private static String getStorageSellableSymbol(String materialData) {
+        ConfigurationSection worthSection = File.getConfig().getConfigurationSection("worth");
+        if (worthSection == null || materialData == null || materialData.trim().isEmpty()) {
+            return File.getMessage().getString("user.sellable.no", "&c✘");
+        }
+
+        String worthKey = resolveWorthKey(worthSection, materialData);
+        if (worthKey == null) {
+            return File.getMessage().getString("user.sellable.no", "&c✘");
+        }
+
+        boolean sellable = worthSection.getDouble(worthKey) > 0;
+        return File.getMessage().getString(
+                sellable ? "user.sellable.yes" : "user.sellable.no",
+                sellable ? "&a✔" : "&c✘"
+        );
+    }
+
+    private static String resolveWorthKey(ConfigurationSection section, String materialData) {
+        if (section == null || materialData == null) {
+            return null;
+        }
+
+        String normalized = materialData.replace(":", ";");
+
+        if (section.contains(normalized)) {
+            return normalized;
+        }
+
+        if (normalized.endsWith(";0")) {
+            String noData = normalized.substring(0, normalized.length() - 2);
+            if (section.contains(noData)) {
+                return noData;
+            }
+        }
+
+        String withZero = normalized + ";0";
+        if (section.contains(withZero)) {
+            return withZero;
+        }
+
+        return null;
+    }
+
     private static Method resolveMaterialIsItem() {
         try {
             return Material.class.getMethod("isItem");
@@ -196,7 +240,8 @@ public class ItemManager {
         return applyPlaceholders(p, item, section.getStringList("lore"), section.getString("name"),
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)),
                 "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)),
-                "#material#", materialName);
+                "#material#", materialName,
+                "#sellable#", getStorageSellableSymbol(material));
     }
 
     public static String getStatus(Player p) {
@@ -219,7 +264,8 @@ public class ItemManager {
 
         return applyPlaceholders(p, item, section.getStringList("lore"), name,
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)),
-                "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)));
+                "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)),
+                "#sellable#", getStorageSellableSymbol(material));
     }
 
     public static ItemStack getItemConfig(String playerName, String material, String name, ConfigurationSection section) {
@@ -228,7 +274,8 @@ public class ItemManager {
 
         return applyPlaceholders(null, item, section.getStringList("lore"), name,
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(playerName, material)),
-                "#max_storage#", String.valueOf(MineManager.getMaxStorage(playerName)));
+                "#max_storage#", String.valueOf(MineManager.getMaxStorage(playerName)),
+                "#sellable#", getStorageSellableSymbol(material));
     }
 
     public static ItemStack getItemConfigWithPlaceholders(Player p, ConfigurationSection section, String... placeholders) {
@@ -242,13 +289,15 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, material.split(";")[0]);
         if (item == null) return null;
 
-        int baseLength = 4;
+        int baseLength = 6;
         int extraLength = placeholders == null ? 0 : placeholders.length;
         String[] merged = new String[baseLength + extraLength];
         merged[0] = "#item_amount#";
         merged[1] = String.valueOf(MineManager.getPlayerBlock(p, material));
         merged[2] = "#max_storage#";
         merged[3] = String.valueOf(MineManager.getMaxBlock(p));
+        merged[4] = "#sellable#";
+        merged[5] = getStorageSellableSymbol(material);
         if (extraLength > 0) {
             System.arraycopy(placeholders, 0, merged, baseLength, extraLength);
         }

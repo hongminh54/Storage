@@ -53,6 +53,7 @@ items:
       - "&a#item_amount#&f/&e#max_storage# &fItems"
       - "&7 "
       - "&aStatus: #autopickup_status#"
+      - "&aSellable: #sellable#"
       - "&7 "
       - "&ePress Q &6(Drop key)&e: &fToggle auto-pickup for this item"
     # Amount of item

@@ -179,10 +179,13 @@ public class ViewCropStorageGUI implements IGUI {
                         String displayName = CropStorageManager.getItemDisplayName(itemName);
                         meta.setDisplayName(ChatUtils.colorizewp(displayName));
 
+                        String sellable = CropStorageManager.getSellableSymbol(itemName);
+
                         List<String> lore = new ArrayList<>();
                         for (String line : config.getStringList("items.crop_item.lore")) {
                             lore.add(ChatUtils.colorizewp(line.replace("#item_amount#", String.valueOf(amount))
-                                    .replace("#max_storage#", String.valueOf(maxStorage))));
+                                    .replace("#max_storage#", String.valueOf(maxStorage))
+                                    .replace("#sellable#", sellable)));
                         }
 
                         meta.setLore(lore);

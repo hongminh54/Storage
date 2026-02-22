@@ -162,7 +162,7 @@ public class CropBreak implements Listener {
     }
 
     private boolean isTallColumnCrop(@NotNull Material blockType,
-            @NotNull String dropItem) {
+                                     @NotNull String dropItem) {
         String upper = dropItem.toUpperCase();
         if ("SUGAR_CANE".equals(upper) || "CACTUS".equals(upper) || "BAMBOO".equals(upper)) {
             return true;
@@ -196,7 +196,7 @@ public class CropBreak implements Listener {
     }
 
     private boolean isSameTallCropType(@NotNull Material reference,
-            @NotNull Material candidate) {
+                                       @NotNull Material candidate) {
         // Kelp: both KELP and KELP_PLANT are part of the same column.
         if (reference.name().equalsIgnoreCase("KELP") || reference.name().equalsIgnoreCase("KELP_PLANT")) {
             return candidate.name().equalsIgnoreCase("KELP")
@@ -228,7 +228,7 @@ public class CropBreak implements Listener {
     }
 
     private void removeTallColumnBlocks(@NotNull Block start, int count, @NotNull Block brokenBlock,
-            boolean canDisableDrops) {
+                                        boolean canDisableDrops) {
         for (int i = count - 1; i >= 0; i--) {
             Block b = start.getRelative(0, i, 0);
             if (canDisableDrops && b.equals(brokenBlock)) {
@@ -268,8 +268,8 @@ public class CropBreak implements Listener {
     }
 
     private void dropExtraDrops(@NotNull Block block,
-            @NotNull Player player,
-            Material mainDrop) {
+                                @NotNull Player player,
+                                Material mainDrop) {
         if (mainDrop == null) {
             return;
         }

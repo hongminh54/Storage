@@ -33,7 +33,7 @@ public class CropGroundStoreCommand extends CropCommand {
             return;
         }
 
-        boolean enabled = CropStorageManager.toggleGroundStore(player);
+        boolean enabled = CropStorageManager.toggleGroundStore(player, true);
         sendMessage(sender, enabled
                 ? "ground_store_toggle_on"
                 : "ground_store_toggle_off");

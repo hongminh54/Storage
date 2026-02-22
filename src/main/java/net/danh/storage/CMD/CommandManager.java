@@ -24,6 +24,9 @@ public class CommandManager {
         registerCommand("groundstore", new GroundStoreCommand());
         registerCommand("view", new ViewCommand());
         registerCommand("transfer", new TransferCommand());
+        registerCommand("deposit", new DepositCommand());
+        registerCommand("withdraw", new WithdrawCommand());
+        registerCommand("sell", new SellCommand());
         registerCommand("convert", new ConvertOreCommand());
         registerCommand("craft", new CraftCommand());
 

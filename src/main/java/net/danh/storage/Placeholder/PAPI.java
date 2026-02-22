@@ -68,6 +68,10 @@ public class PAPI extends PlaceholderExpansion {
     public @Nullable String onPlaceholderRequest(Player p, @NotNull String args) {
         if (p == null) return null;
 
+        if (args.startsWith("sellable")) {
+            return handleSellablePlaceholders(args);
+        }
+
         if (args.startsWith("page_")) {
             return handlePagePlaceholders(p, args.substring(5));
         }
@@ -103,6 +107,10 @@ public class PAPI extends PlaceholderExpansion {
             }
 
             return String.valueOf(MineManager.getPlayerBlock(p, item));
+        }
+
+        if (args.startsWith("crop_sellable")) {
+            return handleCropSellablePlaceholders(args.substring("crop_sellable".length()));
         }
 
         if (args.equalsIgnoreCase("max_storage")) {
@@ -143,6 +151,102 @@ public class PAPI extends PlaceholderExpansion {
         // Storage Leaderboard Placeholders
         if (args.startsWith("top_")) {
             return handleStorageLeaderboardPlaceholders(args);
+        }
+
+        return null;
+    }
+
+    private String handleSellablePlaceholders(@NotNull String args) {
+        if (args.equalsIgnoreCase("sellable")) {
+            return getSellableSymbol(null, null, false);
+        }
+
+        if (args.startsWith("sellable_")) {
+            String rawItem = args.substring("sellable_".length());
+            String itemKey = normalizeWorthKey(rawItem);
+            boolean sellable = isStorageWorthSellable(itemKey);
+            return getSellableSymbol(itemKey, rawItem, sellable);
+        }
+
+        return null;
+    }
+
+    private String handleCropSellablePlaceholders(@NotNull String suffix) {
+        if (suffix.isEmpty()) {
+            return getCropSellableSymbol(null, null, false);
+        }
+
+        if (suffix.startsWith("_")) {
+            String rawItem = suffix.substring(1);
+            String itemKey = normalizeWorthKey(rawItem);
+            boolean sellable = isCropWorthSellable(itemKey);
+            return getCropSellableSymbol(itemKey, rawItem, sellable);
+        }
+
+        return null;
+    }
+
+    private boolean isStorageWorthSellable(@NotNull String itemKey) {
+        ConfigurationSection section = File.getConfig().getConfigurationSection("worth");
+        if (section == null) {
+            return false;
+        }
+        String worthKey = resolveWorthKey(section, itemKey);
+        if (worthKey == null) {
+            return false;
+        }
+        return section.getDouble(worthKey) > 0;
+    }
+
+    private boolean isCropWorthSellable(@NotNull String itemKey) {
+        ConfigurationSection section = File.getCropStorageConfig().getConfigurationSection("worth");
+        if (section == null) {
+            return false;
+        }
+        String worthKey = resolveWorthKey(section, itemKey);
+        if (worthKey == null) {
+            return false;
+        }
+        return section.getDouble(worthKey) > 0;
+    }
+
+    private String getSellableSymbol(@Nullable String itemKey, @Nullable String rawItem, boolean sellable) {
+        String key = sellable ? "user.sellable.yes" : "user.sellable.no";
+        String value = File.getMessage().getString(key, sellable ? "&a✔" : "&c✘");
+        if (rawItem != null) {
+            value = value.replace("#item#", rawItem);
+        }
+        return value;
+    }
+
+    private String getCropSellableSymbol(@Nullable String itemKey, @Nullable String rawItem, boolean sellable) {
+        String key = sellable ? "cropstorage.sellable.yes" : "cropstorage.sellable.no";
+        String value = File.getMessage().getString(key, sellable ? "&a✔" : "&c✘");
+        if (rawItem != null) {
+            value = value.replace("#item#", rawItem);
+        }
+        return value;
+    }
+
+    private String normalizeWorthKey(@NotNull String rawItem) {
+        return rawItem.replace(":", ";");
+    }
+
+    private String resolveWorthKey(@NotNull ConfigurationSection section, @NotNull String materialData) {
+        if (section.contains(materialData)) {
+            return materialData;
+        }
+
+        if (materialData.endsWith(";0")) {
+            String noData = materialData.substring(0, materialData.length() - 2);
+            if (section.contains(noData)) {
+                return noData;
+            }
+        }
+
+        String withZero = materialData + ";0";
+        if (section.contains(withZero)) {
+            return withZero;
         }
 
         return null;

@@ -1,10 +1,12 @@
 package net.danh.storage.Action;
 
+import net.danh.storage.API.events.CropStorageSellEvent;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -88,7 +90,43 @@ public class CropSell {
             return;
         }
 
-        if (!CropStorageManager.removeItemAmount(player, itemName, (int) sellAmount)) {
+        int requestedAmount;
+        if (sellAmount > Integer.MAX_VALUE) {
+            requestedAmount = Integer.MAX_VALUE;
+        } else {
+            requestedAmount = (int) sellAmount;
+        }
+
+        CropStorageSellEvent event = new CropStorageSellEvent(player, itemName.toUpperCase(), requestedAmount, worth);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        requestedAmount = event.getAmount();
+        if (requestedAmount <= 0) {
+            return;
+        }
+        worth = event.getWorthPerItem();
+        if (worth <= 0) {
+            String msg = File.getMessage().getString(
+                    "cropstorage.action.sell.can_not_sell",
+                    "#prefix# &cThis item can't be sell"
+            );
+            player.sendMessage(ChatUtils.colorizewp(msg));
+            return;
+        }
+
+        if (current < requestedAmount) {
+            String msg = File.getMessage().getString(
+                    "cropstorage.action.sell.not_enough",
+                    "#prefix# &cYou haven't enough item, you only have <amount>"
+            ).replace("<amount>", String.valueOf(current));
+            player.sendMessage(ChatUtils.colorizewp(msg));
+            return;
+        }
+
+        if (!CropStorageManager.removeItemAmount(player, itemName, requestedAmount, false)) {
             String msg = File.getMessage().getString(
                     "cropstorage.action.sell.failed_to_remove",
                     "#prefix# &cFailed to remove items from storage! Please try again."
@@ -97,7 +135,8 @@ public class CropSell {
             return;
         }
 
-        double money = worth * sellAmount;
+        long finalSellAmount = requestedAmount;
+        double money = worth * finalSellAmount;
         String moneyFormatted = roundWithDecimalFormat(money);
         runCommands(moneyFormatted);
 
@@ -108,7 +147,7 @@ public class CropSell {
         );
 
         msg = msg
-                .replace("#amount#", String.valueOf(sellAmount))
+                .replace("#amount#", String.valueOf(finalSellAmount))
                 .replace("#material#", displayName)
                 .replace("#player#", player.getName())
                 .replace("#money#", moneyFormatted)

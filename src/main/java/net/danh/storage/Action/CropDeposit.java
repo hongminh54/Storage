@@ -1,9 +1,11 @@
 package net.danh.storage.Action;
 
+import net.danh.storage.API.events.CropStorageDepositEvent;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -48,6 +50,25 @@ public class CropDeposit {
         long deposited = 0;
         long toDeposit = amount;
 
+        int requestedAmount;
+        if (toDeposit > Integer.MAX_VALUE) {
+            requestedAmount = Integer.MAX_VALUE;
+        } else {
+            requestedAmount = (int) toDeposit;
+        }
+
+        CropStorageDepositEvent event = new CropStorageDepositEvent(player, itemName.toUpperCase(), requestedAmount);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        requestedAmount = event.getAmount();
+        if (requestedAmount <= 0) {
+            return;
+        }
+        toDeposit = requestedAmount;
+
         for (int i = 0; i < contents.length && toDeposit > 0; i++) {
             ItemStack item = contents[i];
             if (item == null)
@@ -61,7 +82,7 @@ public class CropDeposit {
             int itemAmount = item.getAmount();
             int canDeposit = (int) Math.min(itemAmount, toDeposit);
 
-            if (CropStorageManager.addItemAmount(player, itemName, canDeposit)) {
+            if (CropStorageManager.addItemAmount(player, itemName, canDeposit, false)) {
                 if (canDeposit == itemAmount) {
                     contents[i] = null;
                 } else {

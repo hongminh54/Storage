@@ -153,7 +153,7 @@ public class Sell {
     }
 
     private String resolveWorthKey(@NotNull ConfigurationSection section,
-            @NotNull String materialData) {
+                                   @NotNull String materialData) {
         if (section.contains(materialData)) {
             return materialData;
         }

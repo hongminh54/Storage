@@ -1,9 +1,11 @@
 package net.danh.storage.Action;
 
+import net.danh.storage.API.events.CropStorageWithdrawEvent;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,7 +33,25 @@ public class CropWithdraw {
 
         int currentAmount = CropStorageManager.getPlayerItem(player, itemName);
 
-        if (currentAmount < amount) {
+        int requestedAmount;
+        if (amount > Integer.MAX_VALUE) {
+            requestedAmount = Integer.MAX_VALUE;
+        } else {
+            requestedAmount = (int) amount;
+        }
+
+        CropStorageWithdrawEvent event = new CropStorageWithdrawEvent(player, itemName.toUpperCase(), requestedAmount);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        requestedAmount = event.getAmount();
+        if (requestedAmount <= 0) {
+            return;
+        }
+
+        if (currentAmount < requestedAmount) {
             String message = File.getMessage().getString("cropstorage.action.withdraw.not_enough", "")
                     .replace("#amount#", String.valueOf(currentAmount));
             if (!message.isEmpty()) {
@@ -56,7 +76,7 @@ public class CropWithdraw {
         String displayName = CropStorageManager.getItemDisplayName(itemName);
 
         int withdrawn = 0;
-        int toWithdraw = (int) Math.min(amount, currentAmount);
+        int toWithdraw = Math.min(requestedAmount, currentAmount);
 
         int remaining = toWithdraw;
         while (remaining > 0) {
@@ -80,7 +100,7 @@ public class CropWithdraw {
         }
 
         if (withdrawn > 0) {
-            CropStorageManager.removeItemAmount(player, itemName, withdrawn);
+            CropStorageManager.removeItemAmount(player, itemName, withdrawn, false);
 
             if (new NMSAssistant().isVersionLessThan(9)) {
                 player.updateInventory();

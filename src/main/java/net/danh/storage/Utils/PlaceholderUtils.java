@@ -81,6 +81,7 @@ public class PlaceholderUtils {
                 "item_amount",
                 "max_storage",
                 "material",
+                "sellable",
                 "status",
                 "current_page",
                 "total_pages",
