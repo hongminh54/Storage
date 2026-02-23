@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class DepositCommand extends BaseCommand {
@@ -40,10 +39,10 @@ public class DepositCommand extends BaseCommand {
 
         long amount;
         if (args.length == 1) {
-            amount = Integer.MAX_VALUE;
+            amount = 0;
         } else {
             if ("all".equalsIgnoreCase(args[1])) {
-                amount = Integer.MAX_VALUE;
+                amount = 0;
             } else {
                 amount = Number.getLong(args[1]);
                 if (amount <= 0) {
@@ -77,7 +76,33 @@ public class DepositCommand extends BaseCommand {
         }
 
         if (args.length == 2) {
-            List<String> suggestions = Arrays.asList("all", "1", "10", "64", "100", "1000");
+            if (!(sender instanceof Player)) {
+                return completions;
+            }
+
+            Player player = (Player) sender;
+            String material = resolveMaterial(args[0]);
+            if (!MineManager.getPluginBlocks().contains(material)) {
+                return completions;
+            }
+
+            Deposit action = new Deposit(player, material, 1L);
+            int count = action.getPlayerAmount();
+            if (count <= 0) {
+                return completions;
+            }
+
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("all");
+            suggestions.add("1");
+            if (count >= 10) {
+                suggestions.add("10");
+            }
+            if (count >= 64) {
+                suggestions.add("64");
+            }
+            suggestions.add(String.valueOf(count));
+
             StringUtil.copyPartialMatches(args[1], suggestions, completions);
             return completions;
         }

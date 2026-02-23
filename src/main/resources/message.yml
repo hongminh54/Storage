@@ -63,8 +63,8 @@ user:
   unknown_number: "#prefix# &c'<number>' is not a valid number!"
   chat_input_cancelled: "&7Chat input cancelled. Returning to GUI..."
   sellable:
-    "yes": "&a✔ &7(#item#)"
-    "no": "&c✘ &7(#item#)"
+    "yes": "&a✔"
+    "no": "&c✘"
   action:
     deposit:
       full_storage: "#prefix# &cStorage has been full &8(#item_amount#/#max_storage#)&c, you can't deposit #amount# #material#!"
@@ -442,8 +442,8 @@ cropstorage:
   ground_store_no_permission: "#prefix# &cYou don't have permission to use this feature."
   item_toggle: "#prefix# &aCropStorage &bAuto-pickup for &e#item#&b: #status# &7(Note: If the feature isn't working, make sure you've turned on the /cropstorage toggle)."
   sellable:
-    "yes": "&a✔ &7(#item#)"
-    "no": "&c✘ &7(#item#)"
+    "yes": "&a✔"
+    "no": "&c✘"
   action:
     withdraw:
       chat_number: "#prefix# &aHow many items do you want to withdraw? &7(Type 'cancel' to exit)"

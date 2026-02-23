@@ -3,13 +3,14 @@ package net.danh.storage.CMD.handler.mythic.user;
 import net.danh.storage.Action.MythicDeposit;
 import net.danh.storage.CMD.handler.mythic.MythicCommand;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Utils.Number;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MythicDepositCommand extends MythicCommand {
@@ -40,10 +41,10 @@ public class MythicDepositCommand extends MythicCommand {
 
         long amount;
         if (args.length == 1) {
-            amount = Integer.MAX_VALUE;
+            amount = countEligibleItems(player, itemName);
         } else {
             if ("all".equalsIgnoreCase(args[1])) {
-                amount = Integer.MAX_VALUE;
+                amount = countEligibleItems(player, itemName);
             } else {
                 amount = Number.getLong(args[1]);
                 if (amount <= 0) {
@@ -53,7 +54,35 @@ public class MythicDepositCommand extends MythicCommand {
             }
         }
 
+        if (amount <= 0) {
+            return;
+        }
+
         new MythicDeposit(player, itemName, amount).doAction();
+    }
+
+    private long countEligibleItems(Player player, String itemName) {
+        if (player == null || itemName == null || itemName.trim().isEmpty()) {
+            return 0;
+        }
+
+        MythicMobsHelper helper = MythicStorageManager.getMythicMobsHelper();
+        if (helper == null || !helper.isInitialized()) {
+            return 0;
+        }
+
+        long count = 0;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null) {
+                continue;
+            }
+
+            String foundItemName = helper.getMythicItemInternalName(item);
+            if (foundItemName != null && foundItemName.equals(itemName)) {
+                count += item.getAmount();
+            }
+        }
+        return count;
     }
 
     @Override
@@ -66,7 +95,32 @@ public class MythicDepositCommand extends MythicCommand {
         }
 
         if (args.length == 2) {
-            List<String> suggestions = Arrays.asList("all", "1", "10", "64", "100", "1000");
+            if (!(sender instanceof Player)) {
+                return completions;
+            }
+
+            Player player = (Player) sender;
+            String itemName = args[0];
+            if (!MythicStorageManager.isConfiguredDrop(itemName)) {
+                return completions;
+            }
+
+            long count = countEligibleItems(player, itemName);
+            if (count <= 0) {
+                return completions;
+            }
+
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("all");
+            suggestions.add("1");
+            if (count >= 10) {
+                suggestions.add("10");
+            }
+            if (count >= 64) {
+                suggestions.add("64");
+            }
+            suggestions.add(String.valueOf(Math.min(count, Integer.MAX_VALUE)));
+
             StringUtil.copyPartialMatches(args[1], suggestions, completions);
             return completions;
         }
