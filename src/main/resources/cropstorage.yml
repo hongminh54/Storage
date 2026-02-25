@@ -136,6 +136,9 @@ items_drop:
   - KELP
   - BAMBOO
   - CACTUS
+  - TORCHFLOWER
+  - PITCHER_PLANT
+  - CHORUS_FRUIT
 
 # Custom display names for crop items (optional)
 # If not set, the Material name will be used with proper formatting
@@ -154,6 +157,9 @@ crop_display_names:
   KELP: "&2Kelp"
   BAMBOO: "&aBamboo"
   CACTUS: "&2Cactus"
+  TORCHFLOWER: "&#FFB645Torchflower"
+  PITCHER_PLANT: "&#5F00FCPitcher Plant"
+  CHORUS_FRUIT: "&#5745FFChorus Fruit"
 
 # Block-to-Drop mapping for crop harvesting
 # Maps the block type to the item that should be added to storage
@@ -174,3 +180,7 @@ crop_block_mapping:
   KELP_PLANT: KELP
   BAMBOO: BAMBOO
   CACTUS: CACTUS
+  TORCHFLOWER: TORCHFLOWER
+  PITCHER_PLANT: PITCHER_PLANT
+  CHORUS_PLANT: CHORUS_FRUIT
+  CHORUS_FLOWER: CHORUS_FRUIT
