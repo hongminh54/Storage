@@ -138,7 +138,17 @@ public class CropSell {
         long finalSellAmount = requestedAmount;
         double money = worth * finalSellAmount;
         String moneyFormatted = roundWithDecimalFormat(money);
-        runCommands(moneyFormatted);
+        boolean vaultRequested = config != null && "vault".equalsIgnoreCase(config.getString("sell_method", "commands"));
+        if (!payMoney(money, moneyFormatted)) {
+            runCommands(moneyFormatted);
+            if (vaultRequested) {
+                String fixed = File.getMessage().getString(
+                        "cropstorage.action.sell.payout_fixed",
+                        "#prefix# &aFixed! You have received your money."
+                );
+                player.sendMessage(ChatUtils.colorizewp(fixed.replace("#money#", moneyFormatted)));
+            }
+        }
 
         String displayName = CropStorageManager.getItemDisplayName(itemName);
         String msg = File.getMessage().getString(
@@ -174,6 +184,31 @@ public class CropSell {
                     command
             ));
         }
+    }
+
+    private boolean payMoney(double money, String moneyFormatted) {
+        if (config == null) {
+            return false;
+        }
+
+        String method = config.getString("sell_method", "commands");
+        if (!"vault".equalsIgnoreCase(method)) {
+            return false;
+        }
+
+        if (Storage.depositToVault(player, money)) {
+            return true;
+        }
+
+        Storage.getStorage().getLogger().warning(
+                "Vault payout failed for player " + player.getName() + " (" + money + ") in CropStorage. Falling back to commands."
+        );
+        String msg = File.getMessage().getString(
+                "cropstorage.action.sell.payout_error",
+                "#prefix# &cAn error occurred while processing your payment. Attempting to fix it..."
+        );
+        player.sendMessage(ChatUtils.colorizewp(msg.replace("#money#", moneyFormatted)));
+        return false;
     }
 
     private String roundWithDecimalFormat(double d) {

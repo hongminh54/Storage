@@ -25,6 +25,8 @@ import net.danh.storage.Placeholder.PAPI;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.UpdateChecker;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -32,6 +34,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -50,6 +53,9 @@ public final class Storage extends JavaPlugin {
     private static boolean MMOItems;
     private static boolean MythicLib;
 
+    private static net.milkbowl.vault2.economy.Economy vault2Economy;
+    private static Economy vaultEconomy;
+
     private static boolean debugVanillaConfigApplied;
 
     public static Storage getStorage() {
@@ -66,6 +72,40 @@ public final class Storage extends JavaPlugin {
 
     public static boolean isMythicLibInstalled() {
         return MythicLib;
+    }
+
+    public static boolean depositToVault(Player player, double money) {
+        if (player == null || money <= 0) {
+            return false;
+        }
+
+        String pluginName = getStorage() != null
+                ? getStorage().getDescription().getName()
+                : "Storage";
+
+        if (vault2Economy != null) {
+            net.milkbowl.vault2.economy.EconomyResponse response = vault2Economy.deposit(
+                    pluginName,
+                    player.getUniqueId(),
+                    java.math.BigDecimal.valueOf(money)
+            );
+            return response != null && response.type == net.milkbowl.vault2.economy.EconomyResponse.ResponseType.SUCCESS;
+        }
+
+        if (vaultEconomy != null) {
+            EconomyResponse response = vaultEconomy.depositPlayer(player, money);
+            return response != null && response.type == EconomyResponse.ResponseType.SUCCESS;
+        }
+
+        return false;
+    }
+
+    public static void refreshVaultEconomyHook() {
+        Storage plugin = getStorage();
+        if (plugin == null) {
+            return;
+        }
+        plugin.setupVaultEconomyHook();
     }
 
     public static void updateMmoitemsHookState(boolean enabled) {
@@ -134,6 +174,27 @@ public final class Storage extends JavaPlugin {
         return sb.toString();
     }
 
+    private void setupVaultEconomyHook() {
+        vault2Economy = null;
+        vaultEconomy = null;
+
+        RegisteredServiceProvider<net.milkbowl.vault2.economy.Economy> vault2 = Bukkit.getServicesManager()
+                .getRegistration(net.milkbowl.vault2.economy.Economy.class);
+        if (vault2 != null) {
+            vault2Economy = vault2.getProvider();
+        }
+
+        if (vault2Economy == null) {
+            RegisteredServiceProvider<Economy> vault1 = Bukkit.getServicesManager()
+                    .getRegistration(Economy.class);
+            vaultEconomy = vault1 != null ? vault1.getProvider() : null;
+        }
+
+        if (vault2Economy != null || vaultEconomy != null) {
+            getLogger().log(Level.INFO, "Hook with Vault economy");
+        }
+    }
+
     @Override
     public void onLoad() {
         storage = this;
@@ -188,6 +249,8 @@ public final class Storage extends JavaPlugin {
         File.updateMythicStorageConfig();
         File.updateCraftingConfig();
         File.updateCropStorageConfig();
+
+        setupVaultEconomyHook();
 
         applyDebugVanillaStorageConfigIfEnabled();
         debugVanillaConfigApplied = DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA

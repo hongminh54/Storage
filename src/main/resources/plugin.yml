@@ -14,8 +14,8 @@ softdepend:
   - MMOItems
   - MythicLib
   - PlayerPoints
+  - Vault
   - VaultUnlocked
-  - ShopGUIPlus
 
 commands:
   storage:
@@ -43,117 +43,208 @@ commands:
       - cropss
       
 permissions:
+  storage.user:
+    description: User permissions bundle
+    default: true
+    children:
+      storage.toggle: true
+      storage.groundstore: true
+      storage.transfer.use: true
+      storage.transfer.multi: true
+      storage.transfer.log: true
+      storage.enchant.use: true
+      storage.event.view: true
+      storage.craft.use: true
+      storage.mythicstorage.use: true
+      storage.mythicstorage.toggle: true
+      storage.mythicstorage.groundstore: true
+      storage.mythicstorage.transfer: true
+      storage.mythicstorage.transfer.multi: true
+      storage.mythicstorage.transfer.log: true
+      storage.cropstorage.use: true
+      storage.cropstorage.toggle: true
+      storage.cropstorage.groundstore: true
+
   storage.toggle:
     description: Toggle permission
     default: true
+
   storage.groundstore:
     description: Toggle Storage ground-store
     default: true
+
   storage.admin:
     description: Admin permission
     default: op
+    children:
+      storage.admin.add: true
+      storage.admin.remove: true
+      storage.admin.set: true
+      storage.admin.max: true
+      storage.admin.resetlimit: true
+      storage.admin.reload: true
+      storage.admin.specialmaterial: true
+      storage.admin.reset: true
+      storage.admin.enchant: true
+      storage.transfer.admin: true
+      storage.event.admin: true
+      storage.craft.admin: true
+      storage.convert: true
+      storage.view: true
+      storage.transfer.log.others: true
+      storage.mythicstorage.admin: true
+      storage.cropstorage.admin: true
+
   storage.admin.add:
     description: Admin add permission command
     default: op
+
   storage.admin.remove:
     description: Admin remove permission command
     default: op
+
   storage.admin.set:
     description: Admin set permission command
     default: op
+
   storage.admin.max:
     description: Admin max permission command
     default: op
+
   storage.admin.resetlimit:
     description: Admin reset storage max limit override
     default: op
+
   storage.admin.reload:
     description: Admin reload permission command
     default: op
+
   storage.admin.specialmaterial:
     description: Admin special material permission command
     default: op
+
   storage.admin.reset:
     description: Admin reset permission command
     default: op
+
   storage.admin.enchant:
     description: Admin enchant permission command
     default: op
+
   storage.transfer.use:
     description: Use transfer feature
     default: true
+
   storage.enchant.use:
     description: Use enchant items
     default: true
+
   storage.event.admin:
     description: Admin event management permission
     default: op
+
   storage.event.view:
     description: View event status permission
     default: true
+
   storage.transfer.multi:
     description: Use multi transfer feature
     default: true
+
   storage.transfer.log:
     description: View own transfer logs
     default: true
+
   storage.transfer.log.others:
     description: View other players transfer logs
     default: true
+
   storage.transfer.admin:
     description: Bypass transfer cooldown and limitations
     default: op
+
   storage.convert:
     description: Use convert materials feature
     default: op
+
   storage.view:
     description: View other players' storage
     default: true
+
   storage.mythicstorage.use:
     description: Use MythicMobs storage feature
     default: true
+
   storage.mythicstorage.toggle:
     description: Toggle MythicMobs auto-pickup
     default: true
+
   storage.mythicstorage.groundstore:
     description: Toggle MythicStorage ground-store
     default: true
+
   storage.mythicstorage.view:
     description: View other players' MythicMobs storage
     default: true
+
   storage.mythicstorage.admin:
     description: Admin commands for MythicMobs storage
     default: op
+    children:
+      storage.mythicstorage.use: true
+      storage.mythicstorage.toggle: true
+      storage.mythicstorage.groundstore: true
+      storage.mythicstorage.view: true
+      storage.mythicstorage.transfer: true
+      storage.mythicstorage.transfer.multi: true
+      storage.mythicstorage.transfer.log: true
+      storage.mythicstorage.transfer.log.others: true
+
   storage.mythicstorage.transfer:
     description: Transfer MythicMobs items to other players
     default: true
+
   storage.mythicstorage.transfer.multi:
     description: Transfer multiple MythicMobs items at once
     default: true
+
   storage.mythicstorage.transfer.log:
     description: View own MythicMobs transfer logs
     default: true
+
   storage.mythicstorage.transfer.log.others:
     description: View other players MythicMobs transfer logs
     default: true
+
   storage.craft.use:
     description: Use crafting feature
     default: true
+
   storage.craft.admin:
     description: Admin commands for crafting system
     default: op
+
   storage.cropstorage.use:
     description: Use crop storage feature
     default: true
+
   storage.cropstorage.toggle:
     description: Toggle crop auto-pickup
     default: true
+
   storage.cropstorage.groundstore:
     description: Toggle CropStorage ground-store
     default: true
+
   storage.cropstorage.view:
     description: View other players' crop storage
     default: true
+
   storage.cropstorage.admin:
     description: Admin commands for crop storage
     default: op
+    children:
+      storage.cropstorage.use: true
+      storage.cropstorage.toggle: true
+      storage.cropstorage.groundstore: true
+      storage.cropstorage.view: true

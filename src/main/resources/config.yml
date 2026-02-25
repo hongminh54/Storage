@@ -130,6 +130,11 @@ auto_save:
 sell:
   - "eco give #player# #money#"
 
+#Sell payout method
+# commands: Execute configured sell commands (default)
+# vault: Use Vault to deposit money. If Vault is not available, it will fallback to commands.
+sell_method: vault
+
 #Number format of worth
 number_format: "#.##"
 

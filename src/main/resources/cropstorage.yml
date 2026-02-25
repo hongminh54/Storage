@@ -28,6 +28,11 @@ tall_crops:
 sell:
   - "eco give #player# #money#"
 
+# Sell payout method
+# commands: Execute configured sell commands (default)
+# vault: Use Vault economy to deposit money. If Vault is not available, it will fallback to commands.
+sell_method: vault
+
 # Number format used for money when selling crops
 number_format: "#.##"
 

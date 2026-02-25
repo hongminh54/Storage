@@ -125,6 +125,21 @@ public class Sell {
     }
 
     public void runCommand(Double money) {
+        String method = config.getString("sell_method", "commands");
+        if ("vault".equalsIgnoreCase(method)) {
+            if (Storage.depositToVault(p, money)) {
+                return;
+            }
+
+            Storage.getStorage().getLogger().warning(
+                    "Vault payout failed for player " + p.getName() + " (" + money + "). Falling back to commands."
+            );
+            p.sendMessage(ChatUtils.colorize(File.getMessage().getString(
+                    "user.action.sell.payout_error",
+                    "#prefix# &cAn error occurred while processing your payment. Attempting to fix it..."
+            )));
+        }
+
         config.getStringList("sell").forEach(cmd -> {
             String cmd_2 = cmd.replace("#money#", roundWithDecimalFormat(money)).replace("#player#", p.getName());
             SchedulerUtil.runTask(Storage.getStorage(), () -> {
@@ -132,6 +147,13 @@ public class Sell {
                         cmd_2);
             });
         });
+
+        if ("vault".equalsIgnoreCase(method)) {
+            p.sendMessage(ChatUtils.colorize(File.getMessage().getString(
+                    "user.action.sell.payout_fixed",
+                    "#prefix# &aFixed! You have received your money."
+            )));
+        }
     }
 
     public String roundWithDecimalFormat(double d) {
