@@ -86,6 +86,9 @@ user:
       failed_to_remove: "#prefix# &cFailed to remove items from storage! Please try again."
       payout_error: "#prefix# &cAn error occurred while processing your payment. Attempting to fix it..."
       payout_fixed: "#prefix# &aFixed! You have received your money."
+      playerpoints:
+        payout_error: "#prefix# &cAn error occurred while processing your points. Attempting to fix it..."
+        payout_fixed: "#prefix# &aFixed! You have received your points."
   status:
     status_on: "&aOn"
     status_off: "&cOff"
@@ -469,6 +472,9 @@ cropstorage:
       failed_to_remove: "#prefix# &cFailed to remove items from storage! Please try again."
       payout_error: "#prefix# &cAn error occurred while processing your payment. Attempting to fix it..."
       payout_fixed: "#prefix# &aFixed! You have received your money."
+      playerpoints:
+        payout_error: "#prefix# &cAn error occurred while processing your points. Attempting to fix it..."
+        payout_fixed: "#prefix# &aFixed! You have received your points."
   user:
     status:
       - "#prefix# &dCropStorage &7Status:"

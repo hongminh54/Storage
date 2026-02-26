@@ -28,12 +28,15 @@ import net.danh.storage.Utils.UpdateChecker;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
+import org.black_ixx.playerpoints.PlayerPoints;
+import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -55,6 +58,8 @@ public final class Storage extends JavaPlugin {
 
     private static net.milkbowl.vault2.economy.Economy vault2Economy;
     private static Economy vaultEconomy;
+
+    private static PlayerPointsAPI playerPointsApi;
 
     private static boolean debugVanillaConfigApplied;
 
@@ -100,12 +105,44 @@ public final class Storage extends JavaPlugin {
         return false;
     }
 
+    public static boolean depositToPlayerPoints(Player player, double pointsAmount) {
+        if (player == null || pointsAmount <= 0) {
+            return false;
+        }
+        if (playerPointsApi == null) {
+            return false;
+        }
+
+        int points = (int) Math.round(pointsAmount);
+        if (points <= 0) {
+            return false;
+        }
+
+        try {
+            return playerPointsApi.give(player.getUniqueId(), points);
+        } catch (Throwable t) {
+            Storage plugin = getStorage();
+            if (plugin != null) {
+                plugin.getLogger().warning("PlayerPoints payout failed: " + t.getMessage());
+            }
+            return false;
+        }
+    }
+
     public static void refreshVaultEconomyHook() {
         Storage plugin = getStorage();
         if (plugin == null) {
             return;
         }
         plugin.setupVaultEconomyHook();
+    }
+
+    public static void refreshPlayerPointsHook() {
+        Storage plugin = getStorage();
+        if (plugin == null) {
+            return;
+        }
+        plugin.setupPlayerPointsHook();
     }
 
     public static void updateMmoitemsHookState(boolean enabled) {
@@ -172,6 +209,20 @@ public final class Storage extends JavaPlugin {
             }
         }
         return sb.toString();
+    }
+
+    private void setupPlayerPointsHook() {
+        playerPointsApi = null;
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("PlayerPoints");
+        if (!(plugin instanceof PlayerPoints)) {
+            return;
+        }
+
+        PlayerPoints pp = (PlayerPoints) plugin;
+        playerPointsApi = pp.getAPI();
+        if (playerPointsApi != null) {
+            getLogger().log(Level.INFO, "Hook with PlayerPoints");
+        }
     }
 
     private void setupVaultEconomyHook() {
@@ -251,6 +302,7 @@ public final class Storage extends JavaPlugin {
         File.updateCropStorageConfig();
 
         setupVaultEconomyHook();
+        setupPlayerPointsHook();
 
         applyDebugVanillaStorageConfigIfEnabled();
         debugVanillaConfigApplied = DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA

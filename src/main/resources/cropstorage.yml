@@ -24,25 +24,35 @@ settings:
 tall_crops:
   scan_mode: above_only
 
-# Commands executed when selling crops. Placeholders: #player#, #money#
+# Sell commands executed when paying via `commands` method or when fallback happens.
+# Placeholders:
+# - #player# : player name
+# - #money#  : formatted amount (see number_format)
 sell:
   - "eco give #player# #money#"
 
-# Sell payout method
-# commands: Execute configured sell commands (default)
-# vault: Use Vault economy to deposit money. If Vault is not available, it will fallback to commands.
+# Sell payout method (global default)
+# - commands: Execute configured sell commands (default)
+# - vault: Deposit money via Vault economy; fallback to commands if Vault is unavailable or fails
+# - playerpoints: Give points via PlayerPoints; fallback to commands if PlayerPoints is unavailable or fails
+#
+# Note: You can override the payout method per crop in `worth:` using "<price>;<method>".
 sell_method: vault
 
 # Number format used for money when selling crops
 number_format: "#.##"
 
 # Worth per crop item. Key supports both MATERIAL and MATERIAL;0.
+# Format:
+# - Default: <price>
+# - With per-item payout override: "<price>;<method>" where method is one of: commands | vault | playerpoints
+#   (This overrides sell_method ONLY for that crop)
 worth:
-  WHEAT: 1.4
+  WHEAT: "1.4;commands"
   CARROT: 1.2
   POTATO: 1.2
-  BEETROOT: 2.1
-  NETHER_WART: 3
+  BEETROOT: "2.1;vault"
+  NETHER_WART: "3;playerpoints"
   SUGAR_CANE: 1.2
   COCOA_BEANS: 3.4
   MELON_SLICE: 2.43

@@ -206,7 +206,10 @@ public class MineManager {
         for (String block : getPluginBlocks()) {
             mapAsString.append(block).append("=").append(0).append(", ");
         }
-        mapAsString.delete(mapAsString.length() - 2, mapAsString.length()).append("}");
+        if (mapAsString.length() > 1) {
+            mapAsString.delete(mapAsString.length() - 2, mapAsString.length());
+        }
+        mapAsString.append("}");
         return mapAsString.toString();
     }
 
@@ -219,7 +222,10 @@ public class MineManager {
                 mapAsString.append(block).append("=").append(0).append(", ");
             }
         }
-        mapAsString.delete(mapAsString.length() - 2, mapAsString.length()).append("}");
+        if (mapAsString.length() > 1) {
+            mapAsString.delete(mapAsString.length() - 2, mapAsString.length());
+        }
+        mapAsString.append("}");
 
         Set<String> disabledItems = disabledAutoPickupItems.get(p.getName());
         if (disabledItems != null && !disabledItems.isEmpty()) {

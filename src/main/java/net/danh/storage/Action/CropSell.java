@@ -80,7 +80,8 @@ public class CropSell {
             return;
         }
 
-        double worth = worthSection.getDouble(worthKey);
+        WorthEntry worthEntry = parseWorthEntry(worthSection, worthKey);
+        double worth = worthEntry.worth;
         if (worth <= 0) {
             String msg = File.getMessage().getString(
                     "cropstorage.action.sell.can_not_sell",
@@ -138,14 +139,26 @@ public class CropSell {
         long finalSellAmount = requestedAmount;
         double money = worth * finalSellAmount;
         String moneyFormatted = roundWithDecimalFormat(money);
-        boolean vaultRequested = config != null && "vault".equalsIgnoreCase(config.getString("sell_method", "commands"));
-        if (!payMoney(money, moneyFormatted)) {
+        String method = worthEntry.methodOverride != null && !worthEntry.methodOverride.trim().isEmpty()
+                ? worthEntry.methodOverride
+                : (config != null ? config.getString("sell_method", "commands") : "commands");
+        boolean vaultRequested = "vault".equalsIgnoreCase(method);
+        boolean playerPointsRequested = "playerpoints".equalsIgnoreCase(method);
+        if (!payMoney(money, moneyFormatted, method)) {
             runCommands(moneyFormatted);
-            if (vaultRequested) {
-                String fixed = File.getMessage().getString(
-                        "cropstorage.action.sell.payout_fixed",
-                        "#prefix# &aFixed! You have received your money."
-                );
+            if (vaultRequested || playerPointsRequested) {
+                String fixed;
+                if (playerPointsRequested) {
+                    fixed = File.getMessage().getString(
+                            "cropstorage.action.sell.playerpoints.payout_fixed",
+                            "#prefix# &aFixed! You have received your points."
+                    );
+                } else {
+                    fixed = File.getMessage().getString(
+                            "cropstorage.action.sell.payout_fixed",
+                            "#prefix# &aFixed! You have received your money."
+                    );
+                }
                 player.sendMessage(ChatUtils.colorizewp(fixed.replace("#money#", moneyFormatted)));
             }
         }
@@ -186,12 +199,21 @@ public class CropSell {
         }
     }
 
-    private boolean payMoney(double money, String moneyFormatted) {
-        if (config == null) {
+    private boolean payMoney(double money, String moneyFormatted, String method) {
+        if ("playerpoints".equalsIgnoreCase(method)) {
+            if (Storage.depositToPlayerPoints(player, money)) {
+                return true;
+            }
+            Storage.getStorage().getLogger().warning(
+                    "PlayerPoints payout failed for player " + player.getName() + " (" + money + ") in CropStorage. Falling back to commands."
+            );
+            String msg = File.getMessage().getString(
+                    "cropstorage.action.sell.playerpoints.payout_error",
+                    "#prefix# &cAn error occurred while processing your points. Attempting to fix it..."
+            );
+            player.sendMessage(ChatUtils.colorizewp(msg.replace("#money#", moneyFormatted)));
             return false;
         }
-
-        String method = config.getString("sell_method", "commands");
         if (!"vault".equalsIgnoreCase(method)) {
             return false;
         }
@@ -209,6 +231,46 @@ public class CropSell {
         );
         player.sendMessage(ChatUtils.colorizewp(msg.replace("#money#", moneyFormatted)));
         return false;
+    }
+
+    private WorthEntry parseWorthEntry(ConfigurationSection section, String worthKey) {
+        Object raw = section.get(worthKey);
+        if (raw instanceof java.lang.Number) {
+            return new WorthEntry(((java.lang.Number) raw).doubleValue(), null);
+        }
+
+        if (raw instanceof String) {
+            String value = ((String) raw).trim();
+            if (value.isEmpty()) {
+                return new WorthEntry(0D, null);
+            }
+
+            String[] parts = value.split(";", -1);
+            double worth = 0D;
+            try {
+                worth = Double.parseDouble(parts[0].trim());
+            } catch (NumberFormatException ignored) {
+                worth = 0D;
+            }
+
+            String method = null;
+            if (parts.length >= 2) {
+                String m = parts[1] != null ? parts[1].trim() : "";
+                if (!m.isEmpty()) {
+                    String normalized = m.toLowerCase();
+                    if ("command".equals(normalized)) {
+                        normalized = "commands";
+                    }
+                    if ("commands".equals(normalized) || "vault".equals(normalized) || "playerpoints".equals(normalized)) {
+                        method = normalized;
+                    }
+                }
+            }
+
+            return new WorthEntry(worth, method);
+        }
+
+        return new WorthEntry(section.getDouble(worthKey), null);
     }
 
     private String roundWithDecimalFormat(double d) {
@@ -247,5 +309,15 @@ public class CropSell {
 
     public long getAmount() {
         return amount;
+    }
+
+    private static class WorthEntry {
+        private final double worth;
+        private final String methodOverride;
+
+        private WorthEntry(double worth, String methodOverride) {
+            this.worth = worth;
+            this.methodOverride = methodOverride;
+        }
     }
 }

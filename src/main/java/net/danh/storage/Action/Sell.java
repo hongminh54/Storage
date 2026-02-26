@@ -46,13 +46,14 @@ public class Sell {
                 if (section != null) {
                     String worthKey = resolveWorthKey(section, getMaterialData());
                     if (worthKey != null) {
-                        double worth = section.getDouble(worthKey);
+                        WorthEntry worthEntry = parseWorthEntry(section, worthKey);
+                        double worth = worthEntry.worth;
                         if (worth > 0) {
                             if (MineManager.removeBlockAmount(p, getMaterialData(), this.amount)) {
                                 double money = worth * this.amount;
                                 String money_round_up = roundWithDecimalFormat(money);
                                 double m_ru = Double.parseDouble(money_round_up);
-                                runCommand(m_ru);
+                                runCommand(m_ru, worthEntry.methodOverride);
                                 p.sendMessage(ChatUtils.colorize(File.getMessage()
                                         .getString("user.action.sell.sell_item")
                                         .replace("#amount#", String.valueOf(this.amount))
@@ -89,13 +90,14 @@ public class Sell {
             if (section != null) {
                 String worthKey = resolveWorthKey(section, getMaterialData());
                 if (worthKey != null) {
-                    double worth = section.getDouble(worthKey);
+                    WorthEntry worthEntry = parseWorthEntry(section, worthKey);
+                    double worth = worthEntry.worth;
                     if (worth > 0) {
                         if (MineManager.removeBlockAmount(p, getMaterialData(), amount)) {
                             double money = worth * amount;
                             String money_round_up = roundWithDecimalFormat(money);
                             double m_ru = Double.parseDouble(money_round_up);
-                            runCommand(m_ru);
+                            runCommand(m_ru, worthEntry.methodOverride);
                             p.sendMessage(ChatUtils.colorize(
                                     Objects.requireNonNull(File.getMessage().getString("user.action.sell.sell_item"))
                                             .replace("#amount#", String.valueOf(amount))
@@ -125,7 +127,26 @@ public class Sell {
     }
 
     public void runCommand(Double money) {
-        String method = config.getString("sell_method", "commands");
+        runCommand(money, null);
+    }
+
+    private void runCommand(Double money, String methodOverride) {
+        String method = methodOverride != null && !methodOverride.trim().isEmpty()
+                ? methodOverride
+                : config.getString("sell_method", "commands");
+        if ("playerpoints".equalsIgnoreCase(method)) {
+            if (Storage.depositToPlayerPoints(p, money)) {
+                return;
+            }
+
+            Storage.getStorage().getLogger().warning(
+                    "PlayerPoints payout failed for player " + p.getName() + " (" + money + "). Falling back to commands."
+            );
+            p.sendMessage(ChatUtils.colorize(File.getMessage().getString(
+                    "user.action.sell.playerpoints.payout_error",
+                    "#prefix# &cAn error occurred while processing your points. Attempting to fix it..."
+            )));
+        }
         if ("vault".equalsIgnoreCase(method)) {
             if (Storage.depositToVault(p, money)) {
                 return;
@@ -153,7 +174,52 @@ public class Sell {
                     "user.action.sell.payout_fixed",
                     "#prefix# &aFixed! You have received your money."
             )));
+        } else if ("playerpoints".equalsIgnoreCase(method)) {
+            p.sendMessage(ChatUtils.colorize(File.getMessage().getString(
+                    "user.action.sell.playerpoints.payout_fixed",
+                    "#prefix# &aFixed! You have received your points."
+            )));
         }
+    }
+
+    private WorthEntry parseWorthEntry(@NotNull ConfigurationSection section, @NotNull String worthKey) {
+        Object raw = section.get(worthKey);
+        if (raw instanceof java.lang.Number) {
+            return new WorthEntry(((java.lang.Number) raw).doubleValue(), null);
+        }
+
+        if (raw instanceof String) {
+            String value = ((String) raw).trim();
+            if (value.isEmpty()) {
+                return new WorthEntry(0D, null);
+            }
+
+            String[] parts = value.split(";", -1);
+            double worth = 0D;
+            try {
+                worth = Double.parseDouble(parts[0].trim());
+            } catch (NumberFormatException ignored) {
+                worth = 0D;
+            }
+
+            String method = null;
+            if (parts.length >= 2) {
+                String m = parts[1] != null ? parts[1].trim() : "";
+                if (!m.isEmpty()) {
+                    String normalized = m.toLowerCase();
+                    if ("command".equals(normalized)) {
+                        normalized = "commands";
+                    }
+                    if ("commands".equals(normalized) || "vault".equals(normalized) || "playerpoints".equals(normalized)) {
+                        method = normalized;
+                    }
+                }
+            }
+
+            return new WorthEntry(worth, method);
+        }
+
+        return new WorthEntry(section.getDouble(worthKey), null);
     }
 
     public String roundWithDecimalFormat(double d) {
@@ -204,5 +270,15 @@ public class Sell {
 
     public FileConfiguration getConfig() {
         return config;
+    }
+
+    private static class WorthEntry {
+        private final double worth;
+        private final String methodOverride;
+
+        private WorthEntry(double worth, String methodOverride) {
+            this.worth = worth;
+            this.methodOverride = methodOverride;
+        }
     }
 }

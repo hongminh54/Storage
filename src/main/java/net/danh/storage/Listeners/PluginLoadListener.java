@@ -21,6 +21,9 @@ public class PluginLoadListener implements Listener {
         if (name.equals("Vault")) {
             Storage.refreshVaultEconomyHook();
         }
+        if (name.equals("PlayerPoints")) {
+            Storage.refreshPlayerPointsHook();
+        }
         if (name.equals("MMOItems")) {
             Storage.updateMmoitemsHookState(true);
             return;
@@ -38,6 +41,9 @@ public class PluginLoadListener implements Listener {
         }
         if (name.equals("Vault")) {
             Storage.refreshVaultEconomyHook();
+        }
+        if (name.equals("PlayerPoints")) {
+            Storage.refreshPlayerPointsHook();
         }
         if (name.equals("MMOItems")) {
             Storage.updateMmoitemsHookState(false);

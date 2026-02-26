@@ -41,11 +41,37 @@ public class ItemManager {
             return File.getMessage().getString("user.sellable.no", "&c✘");
         }
 
-        boolean sellable = worthSection.getDouble(worthKey) > 0;
+        boolean sellable = parseWorthValue(worthSection, worthKey) > 0;
         return File.getMessage().getString(
                 sellable ? "user.sellable.yes" : "user.sellable.no",
                 sellable ? "&a✔" : "&c✘"
         );
+    }
+
+    private static double parseWorthValue(ConfigurationSection section, String worthKey) {
+        if (section == null || worthKey == null) {
+            return 0D;
+        }
+
+        Object raw = section.get(worthKey);
+        if (raw instanceof java.lang.Number) {
+            return ((java.lang.Number) raw).doubleValue();
+        }
+
+        if (raw instanceof String) {
+            String value = ((String) raw).trim();
+            if (value.isEmpty()) {
+                return 0D;
+            }
+            String[] parts = value.split(";", -1);
+            try {
+                return Double.parseDouble(parts[0].trim());
+            } catch (NumberFormatException ignored) {
+                return 0D;
+            }
+        }
+
+        return section.getDouble(worthKey);
     }
 
     private static String resolveWorthKey(ConfigurationSection section, String materialData) {

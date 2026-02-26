@@ -123,7 +123,7 @@ public class PAPI extends PlaceholderExpansion {
             if (section != null) {
                 List<String> sell_list = new ArrayList<>(section.getKeys(false));
                 if (sell_list.contains(material)) {
-                    int worth = section.getInt(material);
+                    double worth = parseWorthValue(section, material);
                     return String.valueOf(worth);
                 }
             }
@@ -195,7 +195,7 @@ public class PAPI extends PlaceholderExpansion {
         if (worthKey == null) {
             return false;
         }
-        return section.getDouble(worthKey) > 0;
+        return parseWorthValue(section, worthKey) > 0;
     }
 
     private boolean isCropWorthSellable(@NotNull String itemKey) {
@@ -207,7 +207,28 @@ public class PAPI extends PlaceholderExpansion {
         if (worthKey == null) {
             return false;
         }
-        return section.getDouble(worthKey) > 0;
+        return parseWorthValue(section, worthKey) > 0;
+    }
+
+    private double parseWorthValue(@NotNull ConfigurationSection section, @NotNull String worthKey) {
+        Object raw = section.get(worthKey);
+        if (raw instanceof java.lang.Number) {
+            return ((java.lang.Number) raw).doubleValue();
+        }
+        if (raw instanceof String) {
+            String value = ((String) raw).trim();
+            if (value.isEmpty()) {
+                return 0D;
+            }
+            String[] parts = value.split(";", -1);
+            try {
+                return Double.parseDouble(parts[0].trim());
+            } catch (NumberFormatException ignored) {
+                return 0D;
+            }
+        }
+
+        return section.getDouble(worthKey);
     }
 
     private String getSellableSymbol(@Nullable String itemKey, @Nullable String rawItem, boolean sellable) {

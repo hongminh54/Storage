@@ -126,13 +126,22 @@ auto_save:
   #Log auto save activity to console
   log_activity: false
 
-#Sell command | I don't want to require Vault as an economy so use command to give balance when sell
+# Sell commands executed when paying via `commands` method or when fallback happens.
+# Placeholders:
+# - #player# : player name
+# - #money#  : formatted amount (see number_format)
+#
+# Example (Vault/Essentials):
+# - "eco give #player# #money#"
 sell:
   - "eco give #player# #money#"
 
-#Sell payout method
-# commands: Execute configured sell commands (default)
-# vault: Use Vault to deposit money. If Vault is not available, it will fallback to commands.
+# Sell payout method (global default)
+# - commands: Execute configured sell commands (default)
+# - vault: Deposit money via Vault economy; fallback to commands if Vault is unavailable or fails
+# - playerpoints: Give points via PlayerPoints; fallback to commands if PlayerPoints is unavailable or fails
+#
+# Note: You can override the payout method per material in `worth:` using "<price>;<method>".
 sell_method: vault
 
 #Number format of worth
@@ -156,6 +165,14 @@ whitelist_fortune:
 #  - COPPER_ORE
 
 #Worth of per item
+# Format:
+# - Default: <price>
+# - With per-item payout override: "<price>;<method>" where method is one of: commands | vault | playerpoints
+#   (This overrides sell_method ONLY for that material)
+# Examples:
+# - COBBLESTONE;0: 1
+# - DIAMOND;0: "7;vault"
+# - EMERALD;0: "8;playerpoints"
 worth:
   COBBLESTONE;0: 1
   COAL;0: 2
