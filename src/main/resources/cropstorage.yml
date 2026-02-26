@@ -48,11 +48,11 @@ number_format: "#.##"
 # - With per-item payout override: "<price>;<method>" where method is one of: commands | vault | playerpoints
 #   (This overrides sell_method ONLY for that crop)
 worth:
-  WHEAT: "1.4;commands"
+  WHEAT: 1.4
   CARROT: 1.2
   POTATO: 1.2
-  BEETROOT: "2.1;vault"
-  NETHER_WART: "3;playerpoints"
+  BEETROOT: 2.1
+  NETHER_WART: 3
   SUGAR_CANE: 1.2
   COCOA_BEANS: 3.4
   MELON_SLICE: 2.43

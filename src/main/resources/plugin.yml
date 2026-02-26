@@ -44,11 +44,15 @@ commands:
       
 permissions:
   storage.user:
-    description: User permissions bundle
+    description: User permission
     default: true
     children:
       storage.toggle: true
       storage.groundstore: true
+      storage.deposit: true
+      storage.withdraw: true
+      storage.sell: true
+      storage.view: true
       storage.transfer.use: true
       storage.transfer.multi: true
       storage.transfer.log: true
@@ -58,12 +62,15 @@ permissions:
       storage.mythicstorage.use: true
       storage.mythicstorage.toggle: true
       storage.mythicstorage.groundstore: true
+      storage.mythicstorage.view: true
       storage.mythicstorage.transfer: true
       storage.mythicstorage.transfer.multi: true
       storage.mythicstorage.transfer.log: true
+      storage.mythicstorage.transfer.log.others: true
       storage.cropstorage.use: true
       storage.cropstorage.toggle: true
       storage.cropstorage.groundstore: true
+      storage.cropstorage.view: true
 
   storage.toggle:
     description: Toggle permission
@@ -71,6 +78,18 @@ permissions:
 
   storage.groundstore:
     description: Toggle Storage ground-store
+    default: true
+
+  storage.deposit:
+    description: Deposit items into storage
+    default: true
+
+  storage.withdraw:
+    description: Withdraw items from storage
+    default: true
+
+  storage.sell:
+    description: Sell items from storage
     default: true
 
   storage.admin:
@@ -86,14 +105,14 @@ permissions:
       storage.admin.specialmaterial: true
       storage.admin.reset: true
       storage.admin.enchant: true
-      storage.transfer.admin: true
       storage.event.admin: true
-      storage.craft.admin: true
-      storage.convert: true
-      storage.view: true
+      storage.transfer.admin: true
       storage.transfer.log.others: true
+      storage.convert: true
+      storage.craft.admin: true
       storage.mythicstorage.admin: true
       storage.cropstorage.admin: true
+      storage.preventrebreak.bypass: true
 
   storage.admin.add:
     description: Admin add permission command
@@ -190,15 +209,6 @@ permissions:
   storage.mythicstorage.admin:
     description: Admin commands for MythicMobs storage
     default: op
-    children:
-      storage.mythicstorage.use: true
-      storage.mythicstorage.toggle: true
-      storage.mythicstorage.groundstore: true
-      storage.mythicstorage.view: true
-      storage.mythicstorage.transfer: true
-      storage.mythicstorage.transfer.multi: true
-      storage.mythicstorage.transfer.log: true
-      storage.mythicstorage.transfer.log.others: true
 
   storage.mythicstorage.transfer:
     description: Transfer MythicMobs items to other players
@@ -243,8 +253,8 @@ permissions:
   storage.cropstorage.admin:
     description: Admin commands for crop storage
     default: op
-    children:
-      storage.cropstorage.use: true
-      storage.cropstorage.toggle: true
-      storage.cropstorage.groundstore: true
-      storage.cropstorage.view: true
+
+  storage.preventrebreak.bypass:
+    description: Bypass prevent rebreak placed-block protection
+    default: op
+

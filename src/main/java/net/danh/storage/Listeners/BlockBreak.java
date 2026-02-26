@@ -59,8 +59,13 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
+        boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
         boolean placedBlock = isPlacedBlock(block);
-        if (File.getConfig().getBoolean("prevent_rebreak") && placedBlock) {
+        if (preventRebreak && !placedBlock) {
+            placedBlock = MineManager.isPersistPlacedBlock(block);
+        }
+        if (preventRebreak && placedBlock) {
+            MineManager.unmarkPersistPlacedBlock(block);
             return;
         }
         if (File.getConfig().contains("blacklist_world")) {
@@ -108,8 +113,13 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
+        boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
         boolean placedBlock = isPlacedBlock(block);
-        if (File.getConfig().getBoolean("prevent_rebreak") && placedBlock) {
+        if (preventRebreak && !placedBlock) {
+            placedBlock = MineManager.isPersistPlacedBlock(block);
+        }
+        if (preventRebreak && placedBlock) {
+            MineManager.unmarkPersistPlacedBlock(block);
             return;
         }
         if (File.getConfig().contains("blacklist_world")) {

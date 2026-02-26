@@ -10,16 +10,20 @@ import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.*;
 
 public class MineManager {
@@ -42,15 +46,198 @@ public class MineManager {
     private static final String MAX_OVERRIDE_DATA_PREFIX = ";maxoverride:";
     private static final HashMap<UUID, Integer> maxOverrideData =
             new HashMap<>();
+    private static final String PLACED_BLOCKS_FILE_NAME = "placed-blocks.yml";
+    private static final String PLACED_BLOCKS_ROOT = "worlds";
+    private static final int COORD_OFFSET_26 = 1 << 25;
+    private static final int Y_OFFSET_12 = 1 << 11;
+    private static final long SAVE_DELAY_TICKS = 20L * 60L;
+    private static final Map<UUID, Set<Long>> placedBlocks = new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
     public static HashMap<String, String> blocksdrop = new HashMap<>();
     public static HashMap<String, String> blocksdropAutoSmelt = new HashMap<>();
     public static HashMap<UUID, Boolean> toggle = new HashMap<>();
+    private static boolean placedBlocksLoaded;
+    private static boolean placedBlocksDirty;
+    private static boolean placedBlocksSaveScheduled;
 
     public static int getPlayerBlock(@NotNull Player p, String material) {
         return playerdata.getOrDefault(p.getName() + "_" + material, 0);
+    }
+
+    public static void loadPlacedBlocks() {
+        placedBlocks.clear();
+        placedBlocksDirty = false;
+        placedBlocksSaveScheduled = false;
+        placedBlocksLoaded = true;
+
+        Storage plugin = Storage.getStorage();
+        if (plugin == null) {
+            return;
+        }
+        java.io.File dataFolder = plugin.getDataFolder();
+        if (dataFolder == null) {
+            return;
+        }
+        if (!dataFolder.exists() && !dataFolder.mkdirs()) {
+            return;
+        }
+
+        java.io.File file = new java.io.File(dataFolder, PLACED_BLOCKS_FILE_NAME);
+        if (!file.exists()) {
+            return;
+        }
+        FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        if (!cfg.contains(PLACED_BLOCKS_ROOT)) {
+            return;
+        }
+
+        if (cfg.getConfigurationSection(PLACED_BLOCKS_ROOT) == null) {
+            return;
+        }
+        for (String worldId : cfg.getConfigurationSection(PLACED_BLOCKS_ROOT).getKeys(false)) {
+            if (worldId == null || worldId.trim().isEmpty()) {
+                continue;
+            }
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(worldId);
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            List<Long> values = cfg.getLongList(PLACED_BLOCKS_ROOT + "." + worldId);
+            if (values == null || values.isEmpty()) {
+                continue;
+            }
+            placedBlocks.put(uuid, new HashSet<>(values));
+        }
+    }
+
+    public static void savePlacedBlocks(boolean async) {
+        if (!placedBlocksLoaded) {
+            return;
+        }
+        if (!placedBlocksDirty) {
+            return;
+        }
+        Storage plugin = Storage.getStorage();
+        if (plugin == null) {
+            return;
+        }
+
+        Map<UUID, List<Long>> snapshot = new HashMap<>();
+        for (Map.Entry<UUID, Set<Long>> entry : placedBlocks.entrySet()) {
+            if (entry.getKey() == null) {
+                continue;
+            }
+            Set<Long> set = entry.getValue();
+            if (set == null || set.isEmpty()) {
+                continue;
+            }
+            snapshot.put(entry.getKey(), new ArrayList<>(set));
+        }
+
+        Runnable saveTask = () -> {
+            java.io.File dataFolder = plugin.getDataFolder();
+            if (dataFolder == null) {
+                return;
+            }
+            if (!dataFolder.exists() && !dataFolder.mkdirs()) {
+                return;
+            }
+
+            java.io.File file = new java.io.File(dataFolder, PLACED_BLOCKS_FILE_NAME);
+            FileConfiguration cfg = new YamlConfiguration();
+            for (Map.Entry<UUID, List<Long>> entry : snapshot.entrySet()) {
+                cfg.set(PLACED_BLOCKS_ROOT + "." + entry.getKey().toString(), entry.getValue());
+            }
+            try {
+                cfg.save(file);
+            } catch (IOException ignored) {
+            }
+        };
+
+        placedBlocksDirty = false;
+        if (async) {
+            SchedulerUtil.runTaskAsynchronously(plugin, saveTask);
+        } else {
+            saveTask.run();
+        }
+    }
+
+    private static void schedulePlacedBlocksSave() {
+        if (!placedBlocksLoaded) {
+            return;
+        }
+        if (!placedBlocksDirty) {
+            return;
+        }
+        if (placedBlocksSaveScheduled) {
+            return;
+        }
+        Storage plugin = Storage.getStorage();
+        if (plugin == null) {
+            return;
+        }
+        placedBlocksSaveScheduled = true;
+        SchedulerUtil.runTaskLater(plugin, () -> {
+            placedBlocksSaveScheduled = false;
+            savePlacedBlocks(true);
+        }, SAVE_DELAY_TICKS);
+    }
+
+    private static long packBlockPos(int x, int y, int z) {
+        long px = ((long) (x + COORD_OFFSET_26)) & 0x3FFFFFFL;
+        long pz = ((long) (z + COORD_OFFSET_26)) & 0x3FFFFFFL;
+        long py = ((long) (y + Y_OFFSET_12)) & 0xFFFL;
+        return (px << 38) | (pz << 12) | py;
+    }
+
+    public static boolean isPersistPlacedBlock(@NotNull Block block) {
+        if (!placedBlocksLoaded) {
+            return false;
+        }
+        if (block.getWorld() == null) {
+            return false;
+        }
+        Set<Long> set = placedBlocks.get(block.getWorld().getUID());
+        if (set == null || set.isEmpty()) {
+            return false;
+        }
+        return set.contains(packBlockPos(block.getX(), block.getY(), block.getZ()));
+    }
+
+    public static void markPersistPlacedBlock(@NotNull Block block) {
+        if (!placedBlocksLoaded) {
+            return;
+        }
+        if (block.getWorld() == null) {
+            return;
+        }
+        UUID worldId = block.getWorld().getUID();
+        Set<Long> set = placedBlocks.computeIfAbsent(worldId, k -> new HashSet<>());
+        if (set.add(packBlockPos(block.getX(), block.getY(), block.getZ()))) {
+            placedBlocksDirty = true;
+            schedulePlacedBlocksSave();
+        }
+    }
+
+    public static void unmarkPersistPlacedBlock(@NotNull Block block) {
+        if (!placedBlocksLoaded) {
+            return;
+        }
+        if (block.getWorld() == null) {
+            return;
+        }
+        Set<Long> set = placedBlocks.get(block.getWorld().getUID());
+        if (set == null || set.isEmpty()) {
+            return;
+        }
+        if (set.remove(packBlockPos(block.getX(), block.getY(), block.getZ()))) {
+            placedBlocksDirty = true;
+            schedulePlacedBlocksSave();
+        }
     }
 
     public static boolean hasPlayerBlock(@NotNull Player p, String material) {

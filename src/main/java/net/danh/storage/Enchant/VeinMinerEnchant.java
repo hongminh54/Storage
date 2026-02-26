@@ -139,15 +139,21 @@ public class VeinMinerEnchant {
 
         for (Block block : blocks) {
             if (MineManager.checkBreak(block)) {
-                if (File.getConfig().getBoolean("prevent_rebreak")) {
-                    if (isPlacedBlock(block)) continue;
+                boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
+                boolean placedBlock = isPlacedBlock(block);
+                if (preventRebreak && !placedBlock) {
+                    placedBlock = MineManager.isPersistPlacedBlock(block);
+                }
+                if (preventRebreak && placedBlock) {
+                    MineManager.unmarkPersistPlacedBlock(block);
+                    continue;
                 }
 
                 String drop = MineManager.getDrop(block);
                 if (drop != null) {
                     int amount = calculateDropAmount(player, block, hand, fortune);
                     int bonusAmount = 0;
-                    if (!isPlacedBlock(block)) {
+                    if (!placedBlock) {
                         bonusAmount = EventManager.calculateDoubleDropBonus(amount);
                     }
                     int totalAmount = amount + bonusAmount;

@@ -301,6 +301,8 @@ public final class Storage extends JavaPlugin {
         File.updateCraftingConfig();
         File.updateCropStorageConfig();
 
+        MineManager.loadPlacedBlocks();
+
         setupVaultEconomyHook();
         setupPlayerPointsHook();
 
@@ -510,6 +512,8 @@ public final class Storage extends JavaPlugin {
         CraftingManager.cancelAllCrafting();
         ParticleManager.stopAllAnimations();
         RecipeEditManager.clearFlagCache();
+
+        MineManager.savePlacedBlocks(false);
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");

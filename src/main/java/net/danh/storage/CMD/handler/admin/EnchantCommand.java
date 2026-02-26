@@ -230,7 +230,7 @@ public class EnchantCommand extends BaseCommand {
 
     @Override
     public String getPermission() {
-        return "storage.admin";
+        return "storage.admin.enchant";
     }
 
     @Override
