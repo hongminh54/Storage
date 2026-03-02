@@ -21,7 +21,11 @@ public class CropStorageManager {
     private static final HashMap<UUID, Boolean> groundStoreToggle = new HashMap<>();
     private static final String GROUND_STORE_DATA_PREFIX = "cropgroundstore:";
     private static final String MAX_OVERRIDE_DATA_PREFIX = "cropmaxoverride:";
+    private static final String AUTO_SELL_DATA_PREFIX = "cropautosell:";
     private static final HashMap<UUID, Integer> maxOverrideData = new HashMap<>();
+    private static final HashMap<String, Set<String>> autoSellItems = new HashMap<>();
+    private static final Set<String> pendingAutoSell = new HashSet<>();
+    private static final Map<String, Long> lastAutoSellAt = new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Boolean> toggle = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
@@ -453,6 +457,48 @@ public class CropStorageManager {
         return next;
     }
 
+    public static boolean setItemAutoSell(@NotNull Player player,
+                                          @NotNull String itemName,
+                                          boolean enabled) {
+        String upper = itemName.toUpperCase();
+        if (!isConfiguredDrop(upper)) {
+            return isAutoSellEnabledForItem(player, upper);
+        }
+
+        String playerName = player.getName();
+        Set<String> set = autoSellItems.get(playerName);
+        if (set == null) {
+            set = new HashSet<>();
+            autoSellItems.put(playerName, set);
+        }
+
+        boolean changed;
+        if (enabled) {
+            changed = set.add(upper);
+        } else {
+            changed = set.remove(upper);
+        }
+
+        if (changed) {
+            savePlayerData(player);
+        }
+
+        if (isAutoSellTriggerOnToggle()) {
+            if (enabled && getPlayerItem(player, upper) > 0) {
+                scheduleAutoSellIfNeeded(player, upper);
+            }
+        }
+        return isAutoSellEnabledForItem(player, upper);
+    }
+
+    public static @NotNull Set<String> getEnabledAutoSellItems(@NotNull Player player) {
+        Set<String> set = autoSellItems.get(player.getName());
+        if (set == null || set.isEmpty()) {
+            return new HashSet<>();
+        }
+        return new HashSet<>(set);
+    }
+
     public static boolean isAutoPickupEnabledForItem(@NotNull Player player,
                                                      @NotNull String itemName) {
         if (!getToggleStatus(player)) {
@@ -549,7 +595,220 @@ public class CropStorageManager {
             return false;
 
         playerdata.put(key, current + amountToAdd);
+
+        if (isAutoSellTriggerOnDeposit()) {
+            scheduleAutoSellIfNeeded(player, itemName);
+        }
         return true;
+    }
+
+    private static boolean isAutoSellTriggerOnDeposit() {
+        String mode = File.getCropStorageConfig().getString("auto_sell.trigger", "");
+        if (mode != null && !mode.trim().isEmpty()) {
+            switch (mode.trim().toUpperCase()) {
+                case "BOTH":
+                case "DEPOSIT_ONLY":
+                    return true;
+                case "TOGGLE_ONLY":
+                case "DISABLED":
+                    return false;
+                default:
+                    break;
+            }
+        }
+        return File.getCropStorageConfig().getBoolean("auto_sell.trigger_on_deposit", true);
+    }
+
+    private static boolean isAutoSellTriggerOnToggle() {
+        String mode = File.getCropStorageConfig().getString("auto_sell.trigger", "");
+        if (mode != null && !mode.trim().isEmpty()) {
+            switch (mode.trim().toUpperCase()) {
+                case "BOTH":
+                case "TOGGLE_ONLY":
+                    return true;
+                case "DEPOSIT_ONLY":
+                case "DISABLED":
+                    return false;
+                default:
+                    break;
+            }
+        }
+        return File.getCropStorageConfig().getBoolean("auto_sell.trigger_on_toggle", true);
+    }
+
+    public static void scheduleAutoSellOnJoin(@NotNull Player player) {
+        if (!isSystemEnabled()) {
+            return;
+        }
+        if (!isAutoSellSystemEnabled()) {
+            return;
+        }
+        if (!isAutoSellTriggerOnToggle()) {
+            return;
+        }
+
+        Set<String> enabled = autoSellItems.get(player.getName());
+        if (enabled == null || enabled.isEmpty()) {
+            return;
+        }
+
+        for (String itemName : new HashSet<>(enabled)) {
+            if (itemName == null || itemName.trim().isEmpty()) {
+                continue;
+            }
+            if (getPlayerItem(player, itemName) <= 0) {
+                continue;
+            }
+            scheduleAutoSellIfNeeded(player, itemName);
+        }
+    }
+
+    public static boolean isAutoSellSystemEnabled() {
+        return File.getCropStorageConfig().getBoolean("auto_sell.enabled", true);
+    }
+
+    public static boolean isAutoSellEnabledForItem(@NotNull Player player, @NotNull String itemName) {
+        if (!isAutoSellSystemEnabled()) {
+            return false;
+        }
+        Set<String> enabled = autoSellItems.get(player.getName());
+        if (enabled == null || enabled.isEmpty()) {
+            return false;
+        }
+        return enabled.contains(itemName.toUpperCase());
+    }
+
+    public static boolean toggleItemAutoSell(@NotNull Player player, @NotNull String itemName) {
+        String upper = itemName.toUpperCase();
+        if (!isConfiguredDrop(upper)) {
+            return isAutoSellEnabledForItem(player, upper);
+        }
+
+        String playerName = player.getName();
+        Set<String> enabled = autoSellItems.get(playerName);
+        if (enabled == null) {
+            enabled = new HashSet<>();
+            autoSellItems.put(playerName, enabled);
+        }
+
+        boolean next;
+        if (enabled.contains(upper)) {
+            enabled.remove(upper);
+            next = false;
+        } else {
+            enabled.add(upper);
+            next = true;
+        }
+
+        savePlayerData(player);
+        return next;
+    }
+
+    private static void scheduleAutoSellIfNeeded(@NotNull Player player, @NotNull String itemName) {
+        String upper = itemName.toUpperCase();
+        if (!isAutoSellEnabledForItem(player, upper)) {
+            return;
+        }
+
+        String key = player.getUniqueId() + "_crop_" + upper;
+        synchronized (pendingAutoSell) {
+            if (!pendingAutoSell.add(key)) {
+                return;
+            }
+        }
+
+        long delayTicks = resolveAutoSellDelayTicks(player);
+        long delayMillis = Math.max(50L, delayTicks * 50L);
+        long now = System.currentTimeMillis();
+        long earliest;
+        synchronized (lastAutoSellAt) {
+            long last = lastAutoSellAt.getOrDefault(key, 0L);
+            earliest = last <= 0L ? now : Math.max(now, last + delayMillis);
+        }
+        long scheduleDelayMillis = Math.max(0L, earliest - now);
+        long scheduleDelayTicks = Math.max(1L, (long) Math.ceil(scheduleDelayMillis / 50D));
+
+        net.danh.storage.Utils.SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+            synchronized (pendingAutoSell) {
+                pendingAutoSell.remove(key);
+            }
+
+            if (!player.isOnline()) {
+                return;
+            }
+            if (!isAutoSellEnabledForItem(player, upper)) {
+                return;
+            }
+            if (getPlayerItem(player, upper) <= 0) {
+                return;
+            }
+
+            new net.danh.storage.Action.CropSell(player, upper, -1).doAction();
+
+            synchronized (lastAutoSellAt) {
+                lastAutoSellAt.put(key, System.currentTimeMillis());
+            }
+        }, scheduleDelayTicks);
+    }
+
+    public static int clearAutoSell(@NotNull Player player) {
+        String playerName = player.getName();
+        Set<String> current = autoSellItems.remove(playerName);
+        int cleared = current == null ? 0 : current.size();
+        if (cleared > 0) {
+            savePlayerData(player);
+        }
+
+        String prefix = player.getUniqueId() + "_crop_";
+        synchronized (pendingAutoSell) {
+            pendingAutoSell.removeIf(key -> key != null && key.startsWith(prefix));
+        }
+        synchronized (lastAutoSellAt) {
+            lastAutoSellAt.keySet().removeIf(key -> key != null && key.startsWith(prefix));
+        }
+
+        return cleared;
+    }
+
+    private static long resolveAutoSellDelayTicks(@NotNull Player player) {
+        double delaySeconds = File.getCropStorageConfig().getDouble("auto_sell.default_delay", 5D);
+        delaySeconds = applyAutoSellDelayPermission(player, delaySeconds);
+        if (delaySeconds < 0D) {
+            delaySeconds = 0D;
+        }
+        long ticks = (long) Math.ceil(delaySeconds * 20D);
+        return Math.max(1L, ticks);
+    }
+
+    private static double applyAutoSellDelayPermission(@NotNull Player player, double currentSeconds) {
+        double best = currentSeconds;
+        for (PermissionAttachmentInfo pai : player.getEffectivePermissions()) {
+            if (pai == null || !pai.getValue()) {
+                continue;
+            }
+            String perm = pai.getPermission();
+            if (perm == null) {
+                continue;
+            }
+            if (!perm.startsWith("storage.cropstorage.autosell.delay.")) {
+                continue;
+            }
+            String raw = perm.substring("storage.cropstorage.autosell.delay.".length()).trim();
+            if (raw.isEmpty()) {
+                continue;
+            }
+            double value;
+            try {
+                value = Double.parseDouble(raw);
+            } catch (NumberFormatException ignored) {
+                continue;
+            }
+            if (value < 0D) {
+                continue;
+            }
+            best = Math.min(best, value);
+        }
+        return best;
     }
 
     public static boolean removeItemAmount(@NotNull Player player, @NotNull String itemName, int amount) {
@@ -603,6 +862,7 @@ public class CropStorageManager {
             return;
 
         disabledAutoPickupItems.remove(player.getName());
+        autoSellItems.remove(player.getName());
 
         UUID playerId = player.getUniqueId();
 
@@ -683,6 +943,26 @@ public class CropStorageManager {
                                 disabledItems);
                     }
                 }
+            } else if (part.startsWith(AUTO_SELL_DATA_PREFIX)) {
+                String enabledData = part.substring(AUTO_SELL_DATA_PREFIX.length()).trim();
+                if (!enabledData.isEmpty()) {
+                    Set<String> enabledItems = new HashSet<>();
+                    for (String raw : enabledData.split(",")) {
+                        if (raw == null) {
+                            continue;
+                        }
+                        String cropItem = raw.trim().toUpperCase();
+                        if (cropItem.isEmpty()) {
+                            continue;
+                        }
+                        if (isConfiguredDrop(cropItem)) {
+                            enabledItems.add(cropItem);
+                        }
+                    }
+                    if (!enabledItems.isEmpty()) {
+                        autoSellItems.put(player.getName(), enabledItems);
+                    }
+                }
             } else if (part.startsWith(GROUND_STORE_DATA_PREFIX)) {
                 Boolean status = parseGroundStoreStatus(part);
                 if (status != null) {
@@ -744,6 +1024,7 @@ public class CropStorageManager {
                 if (!part.startsWith("crop:")
                         && !part.startsWith("croptoggle:")
                         && !part.startsWith("cropautopickupoff:")
+                        && !part.startsWith(AUTO_SELL_DATA_PREFIX)
                         && !part.startsWith(GROUND_STORE_DATA_PREFIX)
                         && !part.startsWith(MAX_OVERRIDE_DATA_PREFIX)
                         && !part.isEmpty()) {
@@ -769,23 +1050,6 @@ public class CropStorageManager {
             finalData.append("croptoggle:").append(toggle.get(playerId));
         }
 
-        Integer maxOverride = maxOverrideData.get(playerId);
-        if (maxOverride != null) {
-            if (finalData.length() > 0) {
-                finalData.append(";");
-            }
-            finalData.append(MAX_OVERRIDE_DATA_PREFIX)
-                    .append(Math.max(0, maxOverride));
-        }
-
-        if (groundStoreToggle.containsKey(playerId)) {
-            if (finalData.length() > 0) {
-                finalData.append(";");
-            }
-            finalData.append(GROUND_STORE_DATA_PREFIX)
-                    .append(groundStoreToggle.get(playerId));
-        }
-
         Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
         if (disabledItems != null && !disabledItems.isEmpty()) {
             StringBuilder disabledData = new StringBuilder();
@@ -806,6 +1070,45 @@ public class CropStorageManager {
                 finalData.append("cropautopickupoff:")
                         .append(disabledData);
             }
+        }
+
+        Set<String> enabledAutoSell = autoSellItems.get(playerName);
+        if (enabledAutoSell != null && !enabledAutoSell.isEmpty()) {
+            StringBuilder enabledData = new StringBuilder();
+            for (String item : configuredDrops) {
+                if (!enabledAutoSell.contains(item)) {
+                    continue;
+                }
+                if (enabledData.length() > 0) {
+                    enabledData.append(",");
+                }
+                enabledData.append(item);
+            }
+
+            if (enabledData.length() > 0) {
+                if (finalData.length() > 0) {
+                    finalData.append(";");
+                }
+                finalData.append(AUTO_SELL_DATA_PREFIX)
+                        .append(enabledData);
+            }
+        }
+
+        Integer maxOverride = maxOverrideData.get(playerId);
+        if (maxOverride != null) {
+            if (finalData.length() > 0) {
+                finalData.append(";");
+            }
+            finalData.append(MAX_OVERRIDE_DATA_PREFIX)
+                    .append(Math.max(0, maxOverride));
+        }
+
+        if (groundStoreToggle.containsKey(playerId)) {
+            if (finalData.length() > 0) {
+                finalData.append(";");
+            }
+            finalData.append(GROUND_STORE_DATA_PREFIX)
+                    .append(groundStoreToggle.get(playerId));
         }
 
         int maxStorage;

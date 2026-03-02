@@ -23,14 +23,15 @@ public class CropStorageCommandManager extends BaseCommand {
 
     private void registerCommands() {
         // User commands
+        registerCommand("help", new CropHelpCommand());
         registerCommand("toggle", new CropToggleCommand());
         registerCommand("groundstore", new CropGroundStoreCommand());
-        registerCommand("view", new CropViewCommand());
-        registerCommand("help", new CropHelpCommand());
+        registerCommand("status", new CropStatusCommand());
         registerCommand("deposit", new CropDepositCommand());
         registerCommand("withdraw", new CropWithdrawCommand());
         registerCommand("sell", new CropSellCommand());
-        registerCommand("status", new CropStatusCommand());
+        registerCommand("autosell", new CropAutoSellCommand());
+        registerCommand("view", new CropViewCommand());
 
         // Admin commands
         registerCommand("add", new CropAddCommand());

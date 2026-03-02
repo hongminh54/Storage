@@ -105,11 +105,11 @@ items:
     lore:
       - "&7 "
       - "&f#item_amount#/#max_storage# Items"
+      - "&aAuto Sell: #autosell#"
       - "&7 "
       - "&eLeft Click - Sell with custom number"
       - "&eRight Click - Sell all from storage"
-      - "&7 "
-      - "&7&o(Will be improved later)"
+      - "&eQ - Toggle Auto Sell (require permission)"
     amount: 1
     damage: 0
     custom-model-data: 1

@@ -44,6 +44,7 @@ public class MineManager {
     private static final String GROUND_STORE_DATA_PREFIX = ";groundstore:";
     private static final String TOGGLE_DATA_PREFIX = ";toggle:";
     private static final String MAX_OVERRIDE_DATA_PREFIX = ";maxoverride:";
+    private static final String AUTO_SELL_DATA_PREFIX = ";autosell:";
     private static final HashMap<UUID, Integer> maxOverrideData =
             new HashMap<>();
     private static final String PLACED_BLOCKS_FILE_NAME = "placed-blocks.yml";
@@ -52,6 +53,9 @@ public class MineManager {
     private static final int Y_OFFSET_12 = 1 << 11;
     private static final long SAVE_DELAY_TICKS = 20L * 60L;
     private static final Map<UUID, Set<Long>> placedBlocks = new HashMap<>();
+    private static final HashMap<String, Set<String>> autoSellItems = new HashMap<>();
+    private static final Set<String> pendingAutoSell = new HashSet<>();
+    private static final Map<String, Long> lastAutoSellAt = new HashMap<>();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     public static HashMap<String, String> blocksdata = new HashMap<>();
@@ -374,6 +378,62 @@ public class MineManager {
         return next;
     }
 
+    public static boolean setItemAutoSell(@NotNull Player player,
+                                          @NotNull String material,
+                                          boolean enabled) {
+        String playerName = player.getName();
+        Set<String> set = autoSellItems.get(playerName);
+        if (set == null) {
+            set = new HashSet<>();
+            autoSellItems.put(playerName, set);
+        }
+
+        boolean changed;
+        if (enabled) {
+            changed = set.add(material);
+        } else {
+            changed = set.remove(material);
+        }
+
+        if (changed) {
+            savePlayerData(player);
+        }
+
+        if (isAutoSellTriggerOnToggle()) {
+            if (enabled && getPlayerBlock(player, material) > 0) {
+                scheduleAutoSellIfNeeded(player, material);
+            }
+        }
+        return isAutoSellEnabledForItem(player, material);
+    }
+
+    public static @NotNull Set<String> getEnabledAutoSellItems(@NotNull Player player) {
+        Set<String> set = autoSellItems.get(player.getName());
+        if (set == null || set.isEmpty()) {
+            return new HashSet<>();
+        }
+        return new HashSet<>(set);
+    }
+
+    public static int clearAutoSell(@NotNull Player player) {
+        String playerName = player.getName();
+        Set<String> current = autoSellItems.remove(playerName);
+        int cleared = current == null ? 0 : current.size();
+        if (cleared > 0) {
+            savePlayerData(player);
+        }
+
+        String prefix = player.getUniqueId() + "_";
+        synchronized (pendingAutoSell) {
+            pendingAutoSell.removeIf(key -> key != null && key.startsWith(prefix));
+        }
+        synchronized (lastAutoSellAt) {
+            lastAutoSellAt.keySet().removeIf(key -> key != null && key.startsWith(prefix));
+        }
+
+        return cleared;
+    }
+
     public static boolean isGroundStoreItemAllowed(@NotNull String dropKey) {
         if (!getPluginBlocks().contains(dropKey)) {
             return false;
@@ -398,6 +458,40 @@ public class MineManager {
         }
         mapAsString.append("}");
         return mapAsString.toString();
+    }
+
+    private static void loadAutoSellItems(@NotNull String playerName,
+                                          @NotNull String data) {
+        autoSellItems.remove(playerName);
+        int idx = data.indexOf(AUTO_SELL_DATA_PREFIX);
+        if (idx < 0) {
+            return;
+        }
+
+        int start = idx + AUTO_SELL_DATA_PREFIX.length();
+        int end = data.indexOf(';', start);
+        String enabledData = end >= 0 ? data.substring(start, end) : data.substring(start);
+        if (enabledData == null || enabledData.trim().isEmpty()) {
+            return;
+        }
+
+        Set<String> enabledItems = new HashSet<>();
+        for (String raw : enabledData.split(",")) {
+            if (raw == null) {
+                continue;
+            }
+            String item = raw.trim();
+            if (item.isEmpty()) {
+                continue;
+            }
+            if (getPluginBlocks().contains(item)) {
+                enabledItems.add(item);
+            }
+        }
+
+        if (!enabledItems.isEmpty()) {
+            autoSellItems.put(playerName, enabledItems);
+        }
     }
 
     public static @NotNull String convertOfflineData(Player p) {
@@ -429,6 +523,24 @@ public class MineManager {
             if (disabledData.length() > 0) {
                 mapAsString.append(";autopickupoff:")
                         .append(disabledData);
+            }
+        }
+
+        Set<String> enabledAutoSell = autoSellItems.get(p.getName());
+        if (enabledAutoSell != null && !enabledAutoSell.isEmpty()) {
+            StringBuilder enabledData = new StringBuilder();
+            for (String key : getPluginBlocks()) {
+                if (!enabledAutoSell.contains(key)) {
+                    continue;
+                }
+                if (enabledData.length() > 0) {
+                    enabledData.append(",");
+                }
+                enabledData.append(key);
+            }
+            if (enabledData.length() > 0) {
+                mapAsString.append(AUTO_SELL_DATA_PREFIX)
+                        .append(enabledData);
             }
         }
 
@@ -581,7 +693,203 @@ public class MineManager {
         if (fireEvent) {
             StorageHookAPI.callAfterDeposit(p, material, amountToAdd);
         }
+
+        if (isAutoSellTriggerOnDeposit()) {
+            scheduleAutoSellIfNeeded(p, material);
+        }
         return true;
+    }
+
+    private static boolean isAutoSellTriggerOnDeposit() {
+        String mode = File.getConfig().getString("auto_sell.trigger", "");
+        if (mode != null && !mode.trim().isEmpty()) {
+            switch (mode.trim().toUpperCase()) {
+                case "BOTH":
+                case "DEPOSIT_ONLY":
+                    return true;
+                case "TOGGLE_ONLY":
+                case "DISABLED":
+                    return false;
+                default:
+                    break;
+            }
+        }
+        return File.getConfig().getBoolean("auto_sell.trigger_on_deposit", true);
+    }
+
+    private static boolean isAutoSellTriggerOnToggle() {
+        String mode = File.getConfig().getString("auto_sell.trigger", "");
+        if (mode != null && !mode.trim().isEmpty()) {
+            switch (mode.trim().toUpperCase()) {
+                case "BOTH":
+                case "TOGGLE_ONLY":
+                    return true;
+                case "DEPOSIT_ONLY":
+                case "DISABLED":
+                    return false;
+                default:
+                    break;
+            }
+        }
+        return File.getConfig().getBoolean("auto_sell.trigger_on_toggle", true);
+    }
+
+    public static void scheduleAutoSellOnJoin(@NotNull Player player) {
+        if (!isAutoSellSystemEnabled()) {
+            return;
+        }
+        if (!isAutoSellTriggerOnToggle()) {
+            return;
+        }
+
+        Set<String> enabled = autoSellItems.get(player.getName());
+        if (enabled == null || enabled.isEmpty()) {
+            return;
+        }
+
+        for (String material : new HashSet<>(enabled)) {
+            if (material == null || material.trim().isEmpty()) {
+                continue;
+            }
+            if (getPlayerBlock(player, material) <= 0) {
+                continue;
+            }
+            scheduleAutoSellIfNeeded(player, material);
+        }
+    }
+
+    public static boolean isAutoSellSystemEnabled() {
+        return File.getConfig().getBoolean("auto_sell.enabled", true);
+    }
+
+    public static boolean isAutoSellEnabledForItem(@NotNull Player player,
+                                                   @NotNull String material) {
+        if (!isAutoSellSystemEnabled()) {
+            return false;
+        }
+        Set<String> enabled = autoSellItems.get(player.getName());
+        if (enabled == null || enabled.isEmpty()) {
+            return false;
+        }
+        return enabled.contains(material);
+    }
+
+    public static boolean toggleItemAutoSell(@NotNull Player player,
+                                             @NotNull String material) {
+        String playerName = player.getName();
+        Set<String> enabled = autoSellItems.get(playerName);
+        if (enabled == null) {
+            enabled = new HashSet<>();
+            autoSellItems.put(playerName, enabled);
+        }
+
+        boolean next;
+        if (enabled.contains(material)) {
+            enabled.remove(material);
+            next = false;
+        } else {
+            enabled.add(material);
+            next = true;
+        }
+        savePlayerData(player);
+
+        if (isAutoSellTriggerOnToggle()) {
+            if (next && getPlayerBlock(player, material) > 0) {
+                scheduleAutoSellIfNeeded(player, material);
+            }
+        }
+        return next;
+    }
+
+    private static void scheduleAutoSellIfNeeded(@NotNull Player player,
+                                                 @NotNull String material) {
+        if (!isAutoSellEnabledForItem(player, material)) {
+            return;
+        }
+
+        String key = player.getUniqueId() + "_" + material;
+        synchronized (pendingAutoSell) {
+            if (!pendingAutoSell.add(key)) {
+                return;
+            }
+        }
+
+        long delayTicks = resolveAutoSellDelayTicks(player);
+        long delayMillis = Math.max(50L, delayTicks * 50L);
+        long now = System.currentTimeMillis();
+        long earliest;
+        synchronized (lastAutoSellAt) {
+            long last = lastAutoSellAt.getOrDefault(key, 0L);
+            earliest = last <= 0L ? now : Math.max(now, last + delayMillis);
+        }
+
+        long scheduleDelayMillis = Math.max(0L, earliest - now);
+        long scheduleDelayTicks = Math.max(1L, (long) Math.ceil(scheduleDelayMillis / 50D));
+        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+            synchronized (pendingAutoSell) {
+                pendingAutoSell.remove(key);
+            }
+
+            if (!player.isOnline()) {
+                return;
+            }
+
+            if (!isAutoSellEnabledForItem(player, material)) {
+                return;
+            }
+
+            if (getPlayerBlock(player, material) <= 0) {
+                return;
+            }
+
+            new net.danh.storage.Action.Sell(player, material, -1).doAction();
+
+            synchronized (lastAutoSellAt) {
+                lastAutoSellAt.put(key, System.currentTimeMillis());
+            }
+        }, scheduleDelayTicks);
+    }
+
+    private static long resolveAutoSellDelayTicks(@NotNull Player player) {
+        double delaySeconds = File.getConfig().getDouble("auto_sell.default_delay", 5D);
+        delaySeconds = applyAutoSellDelayPermission(player, delaySeconds);
+        if (delaySeconds < 0D) {
+            delaySeconds = 0D;
+        }
+        long ticks = (long) Math.ceil(delaySeconds * 20D);
+        return Math.max(1L, ticks);
+    }
+
+    private static double applyAutoSellDelayPermission(@NotNull Player player,
+                                                       double currentSeconds) {
+        double best = currentSeconds;
+        for (PermissionAttachmentInfo pai : player.getEffectivePermissions()) {
+            if (pai == null || !pai.getValue()) {
+                continue;
+            }
+            String perm = pai.getPermission();
+            if (perm == null) {
+                continue;
+            }
+            if (!perm.startsWith("storage.autosell.delay.")) {
+                continue;
+            }
+            String raw = perm.substring("storage.autosell.delay.".length()).trim();
+            if (raw.isEmpty()) {
+                continue;
+            }
+            double value;
+            try {
+                value = Double.parseDouble(raw);
+            } catch (NumberFormatException ignored) {
+                continue;
+            }
+            if (value < 0D) {
+                continue;
+            }
+            best = Math.min(best, value);
+        }
+        return best;
     }
 
     public static int getPermissionMaxStorage(@NotNull Player player) {
@@ -699,6 +1007,7 @@ public class MineManager {
         String rawData = playerData.getData();
         if (rawData != null && !rawData.isEmpty()) {
             loadDisabledAutoPickupItems(p.getName(), rawData);
+            loadAutoSellItems(p.getName(), rawData);
             Integer parsedMaxOverride = parseMaxOverride(rawData);
             if (parsedMaxOverride != null) {
                 overrideMax = Math.max(0, parsedMaxOverride);
@@ -777,6 +1086,15 @@ public class MineManager {
         String playerName = p.getName();
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
         disabledAutoPickupItems.remove(playerName);
+        autoSellItems.remove(playerName);
+
+        String prefix = p.getUniqueId() + "_";
+        synchronized (pendingAutoSell) {
+            pendingAutoSell.removeIf(key -> key != null && key.startsWith(prefix));
+        }
+        synchronized (lastAutoSellAt) {
+            lastAutoSellAt.keySet().removeIf(key -> key != null && key.startsWith(prefix));
+        }
     }
 
     private static Boolean parseGroundStoreStatus(String data) {
@@ -1174,6 +1492,7 @@ public class MineManager {
 
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
         disabledAutoPickupItems.remove(playerName);
+        autoSellItems.remove(playerName);
     }
 
     private static final class InvLookupKey {

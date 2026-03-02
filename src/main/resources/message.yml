@@ -65,6 +65,16 @@ user:
   sellable:
     "yes": "&a✔"
     "no": "&c✘"
+  autosell:
+    "yes": "&a✔"
+    "no": "&c✘"
+    toggle_on: "#prefix# &aAuto Sell enabled for &e#material#"
+    toggle_off: "#prefix# &cAuto Sell disabled for &e#material#"
+    status: "#prefix# &aAuto Sell for &e#material#&a: #status#"
+    list: "#prefix# &aAutoSell items: &f#items#"
+    list_empty: "#prefix# &7No AutoSell items enabled."
+    system_disabled: "#prefix# &cAutoSell system is disabled by server configuration."
+    cleared: "#prefix# &aCleared &e#count# &aAutoSell items."
   action:
     deposit:
       full_storage: "#prefix# &cStorage has been full &8(#item_amount#/#max_storage#)&c, you can't deposit #amount# #material#!"
@@ -449,6 +459,16 @@ cropstorage:
   sellable:
     "yes": "&a✔"
     "no": "&c✘"
+  autosell:
+    "yes": "&a✔"
+    "no": "&c✘"
+    toggle_on: "#prefix# &aAuto Sell enabled for &e#material#"
+    toggle_off: "#prefix# &cAuto Sell disabled for &e#material#"
+    status: "#prefix# &aAuto Sell for &e#material#&a: #status#"
+    list: "#prefix# &aAutoSell crops: &f#items#"
+    list_empty: "#prefix# &7No AutoSell crops enabled."
+    system_disabled: "#prefix# &cAutoSell system is disabled by server configuration."
+    cleared: "#prefix# &aCleared &e#count# &aAutoSell crops."
   action:
     withdraw:
       chat_number: "#prefix# &aHow many items do you want to withdraw? &7(Type 'cancel' to exit)"

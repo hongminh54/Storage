@@ -19,6 +19,8 @@ import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
+import net.danh.storage.Storage;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -34,6 +36,14 @@ public class JoinQuit implements Listener {
         MineManager.loadPlayerData(p);
         MythicStorageManager.loadPlayerData(p);
         CropStorageManager.loadPlayerData(p);
+
+        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+            if (!p.isOnline()) {
+                return;
+            }
+            MineManager.scheduleAutoSellOnJoin(p);
+            CropStorageManager.scheduleAutoSellOnJoin(p);
+        }, 1L);
     }
 
     @EventHandler

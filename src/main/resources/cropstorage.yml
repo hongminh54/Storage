@@ -39,6 +39,19 @@ sell:
 # Note: You can override the payout method per crop in `worth:` using "<price>;<method>".
 sell_method: vault
 
+auto_sell:
+  enabled: true
+  # Default delay in seconds between auto-sell checks per crop.
+  # You can override per-player with permissions:
+  # - storage.cropstorage.autosell.delay.<seconds>
+  default_delay: 5.0
+  # Trigger mode:
+  # - BOTH: autosell triggers on deposit AND when enabling autosell for an existing crop.
+  # - DEPOSIT_ONLY: autosell triggers only when crops are added into CropStorage.
+  # - TOGGLE_ONLY: autosell triggers only when enabling autosell for a crop that already exists in CropStorage.
+  # - DISABLED: autosell never triggers automatically.
+  trigger: BOTH
+
 # Number format used for money when selling crops
 number_format: "#.##"
 

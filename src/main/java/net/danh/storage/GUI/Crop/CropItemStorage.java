@@ -98,6 +98,20 @@ public class CropItemStorage implements IGUI {
             item.onRightClick(p -> handleAction(itemTag, typeRight, actionRight, false));
         }
 
+        if ("sell".equalsIgnoreCase(itemTag)) {
+            item.onDropClick(p -> {
+                boolean enabled = CropStorageManager.toggleItemAutoSell(player, itemName);
+                String key = enabled ? "cropstorage.autosell.toggle_on" : "cropstorage.autosell.toggle_off";
+                String msg = File.getMessage().getString(key, "");
+                if (msg != null && !msg.trim().isEmpty()) {
+                    player.sendMessage(ChatUtils.colorizewp(msg.replace("#material#",
+                            CropStorageManager.getItemDisplayName(itemName))));
+                }
+                SoundManager.setShouldPlayCloseSound(player, false);
+                player.openInventory(new CropItemStorage(player, itemName, returnPage).getInventory(SoundContext.SILENT));
+            });
+        }
+
         inventory.setItem(slot, item);
     }
 
@@ -105,12 +119,18 @@ public class CropItemStorage implements IGUI {
         int amount = CropStorageManager.getPlayerItem(player, itemName);
         int maxStorage = CropStorageManager.getMaxStorage(player);
         String displayName = CropStorageManager.getItemDisplayName(itemName);
+        boolean autoSellEnabled = CropStorageManager.isAutoSellEnabledForItem(player, itemName);
+        String autoSellSymbol = File.getMessage().getString(
+                autoSellEnabled ? "cropstorage.autosell.yes" : "cropstorage.autosell.no",
+                autoSellEnabled ? "&a✔" : "&c✘"
+        );
 
         return ItemManager.getItemConfigWithPlaceholders(player, section,
                 "#item_amount#", String.valueOf(amount),
                 "#max_storage#", String.valueOf(maxStorage),
                 "#material#", displayName,
-                "#player#", player.getName());
+                "#player#", player.getName(),
+                "#autosell#", autoSellSymbol);
     }
 
     private void handleAction(String itemTag, String type, String action, boolean isLeftClick) {

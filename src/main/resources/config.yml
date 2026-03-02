@@ -144,6 +144,19 @@ sell:
 # Note: You can override the payout method per material in `worth:` using "<price>;<method>".
 sell_method: vault
 
+auto_sell:
+  enabled: true
+  # Default delay in seconds between auto-sell checks per item.
+  # You can override per-player with permissions:
+  # - storage.autosell.delay.<seconds>
+  default_delay: 5.0
+  # Trigger mode:
+  # - BOTH: autosell triggers on deposit AND when enabling autosell for an existing item.
+  # - DEPOSIT_ONLY: autosell triggers only when items are added into Storage (autopickup/deposit/groundstore).
+  # - TOGGLE_ONLY: autosell triggers only when enabling autosell for an item that already exists in Storage.
+  # - DISABLED: autosell never triggers automatically.
+  trigger: BOTH
+
 #Number format of worth
 number_format: "#.##"
 

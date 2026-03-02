@@ -7,6 +7,7 @@ import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Listeners.ChatListener;
 import net.danh.storage.Manager.ItemManager;
+import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.*;
@@ -175,6 +176,21 @@ public class ItemStorage implements IGUI {
                             }
                         });
                     }
+
+                    if (("sell".equalsIgnoreCase(action_left) && "sell".equalsIgnoreCase(item_tag))
+                            || ("sell".equalsIgnoreCase(action_right) && "sell".equalsIgnoreCase(item_tag))) {
+                        item.onDropClick(player -> {
+                            boolean enabled = MineManager.toggleItemAutoSell(p, material);
+                            String key = enabled ? "user.autosell.toggle_on" : "user.autosell.toggle_off";
+                            String msg = File.getMessage().getString(key, "");
+                            if (msg != null && !msg.trim().isEmpty()) {
+                                p.sendMessage(ChatUtils.colorize(msg.replace("#material#",
+                                        File.getConfig().getString("items." + material, material.split(";")[0]))));
+                            }
+                            SoundManager.setShouldPlayCloseSound(p, false);
+                            p.openInventory(new ItemStorage(p, material, returnPage).getInventory(SoundContext.SILENT));
+                        });
+                    }
                     inventory.setItem(item.getSlot(), item);
                 }
             } else {
@@ -293,6 +309,21 @@ public class ItemStorage implements IGUI {
                                 });
                             }
                         }
+                    });
+                }
+
+                if (("sell".equalsIgnoreCase(action_left) && "sell".equalsIgnoreCase(item_tag))
+                        || ("sell".equalsIgnoreCase(action_right) && "sell".equalsIgnoreCase(item_tag))) {
+                    item.onDropClick(player -> {
+                        boolean enabled = MineManager.toggleItemAutoSell(p, material);
+                        String key = enabled ? "user.autosell.toggle_on" : "user.autosell.toggle_off";
+                        String msg = File.getMessage().getString(key, "");
+                        if (msg != null && !msg.trim().isEmpty()) {
+                            p.sendMessage(ChatUtils.colorize(msg.replace("#material#",
+                                    File.getConfig().getString("items." + material, material.split(";")[0]))));
+                        }
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new ItemStorage(p, material, returnPage).getInventory(SoundContext.SILENT));
                     });
                 }
                 inventory.setItem(item.getSlot(), item);

@@ -27,6 +27,7 @@ public class CommandManager {
         registerCommand("deposit", new DepositCommand());
         registerCommand("withdraw", new WithdrawCommand());
         registerCommand("sell", new SellCommand());
+        registerCommand("autosell", new AutoSellCommand());
         registerCommand("convert", new ConvertOreCommand());
         registerCommand("craft", new CraftCommand());
 

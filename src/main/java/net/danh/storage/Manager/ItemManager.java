@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -29,6 +30,14 @@ public class ItemManager {
     private static final NMSAssistant NMS = new NMSAssistant();
     private static final Method MATERIAL_IS_ITEM = resolveMaterialIsItem();
     private static final Set<String> INVALID_MATERIAL_LOGGED = new HashSet<>();
+
+    private static String getStorageAutoSellSymbol(@NotNull Player player, @NotNull String materialData) {
+        boolean enabled = MineManager.isAutoSellEnabledForItem(player, materialData);
+        return File.getMessage().getString(
+                enabled ? "user.autosell.yes" : "user.autosell.no",
+                enabled ? "&a✔" : "&c✘"
+        );
+    }
 
     private static String getStorageSellableSymbol(String materialData) {
         ConfigurationSection worthSection = File.getConfig().getConfigurationSection("worth");
@@ -267,7 +276,8 @@ public class ItemManager {
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)),
                 "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)),
                 "#material#", materialName,
-                "#sellable#", getStorageSellableSymbol(material));
+                "#sellable#", getStorageSellableSymbol(material),
+                "#autosell#", getStorageAutoSellSymbol(p, material));
     }
 
     public static String getStatus(Player p) {
@@ -291,7 +301,8 @@ public class ItemManager {
         return applyPlaceholders(p, item, section.getStringList("lore"), name,
                 "#item_amount#", String.valueOf(MineManager.getPlayerBlock(p, material)),
                 "#max_storage#", String.valueOf(MineManager.getMaxBlock(p)),
-                "#sellable#", getStorageSellableSymbol(material));
+                "#sellable#", getStorageSellableSymbol(material),
+                "#autosell#", getStorageAutoSellSymbol(p, material));
     }
 
     public static ItemStack getItemConfig(String playerName, String material, String name, ConfigurationSection section) {
@@ -315,7 +326,7 @@ public class ItemManager {
         ItemStack item = createBaseItem(section, material.split(";")[0]);
         if (item == null) return null;
 
-        int baseLength = 6;
+        int baseLength = 8;
         int extraLength = placeholders == null ? 0 : placeholders.length;
         String[] merged = new String[baseLength + extraLength];
         merged[0] = "#item_amount#";
@@ -324,6 +335,8 @@ public class ItemManager {
         merged[3] = String.valueOf(MineManager.getMaxBlock(p));
         merged[4] = "#sellable#";
         merged[5] = getStorageSellableSymbol(material);
+        merged[6] = "#autosell#";
+        merged[7] = getStorageAutoSellSymbol(p, material);
         if (extraLength > 0) {
             System.arraycopy(placeholders, 0, merged, baseLength, extraLength);
         }

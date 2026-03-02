@@ -29,6 +29,7 @@ public class InteractiveItem extends ItemStack {
     private BiConsumer<Player, ClickType> clickCallback;
     private Consumer<Player> leftClickCallback;
     private Consumer<Player> rightClickCallback;
+    private Consumer<Player> dropClickCallback;
     private boolean playSoundOnClick = false;
 
     public InteractiveItem(Material material, int slot, String displayName, String... lore) {
@@ -246,6 +247,11 @@ public class InteractiveItem extends ItemStack {
         return this;
     }
 
+    public InteractiveItem onDropClick(Consumer<Player> consumer) {
+        dropClickCallback = consumer;
+        return this;
+    }
+
     public InteractiveItem setPlaySoundOnClick(boolean playSound) {
         this.playSoundOnClick = playSound;
         return this;
@@ -261,6 +267,8 @@ public class InteractiveItem extends ItemStack {
             leftClickCallback.accept(player);
         else if ((clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) && rightClickCallback != null)
             rightClickCallback.accept(player);
+        else if ((clickType == ClickType.DROP || clickType == ClickType.CONTROL_DROP) && dropClickCallback != null)
+            dropClickCallback.accept(player);
         if (clickCallback != null) clickCallback.accept(player, clickType);
     }
 

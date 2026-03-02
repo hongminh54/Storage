@@ -92,6 +92,10 @@ permissions:
     description: Sell items from storage
     default: true
 
+  storage.autosell:
+    description: Toggle per-item auto sell for Storage
+    default: op
+
   storage.admin:
     description: Admin permission
     default: op
@@ -237,6 +241,10 @@ permissions:
   storage.cropstorage.use:
     description: Use crop storage feature
     default: true
+
+  storage.cropstorage.autosell:
+    description: Toggle per-item auto sell for CropStorage
+    default: op
 
   storage.cropstorage.toggle:
     description: Toggle crop auto-pickup
