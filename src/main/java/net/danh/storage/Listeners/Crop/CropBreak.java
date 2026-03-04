@@ -3,6 +3,7 @@ package net.danh.storage.Listeners.Crop;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.Crop.CropStorageManager;
+import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
@@ -12,17 +13,127 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class CropBreak implements Listener {
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onSweetBerryHarvest(@NotNull PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        // Prevent double-trigger in 1.9+ (mainhand/offhand) without importing EquipmentSlot (1.8 compatible).
+        try {
+            Object hand = e.getClass().getMethod("getHand").invoke(e);
+            if (hand != null && !"HAND".equalsIgnoreCase(String.valueOf(hand))) {
+                return;
+            }
+        } catch (Throwable ignored) {
+        }
+
+        if (!CropStorageManager.isSystemEnabled()) {
+            return;
+        }
+
+        Player player = e.getPlayer();
+        if (!CropStorageManager.getToggleStatus(player)) {
+            return;
+        }
+
+        if (File.getCropStorageConfig().contains("blacklist_world")) {
+            if (File.getCropStorageConfig().getStringList("blacklist_world")
+                    .contains(player.getWorld().getName())) {
+                return;
+            }
+        }
+
+        if (e.getClickedBlock() == null) {
+            return;
+        }
+
+        Block block = e.getClickedBlock();
+        if (!"SWEET_BERRY_BUSH".equalsIgnoreCase(block.getType().name())) {
+            return;
+        }
+
+        final String dropItem = "SWEET_BERRIES";
+
+        if (CropStorageManager.isItemAutoPickupDisabled(player, dropItem)) {
+            return;
+        }
+
+        if (!CropStorageManager.isConfiguredDrop(dropItem)) {
+            return;
+        }
+
+        BlockData data;
+        try {
+            data = block.getBlockData();
+        } catch (Throwable ignored) {
+            return;
+        }
+
+        if (!(data instanceof Ageable)) {
+            return;
+        }
+
+        Ageable ageable = (Ageable) data;
+        if (ageable.getAge() < ageable.getMaximumAge()) {
+            return;
+        }
+
+        // Vanilla sweet berry harvesting yields 2-3 berries and sets age to 1.
+        int amount = ThreadLocalRandom.current().nextInt(2, 4);
+        int currentAmount = CropStorageManager.getPlayerItem(player, dropItem);
+        int maxStorage = CropStorageManager.getMaxStorage(player);
+        if (currentAmount + amount > maxStorage) {
+            return;
+        }
+
+        boolean stored = CropStorageManager.addItemAmount(player, dropItem, amount);
+        if (!stored) {
+            return;
+        }
+
+        SoundManager.playSound(player, "ENTITY_ITEM_PICKUP", 0.7f, 1.0f);
+
+        try {
+            ageable.setAge(1);
+            block.setBlockData(ageable, false);
+        } catch (Throwable ignored) {
+        }
+
+        e.setCancelled(true);
+        sendNotification(player, dropItem, amount);
+    }
+
+    private boolean isMelonBlockType(@NotNull String blockType) {
+        return "MELON".equalsIgnoreCase(blockType) || "MELON_BLOCK".equalsIgnoreCase(blockType);
+    }
+
+    private boolean hasSilkTouch(ItemStack tool) {
+        if (tool == null) {
+            return false;
+        }
+        try {
+            return tool.containsEnchantment(Enchantment.SILK_TOUCH);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCropBreak(@NotNull BlockBreakEvent e) {
@@ -90,6 +201,10 @@ public class CropBreak implements Listener {
         String blockType = block.getType().name();
         String dropItem = cropMapping.get(blockType);
 
+        if (dropItem == null && "MELON_BLOCK".equalsIgnoreCase(blockType)) {
+            dropItem = cropMapping.get("MELON");
+        }
+
         if (dropItem == null && blockType.endsWith("_CROP")) {
             String baseType = blockType.substring(0, blockType.length() - "_CROP".length());
             dropItem = cropMapping.get(baseType);
@@ -100,6 +215,21 @@ public class CropBreak implements Listener {
 
         if (dropItem == null) {
             return;
+        }
+
+        boolean silkTouchEnabled = File.getCropStorageConfig().getBoolean(
+                "settings.silk_touch.enabled",
+                true
+        );
+        if (silkTouchEnabled) {
+            ItemStack tool = player.getInventory().getItemInMainHand();
+            if (isMelonBlockType(blockType) && hasSilkTouch(tool)) {
+                String silkDropItem = blockType.toUpperCase();
+                if (!CropStorageManager.isItemAutoPickupDisabled(player, silkDropItem)
+                        && CropStorageManager.isConfiguredDrop(silkDropItem)) {
+                    dropItem = silkDropItem;
+                }
+            }
         }
 
         if (CropStorageManager.isItemAutoPickupDisabled(player, dropItem)) {

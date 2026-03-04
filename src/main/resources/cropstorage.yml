@@ -17,6 +17,15 @@ settings:
   max_storage_mode: PERMISSION
   default_auto_pickup: false
 
+  # Silk Touch behavior for CropStorage harvesting.
+  # When enabled, breaking certain crops with Silk Touch will store the "block form" if supported.
+  # Current use-case: Melon
+  # - Without Silk Touch: stores MELON_SLICE (vanilla behavior).
+  # - With Silk Touch: stores MELON (1.13+) or MELON_BLOCK (1.8 - 1.12) if configured in items_drop.
+  # Set to false to always use the normal mapping (e.g. always MELON_SLICE).
+  silk_touch:
+    enabled: true
+
 # Controls how autopickup handles tall column crops
 # base_only: only scan/store the whole column when breaking the base block.
 # any_segment: breaking any block in the column will scan/store the whole column.
@@ -37,7 +46,7 @@ sell:
 # - playerpoints: Give points via PlayerPoints; fallback to commands if PlayerPoints is unavailable or fails
 #
 # Note: You can override the payout method per crop in `worth:` using "<price>;<method>".
-sell_method: vault
+sell_method: commands
 
 auto_sell:
   enabled: true
@@ -159,6 +168,7 @@ items_drop:
   - SUGAR_CANE
   - COCOA_BEANS
   - MELON_SLICE
+  - MELON
   - PUMPKIN
   - SWEET_BERRIES
   - KELP
@@ -180,6 +190,7 @@ crop_display_names:
   SUGAR_CANE: "&aSugar Cane"
   COCOA_BEANS: "&6Cocoa Beans"
   MELON_SLICE: "&aMelon Slice"
+  MELON: "&aMelon"
   PUMPKIN: "&6Pumpkin"
   SWEET_BERRIES: "&cSweet Berries"
   KELP: "&2Kelp"
