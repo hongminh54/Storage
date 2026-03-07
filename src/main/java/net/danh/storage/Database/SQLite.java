@@ -1,6 +1,7 @@
 package net.danh.storage.Database;
 
 import net.danh.storage.Storage;
+import org.sqlite.SQLiteConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,18 @@ public class SQLite extends Database {
                 return connection;
             }
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + dataFolder);
+
+            SQLiteConfig config = new SQLiteConfig();
+            config.setBusyTimeout(5000);
+            config.enforceForeignKeys(true);
+            config.setJournalMode(SQLiteConfig.JournalMode.WAL);
+            config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
+
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dataFolder.getAbsolutePath(), config.toProperties());
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("PRAGMA temp_store=MEMORY");
+                statement.execute("PRAGMA cache_size=-20000");
+            }
             return connection;
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, "SQLite exception on initialize", ex);
@@ -53,16 +65,15 @@ public class SQLite extends Database {
     public void load() {
         connection = getSQLConnection();
         try {
-            Statement s = connection.createStatement();
-            s.executeUpdate(SQLiteCreateTokensTable);
+            try (Statement s = connection.createStatement()) {
+                s.executeUpdate(SQLiteCreateTokensTable);
 
-            try {
-                s.executeUpdate("ALTER TABLE PlayerData ADD COLUMN autopickup BOOLEAN DEFAULT 0");
-                Storage.getStorage().getLogger().info("Added autopickup column to existing database");
-            } catch (SQLException ignored) {
+                try {
+                    s.executeUpdate("ALTER TABLE PlayerData ADD COLUMN autopickup BOOLEAN DEFAULT 0");
+                    Storage.getStorage().getLogger().info("Added autopickup column to existing database");
+                } catch (SQLException ignored) {
+                }
             }
-
-            s.close();
         } catch (SQLException e) {
             Storage.getStorage().getLogger().log(Level.SEVERE, "Failed to create SQLite tables", e);
         }

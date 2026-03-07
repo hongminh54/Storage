@@ -38,14 +38,13 @@ public abstract class Database {
     // These are the methods you can use to get things out of your database. You of course can make new ones to return different things in the database.
     // This returns the number of people the player killed.
     public PlayerData getData(String player) {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs;
-        try {
-            conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM " + table + " WHERE player = '" + player + "';");
-            rs = ps.executeQuery();
-            if (rs.next()) {
+        try (Connection conn = getSQLConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM " + table + " WHERE player = ?")) {
+            ps.setString(1, player);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
                 boolean autoPickup = false;
                 try {
                     autoPickup = rs.getBoolean("autopickup");
@@ -55,23 +54,13 @@ public abstract class Database {
             }
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
-        } finally {
-            try {
-                if (ps != null) ps.close();
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
-            }
+            return null;
         }
-        return null;
     }
 
     public void createTable(@NotNull PlayerData playerData) {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        try {
-            conn = getSQLConnection();
-            ps = conn.prepareStatement("INSERT INTO " + table + " (player,data,max,autopickup) VALUES(?,?,?,?)");
+        try (Connection conn = getSQLConnection();
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO " + table + " (player,data,max,autopickup) VALUES(?,?,?,?)")) {
             ps.setString(1, playerData.getPlayer());
             ps.setString(2, playerData.getData());
             ps.setInt(3, playerData.getMax());
@@ -79,66 +68,49 @@ public abstract class Database {
             ps.executeUpdate();
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
-        } finally {
-            try {
-                if (ps != null)
-                    ps.close();
-                if (conn != null)
-                    conn.close();
-            } catch (SQLException ex) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
-            }
         }
     }
 
     public void updateTable(@NotNull PlayerData playerData) {
         Connection conn = null;
-        PreparedStatement ps = null;
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("UPDATE " + table + " SET data = ?, max = ?, autopickup = ? " +
-                    "WHERE player = ?");
             conn.setAutoCommit(false);
-            ps.setString(1, playerData.getData());
-            ps.setInt(2, playerData.getMax());
-            ps.setBoolean(3, playerData.isAutoPickup());
-            ps.setString(4, playerData.getPlayer());
-            ps.addBatch();
-            ps.executeBatch();
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE " + table + " SET data = ?, max = ?, autopickup = ? WHERE player = ?")) {
+                ps.setString(1, playerData.getData());
+                ps.setInt(2, playerData.getMax());
+                ps.setBoolean(3, playerData.isAutoPickup());
+                ps.setString(4, playerData.getPlayer());
+                ps.executeUpdate();
+            }
             conn.commit();
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
         } finally {
-            try {
-                if (ps != null)
-                    ps.close();
-                if (conn != null)
+            if (conn != null) {
+                try {
                     conn.close();
-            } catch (SQLException ex) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                } catch (SQLException ex) {
+                    Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                }
             }
         }
     }
 
     public void deleteData(String player) {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        try {
-            conn = getSQLConnection();
-            ps = conn.prepareStatement("DELETE FROM " + table + " WHERE player = ?");
+        try (Connection conn = getSQLConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM " + table + " WHERE player = ?")) {
             ps.setString(1, player);
             ps.executeUpdate();
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
-        } finally {
-            try {
-                if (ps != null)
-                    ps.close();
-                if (conn != null)
-                    conn.close();
-            } catch (SQLException ex) {
-                Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
-            }
         }
     }
 
