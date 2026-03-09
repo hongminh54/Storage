@@ -198,18 +198,37 @@ public class ParticleManager {
         playEnhancedParticle(player, ParticleType.TRANSFER_SUCCESS);
     }
 
+    public static void playTransferSuccessParticle(Player player, FileConfiguration config) {
+        playEnhancedParticle(player, ParticleType.TRANSFER_SUCCESS, config);
+    }
+
     public static void playTransferReceiveParticle(Player player) {
         playEnhancedParticle(player, ParticleType.TRANSFER_RECEIVE);
+    }
+
+    public static void playTransferReceiveParticle(Player player, FileConfiguration config) {
+        playEnhancedParticle(player, ParticleType.TRANSFER_RECEIVE, config);
     }
 
     public static void playTransferFailedParticle(Player player) {
         playEnhancedParticle(player, ParticleType.TRANSFER_FAILED);
     }
 
+    public static void playTransferFailedParticle(Player player, FileConfiguration config) {
+        playEnhancedParticle(player, ParticleType.TRANSFER_FAILED, config);
+    }
+
     private static void playEnhancedParticle(Player player, ParticleType particleType) {
         if (player == null || !player.isOnline()) return;
 
         FileConfiguration config = File.getConfig();
+        playEnhancedParticle(player, particleType, config);
+    }
+
+    private static void playEnhancedParticle(Player player, ParticleType particleType, FileConfiguration config) {
+        if (player == null || !player.isOnline()) return;
+        if (config == null) return;
+
         if (!config.getBoolean("transfer.particles.enabled", true)) return;
 
         String configPath = particleType.getConfigPath();
@@ -235,7 +254,7 @@ public class ParticleManager {
                     return;
                 }
 
-                playAnimationFrame(player, animation, ticks, configPath);
+                playAnimationFrame(config, player, animation, ticks, configPath);
                 ticks++;
             }
         }, 0L, 1L);
@@ -250,6 +269,14 @@ public class ParticleManager {
         stopAnimation(animationKey);
 
         FileConfiguration config = File.getConfig();
+        playTransferProcessingAnimation(player, durationSeconds, config);
+    }
+
+    public static void playTransferProcessingAnimation(Player player, int durationSeconds, FileConfiguration config) {
+        String animationKey = "processing_" + player.getName();
+        stopAnimation(animationKey);
+
+        if (config == null) return;
         if (!config.getBoolean("transfer.particles.enabled", true)) return;
 
         ParticleAnimation animation = ParticleAnimation.fromString(
@@ -269,7 +296,7 @@ public class ParticleManager {
                     return;
                 }
 
-                playAnimationFrame(player, animation, ticks, "transfer.particles.processing");
+                playAnimationFrame(config, player, animation, ticks, "transfer.particles.processing");
                 ticks++;
             }
         }, 0L, 1L);
@@ -283,6 +310,13 @@ public class ParticleManager {
         if (sender == null || receiver == null || !sender.isOnline() || !receiver.isOnline()) return;
 
         FileConfiguration config = File.getConfig();
+        playTransferBeamEffect(sender, receiver, config);
+    }
+
+    public static void playTransferBeamEffect(Player sender, Player receiver, FileConfiguration config) {
+        if (sender == null || receiver == null || !sender.isOnline() || !receiver.isOnline()) return;
+
+        if (config == null) return;
         if (!config.getBoolean("transfer.particles.enabled", true)) return;
 
         String animationKey = "beam_" + sender.getName() + "_" + receiver.getName();
@@ -302,7 +336,7 @@ public class ParticleManager {
 
                 playBeamAnimation(sender.getLocation().add(0, 1, 0),
                         receiver.getLocation().add(0, 1, 0),
-                        ticks, maxTicks, "transfer.particles.beam");
+                        ticks, maxTicks, "transfer.particles.beam", config);
                 ticks++;
             }
         }, 0L, 2L);
@@ -557,6 +591,51 @@ public class ParticleManager {
         }
     }
 
+    private static void playAnimationFrame(FileConfiguration config, Player player, ParticleAnimation animation, int tick, String configPath) {
+        if (config == null) return;
+        Location center = player.getLocation().add(0, 1, 0);
+
+        String particleName = config.getString(configPath + ".type", "VILLAGER_HAPPY");
+        int count = config.getInt(configPath + ".count", 5);
+        double speed = config.getDouble(configPath + ".speed", 0.1);
+        double radius = config.getDouble(configPath + ".radius", 1.5);
+
+        switch (animation) {
+            case CIRCLE:
+                playCircleAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case SPIRAL:
+                playSpiralAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case HELIX:
+                playHelixAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case WAVE:
+                playWaveAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case BURST:
+                if (tick % 10 == 0) {
+                    playBurstAnimation(center, particleName, count * 2, speed);
+                }
+                break;
+            case DNA_HELIX:
+                playDNAHelixAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case GALAXY:
+                playGalaxyAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case TORNADO:
+                playTornadoAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case LIGHTNING:
+                playLightningAnimation(center, tick, radius, particleName, count, speed);
+                break;
+            case GEOMETRIC_STAR:
+                playGeometricStarAnimation(center, tick, radius, particleName, count, speed);
+                break;
+        }
+    }
+
     private static void playAnimationFrame(Player player, ParticleAnimation animation, int tick, String configPath) {
         FileConfiguration config = File.getConfig();
         Location center = player.getLocation().add(0, 1, 0);
@@ -671,9 +750,15 @@ public class ParticleManager {
 
     private static void playBeamAnimation(Location start, Location end, int tick, int maxTicks, String configPath) {
         FileConfiguration config = File.getConfig();
+        playBeamAnimation(start, end, tick, maxTicks, configPath, config);
+    }
+
+    private static void playBeamAnimation(Location start, Location end, int tick, int maxTicks, String configPath, FileConfiguration config) {
+        if (config == null) return;
         String particleName = config.getString(configPath + ".type", "FIREWORKS_SPARK");
         int count = config.getInt(configPath + ".count", 3);
-        double speed = config.getDouble(configPath + ".speed", 0.1);
+        double speed = config.getDouble(configPath + ".speed", 0.2);
+        ParticleAnimation animation = ParticleAnimation.fromString(config.getString(configPath + ".animation", "line"));
 
         double progress = (double) tick / maxTicks;
         int particles = 10;

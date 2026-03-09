@@ -4,6 +4,8 @@ import net.danh.storage.Action.*;
 import net.danh.storage.GUI.ConvertOptionGUI;
 import net.danh.storage.GUI.Crafting.RecipeListGUI;
 import net.danh.storage.GUI.Crop.CropStorageGUI;
+import net.danh.storage.GUI.Crop.CropTransferGUI;
+import net.danh.storage.GUI.Crop.CropTransferMultiGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
@@ -43,6 +45,8 @@ public class ChatListener implements Listener {
     public static HashMap<UUID, String> chat_crop_withdraw = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_deposit = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_sell = new HashMap<>();
+    public static HashMap<UUID, String> chat_crop_multi_transfer_item = new HashMap<>();
+    public static HashMap<UUID, String> chat_crop_multi_transfer_target = new HashMap<>();
     public static HashMap<UUID, Integer> chat_return_page = new HashMap<>();
     public static HashMap<UUID, String> craftingRequests = new HashMap<>();
 
@@ -556,6 +560,153 @@ public class ChatListener implements Listener {
             if (RecipeEditManager.handleChatInput(p, message)) {
                 e.setCancelled(true);
             }
+        }
+
+        // Handle CropTransferGUI amount input
+        if (CropTransferGUI.isWaitingForInput(p)) {
+            if (isCancelCommand(message)) {
+                CropTransferGUI.setWaitingForInput(p, false);
+                CropTransferGUI activeGUI = CropTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    handleCancel(p, activeGUI::updateGUI);
+                }
+                e.setCancelled(true);
+                return;
+            }
+            if (Number.getInteger(message) > 0) {
+                CropTransferGUI activeGUI = CropTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    int amount = Number.getInteger(message);
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                        activeGUI.setTransferAmountAndUpdate(amount);
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("cropstorage.transfer.gui_enter_amount_success")
+                                        .replace("#amount#", String.valueOf(amount))));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(
+                        ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                                .replace("<number>", message)));
+            }
+            CropTransferGUI.setWaitingForInput(p, false);
+            e.setCancelled(true);
+        }
+
+        // Handle CropTransferGUI receiver input
+        if (CropTransferGUI.isWaitingForReceiver(p)) {
+            if (isCancelCommand(message)) {
+                CropTransferGUI.setWaitingForReceiver(p, false);
+                CropTransferGUI activeGUI = CropTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    handleCancel(p, activeGUI::updateGUI);
+                }
+                e.setCancelled(true);
+                return;
+            }
+            Player targetPlayer = org.bukkit.Bukkit.getPlayer(message);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                CropTransferGUI activeGUI = CropTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                        activeGUI.setTargetPlayerAndUpdate(message);
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("cropstorage.transfer.gui_enter_receiver_success")
+                                        .replace("#player#", message)));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("cropstorage.transfer.failed_offline")
+                                .replace("#player#", message)));
+            }
+            CropTransferGUI.setWaitingForReceiver(p, false);
+            e.setCancelled(true);
+        }
+
+        // Handle CropTransferMultiGUI amount input
+        if (chat_crop_multi_transfer_item.containsKey(playerId)
+                && chat_crop_multi_transfer_item.get(playerId) != null) {
+            if (isCancelCommand(message)) {
+                CropTransferMultiGUI gui = CropTransferMultiGUI.getActiveGUI(p);
+                String target = chat_crop_multi_transfer_target.get(playerId);
+                chat_crop_multi_transfer_item.remove(playerId);
+                chat_crop_multi_transfer_target.remove(playerId);
+                if (gui != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            gui.getInventory(SoundContext.SILENT)));
+                } else if (target != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            new CropTransferMultiGUI(p, target)
+                                    .getInventory(SoundContext.SILENT)));
+                } else {
+                    handleCancel(p, () -> {
+                    });
+                }
+                e.setCancelled(true);
+                return;
+            }
+
+            int amount = Number.getInteger(message);
+            if (amount > 0) {
+                String itemName = chat_crop_multi_transfer_item.get(playerId);
+                CropTransferMultiGUI gui = CropTransferMultiGUI.getActiveGUI(p);
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    if (gui != null) {
+                        gui.setSelectedAmount(itemName, amount);
+                        p.openInventory(gui.getInventory(SoundContext.SILENT));
+                    } else {
+                        String target = chat_crop_multi_transfer_target.get(playerId);
+                        if (target != null) {
+                            CropTransferMultiGUI newGui = new CropTransferMultiGUI(p, target);
+                            newGui.setSelectedAmount(itemName, amount);
+                            p.openInventory(newGui.getInventory(SoundContext.SILENT));
+                        }
+                    }
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(
+                                File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
+            }
+            chat_crop_multi_transfer_item.remove(playerId);
+            chat_crop_multi_transfer_target.remove(playerId);
+            e.setCancelled(true);
+        }
+
+        // Handle CropTransferMultiGUI receiver input
+        if (CropTransferMultiGUI.isWaitingForReceiver(p)) {
+            if (isCancelCommand(message)) {
+                CropTransferMultiGUI.setWaitingForReceiver(p, false);
+                CropTransferMultiGUI activeGUI = CropTransferMultiGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    handleCancel(p, activeGUI::updateGUI);
+                }
+                e.setCancelled(true);
+                return;
+            }
+            Player targetPlayer = org.bukkit.Bukkit.getPlayer(message);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                CropTransferMultiGUI activeGUI = CropTransferMultiGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                        activeGUI.setTargetPlayerAndUpdate(message);
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("cropstorage.transfer.gui_enter_receiver_success")
+                                        .replace("#player#", message)));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("cropstorage.transfer.failed_offline")
+                                .replace("#player#", message)));
+            }
+            CropTransferMultiGUI.setWaitingForReceiver(p, false);
+            e.setCancelled(true);
         }
     }
 }

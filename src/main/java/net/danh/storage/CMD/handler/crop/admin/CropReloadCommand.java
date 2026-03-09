@@ -2,6 +2,7 @@ package net.danh.storage.CMD.handler.crop.admin;
 
 import net.danh.storage.CMD.handler.crop.CropCommand;
 import net.danh.storage.Manager.Crop.CropStorageManager;
+import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.command.CommandSender;
@@ -15,6 +16,7 @@ public class CropReloadCommand extends CropCommand {
     public void execute(CommandSender sender, String[] args) {
         File.getFileSetting().reload("cropstorage.yml", "GUI/cropstorage.yml", "message.yml");
         CropStorageManager.reloadConfiguredDrops();
+        CropTransferManager.initialize();
 
         sendMessage(sender, "admin.reload_success");
 

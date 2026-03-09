@@ -15,6 +15,7 @@ import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
 import net.danh.storage.Manager.Crop.CropStorageManager;
+import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
@@ -544,6 +545,7 @@ public final class Storage extends JavaPlugin {
 
     private void initializeCropStorage() {
         CropStorageManager.initialize();
+        CropTransferManager.initialize();
         if (CropStorageManager.isSystemEnabled()) {
             getLogger().info("[CropStorage] System enabled, registering crop break listener...");
             registerEvents(new CropBreak());

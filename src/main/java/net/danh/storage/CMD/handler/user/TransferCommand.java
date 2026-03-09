@@ -112,6 +112,31 @@ public class TransferCommand extends BaseCommand {
                         sendInvalidNumber(sender, args[2]);
                     }
                 }
+                return;
+            }
+
+            if (checkPermission(sender, "storage.transfer.use")) {
+                Player target = getPlayer(args[0]);
+                if (target != null && !target.equals(player)) {
+                    String material = args[1];
+                    if (!MineManager.getPluginBlocks().contains(material)) {
+                        return;
+                    }
+
+                    int currentAmount = MineManager.getPlayerBlock(player, material);
+                    int amount;
+                    if ("all".equalsIgnoreCase(args[2])) {
+                        amount = currentAmount;
+                    } else {
+                        amount = (int) Number.getLong(args[2]);
+                        if (amount <= 0) {
+                            sendInvalidNumber(sender, args[2]);
+                            return;
+                        }
+                    }
+
+                    TransferManager.executeTransfer(player, target.getName(), material, amount);
+                }
             }
         }
     }
@@ -158,6 +183,28 @@ public class TransferCommand extends BaseCommand {
                 commands.add("2");
                 commands.add("3");
                 StringUtil.copyPartialMatches(args[2], commands, completions);
+            } else if (checkPermission(sender, "storage.transfer.use")) {
+                Player target = getPlayer(args[0]);
+                String material = args[1];
+                if (target != null && sender instanceof Player && MineManager.getPluginBlocks().contains(material)) {
+                    Player player = (Player) sender;
+                    int currentAmount = MineManager.getPlayerBlock(player, material);
+
+                    List<String> suggestions = new ArrayList<>();
+                    suggestions.add("all");
+                    suggestions.add("1");
+                    if (currentAmount >= 10) {
+                        suggestions.add("10");
+                    }
+                    if (currentAmount >= 64) {
+                        suggestions.add("64");
+                    }
+                    if (currentAmount > 0) {
+                        suggestions.add(String.valueOf(currentAmount));
+                    }
+
+                    StringUtil.copyPartialMatches(args[2], suggestions, completions);
+                }
             }
         }
 
@@ -171,7 +218,9 @@ public class TransferCommand extends BaseCommand {
 
     @Override
     public String getUsage() {
-        return "/storage transfer <player|log|multi>";
+        return "/storage transfer <player> <material> [amount/all]\n" +
+                "/storage transfer multi <player>\n" +
+                "/storage transfer log [player] [page]";
     }
 
     @Override

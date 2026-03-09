@@ -128,6 +128,40 @@ public class MythicTransferCommand extends BaseCommand {
                         sendInvalidNumber(sender, args[2]);
                     }
                 }
+                return;
+            }
+
+            if (checkPermission(sender, "storage.mythicstorage.transfer")) {
+                Player target = getPlayer(args[0]);
+                if (target == null) {
+                    sendInvalidPlayer(sender, args[0]);
+                    return;
+                }
+
+                if (target.equals(player)) {
+                    sendMessage(sender, "mythicstorage.transfer.failed_same_player");
+                    return;
+                }
+
+                String itemName = args[1];
+                if (!MythicStorageManager.isConfiguredDrop(itemName)) {
+                    sendMessage(sender, "mythicstorage.invalid_item", "#item#", itemName);
+                    return;
+                }
+
+                int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+                int amount;
+                if ("all".equalsIgnoreCase(args[2])) {
+                    amount = currentAmount;
+                } else {
+                    amount = (int) Number.getLong(args[2]);
+                    if (amount <= 0) {
+                        sendInvalidNumber(sender, args[2]);
+                        return;
+                    }
+                }
+
+                MythicTransferManager.executeTransfer(player, target.getName(), itemName, amount);
             }
         }
     }
@@ -176,6 +210,28 @@ public class MythicTransferCommand extends BaseCommand {
                 commands.add("2");
                 commands.add("3");
                 StringUtil.copyPartialMatches(args[2], commands, completions);
+            } else if (checkPermission(sender, "storage.mythicstorage.transfer")) {
+                Player target = getPlayer(args[0]);
+                String itemName = args[1];
+                if (target != null && sender instanceof Player && MythicStorageManager.isConfiguredDrop(itemName)) {
+                    Player player = (Player) sender;
+                    int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
+
+                    List<String> suggestions = new ArrayList<>();
+                    suggestions.add("all");
+                    suggestions.add("1");
+                    if (currentAmount >= 10) {
+                        suggestions.add("10");
+                    }
+                    if (currentAmount >= 64) {
+                        suggestions.add("64");
+                    }
+                    if (currentAmount > 0) {
+                        suggestions.add(String.valueOf(currentAmount));
+                    }
+
+                    StringUtil.copyPartialMatches(args[2], suggestions, completions);
+                }
             }
         }
 
@@ -189,7 +245,9 @@ public class MythicTransferCommand extends BaseCommand {
 
     @Override
     public String getUsage() {
-        return "/mythicstorage transfer <player|log>";
+        return "/mythicstorage transfer <player> <item> [amount/all]\n" +
+                "/mythicstorage transfer multi <player>\n" +
+                "/mythicstorage transfer log [player] [page]";
     }
 
     @Override

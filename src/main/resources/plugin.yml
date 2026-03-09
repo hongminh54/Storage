@@ -56,6 +56,7 @@ permissions:
       storage.transfer.use: true
       storage.transfer.multi: true
       storage.transfer.log: true
+      storage.transfer.log.others: true
       storage.enchant.use: true
       storage.event.view: true
       storage.craft.use: true
@@ -71,6 +72,9 @@ permissions:
       storage.cropstorage.toggle: true
       storage.cropstorage.groundstore: true
       storage.cropstorage.view: true
+      storage.cropstorage.transfer.use: true
+      storage.cropstorage.transfer.multi: true
+      storage.cropstorage.transfer.log: true
 
   storage.toggle:
     description: Toggle permission
@@ -116,6 +120,7 @@ permissions:
       storage.craft.admin: true
       storage.mythicstorage.admin: true
       storage.cropstorage.admin: true
+      storage.cropstorage.transfer.log.others: true
       storage.preventrebreak.bypass: true
 
   storage.admin.add:
@@ -260,6 +265,22 @@ permissions:
 
   storage.cropstorage.admin:
     description: Admin commands for crop storage
+    default: op
+
+  storage.cropstorage.transfer.use:
+    description: Transfer CropStorage items to other players
+    default: true
+
+  storage.cropstorage.transfer.multi:
+    description: Transfer multiple CropStorage items at once
+    default: true
+
+  storage.cropstorage.transfer.log:
+    description: View own CropStorage transfer logs
+    default: true
+
+  storage.cropstorage.transfer.log.others:
+    description: View other players CropStorage transfer logs
     default: op
 
   storage.preventrebreak.bypass:

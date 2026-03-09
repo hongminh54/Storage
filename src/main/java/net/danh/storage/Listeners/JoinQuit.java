@@ -7,6 +7,8 @@ import net.danh.storage.Enchant.VeinMinerEnchant;
 import net.danh.storage.GUI.*;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.Crop.CropStorageGUI;
+import net.danh.storage.GUI.Crop.CropTransferGUI;
+import net.danh.storage.GUI.Crop.CropTransferMultiGUI;
 import net.danh.storage.GUI.Crop.ViewCropStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
@@ -16,6 +18,7 @@ import net.danh.storage.Listeners.Mythic.MythicMobDeath;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
 import net.danh.storage.Manager.Crop.CropStorageManager;
+import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
@@ -76,8 +79,12 @@ public class JoinQuit implements Listener {
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);
         MythicTransferGUI.setWaitingForInput(p, false);
+        CropTransferGUI.setWaitingForInput(p, false);
+        CropTransferGUI.setWaitingForReceiver(p, false);
+        CropTransferMultiGUI.setWaitingForReceiver(p, false);
         TransferManager.cancelTransfer(p);
         MythicTransferManager.cancelTransfer(p);
+        CropTransferManager.cancelTransfer(p);
 
         // Cleanup transfer GUI data (TransferGUI and TransferMultiGUI auto-cleanup on
         // close)
@@ -89,6 +96,18 @@ public class JoinQuit implements Listener {
         if (MythicTransferMultiGUI.getActiveGUI(p) != null) {
             MythicTransferMultiGUI.removeActiveGUI(p);
         }
+
+        if (CropTransferGUI.getActiveGUI(p) != null) {
+            CropTransferGUI.removeActiveGUI(p);
+        }
+
+        if (CropTransferMultiGUI.getActiveGUI(p) != null) {
+            CropTransferMultiGUI.removeActiveGUI(p);
+        }
+
+        // Cleanup crop transfer chat data
+        ChatListener.chat_crop_multi_transfer_item.remove(p.getUniqueId());
+        ChatListener.chat_crop_multi_transfer_target.remove(p.getUniqueId());
 
         // Cleanup storage full notification data
         StorageFullNotificationManager.removePlayer(p);

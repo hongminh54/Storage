@@ -228,7 +228,7 @@ public class TransferManager {
         cancelTransfer(sender);
 
         // Start processing animation
-        ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
+        ParticleManager.playTransferProcessingAnimation(sender, transferDelay, File.getConfig());
 
         // Store fireEvent flag for completion
         final boolean shouldFireEvent = fireEvent;
@@ -276,7 +276,7 @@ public class TransferManager {
         cancelTransfer(sender);
 
         // Start processing animation
-        ParticleManager.playTransferProcessingAnimation(sender, transferDelay);
+        ParticleManager.playTransferProcessingAnimation(sender, transferDelay, File.getConfig());
 
         // Create and start the multi transfer task
         TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
@@ -416,7 +416,7 @@ public class TransferManager {
 
         if (sender.isOnline()) {
             sender.sendMessage(ChatUtils.colorize(errorMessage));
-            ParticleManager.playTransferFailedParticle(sender);
+            ParticleManager.playTransferFailedParticle(sender, File.getConfig());
         }
     }
 
@@ -463,11 +463,11 @@ public class TransferManager {
         }
 
         // Play beam effect from sender to receiver
-        ParticleManager.playTransferBeamEffect(sender, receiver);
+        ParticleManager.playTransferBeamEffect(sender, receiver, File.getConfig());
 
         // Play enhanced success and receive particles
-        ParticleManager.playTransferSuccessParticle(sender);
-        ParticleManager.playTransferReceiveParticle(receiver);
+        ParticleManager.playTransferSuccessParticle(sender, File.getConfig());
+        ParticleManager.playTransferReceiveParticle(receiver, File.getConfig());
     }
 
     public static boolean isTransferInProgress(Player player) {
