@@ -14,6 +14,7 @@ import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.Manager.StorageFullNotificationManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
@@ -40,8 +41,11 @@ import java.util.UUID;
 public class BlockBreak implements Listener {
 
     private static final long MMOITEMS_CAPTURE_TTL_MS = 2000L;
-    private final Map<MmoitemsCaptureKey, MmoitemsCapture> mmoitemsCapture =
-            new HashMap<>();
+    private static final long CLEANUP_INTERVAL_MS = 1000L;
+    private static final boolean CAN_DISABLE_DROPS = new NMSAssistant().isVersionGreaterThanOrEqualTo(12);
+
+    private final Map<MmoitemsCaptureKey, MmoitemsCapture> mmoitemsCapture = new HashMap<>();
+    private long lastCleanupMs = 0L;
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBreakCapture(@NotNull BlockBreakEvent e) {
@@ -59,7 +63,7 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
-        boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
+        boolean preventRebreak = AutoPickupCache.isPreventRebreak();
         boolean placedBlock = isPlacedBlock(block);
         if (preventRebreak && !placedBlock) {
             placedBlock = MineManager.isPersistPlacedBlock(block);
@@ -68,11 +72,8 @@ public class BlockBreak implements Listener {
             MineManager.unmarkPersistPlacedBlock(block);
             return;
         }
-        if (File.getConfig().contains("blacklist_world")) {
-            if (File.getConfig().getStringList("blacklist_world")
-                    .contains(p.getWorld().getName())) {
-                return;
-            }
+        if (AutoPickupCache.isStorageWorldBlacklisted(p.getWorld().getName())) {
+            return;
         }
 
         ItemStack tool = p.getInventory().getItemInMainHand();
@@ -87,19 +88,18 @@ public class BlockBreak implements Listener {
             return;
         }
 
-        cleanupOldCaptures();
+        maybeCleanupCaptures();
         mmoitemsCapture.put(new MmoitemsCaptureKey(
-                p.getUniqueId(),
-                block.getWorld().getUID(),
-                block.getX(),
-                block.getY(),
-                block.getZ()
-        ), new MmoitemsCapture(
-                block.getType().name(),
-                MineManager.isBefore9() ? (short) block.getData() : 0,
-                drop,
-                System.currentTimeMillis()
-        ));
+                        p.getUniqueId(),
+                        block.getWorld().getUID(),
+                        block.getX(),
+                        block.getY(),
+                        block.getZ()),
+                new MmoitemsCapture(
+                        block.getType().name(),
+                        MineManager.isBefore9() ? (short) block.getData() : 0,
+                        drop,
+                        System.currentTimeMillis()));
     }
 
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGHEST)
@@ -113,7 +113,7 @@ public class BlockBreak implements Listener {
                 return;
             }
         }
-        boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
+        boolean preventRebreak = AutoPickupCache.isPreventRebreak();
         boolean placedBlock = isPlacedBlock(block);
         if (preventRebreak && !placedBlock) {
             placedBlock = MineManager.isPersistPlacedBlock(block);
@@ -122,8 +122,8 @@ public class BlockBreak implements Listener {
             MineManager.unmarkPersistPlacedBlock(block);
             return;
         }
-        if (File.getConfig().contains("blacklist_world")) {
-            if (File.getConfig().getStringList("blacklist_world").contains(p.getWorld().getName())) return;
+        if (AutoPickupCache.isStorageWorldBlacklisted(p.getWorld().getName())) {
+            return;
         }
 
         if (e.isCancelled()) {
@@ -146,10 +146,11 @@ public class BlockBreak implements Listener {
                 }
                 int amount;
                 Enchantment fortune = XEnchantment.FORTUNE.get();
-                if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || fortune == null || !hand.containsEnchantment(fortune)) {
+                if (hand == null || hand.getType().name().equals("AIR") || hand.getAmount() <= 0 || fortune == null
+                        || !hand.containsEnchantment(fortune)) {
                     amount = getDropAmount(block, hand);
                 } else {
-                    if (File.getConfig().getStringList("whitelist_fortune").contains(block.getType().name())) {
+                    if (AutoPickupCache.isFortuneWhitelisted(block.getType().name())) {
                         int base = getDropAmount(block, hand);
                         amount = Number.getRandomInteger(base,
                                 base + hand.getEnchantmentLevel(fortune) + 2);
@@ -159,7 +160,8 @@ public class BlockBreak implements Listener {
                 }
 
                 // Apply multiplier enchant if present
-                if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0 && EnchantManager.hasEnchant(hand, "multiplier")) {
+                if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0
+                        && EnchantManager.hasEnchant(hand, "multiplier")) {
                     int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
                     amount = MultiplierEnchant.calculateMultipliedAmount(p, amount, multiplierLevel);
                 }
@@ -173,12 +175,13 @@ public class BlockBreak implements Listener {
                 boolean stored = MineManager.addBlockAmount(p, drop, totalAmount);
                 if (stored) {
                     EventManager.onPlayerMine(p, drop, amount);
-                    boolean actionBarEnabled = File.getConfig().getBoolean("mine.actionbar.enable");
-                    boolean titleEnabled = File.getConfig().getBoolean("mine.title.enable");
+                    boolean actionBarEnabled = AutoPickupCache.isStorageActionBarEnabled();
+                    boolean titleEnabled = AutoPickupCache.isStorageTitleEnabled();
                     if (actionBarEnabled || titleEnabled) {
                         String name = File.getConfig().getString("items." + drop);
                         String itemName = name != null ? name : drop.replace("_", " ");
-                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)" : String.valueOf(totalAmount);
+                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)"
+                                : String.valueOf(totalAmount);
                         int newStoredAmount = MineManager.getPlayerBlock(p, drop);
                         int maxStorage = MineManager.getMaxBlock(p);
 
@@ -213,10 +216,9 @@ public class BlockBreak implements Listener {
                         }
                     }
 
-                    if (new NMSAssistant().isVersionGreaterThanOrEqualTo(12)) {
+                    if (CAN_DISABLE_DROPS) {
                         e.setDropItems(false);
                     }
-                    e.getBlock().getDrops().clear();
                 } else {
                     StorageFullNotificationManager.sendStorageFullNotification(p);
                 }
@@ -370,21 +372,19 @@ public class BlockBreak implements Listener {
 
     private boolean handleMmoitemsAutoSmeltCancelledBreak(
             @NotNull Player player,
-            @NotNull Block block
-    ) {
+            @NotNull Block block) {
         ItemStack tool = player.getInventory().getItemInMainHand();
         if (!isMmoitemsAutoSmeltTool(tool)) {
             return false;
         }
 
-        cleanupOldCaptures();
+        maybeCleanupCaptures();
         MmoitemsCaptureKey key = new MmoitemsCaptureKey(
                 player.getUniqueId(),
                 block.getWorld().getUID(),
                 block.getX(),
                 block.getY(),
-                block.getZ()
-        );
+                block.getZ());
         MmoitemsCapture capture = mmoitemsCapture.remove(key);
         if (capture == null) {
             return false;
@@ -394,8 +394,7 @@ public class BlockBreak implements Listener {
         }
 
         ItemStack generated = generateMmoitemsAutoSmeltDrop(
-                capture.materialName
-        );
+                capture.materialName);
         if (generated == null || generated.getAmount() <= 0) {
             return false;
         }
@@ -433,12 +432,8 @@ public class BlockBreak implements Listener {
         }
 
         EventManager.onPlayerMine(player, dropKey, amount);
-        boolean actionBarEnabled = File.getConfig().getBoolean(
-                "mine.actionbar.enable"
-        );
-        boolean titleEnabled = File.getConfig().getBoolean(
-                "mine.title.enable"
-        );
+        boolean actionBarEnabled = AutoPickupCache.isStorageActionBarEnabled();
+        boolean titleEnabled = AutoPickupCache.isStorageTitleEnabled();
         if (actionBarEnabled || titleEnabled) {
             String name = File.getConfig().getString("items." + dropKey);
             String itemName = name != null ? name : dropKey.replace("_", " ");
@@ -448,8 +443,7 @@ public class BlockBreak implements Listener {
 
             if (actionBarEnabled) {
                 String template = File.getConfig().getString(
-                        "mine.actionbar.action"
-                );
+                        "mine.actionbar.action");
                 if (template != null) {
                     String msg = template
                             .replace("#item#", itemName)
@@ -463,11 +457,9 @@ public class BlockBreak implements Listener {
             }
             if (titleEnabled) {
                 String titleTemplate = File.getConfig().getString(
-                        "mine.title.title"
-                );
+                        "mine.title.title");
                 String subtitleTemplate = File.getConfig().getString(
-                        "mine.title.subtitle"
-                );
+                        "mine.title.subtitle");
                 if (titleTemplate != null && subtitleTemplate != null) {
                     String title = titleTemplate
                             .replace("#item#", itemName)
@@ -494,10 +486,7 @@ public class BlockBreak implements Listener {
                 || tool.getAmount() <= 0) {
             return false;
         }
-        if (!File.getConfig().getBoolean(
-                "hooks.mmoitems_autosmelt.enabled",
-                true
-        )) {
+        if (!AutoPickupCache.isMmoitemsAutoSmeltEnabled()) {
             return false;
         }
         try {
@@ -507,12 +496,10 @@ public class BlockBreak implements Listener {
             if (!Storage.isMythicLibInstalled()) {
                 return false;
             }
-            io.lumine.mythic.lib.api.item.NBTItem nbtItem =
-                    io.lumine.mythic.lib.MythicLib.plugin.getVersion()
-                            .getWrapper().getNBTItem(tool);
+            io.lumine.mythic.lib.api.item.NBTItem nbtItem = io.lumine.mythic.lib.MythicLib.plugin.getVersion()
+                    .getWrapper().getNBTItem(tool);
             return nbtItem != null && nbtItem.getBoolean(
-                    "MMOITEMS_AUTOSMELT"
-            );
+                    "MMOITEMS_AUTOSMELT");
         } catch (Throwable ignored) {
             return false;
         }
@@ -528,14 +515,12 @@ public class BlockBreak implements Listener {
                 return null;
             }
             org.bukkit.Material mat = org.bukkit.Material.getMaterial(
-                    materialName
-            );
+                    materialName);
             if (mat == null) {
                 return null;
             }
-            io.lumine.mythic.lib.version.OreDrops drops =
-                    io.lumine.mythic.lib.MythicLib.plugin.getVersion()
-                            .getWrapper().getOreDrops(mat);
+            io.lumine.mythic.lib.version.OreDrops drops = io.lumine.mythic.lib.MythicLib.plugin.getVersion()
+                    .getWrapper().getOreDrops(mat);
             if (drops == null) {
                 return null;
             }
@@ -560,8 +545,7 @@ public class BlockBreak implements Listener {
                 block.getLocation().add(0.5, 0.5, 0.5),
                 1.5,
                 1.5,
-                1.5
-        )) {
+                1.5)) {
             if (!(entity instanceof Item)) {
                 continue;
             }
@@ -592,11 +576,13 @@ public class BlockBreak implements Listener {
         }
     }
 
-    private void cleanupOldCaptures() {
+    private void maybeCleanupCaptures() {
         long now = System.currentTimeMillis();
-        mmoitemsCapture.entrySet().removeIf(entry ->
-                now - entry.getValue().createdAtMs > MMOITEMS_CAPTURE_TTL_MS
-        );
+        if (now - lastCleanupMs < CLEANUP_INTERVAL_MS) {
+            return;
+        }
+        lastCleanupMs = now;
+        mmoitemsCapture.entrySet().removeIf(entry -> now - entry.getValue().createdAtMs > MMOITEMS_CAPTURE_TTL_MS);
     }
 
     private static final class MmoitemsCaptureKey {

@@ -6,6 +6,7 @@ import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.Material;
@@ -29,13 +30,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class CropBreak implements Listener {
 
+    private static final boolean CAN_DISABLE_DROPS = new NMSAssistant().isVersionGreaterThanOrEqualTo(12);
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onSweetBerryHarvest(@NotNull PlayerInteractEvent e) {
         if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
 
-        // Prevent double-trigger in 1.9+ (mainhand/offhand) without importing EquipmentSlot (1.8 compatible).
         try {
             Object hand = e.getClass().getMethod("getHand").invoke(e);
             if (hand != null && !"HAND".equalsIgnoreCase(String.valueOf(hand))) {
@@ -53,11 +55,8 @@ public class CropBreak implements Listener {
             return;
         }
 
-        if (File.getCropStorageConfig().contains("blacklist_world")) {
-            if (File.getCropStorageConfig().getStringList("blacklist_world")
-                    .contains(player.getWorld().getName())) {
-                return;
-            }
+        if (AutoPickupCache.isCropWorldBlacklisted(player.getWorld().getName())) {
+            return;
         }
 
         if (e.getClickedBlock() == null) {
@@ -95,29 +94,37 @@ public class CropBreak implements Listener {
             return;
         }
 
-        // Vanilla sweet berry harvesting yields 2-3 berries and sets age to 1.
+        Material berryMaterial = Material.matchMaterial(dropItem);
+        if (berryMaterial == null) {
+            return;
+        }
+
+        e.setCancelled(true);
+
         int amount = ThreadLocalRandom.current().nextInt(2, 4);
+
+        boolean stored = false;
         int currentAmount = CropStorageManager.getPlayerItem(player, dropItem);
         int maxStorage = CropStorageManager.getMaxStorage(player);
-        if (currentAmount + amount > maxStorage) {
-            return;
+        if (currentAmount + amount <= maxStorage) {
+            stored = CropStorageManager.addItemAmount(player, dropItem, amount);
         }
 
-        boolean stored = CropStorageManager.addItemAmount(player, dropItem, amount);
-        if (!stored) {
-            return;
+        if (stored) {
+            SoundManager.playSound(player, "ENTITY_ITEM_PICKUP", 0.7f, 1.0f);
+            sendNotification(player, dropItem, amount);
+        } else {
+            try {
+                block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5), new ItemStack(berryMaterial, amount));
+            } catch (Throwable ignored) {
+            }
         }
-
-        SoundManager.playSound(player, "ENTITY_ITEM_PICKUP", 0.7f, 1.0f);
 
         try {
             ageable.setAge(1);
             block.setBlockData(ageable, false);
         } catch (Throwable ignored) {
         }
-
-        e.setCancelled(true);
-        sendNotification(player, dropItem, amount);
     }
 
     private boolean isMelonBlockType(@NotNull String blockType) {
@@ -140,7 +147,7 @@ public class CropBreak implements Listener {
         Player player = e.getPlayer();
         Block block = e.getBlock();
 
-        boolean canDisableDrops = new NMSAssistant().isVersionGreaterThanOrEqualTo(12);
+        boolean canDisableDrops = CAN_DISABLE_DROPS;
 
         if (!CropStorageManager.isSystemEnabled()) {
             return;
@@ -150,11 +157,8 @@ public class CropBreak implements Listener {
             return;
         }
 
-        if (File.getCropStorageConfig().contains("blacklist_world")) {
-            if (File.getCropStorageConfig().getStringList("blacklist_world")
-                    .contains(player.getWorld().getName())) {
-                return;
-            }
+        if (AutoPickupCache.isCropWorldBlacklisted(player.getWorld().getName())) {
+            return;
         }
 
         if (isChorusPlantBlock(block.getType())) {
@@ -219,8 +223,7 @@ public class CropBreak implements Listener {
 
         boolean silkTouchEnabled = File.getCropStorageConfig().getBoolean(
                 "settings.silk_touch.enabled",
-                true
-        );
+                true);
         if (silkTouchEnabled) {
             ItemStack tool = player.getInventory().getItemInMainHand();
             if (isMelonBlockType(blockType) && hasSilkTouch(tool)) {
@@ -610,7 +613,7 @@ public class CropBreak implements Listener {
         String displayName = CropStorageManager.getItemDisplayName(dropItem);
         int currentAmount = CropStorageManager.getPlayerItem(player, dropItem);
         int maxStorage = CropStorageManager.getMaxStorage(player);
-        boolean actionBarEnabled = File.getCropStorageConfig().getBoolean("notification.actionbar.enable", false);
+        boolean actionBarEnabled = AutoPickupCache.isCropActionBarEnabled();
         if (actionBarEnabled) {
             String template = File.getCropStorageConfig().getString("notification.actionbar.item_added");
             if (template != null) {
@@ -623,7 +626,7 @@ public class CropBreak implements Listener {
             }
         }
 
-        boolean titleEnabled = File.getCropStorageConfig().getBoolean("notification.title.enable", false);
+        boolean titleEnabled = AutoPickupCache.isCropTitleEnabled();
         if (titleEnabled) {
             String titleTemplate = File.getCropStorageConfig().getString("notification.title.item_added.title");
             String subtitleTemplate = File.getCropStorageConfig().getString("notification.title.item_added.subtitle");

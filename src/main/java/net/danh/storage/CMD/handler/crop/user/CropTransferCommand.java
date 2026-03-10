@@ -53,7 +53,7 @@ public class CropTransferCommand extends CropCommand {
                 handleMultiTransfer(player, args);
                 break;
             default:
-                // Single item transfer: /cropstorage transfer <item> <player> [amount]
+                // Single item transfer: /cropstorage transfer <player> <item> [amount]
                 handleSingleTransfer(player, args);
                 break;
         }
@@ -65,13 +65,7 @@ public class CropTransferCommand extends CropCommand {
             return;
         }
 
-        String itemName = args[0].toUpperCase();
-        if (!CropStorageManager.isConfiguredDrop(itemName)) {
-            sendInvalidItem(player, itemName);
-            return;
-        }
-
-        String targetPlayer = args[1];
+        String targetPlayer = args[0];
         Player receiver = Bukkit.getPlayer(targetPlayer);
         if (receiver == null || !receiver.isOnline()) {
             player.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.failed_offline")
@@ -81,6 +75,12 @@ public class CropTransferCommand extends CropCommand {
 
         if (player.getName().equalsIgnoreCase(receiver.getName())) {
             player.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.failed_same_player")));
+            return;
+        }
+
+        String itemName = args[1].toUpperCase();
+        if (!CropStorageManager.isConfiguredDrop(itemName)) {
+            sendInvalidItem(player, itemName);
             return;
         }
 
@@ -142,12 +142,25 @@ public class CropTransferCommand extends CropCommand {
         int page = 1;
 
         if (args.length >= 2) {
-            targetPlayer = args[1];
+            if (args[1] != null && args[1].matches("\\d+")) {
+                page = (int) Number.getLong(args[1]);
+                if (page < 1) {
+                    page = 1;
+                }
+            } else {
+                targetPlayer = args[1];
+            }
         }
 
         if (args.length >= 3) {
-            page = (int) Number.getLong(args[2]);
-            if (page < 1) page = 1;
+            if (args[2] != null && args[2].matches("\\d+")) {
+                page = (int) Number.getLong(args[2]);
+                if (page < 1) {
+                    page = 1;
+                }
+            } else {
+                page = 1;
+            }
         }
 
         CropTransferManager.displayTransferHistory(player, targetPlayer, page);
@@ -157,11 +170,21 @@ public class CropTransferCommand extends CropCommand {
     public List<String> getTabCompletions(CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
 
+        boolean isPlayer = sender instanceof Player;
+        String senderName = isPlayer ? sender.getName() : "";
+
         if (args.length == 1) {
-            // Suggest subcommands and items
-            List<String> suggestions = new ArrayList<>(getConfiguredDrops());
+            // Suggest subcommands and players
+            List<String> suggestions = new ArrayList<>();
             suggestions.add("log");
             suggestions.add("multi");
+
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (!p.getName().equalsIgnoreCase(senderName)) {
+                    suggestions.add(p.getName());
+                }
+            }
+
             StringUtil.copyPartialMatches(args[0], suggestions, completions);
             return completions;
         }
@@ -170,12 +193,17 @@ public class CropTransferCommand extends CropCommand {
             String firstArg = args[0].toLowerCase();
 
             if (firstArg.equals("log")) {
-                // Suggest player names for log
-                List<String> playerNames = new ArrayList<>();
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    playerNames.add(p.getName());
+                // Suggest player names (if allowed) and page numbers
+                List<String> suggestions = new ArrayList<>();
+                if (checkPermission(sender, "storage.cropstorage.transfer.log.others")) {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        suggestions.add(p.getName());
+                    }
                 }
-                StringUtil.copyPartialMatches(args[1], playerNames, completions);
+                suggestions.add("1");
+                suggestions.add("2");
+                suggestions.add("3");
+                StringUtil.copyPartialMatches(args[1], suggestions, completions);
                 return completions;
             }
 
@@ -191,17 +219,13 @@ public class CropTransferCommand extends CropCommand {
                 return completions;
             }
 
-            // Single item transfer - suggest player names
-            if (CropStorageManager.isConfiguredDrop(firstArg.toUpperCase())) {
-                List<String> playerNames = new ArrayList<>();
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (sender instanceof Player && !p.getName().equalsIgnoreCase(sender.getName())) {
-                        playerNames.add(p.getName());
-                    }
-                }
-                StringUtil.copyPartialMatches(args[1], playerNames, completions);
-                return completions;
+            // Single item transfer - suggest items
+            Player target = Bukkit.getPlayer(args[0]);
+            if (target != null && !target.getName().equalsIgnoreCase(senderName)) {
+                List<String> items = new ArrayList<>(getConfiguredDrops());
+                StringUtil.copyPartialMatches(args[1], items, completions);
             }
+            return completions;
         }
 
         if (args.length == 3) {
@@ -216,11 +240,13 @@ public class CropTransferCommand extends CropCommand {
             }
 
             // Single item transfer - suggest amounts
-            if (CropStorageManager.isConfiguredDrop(firstArg.toUpperCase())) {
-                if (sender instanceof Player) {
-                    Player player = (Player) sender;
-                    String itemName = firstArg.toUpperCase();
-                    int currentAmount = CropStorageManager.getPlayerItem(player, itemName);
+            if (sender instanceof Player) {
+                Player p = (Player) sender;
+                Player target = Bukkit.getPlayer(args[0]);
+                String itemName = args[1].toUpperCase();
+
+                if (target != null && !target.getName().equalsIgnoreCase(p.getName()) && CropStorageManager.isConfiguredDrop(itemName)) {
+                    int currentAmount = CropStorageManager.getPlayerItem(p, itemName);
 
                     List<String> suggestions = new ArrayList<>();
                     suggestions.add("all");
@@ -237,8 +263,9 @@ public class CropTransferCommand extends CropCommand {
 
                     StringUtil.copyPartialMatches(args[2], suggestions, completions);
                 }
-                return completions;
             }
+
+            return completions;
         }
 
         return completions;
@@ -251,7 +278,7 @@ public class CropTransferCommand extends CropCommand {
 
     @Override
     public String getUsage() {
-        return "/cropstorage transfer <item> <player> [amount/all]\n" +
+        return "/cropstorage transfer <player> <item> [amount/all]\n" +
                 "/cropstorage transfer multi <player>\n" +
                 "/cropstorage transfer log [player] [page]";
     }

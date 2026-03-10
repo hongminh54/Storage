@@ -2,6 +2,7 @@ package net.danh.storage.Listeners;
 
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.AutoPickupCache;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,7 +17,7 @@ public class BlockPlace implements Listener {
 
     @EventHandler
     public void onPlace(BlockPlaceEvent e) {
-        if (!net.danh.storage.Utils.File.getConfig().getBoolean("prevent_rebreak")) {
+        if (!AutoPickupCache.isPreventRebreak()) {
             return;
         }
         if (e.getPlayer().hasPermission("storage.preventrebreak.bypass")) {

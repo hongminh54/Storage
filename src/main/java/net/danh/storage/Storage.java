@@ -23,6 +23,7 @@ import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Placeholder.CraftingPlaceholder;
 import net.danh.storage.Placeholder.PAPI;
+import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.UpdateChecker;
@@ -347,6 +348,9 @@ public final class Storage extends JavaPlugin {
 
         // Initialize CropStorage
         initializeCropStorage();
+
+        // Rebuild hot-path config cache now that all managers are fully initialized
+        AutoPickupCache.reload();
 
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
             LuckPermsListener.register(this);

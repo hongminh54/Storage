@@ -509,6 +509,9 @@ cropstorage:
       - "&e/cropstorage deposit &a<item> &b[amount|all] &f- &7Deposit items from inventory"
       - "&e/cropstorage withdraw &a<item> &b[amount|all] &f- &7Withdraw items to inventory"
       - "&e/cropstorage sell &a<item> &b[amount|all] &f- &7Sell items in storage"
+      - "&e/cropstorage transfer &a<player> &b<item> &d[amount|all] &f- &7Transfer crop items to player"
+      - "&e/cropstorage transfer multi &a<player> &f- &7Transfer multiple crop items to player"
+      - "&e/cropstorage transfer log &a[player] &d[page] &f- &7View crop transfer history"
       - "&e/cropstorage view &a<player> &f- &7View player's storage"
       - "&e/cropstorage help &f- &7Show this help"
   admin:
@@ -593,7 +596,6 @@ cropstorage:
     log_nav_separator: "&7─────────────────────────────────────────────"
     log_nav_info: "&7Page &e#current#&7/&e#total#"
     log_nav_help: "&7Use &e/cropstorage transfer log [player] [page]&7 to navigate"
-    log_navigation: "&7Previous: &a#prev_page# &8| &7Next: &a#next_page#"
     log_nav_colors:
       active: "&a"
       disabled: "&7"

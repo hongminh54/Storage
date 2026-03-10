@@ -7,6 +7,7 @@ import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import org.bukkit.entity.Entity;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class GroundStoreListener implements Listener {
@@ -40,6 +42,34 @@ public class GroundStoreListener implements Listener {
 
     private static final String CROP_TITLE_PATH = "notification.title";
     private static final String CROP_ACTIONBAR_PATH = "notification.actionbar";
+
+    private static final AtomicBoolean CMD_WARN_PRINTED = new AtomicBoolean(false);
+    private static final AtomicBoolean PDC_WARN_PRINTED = new AtomicBoolean(false);
+    private static volatile Method HAS_CUSTOM_MODEL_DATA;
+    private static volatile Method GET_PDC;
+    private static volatile boolean reflectionInitialized = false;
+
+    private static void initReflectionCache(@NotNull ItemMeta sampleMeta) {
+        if (reflectionInitialized) {
+            return;
+        }
+        synchronized (GroundStoreListener.class) {
+            if (reflectionInitialized) {
+                return;
+            }
+            try {
+                HAS_CUSTOM_MODEL_DATA = sampleMeta.getClass().getMethod("hasCustomModelData");
+            } catch (NoSuchMethodException ignored) {
+                // Not available before 1.14 – leave null
+            }
+            try {
+                GET_PDC = sampleMeta.getClass().getMethod("getPersistentDataContainer");
+            } catch (NoSuchMethodException ignored) {
+                // Not available before 1.14 – leave null
+            }
+            reflectionInitialized = true;
+        }
+    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityPickup(@NotNull EntityPickupItemEvent event) {
@@ -117,12 +147,10 @@ public class GroundStoreListener implements Listener {
                 if (MythicStorageManager.addItemAmount(
                         player,
                         mythicItemName,
-                        amount
-                )) {
+                        amount)) {
                     int currentStorage = MythicStorageManager.getPlayerItem(
                             player,
-                            mythicItemName
-                    );
+                            mythicItemName);
                     int maxStorage = MythicStorageManager.getMaxStorage(player);
                     String displayName = MythicStorageManager
                             .getItemDisplayNameOrId(mythicItemName, player);
@@ -177,9 +205,9 @@ public class GroundStoreListener implements Listener {
                             storageDrop);
                     int maxStorage = MineManager.getMaxBlock(player);
                     String name = File.getConfig().getString(
-                            "items." + storageDrop
-                    );
-                    String itemName = name != null ? name : storageDrop
+                            "items." + storageDrop);
+                    String itemName = name != null ? name
+                            : storageDrop
                             .replace("_", " ");
                     SoundManager.playActionSound(player, "ground_store",
                             File.getConfig());
@@ -212,64 +240,38 @@ public class GroundStoreListener implements Listener {
             return false;
         }
 
-        try {
-            Method hasCustomModelData = meta.getClass().getMethod(
-                    "hasCustomModelData"
-            );
-            Object result = hasCustomModelData.invoke(meta);
-            if (result instanceof Boolean && (Boolean) result) {
-                return false;
-            }
-        } catch (NoSuchMethodException e) {
-            Storage.getStorage().getLogger().log(
-                    Level.WARNING,
-                    "Failed to check custom model data (method missing).",
-                    e
-            );
-        } catch (ReflectiveOperationException e) {
-            Storage.getStorage().getLogger().log(
-                    Level.WARNING,
-                    "Failed to check custom model data (reflection error).",
-                    e
-            );
-        } catch (RuntimeException e) {
-            Storage.getStorage().getLogger().log(
-                    Level.WARNING,
-                    "Failed to check custom model data (runtime error).",
-                    e
-            );
-        }
+        initReflectionCache(meta);
 
-        try {
-            Method getPdc = meta.getClass().getMethod(
-                    "getPersistentDataContainer"
-            );
-            Object container = getPdc.invoke(meta);
-            if (container != null) {
-                Method getKeys = container.getClass().getMethod("getKeys");
-                Object keys = getKeys.invoke(container);
-                if (keys instanceof Set && !((Set<?>) keys).isEmpty()) {
+        if (HAS_CUSTOM_MODEL_DATA != null) {
+            try {
+                Object result = HAS_CUSTOM_MODEL_DATA.invoke(meta);
+                if (result instanceof Boolean && (Boolean) result) {
                     return false;
                 }
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                if (CMD_WARN_PRINTED.compareAndSet(false, true)) {
+                    Storage.getStorage().getLogger().log(Level.WARNING,
+                            "Failed to check custom model data.", e);
+                }
             }
-        } catch (NoSuchMethodException e) {
-            Storage.getStorage().getLogger().log(
-                    Level.WARNING,
-                    "Failed to check persistent data container (method missing).",
-                    e
-            );
-        } catch (ReflectiveOperationException e) {
-            Storage.getStorage().getLogger().log(
-                    Level.WARNING,
-                    "Failed to check persistent data container (reflection error).",
-                    e
-            );
-        } catch (RuntimeException e) {
-            Storage.getStorage().getLogger().log(
-                    Level.WARNING,
-                    "Failed to check persistent data container (runtime error).",
-                    e
-            );
+        }
+
+        if (GET_PDC != null) {
+            try {
+                Object container = GET_PDC.invoke(meta);
+                if (container != null) {
+                    Method getKeys = container.getClass().getMethod("getKeys");
+                    Object keys = getKeys.invoke(container);
+                    if (keys instanceof Set && !((Set<?>) keys).isEmpty()) {
+                        return false;
+                    }
+                }
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                if (PDC_WARN_PRINTED.compareAndSet(false, true)) {
+                    Storage.getStorage().getLogger().log(Level.WARNING,
+                            "Failed to check persistent data container.", e);
+                }
+            }
         }
 
         return true;
@@ -286,21 +288,15 @@ public class GroundStoreListener implements Listener {
     }
 
     private boolean isStorageWorldBlacklisted(@NotNull Player player) {
-        return File.getConfig().contains("blacklist_world")
-                && File.getConfig().getStringList("blacklist_world")
-                .contains(player.getWorld().getName());
+        return AutoPickupCache.isStorageWorldBlacklisted(player.getWorld().getName());
     }
 
     private boolean isMythicStorageWorldBlacklisted(@NotNull Player player) {
-        return File.getMythicStorageConfig().contains("blacklist_world")
-                && File.getMythicStorageConfig().getStringList("blacklist_world")
-                .contains(player.getWorld().getName());
+        return AutoPickupCache.isMythicWorldBlacklisted(player.getWorld().getName());
     }
 
     private boolean isCropStorageWorldBlacklisted(@NotNull Player player) {
-        return File.getCropStorageConfig().contains("blacklist_world")
-                && File.getCropStorageConfig().getStringList("blacklist_world")
-                .contains(player.getWorld().getName());
+        return AutoPickupCache.isCropWorldBlacklisted(player.getWorld().getName());
     }
 
     private void sendGroundStoreMessage(@NotNull Player player,
@@ -314,26 +310,13 @@ public class GroundStoreListener implements Listener {
         String maxValue = String.valueOf(max);
 
         if (NOTIFY_TYPE_MYTHIC.equalsIgnoreCase(type)) {
-            boolean actionBarEnabled = File.getMythicStorageConfig().getBoolean(
-                    MYTHIC_ACTIONBAR_PATH + ".enable",
-                    true
-            ) && File.getMythicStorageConfig().getBoolean(
-                    "ground_store.notification.actionbar.enable",
-                    true
-            );
-            boolean titleEnabled = File.getMythicStorageConfig().getBoolean(
-                    MYTHIC_TITLE_PATH + ".enable",
-                    false
-            ) && File.getMythicStorageConfig().getBoolean(
-                    "ground_store.notification.title.enable",
-                    true
-            );
+            boolean actionBarEnabled = AutoPickupCache.isMythicActionBarEnabled();
+            boolean titleEnabled = AutoPickupCache.isMythicTitleEnabled();
 
             if (actionBarEnabled) {
                 String template = File.getMythicStorageConfig().getString(
                         MYTHIC_ACTIONBAR_PATH + ".item_added",
-                        ""
-                );
+                        "");
                 if (template != null) {
                     String msg = template
                             .replace("#amount#", displayAmount)
@@ -348,12 +331,10 @@ public class GroundStoreListener implements Listener {
             if (titleEnabled) {
                 String titleTemplate = File.getMythicStorageConfig().getString(
                         MYTHIC_TITLE_PATH + ".item_added.title",
-                        ""
-                );
+                        "");
                 String subtitleTemplate = File.getMythicStorageConfig().getString(
                         MYTHIC_TITLE_PATH + ".item_added.subtitle",
-                        ""
-                );
+                        "");
                 if (titleTemplate != null && subtitleTemplate != null) {
                     String title = titleTemplate
                             .replace("#amount#", displayAmount)
@@ -374,26 +355,13 @@ public class GroundStoreListener implements Listener {
         }
 
         if (NOTIFY_TYPE_CROP.equalsIgnoreCase(type)) {
-            boolean actionBarEnabled = File.getCropStorageConfig().getBoolean(
-                    CROP_ACTIONBAR_PATH + ".enable",
-                    true
-            ) && File.getCropStorageConfig().getBoolean(
-                    "ground_store.notification.actionbar.enable",
-                    true
-            );
-            boolean titleEnabled = File.getCropStorageConfig().getBoolean(
-                    CROP_TITLE_PATH + ".enable",
-                    false
-            ) && File.getCropStorageConfig().getBoolean(
-                    "ground_store.notification.title.enable",
-                    true
-            );
+            boolean actionBarEnabled = AutoPickupCache.isCropActionBarEnabled();
+            boolean titleEnabled = AutoPickupCache.isCropTitleEnabled();
 
             if (actionBarEnabled) {
                 String template = File.getCropStorageConfig().getString(
                         CROP_ACTIONBAR_PATH + ".item_added",
-                        ""
-                );
+                        "");
                 if (template != null) {
                     String msg = template
                             .replace("#amount#", displayAmount)
@@ -408,12 +376,10 @@ public class GroundStoreListener implements Listener {
             if (titleEnabled) {
                 String titleTemplate = File.getCropStorageConfig().getString(
                         CROP_TITLE_PATH + ".item_added.title",
-                        ""
-                );
+                        "");
                 String subtitleTemplate = File.getCropStorageConfig().getString(
                         CROP_TITLE_PATH + ".item_added.subtitle",
-                        ""
-                );
+                        "");
                 if (titleTemplate != null && subtitleTemplate != null) {
                     String title = titleTemplate
                             .replace("#amount#", displayAmount)
@@ -433,26 +399,13 @@ public class GroundStoreListener implements Listener {
             return;
         }
 
-        boolean actionBarEnabled = File.getConfig().getBoolean(
-                STORAGE_ACTIONBAR_PATH + ".enable",
-                true
-        ) && File.getConfig().getBoolean(
-                "ground_store.notification.actionbar.enable",
-                true
-        );
-        boolean titleEnabled = File.getConfig().getBoolean(
-                STORAGE_TITLE_PATH + ".enable",
-                true
-        ) && File.getConfig().getBoolean(
-                "ground_store.notification.title.enable",
-                true
-        );
+        boolean actionBarEnabled = AutoPickupCache.isStorageGroundStoreActionBarEnabled();
+        boolean titleEnabled = AutoPickupCache.isStorageGroundStoreTitleEnabled();
 
         if (actionBarEnabled) {
             String template = File.getConfig().getString(
                     STORAGE_ACTIONBAR_PATH + ".action",
-                    ""
-            );
+                    "");
             if (template != null) {
                 String msg = template
                         .replace("#amount#", displayAmount)
@@ -467,12 +420,10 @@ public class GroundStoreListener implements Listener {
         if (titleEnabled) {
             String titleTemplate = File.getConfig().getString(
                     STORAGE_TITLE_PATH + ".title",
-                    ""
-            );
+                    "");
             String subtitleTemplate = File.getConfig().getString(
                     STORAGE_TITLE_PATH + ".subtitle",
-                    ""
-            );
+                    "");
             if (titleTemplate != null && subtitleTemplate != null) {
                 String title = titleTemplate
                         .replace("#amount#", displayAmount)

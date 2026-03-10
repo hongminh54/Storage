@@ -255,6 +255,7 @@ public class File {
         getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml",
                 "special_material.yml", "mythicstorage.yml", "cropstorage.yml", "crafting.yml");
         copyExampleFiles();
+        AutoPickupCache.reload();
     }
 
     public static void reloadFiles() {
@@ -262,7 +263,8 @@ public class File {
                 "mythicstorage.yml", "cropstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml",
                 "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml",
                 "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml",
-                "GUI/view-cropstorage.yml", "GUI/crop-items.yml", "GUI/crop-transfer.yml", "GUI/crop-transfer-multi.yml",
+                "GUI/view-cropstorage.yml", "GUI/crop-items.yml", "GUI/crop-transfer.yml",
+                "GUI/crop-transfer-multi.yml",
                 "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml",
                 "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml",
                 "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml",
@@ -283,6 +285,7 @@ public class File {
         }
         ConvertOreManager.loadConvertOptions();
         SpecialMaterialManager.loadSpecialMaterials();
+        AutoPickupCache.reload();
     }
 
     public static void loadGUI() {

@@ -33,6 +33,20 @@ public class ChatNavigationHelper {
                 "mythicstorage.transfer.log_nav_colors", messageConfig);
     }
 
+    // Send navigation for CropStorage Transfer log
+    public static void sendCropTransferNavigation(Player player, String targetPlayer, int currentPage, int totalPages,
+                                                  int prevPage, int nextPage, boolean hasPrev, boolean hasNext) {
+        FileConfiguration messageConfig = File.getMessage();
+        String prevCommand = buildCropNavigationCommand(targetPlayer, player.getName(), prevPage);
+        String nextCommand = buildCropNavigationCommand(targetPlayer, player.getName(), nextPage);
+
+        sendTellrawNavigation(player, prevCommand, nextCommand, hasPrev, hasNext, prevPage, nextPage,
+                "cropstorage.transfer.log_nav_previous", "cropstorage.transfer.log_nav_previous_disabled",
+                "cropstorage.transfer.log_nav_next", "cropstorage.transfer.log_nav_next_disabled",
+                "cropstorage.transfer.log_nav_hover", "cropstorage.transfer.log_nav_spacing",
+                "cropstorage.transfer.log_nav_colors", messageConfig);
+    }
+
     private static String buildStorageNavigationCommand(String targetPlayer, String viewerName, int page) {
         if (targetPlayer == null || targetPlayer.equals(viewerName)) {
             return "/storage transfer log " + page;
@@ -46,6 +60,14 @@ public class ChatNavigationHelper {
             return "/mythicstorage transfer log " + page;
         } else {
             return "/mythicstorage transfer log " + targetPlayer + " " + page;
+        }
+    }
+
+    private static String buildCropNavigationCommand(String targetPlayer, String viewerName, int page) {
+        if (targetPlayer == null || targetPlayer.equalsIgnoreCase(viewerName)) {
+            return "/cropstorage transfer log " + page;
+        } else {
+            return "/cropstorage transfer log " + targetPlayer + " " + page;
         }
     }
 

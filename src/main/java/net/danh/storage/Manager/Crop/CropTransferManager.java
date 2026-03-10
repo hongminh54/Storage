@@ -7,6 +7,7 @@ import net.danh.storage.Database.CropTransferDatabase;
 import net.danh.storage.Manager.ParticleManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.ChatNavigationHelper;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.TaskWrapper;
@@ -30,11 +31,11 @@ public class CropTransferManager {
         transferDatabase.createTransferTable();
     }
 
-	private static void ensureInitialized() {
-		if (transferDatabase == null) {
-			initialize();
-		}
-	}
+    private static void ensureInitialized() {
+        if (transferDatabase == null) {
+            initialize();
+        }
+    }
 
     public static boolean canTransfer(Player sender, String receiverName, String itemName, int amount) {
         if (sender == null || receiverName == null || itemName == null) {
@@ -245,12 +246,12 @@ public class CropTransferManager {
         return true;
     }
 
-	public static boolean isTransferInProgress(Player player) {
-		if (player == null) {
-			return false;
-		}
-		return activeTransfers.containsKey(player.getName());
-	}
+    public static boolean isTransferInProgress(Player player) {
+        if (player == null) {
+            return false;
+        }
+        return activeTransfers.containsKey(player.getName());
+    }
 
     private static void startTransferProcess(Player sender, Player receiver, String itemName, int amount, boolean fireEvent) {
         FileConfiguration config = File.getCropStorageConfig();
@@ -295,47 +296,47 @@ public class CropTransferManager {
         activeTransfers.put(sender.getName(), transferTask);
     }
 
-	private static void startMultiTransferProcess(Player sender, Player receiver, Map<String, Integer> items) {
-		FileConfiguration config = File.getCropStorageConfig();
-		int transferDelay = config.getInt("transfer.delay", 3);
+    private static void startMultiTransferProcess(Player sender, Player receiver, Map<String, Integer> items) {
+        FileConfiguration config = File.getCropStorageConfig();
+        int transferDelay = config.getInt("transfer.delay", 3);
 
-		StringBuilder itemsList = new StringBuilder();
-		int count = 0;
-		for (Map.Entry<String, Integer> entry : items.entrySet()) {
-			if (count > 0) {
-				itemsList.append(", ");
-			}
-			itemsList.append(entry.getValue()).append(" ")
-					.append(CropStorageManager.getItemDisplayName(entry.getKey()));
-			count++;
-		}
+        StringBuilder itemsList = new StringBuilder();
+        int count = 0;
+        for (Map.Entry<String, Integer> entry : items.entrySet()) {
+            if (count > 0) {
+                itemsList.append(", ");
+            }
+            itemsList.append(entry.getValue()).append(" ")
+                    .append(CropStorageManager.getItemDisplayName(entry.getKey()));
+            count++;
+        }
 
-		sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.processing_multi_send_detailed")
-				.replace("#items#", itemsList.toString())
-				.replace("#player#", receiver.getName())
-				.replace("#time#", String.valueOf(transferDelay))));
+        sender.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.processing_multi_send_detailed")
+                .replace("#items#", itemsList.toString())
+                .replace("#player#", receiver.getName())
+                .replace("#time#", String.valueOf(transferDelay))));
 
-		receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.processing_multi_receive_detailed")
-				.replace("#items#", itemsList.toString())
-				.replace("#player#", sender.getName())
-				.replace("#time#", String.valueOf(transferDelay))));
+        receiver.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.processing_multi_receive_detailed")
+                .replace("#items#", itemsList.toString())
+                .replace("#player#", sender.getName())
+                .replace("#time#", String.valueOf(transferDelay))));
 
-		cancelTransfer(sender);
+        cancelTransfer(sender);
 
-		if (config.getBoolean("transfer.particles.enabled", true)) {
-			ParticleManager.playTransferProcessingAnimation(sender, transferDelay, config);
-		}
+        if (config.getBoolean("transfer.particles.enabled", true)) {
+            ParticleManager.playTransferProcessingAnimation(sender, transferDelay, config);
+        }
 
-		TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
-			if (config.getBoolean("transfer.particles.enabled", true)) {
-				ParticleManager.stopTransferProcessingAnimation(sender);
-			}
-			completeMultiTransfer(sender, receiver, items);
-			activeTransfers.remove(sender.getName());
-		}, transferDelay * 20L);
+        TaskWrapper transferTask = TaskWrapper.runTaskLater(Storage.getStorage(), () -> {
+            if (config.getBoolean("transfer.particles.enabled", true)) {
+                ParticleManager.stopTransferProcessingAnimation(sender);
+            }
+            completeMultiTransfer(sender, receiver, items);
+            activeTransfers.remove(sender.getName());
+        }, transferDelay * 20L);
 
-		activeTransfers.put(sender.getName(), transferTask);
-	}
+        activeTransfers.put(sender.getName(), transferTask);
+    }
 
     private static void completeMultiTransfer(Player sender, Player receiver, Map<String, Integer> items) {
         // Double-check conditions before completing transfer
@@ -561,13 +562,20 @@ public class CropTransferManager {
     public static void displayTransferHistory(Player player, String targetPlayerName, int page) {
         String playerToCheck = targetPlayerName != null ? targetPlayerName : player.getName();
 
-        if (!player.getName().equalsIgnoreCase(playerToCheck) && !player.hasPermission("storage.cropstorage.transfer.log.others")) {
-            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.no_permission")));
+        if (!player.hasPermission("storage.cropstorage.transfer.log")) {
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("admin.no_permission")));
             return;
         }
 
-        if (!player.hasPermission("storage.cropstorage.transfer.log")) {
-            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("admin.no_permission")));
+        if (!player.getName().equalsIgnoreCase(playerToCheck) && !player.hasPermission("storage.cropstorage.transfer.log.others")) {
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("admin.no_permission")));
+            return;
+        }
+
+        ensureInitialized();
+        if (transferDatabase == null) {
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("cropstorage.transfer.log_no_history")
+                    .replace("#player#", playerToCheck)));
             return;
         }
 
@@ -589,7 +597,7 @@ public class CropTransferManager {
         List<CropTransferData> transfers = transferDatabase.getTransferHistory(playerToCheck, itemsPerPage, offset);
 
         if (transfers.isEmpty()) {
-            player.sendMessage(ChatUtils.colorize(File.getMessage().getString("cropstorage.transfer.log_no_history").replace("#player#", playerToCheck)));
+            player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString("cropstorage.transfer.log_no_history").replace("#player#", playerToCheck)));
             return;
         }
 
@@ -598,7 +606,7 @@ public class CropTransferManager {
                 .replace("#player#", playerToCheck)
                 .replace("#current_page#", String.valueOf(page))
                 .replace("#total_pages#", String.valueOf(totalPages));
-        player.sendMessage(ChatUtils.colorize(headerMessage));
+        player.sendMessage(ChatUtils.colorizewp(headerMessage));
 
         // Add empty line for better spacing
         player.sendMessage("");
@@ -615,14 +623,14 @@ public class CropTransferManager {
                         .replace("#amount#", String.valueOf(transfer.getAmount()))
                         .replace("#item#", displayName)
                         .replace("#receiver#", transfer.getReceiver());
-                player.sendMessage(ChatUtils.colorize(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             } else {
                 String message = File.getMessage().getString("cropstorage.transfer.log_entry_received")
                         .replace("#time#", timeStr)
                         .replace("#amount#", String.valueOf(transfer.getAmount()))
                         .replace("#item#", displayName)
                         .replace("#sender#", transfer.getSender());
-                player.sendMessage(ChatUtils.colorize(message));
+                player.sendMessage(ChatUtils.colorizewp(message));
             }
         }
 
@@ -637,7 +645,7 @@ public class CropTransferManager {
         player.sendMessage("");
         String separator = messageConfig.getString("cropstorage.transfer.log_nav_separator");
         if (separator != null) {
-            player.sendMessage(ChatUtils.colorize(separator));
+            player.sendMessage(ChatUtils.colorizewp(separator));
         }
 
         // Show total count and page info on same line
@@ -645,7 +653,7 @@ public class CropTransferManager {
                 .replace("#total#", String.valueOf(totalTransfers))
                 .replace("#current#", String.valueOf(currentPage))
                 .replace("#total_pages#", String.valueOf(totalPages));
-        player.sendMessage(ChatUtils.colorize(footerInfo));
+        player.sendMessage(ChatUtils.colorizewp(footerInfo));
 
         // If only one page, don't show navigation
         if (totalPages <= 1) {
@@ -656,13 +664,18 @@ public class CropTransferManager {
         boolean hasPrev = currentPage > 1;
         boolean hasNext = currentPage < totalPages;
 
-        String navTemplate = messageConfig.getString("cropstorage.transfer.log_navigation");
-        if (navTemplate != null && !navTemplate.isEmpty()) {
-            String navInfo = navTemplate
-                    .replace("#prev_page#", hasPrev ? String.valueOf(currentPage - 1) : "-")
-                    .replace("#next_page#", hasNext ? String.valueOf(currentPage + 1) : "-");
-            player.sendMessage(ChatUtils.colorize(navInfo));
-        }
+        int prevPage = Math.max(1, currentPage - 1);
+        int nextPage = Math.min(totalPages, currentPage + 1);
+        ChatNavigationHelper.sendCropTransferNavigation(
+                player,
+                targetPlayer,
+                currentPage,
+                totalPages,
+                prevPage,
+                nextPage,
+                hasPrev,
+                hasNext
+        );
     }
 
     public static CropTransferDatabase getTransferDatabase() {
