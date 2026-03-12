@@ -142,7 +142,7 @@ sell:
 # - playerpoints: Give points via PlayerPoints; fallback to commands if PlayerPoints is unavailable or fails
 #
 # Note: You can override the payout method per material in `worth:` using "<price>;<method>".
-sell_method: vault
+sell_method: commands
 
 auto_sell:
   enabled: true

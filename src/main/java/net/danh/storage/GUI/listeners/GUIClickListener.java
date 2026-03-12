@@ -21,8 +21,10 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
@@ -55,9 +57,22 @@ public class GUIClickListener implements Listener {
                 && e.getClickedInventory().getHolder() instanceof IGUI;
 
         // Check if top inventory is a GUI - prevent shift-click from player inventory
-        boolean isTopInventoryGUI = e.getInventory() != null
-                && e.getInventory().getHolder() != null
-                && e.getInventory().getHolder() instanceof IGUI;
+        Inventory topInventory = null;
+        Object view = e.getView();
+        if (view != null) {
+            try {
+                Method getTopInventory = view.getClass().getMethod("getTopInventory");
+                Object result = getTopInventory.invoke(view);
+                if (result instanceof Inventory) {
+                    topInventory = (Inventory) result;
+                }
+            } catch (Exception ignored) {
+                topInventory = null;
+            }
+        }
+        boolean isTopInventoryGUI = topInventory != null
+                && topInventory.getHolder() != null
+                && topInventory.getHolder() instanceof IGUI;
 
         ItemStack currentItem = e.getCurrentItem();
         boolean isInteractiveItem = false;

@@ -1,5 +1,6 @@
 package net.danh.storage.Listeners.LuckPerms;
 
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Storage;
@@ -60,6 +61,7 @@ public class LuckPermsListener {
         SchedulerUtil.runTask(plugin, () -> {
             MineManager.loadPlayerData(player);
             MythicStorageManager.loadPlayerData(player);
+            CropStorageManager.loadPlayerData(player);
         });
     }
 }

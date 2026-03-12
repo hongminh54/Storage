@@ -1,7 +1,6 @@
 package net.danh.storage.Listeners;
 
 import net.danh.storage.Storage;
-import net.milkbowl.vault.economy.Economy;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -60,7 +59,9 @@ public class PluginLoadListener implements Listener {
             return;
         }
         Class<?> service = event.getProvider().getService();
-        if (service == net.milkbowl.vault2.economy.Economy.class || service == Economy.class) {
+        String serviceName = service != null ? service.getName() : "";
+        if (serviceName.equals("net.milkbowl.vault2.economy.Economy")
+                || serviceName.equals("net.milkbowl.vault.economy.Economy")) {
             Storage.refreshVaultEconomyHook();
         }
     }
@@ -71,7 +72,9 @@ public class PluginLoadListener implements Listener {
             return;
         }
         Class<?> service = event.getProvider().getService();
-        if (service == net.milkbowl.vault2.economy.Economy.class || service == Economy.class) {
+        String serviceName = service != null ? service.getName() : "";
+        if (serviceName.equals("net.milkbowl.vault2.economy.Economy")
+                || serviceName.equals("net.milkbowl.vault.economy.Economy")) {
             Storage.refreshVaultEconomyHook();
         }
     }

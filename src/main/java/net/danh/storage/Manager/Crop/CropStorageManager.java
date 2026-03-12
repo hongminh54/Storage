@@ -1146,10 +1146,19 @@ public class CropStorageManager {
         groundStoreToggle.remove(playerId);
         playermaxdata.remove(playerId);
         clearMaxStorageOverride(player);
-        disabledAutoPickupItems.remove(player.getName());
-
         String playerName = player.getName();
+        disabledAutoPickupItems.remove(playerName);
+        autoSellItems.remove(playerName);
+
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_crop_"));
+
+        String prefix = player.getUniqueId() + "_crop_";
+        synchronized (pendingAutoSell) {
+            pendingAutoSell.removeIf(key -> key != null && key.startsWith(prefix));
+        }
+        synchronized (lastAutoSellAt) {
+            lastAutoSellAt.keySet().removeIf(key -> key != null && key.startsWith(prefix));
+        }
     }
 
     private static Boolean parseGroundStoreStatus(String data) {

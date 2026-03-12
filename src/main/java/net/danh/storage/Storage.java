@@ -27,11 +27,7 @@ import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.UpdateChecker;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
-import org.black_ixx.playerpoints.PlayerPoints;
-import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -42,13 +38,14 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;
 
 public final class Storage extends JavaPlugin {
 
     // Debug Storage
-    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = false;
+    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = true;
 
     public static IDataStorage dataStorage;
     public static Database db;
@@ -58,10 +55,10 @@ public final class Storage extends JavaPlugin {
     private static boolean MMOItems;
     private static boolean MythicLib;
 
-    private static net.milkbowl.vault2.economy.Economy vault2Economy;
-    private static Economy vaultEconomy;
+    private static Object vault2Economy;
+    private static Object vaultEconomy;
 
-    private static PlayerPointsAPI playerPointsApi;
+    private static Object playerPointsApi;
 
     private static boolean debugVanillaConfigApplied;
 
@@ -91,17 +88,77 @@ public final class Storage extends JavaPlugin {
                 : "Storage";
 
         if (vault2Economy != null) {
-            net.milkbowl.vault2.economy.EconomyResponse response = vault2Economy.deposit(
-                    pluginName,
-                    player.getUniqueId(),
-                    java.math.BigDecimal.valueOf(money)
-            );
-            return response != null && response.type == net.milkbowl.vault2.economy.EconomyResponse.ResponseType.SUCCESS;
+            try {
+                Object response = vault2Economy.getClass().getMethod(
+                        "deposit",
+                        String.class,
+                        java.util.UUID.class,
+                        java.math.BigDecimal.class
+                ).invoke(
+                        vault2Economy,
+                        pluginName,
+                        player.getUniqueId(),
+                        java.math.BigDecimal.valueOf(money)
+                );
+                return isVaultResponseSuccess(response);
+            } catch (Throwable t) {
+                Storage plugin = getStorage();
+                if (plugin != null) {
+                    plugin.getLogger().warning("Vault2 payout failed: " + t.getMessage());
+                }
+                return false;
+            }
         }
 
         if (vaultEconomy != null) {
-            EconomyResponse response = vaultEconomy.depositPlayer(player, money);
-            return response != null && response.type == EconomyResponse.ResponseType.SUCCESS;
+            try {
+                Object response;
+                try {
+                    response = vaultEconomy.getClass().getMethod(
+                            "depositPlayer",
+                            org.bukkit.entity.Player.class,
+                            double.class
+                    ).invoke(vaultEconomy, player, money);
+                } catch (NoSuchMethodException ignored) {
+                    // Fallback to OfflinePlayer signature
+                    response = vaultEconomy.getClass().getMethod(
+                            "depositPlayer",
+                            org.bukkit.OfflinePlayer.class,
+                            double.class
+                    ).invoke(vaultEconomy, player, money);
+                }
+
+                return isVaultResponseSuccess(response);
+            } catch (Throwable t) {
+                Storage plugin = getStorage();
+                if (plugin != null) {
+                    plugin.getLogger().warning("Vault payout failed: " + t.getMessage());
+                }
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isVaultResponseSuccess(Object response) {
+        if (response == null) {
+            return false;
+        }
+
+        try {
+            Field typeField = response.getClass().getField("type");
+            Object typeValue = typeField.get(response);
+            if (typeValue != null && "SUCCESS".equals(String.valueOf(typeValue))) {
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            Object ok = response.getClass().getMethod("transactionSuccess").invoke(response);
+            return ok instanceof Boolean && (Boolean) ok;
+        } catch (Throwable ignored) {
         }
 
         return false;
@@ -121,7 +178,17 @@ public final class Storage extends JavaPlugin {
         }
 
         try {
-            return playerPointsApi.give(player.getUniqueId(), points);
+            Object result;
+            try {
+                result = playerPointsApi.getClass().getMethod("give", java.util.UUID.class, int.class)
+                        .invoke(playerPointsApi, player.getUniqueId(), points);
+            } catch (NoSuchMethodException ignored) {
+                // Some versions have give(Player, int)
+                result = playerPointsApi.getClass().getMethod("give", org.bukkit.entity.Player.class, int.class)
+                        .invoke(playerPointsApi, player, points);
+            }
+
+            return !(result instanceof Boolean) || (Boolean) result;
         } catch (Throwable t) {
             Storage plugin = getStorage();
             if (plugin != null) {
@@ -216,12 +283,15 @@ public final class Storage extends JavaPlugin {
     private void setupPlayerPointsHook() {
         playerPointsApi = null;
         Plugin plugin = Bukkit.getPluginManager().getPlugin("PlayerPoints");
-        if (!(plugin instanceof PlayerPoints)) {
+        if (plugin == null) {
             return;
         }
 
-        PlayerPoints pp = (PlayerPoints) plugin;
-        playerPointsApi = pp.getAPI();
+        try {
+            playerPointsApi = plugin.getClass().getMethod("getAPI").invoke(plugin);
+        } catch (Throwable ignored) {
+            playerPointsApi = null;
+        }
         if (playerPointsApi != null) {
             getLogger().log(Level.INFO, "Hook with PlayerPoints");
         }
@@ -231,16 +301,24 @@ public final class Storage extends JavaPlugin {
         vault2Economy = null;
         vaultEconomy = null;
 
-        RegisteredServiceProvider<net.milkbowl.vault2.economy.Economy> vault2 = Bukkit.getServicesManager()
-                .getRegistration(net.milkbowl.vault2.economy.Economy.class);
-        if (vault2 != null) {
-            vault2Economy = vault2.getProvider();
+        try {
+            Class<?> vault2Class = Class.forName("net.milkbowl.vault2.economy.Economy");
+            RegisteredServiceProvider<?> vault2 = Bukkit.getServicesManager().getRegistration(vault2Class);
+            if (vault2 != null) {
+                vault2Economy = vault2.getProvider();
+            }
+        } catch (Throwable ignored) {
+            vault2Economy = null;
         }
 
         if (vault2Economy == null) {
-            RegisteredServiceProvider<Economy> vault1 = Bukkit.getServicesManager()
-                    .getRegistration(Economy.class);
-            vaultEconomy = vault1 != null ? vault1.getProvider() : null;
+            try {
+                Class<?> vault1Class = Class.forName("net.milkbowl.vault.economy.Economy");
+                RegisteredServiceProvider<?> vault1 = Bukkit.getServicesManager().getRegistration(vault1Class);
+                vaultEconomy = vault1 != null ? vault1.getProvider() : null;
+            } catch (Throwable ignored) {
+                vaultEconomy = null;
+            }
         }
 
         if (vault2Economy != null || vaultEconomy != null) {

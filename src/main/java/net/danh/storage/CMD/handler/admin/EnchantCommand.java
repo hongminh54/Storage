@@ -2,13 +2,13 @@ package net.danh.storage.CMD.handler.admin;
 
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.Manager.EnchantManager;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class EnchantCommand extends BaseCommand {
 
@@ -204,6 +204,53 @@ public class EnchantCommand extends BaseCommand {
         } else if (args.length == 2) {
             String subCommand = args[0].toLowerCase();
             if (subCommand.equals("give") || subCommand.equals("remove")) {
+                if (subCommand.equals("remove") && sender instanceof Player) {
+                    Player player = (Player) sender;
+                    ItemStack item = player.getInventory().getItemInMainHand();
+                    if (item == null || item.getType().name().equals("AIR")) {
+                        return Collections.emptyList();
+                    }
+
+                    ItemMeta meta = item.getItemMeta();
+                    List<String> lore = meta != null ? meta.getLore() : null;
+                    Set<String> available = EnchantManager.getAvailableEnchants();
+
+                    for (String enchantName : available) {
+                        if (EnchantManager.hasEnchant(item, enchantName)) {
+                            completions.add(enchantName);
+                            continue;
+                        }
+
+                        if (lore == null || lore.isEmpty()) {
+                            continue;
+                        }
+
+                        String displayName = EnchantManager.getEnchantDisplayName(enchantName);
+                        if (displayName == null || displayName.isEmpty()) {
+                            continue;
+                        }
+
+                        boolean foundInLore = false;
+                        for (String line : lore) {
+                            if (line == null) {
+                                continue;
+                            }
+
+                            String cleanLine = ChatColor.stripColor(line);
+                            if (cleanLine != null && cleanLine.contains(displayName)) {
+                                foundInLore = true;
+                                break;
+                            }
+                        }
+
+                        if (foundInLore) {
+                            completions.add(enchantName);
+                        }
+                    }
+
+                    return completions;
+                }
+
                 completions.addAll(EnchantManager.getAvailableEnchants());
             } else if (subCommand.equals("info") || subCommand.equals("setmaxlevel")) {
                 completions.addAll(EnchantManager.getAvailableEnchants());
