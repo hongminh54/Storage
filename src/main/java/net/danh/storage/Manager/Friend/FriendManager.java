@@ -1,0 +1,550 @@
+package net.danh.storage.Manager.Friend;
+
+import net.danh.storage.API.events.FriendRemoveEvent;
+import net.danh.storage.API.events.FriendRequestAcceptEvent;
+import net.danh.storage.API.events.FriendRequestDenyEvent;
+import net.danh.storage.API.events.FriendRequestSendEvent;
+import net.danh.storage.Database.FriendDatabase;
+import net.danh.storage.Storage;
+import net.danh.storage.Utils.ChatUtils;
+import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.TaskWrapper;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class FriendManager {
+
+    // In-memory cache: player UUID -> set of friend UUIDs
+    private static final Map<UUID, Set<UUID>> friendCache = new ConcurrentHashMap<>();
+    // In-memory cache: receiver UUID -> (sender UUID -> expires_at)
+    private static final Map<UUID, Map<UUID, Long>> pendingRequestCache = new ConcurrentHashMap<>();
+    private static FriendDatabase database;
+    private static boolean systemEnabled = false;
+    private static TaskWrapper autoCleanTask;
+
+    public static void initialize() {
+        Storage.getStorage().getLogger().info("[FriendStorage] Initializing Friend Storage feature...");
+
+        friendCache.clear();
+        pendingRequestCache.clear();
+        database = null;
+
+        if (autoCleanTask != null) {
+            autoCleanTask.cancel();
+            autoCleanTask = null;
+        }
+
+        systemEnabled = File.getFriendStorageConfig().getBoolean("settings.enabled", true);
+        if (!systemEnabled) {
+            Storage.getStorage().getLogger().info("[FriendStorage] Feature is disabled in config");
+            return;
+        }
+
+        database = new FriendDatabase();
+        database.createTables();
+        database.cleanExpiredRequests();
+
+        scheduleAutoCleanTask();
+
+        Storage.getStorage().getLogger().info("[FriendStorage] Initialization completed!");
+    }
+
+    public static boolean isSystemEnabled() {
+        return systemEnabled;
+    }
+
+    public static FriendDatabase getDatabase() {
+        return database;
+    }
+
+    // ==================== Player Data Lifecycle ====================
+
+    public static void loadPlayerData(@NotNull Player player) {
+        if (!systemEnabled || database == null) return;
+
+        UUID uuid = player.getUniqueId();
+        Set<UUID> friends = database.getFriends(uuid);
+        friendCache.put(uuid, Collections.synchronizedSet(new LinkedHashSet<>(friends)));
+
+        Map<UUID, Long> pending = database.getPendingRequests(uuid);
+        pendingRequestCache.put(uuid, Collections.synchronizedMap(new LinkedHashMap<>(pending)));
+    }
+
+    public static void cleanupPlayerData(@NotNull Player player) {
+        UUID uuid = player.getUniqueId();
+        friendCache.remove(uuid);
+        pendingRequestCache.remove(uuid);
+    }
+
+    // ==================== Friend Requests ====================
+
+    public static boolean sendRequest(@NotNull Player sender, @NotNull Player target) {
+        if (!systemEnabled) return false;
+
+        return sendRequest(sender, target.getUniqueId(), target);
+    }
+
+    public static boolean sendRequest(@NotNull Player sender, @NotNull UUID receiverUuid) {
+        if (!systemEnabled) return false;
+
+        Player receiverPlayer = Bukkit.getPlayer(receiverUuid);
+        return sendRequest(sender, receiverUuid, receiverPlayer);
+    }
+
+    private static boolean sendRequest(@NotNull Player sender, @NotNull UUID receiverUuid, Player receiverPlayer) {
+        if (!systemEnabled) return false;
+        if (database == null) return false;
+
+        UUID senderUuid = sender.getUniqueId();
+        UUID targetUuid = receiverUuid;
+
+        if (senderUuid.equals(targetUuid)) return false;
+        if (isFriend(senderUuid, targetUuid)) return false;
+        if (hasPendingRequest(senderUuid, targetUuid)) return false;
+
+        // Check max friends for sender
+        int senderMax = getMaxFriends(sender);
+        int senderCount = getFriendCount(senderUuid);
+        if (senderCount >= senderMax) return false;
+
+        // Check max friends for target
+        int targetMax = receiverPlayer != null ? getMaxFriends(receiverPlayer)
+                : File.getFriendStorageConfig().getInt("settings.max_friends_default", 10);
+        int targetCount = getFriendCount(targetUuid);
+        if (targetCount >= targetMax) return false;
+
+        // Fire event only when receiver is online (event signature requires Player target)
+        if (receiverPlayer != null) {
+            FriendRequestSendEvent event = new FriendRequestSendEvent(sender, receiverPlayer);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+        }
+
+        int expireSeconds = File.getFriendStorageConfig().getInt("settings.request_expire_seconds", 300);
+        long expiresAt = expireSeconds > 0 ? System.currentTimeMillis() + (expireSeconds * 1000L) : 0;
+
+        database.addRequest(senderUuid, targetUuid, expiresAt);
+
+        // Update target's pending cache if online
+        Map<UUID, Long> targetPending = pendingRequestCache.get(targetUuid);
+        if (targetPending != null) {
+            targetPending.put(senderUuid, expiresAt);
+        }
+
+        return true;
+    }
+
+    public static boolean acceptRequest(@NotNull Player player, @NotNull UUID senderUuid) {
+        if (!systemEnabled) return false;
+
+        UUID playerUuid = player.getUniqueId();
+
+        if (!hasPendingRequest(senderUuid, playerUuid)) return false;
+
+        Player senderPlayer = Bukkit.getPlayer(senderUuid);
+
+        // Fire event
+        FriendRequestAcceptEvent event = new FriendRequestAcceptEvent(player, senderUuid);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+
+        // Remove request and add friendship
+        database.removeRequest(senderUuid, playerUuid);
+        database.addFriend(playerUuid, senderUuid);
+
+        // Update caches
+        Map<UUID, Long> pending = pendingRequestCache.get(playerUuid);
+        if (pending != null) {
+            pending.remove(senderUuid);
+        }
+
+        Set<UUID> playerFriends = friendCache.get(playerUuid);
+        if (playerFriends != null) {
+            playerFriends.add(senderUuid);
+        }
+
+        // Update sender's cache if online
+        if (senderPlayer != null) {
+            Set<UUID> senderFriends = friendCache.get(senderUuid);
+            if (senderFriends != null) {
+                senderFriends.add(playerUuid);
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean denyRequest(@NotNull Player player, @NotNull UUID senderUuid) {
+        if (!systemEnabled) return false;
+
+        UUID playerUuid = player.getUniqueId();
+
+        if (!hasPendingRequest(senderUuid, playerUuid)) return false;
+
+        // Fire event
+        FriendRequestDenyEvent event = new FriendRequestDenyEvent(player, senderUuid);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+
+        database.removeRequest(senderUuid, playerUuid);
+
+        Map<UUID, Long> pending = pendingRequestCache.get(playerUuid);
+        if (pending != null) {
+            pending.remove(senderUuid);
+        }
+
+        return true;
+    }
+
+    // ==================== Friend Management ====================
+
+    public static boolean removeFriend(@NotNull Player player, @NotNull UUID friendUuid) {
+        if (!systemEnabled) return false;
+
+        UUID playerUuid = player.getUniqueId();
+
+        if (!isFriend(playerUuid, friendUuid)) return false;
+
+        // Fire event
+        FriendRemoveEvent event = new FriendRemoveEvent(player, friendUuid);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+
+        database.removeFriend(playerUuid, friendUuid);
+
+        // Update caches
+        Set<UUID> playerFriends = friendCache.get(playerUuid);
+        if (playerFriends != null) {
+            playerFriends.remove(friendUuid);
+        }
+
+        Player friendPlayer = Bukkit.getPlayer(friendUuid);
+        if (friendPlayer != null) {
+            Set<UUID> friendFriends = friendCache.get(friendUuid);
+            if (friendFriends != null) {
+                friendFriends.remove(playerUuid);
+            }
+        }
+
+        return true;
+    }
+
+    // ==================== Queries ====================
+
+    public static boolean isFriend(@NotNull UUID playerUuid, @NotNull UUID friendUuid) {
+        Set<UUID> friends = friendCache.get(playerUuid);
+        if (friends != null) {
+            return friends.contains(friendUuid);
+        }
+        if (database == null) return false;
+        return database.areFriends(playerUuid, friendUuid);
+    }
+
+    public static boolean hasSharedAccess(@NotNull UUID ownerUuid, @NotNull UUID actorUuid) {
+        if (!systemEnabled) return false;
+        if (ownerUuid.equals(actorUuid)) return true;
+        return isFriend(ownerUuid, actorUuid);
+    }
+
+    // ==================== Access Settings ====================
+
+    public static boolean isStorageAccessAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
+        if (!systemEnabled || database == null) return false;
+        boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+        return database.getAccessSetting(ownerUuid, storageType, defaultValue);
+    }
+
+    public static void setStorageAccess(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
+        if (!systemEnabled || database == null) return;
+        database.setAccessSetting(ownerUuid, storageType, allowed);
+    }
+
+    public static Map<String, Boolean> getAllStorageAccess(@NotNull UUID ownerUuid) {
+        if (!systemEnabled || database == null) {
+            Map<String, Boolean> defaults = new HashMap<>();
+            boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+            defaults.put("storage", defaultValue);
+            defaults.put("mythicstorage", defaultValue);
+            defaults.put("cropstorage", defaultValue);
+            return defaults;
+        }
+        boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+        return database.getAllAccessSettings(ownerUuid, defaultValue);
+    }
+
+    public static boolean canAccessStorage(@NotNull UUID ownerUuid, @NotNull UUID actorUuid, @NotNull String storageType) {
+        if (!systemEnabled) return false;
+        if (ownerUuid.equals(actorUuid)) return true;
+        if (!isFriend(ownerUuid, actorUuid)) return false;
+        return isStorageAccessAllowed(ownerUuid, storageType);
+    }
+
+    public static Set<UUID> getFriends(@NotNull UUID playerUuid) {
+        Set<UUID> cached = friendCache.get(playerUuid);
+        if (cached != null) {
+            return Collections.unmodifiableSet(new LinkedHashSet<>(cached));
+        }
+        if (database == null) return Collections.emptySet();
+        return database.getFriends(playerUuid);
+    }
+
+    public static int getFriendCount(@NotNull UUID playerUuid) {
+        Set<UUID> cached = friendCache.get(playerUuid);
+        if (cached != null) {
+            return cached.size();
+        }
+        if (database == null) return 0;
+        return database.getFriendCount(playerUuid);
+    }
+
+    public static Map<UUID, Long> getPendingRequests(@NotNull UUID receiverUuid) {
+        Map<UUID, Long> cached = pendingRequestCache.get(receiverUuid);
+        if (cached != null) {
+            long now = System.currentTimeMillis();
+            Map<UUID, Long> valid = new LinkedHashMap<>();
+            cached.forEach((sender, expires) -> {
+                if (expires == 0 || expires > now) {
+                    valid.put(sender, expires);
+                }
+            });
+            return valid;
+        }
+        if (database == null) return Collections.emptyMap();
+        return database.getPendingRequests(receiverUuid);
+    }
+
+    public static boolean hasPendingRequest(@NotNull UUID senderUuid, @NotNull UUID receiverUuid) {
+        Map<UUID, Long> pending = pendingRequestCache.get(receiverUuid);
+        if (pending != null) {
+            Long expiresAt = pending.get(senderUuid);
+            if (expiresAt == null) return false;
+            return expiresAt == 0 || expiresAt > System.currentTimeMillis();
+        }
+        if (database == null) return false;
+        return database.hasRequest(senderUuid, receiverUuid);
+    }
+
+    public static int getMaxFriends(@NotNull Player player) {
+        int configDefault = File.getFriendStorageConfig().getInt("settings.max_friends_default", 10);
+
+        // Check permission-based max: storage.friends.max.<number>
+        int permMax = configDefault;
+        for (org.bukkit.permissions.PermissionAttachmentInfo perm : player.getEffectivePermissions()) {
+            String name = perm.getPermission();
+            if (!perm.getValue()) continue;
+            if (!name.startsWith("storage.friends.max.")) continue;
+            try {
+                int val = Integer.parseInt(name.substring("storage.friends.max.".length()));
+                if (val > permMax) {
+                    permMax = val;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return permMax;
+    }
+
+    // ==================== Join Notification ====================
+
+    public static void notifyPendingRequests(@NotNull Player player) {
+        if (!systemEnabled) return;
+        if (!File.getFriendStorageConfig().getBoolean("settings.notify_on_join", true)) return;
+
+        Map<UUID, Long> pending = getPendingRequests(player.getUniqueId());
+        if (pending.isEmpty()) return;
+
+        String message = File.getMessage().getString("friends.pending_on_join");
+        if (message != null) {
+            message = message.replace("#count#", String.valueOf(pending.size()));
+            player.sendMessage(ChatUtils.colorize(message));
+        }
+    }
+
+    // ==================== Action Permission Settings ====================
+
+    /**
+     * Check if deposit is allowed for a specific storage type
+     */
+    public static boolean isDepositAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
+        if (!systemEnabled || database == null) return false;
+        boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+        return database.getActionSetting(ownerUuid, storageType, "deposit", defaultValue);
+    }
+
+    /**
+     * Check if withdraw is allowed for a specific storage type
+     */
+    public static boolean isWithdrawAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
+        if (!systemEnabled || database == null) return false;
+        boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+        return database.getActionSetting(ownerUuid, storageType, "withdraw", defaultValue);
+    }
+
+    /**
+     * Set deposit permission for a specific storage type
+     */
+    public static void setDepositAllowed(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
+        if (!systemEnabled || database == null) return;
+        database.setActionSetting(ownerUuid, storageType, "deposit", allowed);
+    }
+
+    /**
+     * Set withdraw permission for a specific storage type
+     */
+    public static void setWithdrawAllowed(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
+        if (!systemEnabled || database == null) return;
+        database.setActionSetting(ownerUuid, storageType, "withdraw", allowed);
+    }
+
+    /**
+     * Unified notification for owner when friend performs an action
+     */
+    public static void notifyOwnerAction(UUID ownerUuid, UUID actorUuid, String action, String storageType, String material, int amount) {
+        if ("deposit".equalsIgnoreCase(action)) {
+            notifyOwnerDeposit(ownerUuid, actorUuid, material, amount, storageType);
+        } else if ("withdraw".equalsIgnoreCase(action)) {
+            notifyOwnerWithdraw(ownerUuid, actorUuid, material, amount, storageType);
+        }
+    }
+
+    // ==================== Shutdown ====================
+
+    public static void shutdown() {
+        if (autoCleanTask != null) {
+            autoCleanTask.cancel();
+            autoCleanTask = null;
+        }
+        friendCache.clear();
+        pendingRequestCache.clear();
+        if (database != null) {
+            database.cleanExpiredRequests();
+        }
+    }
+
+    private static void scheduleAutoCleanTask() {
+        if (!systemEnabled || database == null) {
+            return;
+        }
+
+        boolean enabled = File.getFriendStorageConfig().getBoolean("settings.auto_clean.enabled", true);
+        if (!enabled) {
+            return;
+        }
+
+        int intervalSeconds = File.getFriendStorageConfig().getInt("settings.auto_clean.interval_seconds", 600);
+        if (intervalSeconds <= 0) {
+            return;
+        }
+
+        long periodTicks = intervalSeconds * 20L;
+        autoCleanTask = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), () -> {
+            if (!systemEnabled || database == null) {
+                if (autoCleanTask != null) {
+                    autoCleanTask.cancel();
+                    autoCleanTask = null;
+                }
+                return;
+            }
+            database.cleanExpiredRequests();
+        }, periodTicks, periodTicks);
+    }
+
+    // ==================== Notifications & Logging ====================
+
+    /**
+     * Log friend storage action
+     */
+    public static void logAction(UUID ownerUuid, UUID actorUuid, String action, String details) {
+        if (!File.getFriendStorageConfig().getBoolean("settings.log_actions", true)) {
+            return;
+        }
+        if (database == null) return;
+
+        String ownerName = Bukkit.getOfflinePlayer(ownerUuid).getName();
+        String actorName = Bukkit.getOfflinePlayer(actorUuid).getName();
+        if (ownerName == null) ownerName = ownerUuid.toString();
+        if (actorName == null) actorName = actorUuid.toString();
+
+        // Always log to console
+        Storage.getStorage().getLogger().info(String.format(
+                "[FriendStorage] %s - Owner: %s, Actor: %s, Details: %s",
+                action, ownerName, actorName, details
+        ));
+
+        // Always write to database (required for /storage friends history)
+        database.insertLog(ownerUuid, actorUuid, action, details);
+    }
+
+
+    /**
+     * Notify owner when friend deposits items
+     */
+    public static void notifyOwnerDeposit(UUID ownerUuid, UUID actorUuid, String material, int amount, String storageType) {
+        if (!File.getFriendStorageConfig().getBoolean("settings.notify_on_deposit", true)) {
+            return;
+        }
+
+        Player owner = Bukkit.getPlayer(ownerUuid);
+        if (owner == null || !owner.isOnline()) {
+            return;
+        }
+
+        Player actor = Bukkit.getPlayer(actorUuid);
+        String actorName = actor != null ? actor.getName() : "Unknown";
+
+        String message = File.getMessage().getString("friends.notification.deposit",
+                        "#prefix# &e#player# &ađã deposit &e#amount# #material# &avào &e#type# &acủa bạn.")
+                .replace("#player#", actorName)
+                .replace("#amount#", String.valueOf(amount))
+                .replace("#material#", material)
+                .replace("#type#", storageType);
+        owner.sendMessage(ChatUtils.colorize(message));
+    }
+
+    /**
+     * Notify owner when friend withdraws items
+     */
+    public static void notifyOwnerWithdraw(UUID ownerUuid, UUID actorUuid, String material, int amount, String storageType) {
+        if (!File.getFriendStorageConfig().getBoolean("settings.notify_on_withdraw", true)) {
+            return;
+        }
+
+        Player owner = Bukkit.getPlayer(ownerUuid);
+        if (owner == null || !owner.isOnline()) {
+            return;
+        }
+
+        Player actor = Bukkit.getPlayer(actorUuid);
+        String actorName = actor != null ? actor.getName() : "Unknown";
+
+        String message = File.getMessage().getString("friends.notification.withdraw",
+                        "#prefix# &e#player# &ađã withdraw &e#amount# #material# &atừ &e#type# &acủa bạn.")
+                .replace("#player#", actorName)
+                .replace("#amount#", String.valueOf(amount))
+                .replace("#material#", material)
+                .replace("#type#", storageType);
+        owner.sendMessage(ChatUtils.colorize(message));
+    }
+
+    /**
+     * Notify player when their friend access settings change
+     */
+    public static void notifyAccessSettingsChanged(UUID playerUuid, String storageType, boolean allowed) {
+        Player player = Bukkit.getPlayer(playerUuid);
+        if (player == null || !player.isOnline()) {
+            return;
+        }
+
+        String status = allowed ? "&aallowed" : "&cdenied";
+        String message = File.getMessage().getString("friends.notification.settings_changed",
+                        "#prefix# &aAccess to your &e#type# &ahas been &e#status# &afor friends.")
+                .replace("#type#", storageType)
+                .replace("#status#", status);
+        player.sendMessage(ChatUtils.colorize(message));
+    }
+}

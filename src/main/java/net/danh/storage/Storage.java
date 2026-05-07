@@ -17,6 +17,7 @@ import net.danh.storage.Manager.Crafting.RecipeEditManager;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.Event.EventManager;
+import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
@@ -45,7 +46,7 @@ import java.util.logging.Level;
 public final class Storage extends JavaPlugin {
 
     // Debug Storage
-    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = true;
+    private static final boolean DEBUG_STORAGE_AUTO_ADD_ALL_VANILLA = false;
 
     public static IDataStorage dataStorage;
     public static Database db;
@@ -380,6 +381,7 @@ public final class Storage extends JavaPlugin {
         File.updateMythicStorageConfig();
         File.updateCraftingConfig();
         File.updateCropStorageConfig();
+        File.updateFriendStorageConfig();
 
         MineManager.loadPlacedBlocks();
 
@@ -412,6 +414,8 @@ public final class Storage extends JavaPlugin {
         } else {
             db = new DatabaseCompatibilityWrapper(dataStorage);
         }
+
+        FriendManager.initialize();
         TransferManager.initialize();
         MineManager.loadBlocks();
         ConvertOreManager.loadConvertOptions();
@@ -597,6 +601,8 @@ public final class Storage extends JavaPlugin {
         RecipeEditManager.clearFlagCache();
 
         MineManager.savePlacedBlocks(false);
+
+        FriendManager.shutdown();
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");

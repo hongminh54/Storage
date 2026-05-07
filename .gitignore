@@ -2,10 +2,11 @@
 /target/
 /.idea/
 *.iml
-update.txt
 .vscode/
 mythiclib
 prompts
 .agent
 docs
-
+.bg-shell
+package-lock.json
+update.txt

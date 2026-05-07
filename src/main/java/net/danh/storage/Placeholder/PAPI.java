@@ -11,6 +11,7 @@ import net.danh.storage.Event.Events.MiningContestEvent;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.Manager.Event.EventManager;
+import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
@@ -18,6 +19,7 @@ import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +72,58 @@ public class PAPI extends PlaceholderExpansion {
 
         if (args.startsWith("sellable")) {
             return handleSellablePlaceholders(args);
+        }
+
+        if (args.equalsIgnoreCase("friends_count")) {
+            return String.valueOf(FriendManager.getFriendCount(p.getUniqueId()));
+        }
+
+        if (args.equalsIgnoreCase("friends_max")) {
+            return String.valueOf(FriendManager.getMaxFriends(p));
+        }
+
+        if (args.equalsIgnoreCase("friends_pending")) {
+            return String.valueOf(FriendManager.getPendingRequests(p.getUniqueId()).size());
+        }
+
+        if (args.startsWith("is_friend_")) {
+            boolean iconMode = false;
+            String targetName;
+            if (args.startsWith("is_friend_icon_")) {
+                iconMode = true;
+                targetName = args.substring("is_friend_icon_".length());
+            } else {
+                targetName = args.substring("is_friend_".length());
+            }
+            if (targetName.isEmpty()) {
+                return iconMode ? File.getMessage().getString("friends.icon.no", "&c✘") : "false";
+            }
+
+            UUID targetUuid = null;
+            Player online = Bukkit.getPlayerExact(targetName);
+            if (online != null) {
+                targetUuid = online.getUniqueId();
+            } else {
+                try {
+                    OfflinePlayer offline = Bukkit.getOfflinePlayer(targetName);
+                    if (offline.hasPlayedBefore()) {
+                        targetUuid = offline.getUniqueId();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (targetUuid == null) {
+                return iconMode ? File.getMessage().getString("friends.icon.no", "&c✘") : "false";
+            }
+
+            boolean isFriend = FriendManager.isFriend(p.getUniqueId(), targetUuid);
+            if (!iconMode) {
+                return String.valueOf(isFriend);
+            }
+
+            return File.getMessage().getString(isFriend ? "friends.icon.yes" : "friends.icon.no",
+                    isFriend ? "&a✔" : "&c✘");
         }
 
         if (args.startsWith("page_")) {

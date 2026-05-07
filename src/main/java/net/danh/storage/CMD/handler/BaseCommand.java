@@ -20,14 +20,23 @@ public abstract class BaseCommand implements CommandHandler {
     protected void sendMessage(CommandSender sender, String messageKey) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(ChatUtils.colorize(message));
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorize((Player) sender, message));
+            } else {
+                sender.sendMessage(ChatUtils.colorize(message));
+            }
         }
     }
 
     protected void sendMessage(CommandSender sender, String messageKey, String placeholder, String replacement) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(ChatUtils.colorize(message.replace(placeholder, replacement)));
+            String replaced = message.replace(placeholder, replacement);
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorize((Player) sender, replaced));
+            } else {
+                sender.sendMessage(ChatUtils.colorize(replaced));
+            }
         }
     }
 
@@ -37,14 +46,22 @@ public abstract class BaseCommand implements CommandHandler {
             for (int i = 0; i < placeholders.length && i < replacements.length; i++) {
                 message = message.replace(placeholders[i], replacements[i]);
             }
-            sender.sendMessage(ChatUtils.colorize(message));
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorize((Player) sender, message));
+            } else {
+                sender.sendMessage(ChatUtils.colorize(message));
+            }
         }
     }
 
     protected void sendColorizedMessage(CommandSender sender, String messageKey) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(ChatUtils.colorizewp(message));
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorizewp((Player) sender, message));
+            } else {
+                sender.sendMessage(ChatUtils.colorizewp(message));
+            }
         }
     }
 
@@ -52,7 +69,12 @@ public abstract class BaseCommand implements CommandHandler {
                                         String replacement) {
         String message = File.getMessage().getString(messageKey);
         if (message != null) {
-            sender.sendMessage(ChatUtils.colorizewp(message.replace(placeholder, replacement)));
+            String replaced = message.replace(placeholder, replacement);
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorizewp((Player) sender, replaced));
+            } else {
+                sender.sendMessage(ChatUtils.colorizewp(replaced));
+            }
         }
     }
 
@@ -63,21 +85,33 @@ public abstract class BaseCommand implements CommandHandler {
             for (int i = 0; i < placeholders.length && i < replacements.length; i++) {
                 message = message.replace(placeholders[i], replacements[i]);
             }
-            sender.sendMessage(ChatUtils.colorizewp(message));
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorizewp((Player) sender, message));
+            } else {
+                sender.sendMessage(ChatUtils.colorizewp(message));
+            }
         }
     }
 
     protected void sendMessageList(CommandSender sender, String messageKey) {
         List<String> messages = File.getMessage().getStringList(messageKey);
         for (String message : messages) {
-            sender.sendMessage(ChatUtils.colorize(message));
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorize((Player) sender, message));
+            } else {
+                sender.sendMessage(ChatUtils.colorize(message));
+            }
         }
     }
 
     protected void sendColorizedMessageList(CommandSender sender, String messageKey) {
         List<String> messages = File.getMessage().getStringList(messageKey);
         for (String message : messages) {
-            sender.sendMessage(ChatUtils.colorizewp(message));
+            if (sender instanceof Player) {
+                sender.sendMessage(ChatUtils.colorizewp((Player) sender, message));
+            } else {
+                sender.sendMessage(ChatUtils.colorizewp(message));
+            }
         }
     }
 

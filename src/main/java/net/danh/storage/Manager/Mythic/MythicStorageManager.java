@@ -861,4 +861,65 @@ public class MythicStorageManager {
 
         disabledAutoPickupItems.remove(playerName);
     }
+
+    /**
+     * Lấy danh sách các item đã cấu hình (cho GUI)
+     */
+    public static List<String> getOrderedPluginBlocks() {
+        return new ArrayList<>(configuredDrops);
+    }
+
+    /**
+     * Lấy display name cho internal name
+     */
+    public static String getDisplayName(String internalName) {
+        if (internalName == null) return "Unknown";
+        // Lấy từ config nếu có
+        String name = File.getMythicStorageConfig().getString("items." + internalName, internalName);
+        return name;
+    }
+
+    /**
+     * Kiểm tra autopickup status cho item dựa trên UUID (dùng cho offline player lookup)
+     */
+    public static boolean isAutoPickupEnabledForItemByUUID(@NotNull UUID playerUuid,
+                                                           @NotNull String internalName) {
+        if (!isSystemEnabled()) return false;
+
+        // Lấy toggle status từ cache
+        Boolean toggleStatus = toggle.get(playerUuid);
+        if (toggleStatus != null && !toggleStatus) {
+            return false;
+        }
+
+        // Tìm player name từ UUID để lấy disabled items
+        org.bukkit.OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUuid);
+        if (offlinePlayer.getName() == null) {
+            return toggleStatus != null ? toggleStatus : true;
+        }
+
+        Set<String> disabledItems = disabledAutoPickupItems.get(offlinePlayer.getName());
+        if (disabledItems == null || disabledItems.isEmpty()) {
+            return true;
+        }
+        return !disabledItems.contains(internalName);
+    }
+
+    /**
+     * Thêm item amount vào storage (cho friend deposit)
+     */
+    public static void addItemAmount(@NotNull String playerName, @NotNull String internalName, int amount, boolean fireEvent) {
+        if (!isSystemEnabled() || amount <= 0) return;
+        int current = getPlayerItem(playerName, internalName);
+        playerdata.put(playerName + "_" + internalName, current + amount);
+    }
+
+    /**
+     * Remove item amount từ storage (cho friend withdraw)
+     */
+    public static void removeItemAmount(@NotNull String playerName, @NotNull String internalName, int amount, boolean fireEvent) {
+        if (!isSystemEnabled() || amount <= 0) return;
+        int current = getPlayerItem(playerName, internalName);
+        playerdata.put(playerName + "_" + internalName, Math.max(0, current - amount));
+    }
 }

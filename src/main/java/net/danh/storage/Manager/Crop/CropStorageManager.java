@@ -331,7 +331,7 @@ public class CropStorageManager {
     }
 
     public static int getPlayerItem(@NotNull Player player, @NotNull String itemName) {
-        return playerdata.getOrDefault(player.getName() + "_crop_" + itemName.toUpperCase(), 0);
+        return getPlayerItem(player.getName(), itemName);
     }
 
     public static boolean hasPlayerItem(@NotNull Player player, @NotNull String itemName) {
@@ -1357,5 +1357,73 @@ public class CropStorageManager {
             }
         }
         return mapping;
+    }
+
+    /**
+     * Lấy danh sách các crop đã cấu hình (cho GUI)
+     */
+    public static List<String> getOrderedPluginBlocks() {
+        return new ArrayList<>(configuredDrops);
+    }
+
+    /**
+     * Lấy display name cho crop key
+     */
+    public static String getDisplayName(String cropKey) {
+        if (cropKey == null) return "Unknown";
+        // Lấy từ config nếu có
+        String name = File.getCropStorageConfig().getString("items." + cropKey, cropKey);
+        return name;
+    }
+
+    /**
+     * Kiểm tra autopickup status cho item dựa trên UUID (dùng cho offline player lookup)
+     */
+    public static boolean isAutoPickupEnabledForItemByUUID(@NotNull UUID playerUuid,
+                                                           @NotNull String cropKey) {
+        if (!isSystemEnabled()) return false;
+
+        // Lấy toggle status từ cache
+        Boolean toggleStatus = toggle.get(playerUuid);
+        if (toggleStatus != null && !toggleStatus) {
+            return false;
+        }
+
+        // Tìm player name từ UUID để lấy disabled items
+        org.bukkit.OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUuid);
+        if (offlinePlayer.getName() == null) {
+            return toggleStatus != null ? toggleStatus : true;
+        }
+
+        Set<String> disabledItems = disabledAutoPickupItems.get(offlinePlayer.getName());
+        if (disabledItems == null || disabledItems.isEmpty()) {
+            return true;
+        }
+        return !disabledItems.contains(cropKey.toUpperCase());
+    }
+
+    /**
+     * Thêm crop amount vào storage (cho friend deposit)
+     */
+    public static void addItemAmount(@NotNull String playerName, @NotNull String cropKey, int amount, boolean fireEvent) {
+        if (!isSystemEnabled() || amount <= 0) return;
+        String key = playerName + "_crop_" + cropKey.toUpperCase();
+        int current = playerdata.getOrDefault(key, 0);
+        playerdata.put(key, current + amount);
+    }
+
+    /**
+     * Remove crop amount từ storage (cho friend withdraw)
+     */
+    public static void removeItemAmount(@NotNull String playerName, @NotNull String cropKey, int amount, boolean fireEvent) {
+        if (!isSystemEnabled() || amount <= 0) return;
+        String key = playerName + "_crop_" + cropKey.toUpperCase();
+        int current = playerdata.getOrDefault(key, 0);
+        int newValue = Math.max(0, current - amount);
+        if (newValue <= 0) {
+            playerdata.remove(key);
+        } else {
+            playerdata.put(key, newValue);
+        }
     }
 }

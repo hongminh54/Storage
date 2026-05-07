@@ -63,26 +63,26 @@ public class CraftingPlaceholder extends PlaceholderExpansion {
 
         // %storagecraft_is_crafting%
         if (params.equalsIgnoreCase("is_crafting")) {
-            return CraftingManager.isCraftingInProgress(player) ? "true" : "false";
+            return Boolean.toString(CraftingManager.isCraftingInProgress(player));
         }
 
         // %storagecraft_recipe_<recipeId>_exists%
         if (params.startsWith("recipe_") && params.endsWith("_exists")) {
             String recipeId = params.substring(7, params.length() - 7);
-            return CraftingManager.recipeExists(recipeId) ? "true" : "false";
+            return Boolean.toString(CraftingManager.recipeExists(recipeId));
         }
 
         // %storagecraft_recipe_<recipeId>_enabled%
         if (params.startsWith("recipe_") && params.endsWith("_enabled")) {
             String recipeId = params.substring(7, params.length() - 8);
             Recipe recipe = CraftingManager.getRecipe(recipeId);
-            return recipe != null && recipe.isEnabled() ? "true" : "false";
+            return Boolean.toString(recipe != null && recipe.isEnabled());
         }
 
         // %storagecraft_recipe_<recipeId>_can_craft%
         if (params.startsWith("recipe_") && params.endsWith("_can_craft")) {
             String recipeId = params.substring(7, params.length() - 10);
-            return CraftingManager.canCraft(player, recipeId) ? "true" : "false";
+            return Boolean.toString(CraftingManager.canCraft(player, recipeId));
         }
 
         // %storagecraft_recipe_<recipeId>_max_amount%

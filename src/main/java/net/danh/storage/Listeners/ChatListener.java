@@ -50,6 +50,7 @@ public class ChatListener implements Listener {
     public static HashMap<UUID, Integer> chat_return_page = new HashMap<>();
     public static HashMap<UUID, String> craftingRequests = new HashMap<>();
 
+
     private boolean isCancelCommand(String message) {
         return message.trim().equalsIgnoreCase("cancel");
     }

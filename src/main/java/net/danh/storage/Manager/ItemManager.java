@@ -345,6 +345,54 @@ public class ItemManager {
                 merged);
     }
 
+    /**
+     * Overload cho friend storage - dùng player name thay vì Player object
+     */
+    public static ItemStack getItemConfig(String playerName, String material, String name, ConfigurationSection section, String... placeholders) {
+        ItemStack item = createBaseItem(section, material.split(";")[0]);
+        if (item == null) return null;
+
+        String[] basePlaceholders = new String[]{
+                "#item_amount#", String.valueOf(MineManager.getPlayerBlock(playerName, material)),
+                "#max_storage#", String.valueOf(MineManager.getMaxStorage(playerName)),
+                "#sellable#", getStorageSellableSymbol(material)
+        };
+
+        String[] merged;
+        if (placeholders != null && placeholders.length > 0) {
+            merged = new String[basePlaceholders.length + placeholders.length];
+            System.arraycopy(basePlaceholders, 0, merged, 0, basePlaceholders.length);
+            System.arraycopy(placeholders, 0, merged, basePlaceholders.length, placeholders.length);
+        } else {
+            merged = basePlaceholders;
+        }
+
+        return applyPlaceholders(null, item, section.getStringList("lore"), name, merged);
+    }
+
+    /**
+     * Overload cho friend storage với placeholders đơn giản
+     */
+    public static ItemStack getItemConfigWithPlaceholders(String playerName, String material, String name, ConfigurationSection section, String... placeholders) {
+        ItemStack item = createBaseItem(section, material.split(";")[0]);
+        if (item == null) return null;
+
+        int baseLength = 6;
+        int extraLength = placeholders == null ? 0 : placeholders.length;
+        String[] merged = new String[baseLength + extraLength];
+        merged[0] = "#item_amount#";
+        merged[1] = String.valueOf(MineManager.getPlayerBlock(playerName, material));
+        merged[2] = "#max_storage#";
+        merged[3] = String.valueOf(MineManager.getMaxStorage(playerName));
+        merged[4] = "#sellable#";
+        merged[5] = getStorageSellableSymbol(material);
+        if (extraLength > 0) {
+            System.arraycopy(placeholders, 0, merged, baseLength, extraLength);
+        }
+
+        return applyPlaceholders(null, item, section.getStringList("lore"), name, merged);
+    }
+
     @Deprecated
     public static ItemStack replaceLore(ItemStack item, List<String> loreTemplate, String... replacements) {
         return applyPlaceholders(null, item, loreTemplate, null, replacements);
@@ -386,5 +434,27 @@ public class ItemManager {
         }
 
         return item;
+    }
+
+    /**
+     * Lấy ItemStack từ material string (cho friend storage)
+     */
+    public static ItemStack getItemData(String material) {
+        if (material == null || material.isEmpty()) {
+            return new ItemStack(Material.AIR);
+        }
+
+        String itemName = material.split(";")[0];
+        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(itemName);
+        if (!xMaterial.isPresent()) {
+            return new ItemStack(Material.AIR);
+        }
+
+        Material mat = xMaterial.get().parseMaterial();
+        if (mat == null) {
+            return new ItemStack(Material.AIR);
+        }
+
+        return new ItemStack(mat);
     }
 }

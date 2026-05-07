@@ -208,7 +208,7 @@ public class GroundStoreListener implements Listener {
                             "items." + storageDrop);
                     String itemName = name != null ? name
                             : storageDrop
-                            .replace("_", " ");
+                              .replace("_", " ");
                     SoundManager.playActionSound(player, "ground_store",
                             File.getConfig());
                     sendGroundStoreMessage(player, NOTIFY_TYPE_STORAGE, itemName,

@@ -75,6 +75,13 @@ permissions:
       storage.cropstorage.transfer.use: true
       storage.cropstorage.transfer.multi: true
       storage.cropstorage.transfer.log: true
+      storage.friends.use: true
+      storage.friends.add: true
+      storage.friends.accept: true
+      storage.friends.deny: true
+      storage.friends.remove: true
+      storage.friends.list: true
+      storage.friends.open: true
 
   storage.toggle:
     description: Toggle permission
@@ -286,4 +293,32 @@ permissions:
   storage.preventrebreak.bypass:
     description: Bypass prevent rebreak placed-block protection
     default: op
+
+  storage.friends.use:
+    description: Use friend storage feature
+    default: true
+
+  storage.friends.add:
+    description: Send friend requests
+    default: true
+
+  storage.friends.accept:
+    description: Accept friend requests
+    default: true
+
+  storage.friends.deny:
+    description: Deny friend requests
+    default: true
+
+  storage.friends.remove:
+    description: Remove friends
+    default: true
+
+  storage.friends.list:
+    description: View friend list
+    default: true
+
+  storage.friends.open:
+    description: Open friend shared storage
+    default: true
 

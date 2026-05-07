@@ -1,0 +1,33 @@
+# Friend Storage Configuration
+friendstorage_version: 1
+
+settings:
+  # Enable or disable the Friend Storage feature
+  enabled: true
+  # When a friend request is accepted, both players get mutual storage access
+  mutual_access_on_accept: true
+  # Allow friends to access shared storage while owner is offline
+  allow_offline_access: true
+  # Default maximum number of friends per player (can be overridden by permission)
+  max_friends_default: 10
+  # Friend request expiration time in seconds (0 = never expire)
+  request_expire_seconds: 300
+  # Notify player of pending friend requests on join
+  notify_on_join: true
+
+  # Log friend storage actions (deposit, withdraw) to console
+  log_actions: true
+  # Log actions to database for /storage friends history command
+  log_to_database: true
+
+  # Notify owner when friend deposits items
+  notify_on_deposit: true
+  # Notify owner when friend withdraws items
+  notify_on_withdraw: true
+
+  # Default access setting for storage types (false = deny by default, true = allow by default)
+  default_access_allowed: false
+
+  auto_clean:
+    enabled: true
+    interval_seconds: 600

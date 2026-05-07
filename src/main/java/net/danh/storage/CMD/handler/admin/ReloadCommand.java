@@ -5,6 +5,7 @@ import net.danh.storage.Manager.AutoSaveManager;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.EnchantManager;
 import net.danh.storage.Manager.Event.EventManager;
+import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -30,10 +31,12 @@ public class ReloadCommand extends BaseCommand {
         EventManager.reloadEvents();
         EnchantManager.loadEnchants();
         CraftingManager.loadRecipes();
+        FriendManager.initialize();
 
         for (Player player : Storage.getStorage().getServer().getOnlinePlayers()) {
             MineManager.convertOfflineData(player);
             MineManager.loadPlayerData(player);
+            FriendManager.loadPlayerData(player);
         }
 
         sendMessage(sender, "admin.reload");

@@ -44,6 +44,7 @@ public class CommandManager {
         registerCommand("enchant", new EnchantCommand());
         registerCommand("specialmaterial", new SpecialMaterialCommand());
         registerCommand("crafteditor", new CraftEditorCommand());
+        registerCommand("friends", new FriendCommand());
     }
 
     private void registerCommand(String name, CommandHandler handler) {

@@ -19,6 +19,7 @@ import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Crop.CropTransferManager;
+import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
@@ -39,6 +40,7 @@ public class JoinQuit implements Listener {
         MineManager.loadPlayerData(p);
         MythicStorageManager.loadPlayerData(p);
         CropStorageManager.loadPlayerData(p);
+        FriendManager.loadPlayerData(p);
 
         SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
             if (!p.isOnline()) {
@@ -46,6 +48,7 @@ public class JoinQuit implements Listener {
             }
             MineManager.scheduleAutoSellOnJoin(p);
             CropStorageManager.scheduleAutoSellOnJoin(p);
+            FriendManager.notifyPendingRequests(p);
         }, 1L);
     }
 
@@ -54,6 +57,7 @@ public class JoinQuit implements Listener {
         Player p = e.getPlayer();
         MineManager.savePlayerData(p);
         MineManager.cleanupPlayerData(p);
+        FriendManager.cleanupPlayerData(p);
 
         if (MythicStorageManager.isSystemEnabled()) {
             MythicStorageManager.savePlayerData(p);
@@ -75,6 +79,7 @@ public class JoinQuit implements Listener {
         ChatListener.chat_crop_withdraw.remove(p.getUniqueId());
         ChatListener.chat_crop_deposit.remove(p.getUniqueId());
         ChatListener.chat_crop_sell.remove(p.getUniqueId());
+
 
         // Cleanup transfer data
         TransferGUI.setWaitingForInput(p, false);

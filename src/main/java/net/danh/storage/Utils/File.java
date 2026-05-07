@@ -215,6 +215,11 @@ public class File {
         return getFileSetting().get("GUI/crop-transfer-multi.yml");
     }
 
+    public static FileConfiguration getFriendStorageConfig() {
+        return getFileSetting().get("friendstorage.yml");
+    }
+
+
     public static FileConfiguration getCraftingConfig() {
         return getFileSetting().get("crafting.yml");
     }
@@ -253,14 +258,16 @@ public class File {
 
     public static void loadFiles() {
         getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml",
-                "special_material.yml", "mythicstorage.yml", "cropstorage.yml", "crafting.yml");
+                "special_material.yml", "mythicstorage.yml", "cropstorage.yml", "crafting.yml",
+                "friendstorage.yml");
         copyExampleFiles();
         AutoPickupCache.reload();
     }
 
     public static void reloadFiles() {
         getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml",
-                "mythicstorage.yml", "cropstorage.yml", "crafting.yml", "GUI/storage.yml", "GUI/items.yml",
+                "mythicstorage.yml", "cropstorage.yml", "crafting.yml", "friendstorage.yml",
+                "GUI/storage.yml", "GUI/items.yml",
                 "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml",
                 "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml",
                 "GUI/view-cropstorage.yml", "GUI/crop-items.yml", "GUI/crop-transfer.yml",
@@ -340,6 +347,13 @@ public class File {
                 "cropstorage.yml",
                 "cropstorage_version",
                 "cropstorage config");
+    }
+
+    public static void updateFriendStorageConfig() {
+        updateVersionedConfig(
+                "friendstorage.yml",
+                "friendstorage_version",
+                "friendstorage config");
     }
 
     public static void updateCraftingConfig() {

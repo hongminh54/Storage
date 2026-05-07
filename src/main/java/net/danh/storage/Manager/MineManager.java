@@ -600,6 +600,30 @@ public class MineManager {
         return !disabledItems.contains(material);
     }
 
+    /**
+     * Kiểm tra autopickup status cho item dựa trên UUID (dùng cho offline player lookup)
+     */
+    public static boolean isAutoPickupEnabledForItemByUUID(@NotNull UUID playerUuid,
+                                                           @NotNull String material) {
+        // Lấy toggle status từ cache
+        Boolean toggleStatus = toggle.get(playerUuid);
+        if (toggleStatus != null && !toggleStatus) {
+            return false;
+        }
+
+        // Tìm player name từ UUID để lấy disabled items
+        org.bukkit.OfflinePlayer offlinePlayer = org.bukkit.Bukkit.getOfflinePlayer(playerUuid);
+        if (offlinePlayer.getName() == null) {
+            return toggleStatus != null ? toggleStatus : true;
+        }
+
+        Set<String> disabledItems = disabledAutoPickupItems.get(offlinePlayer.getName());
+        if (disabledItems == null || disabledItems.isEmpty()) {
+            return true;
+        }
+        return !disabledItems.contains(material);
+    }
+
     public static boolean toggleItemAutoPickup(@NotNull Player player,
                                                @NotNull String material) {
         String playerName = player.getName();
@@ -1493,6 +1517,31 @@ public class MineManager {
         playerdata.entrySet().removeIf(entry -> entry.getKey().startsWith(playerName + "_"));
         disabledAutoPickupItems.remove(playerName);
         autoSellItems.remove(playerName);
+    }
+
+    /**
+     * Lấy số lượng item của player từ storage (alias cho getPlayerBlock)
+     */
+    public static int getPlayerItem(@NotNull String playerName, @NotNull String material) {
+        return getPlayerBlock(playerName, material);
+    }
+
+    /**
+     * Thêm item amount vào storage của player (cho friend deposit)
+     */
+    public static void addItemAmount(@NotNull String playerName, @NotNull String material, int amount, boolean fireEvent) {
+        if (amount <= 0) return;
+        int current = getPlayerBlock(playerName, material);
+        playerdata.put(playerName + "_" + material, current + amount);
+    }
+
+    /**
+     * Remove item amount từ storage của player (cho friend withdraw)
+     */
+    public static void removeItemAmount(@NotNull String playerName, @NotNull String material, int amount, boolean fireEvent) {
+        if (amount <= 0) return;
+        int current = getPlayerBlock(playerName, material);
+        playerdata.put(playerName + "_" + material, Math.max(0, current - amount));
     }
 
     private static final class InvLookupKey {

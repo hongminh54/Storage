@@ -47,6 +47,23 @@ public class MythicMobsHelper {
         this.scanPackage();
     }
 
+    private static MythicMobsHelper getHelperInstance() {
+        return MythicStorageManager.getMythicMobsHelper();
+    }
+
+    /**
+     * Tạo MythicItemStack từ internal name
+     */
+    public static ItemStack getMythicItemStack(@NotNull String internalName, int amount) {
+        MythicMobsHelper helper = getHelperInstance();
+        if (helper == null || !helper.isInitialized()) return null;
+        ItemStack item = helper.getMythicItem(internalName);
+        if (item != null) {
+            item.setAmount(amount);
+        }
+        return item;
+    }
+
     private void scanPackage() {
         Storage.getStorage().getLogger().log(Level.INFO, "[MythicStorage] Scanning for MythicMobs API...");
         for (String packagee : mmPackageAPI) {
@@ -425,6 +442,8 @@ public class MythicMobsHelper {
 
         return null;
     }
+
+    // ==================== Static Helper Methods for Friend Storage ====================
 
     @Nullable
     public String getItemDisplayName(@NotNull String itemName) {
