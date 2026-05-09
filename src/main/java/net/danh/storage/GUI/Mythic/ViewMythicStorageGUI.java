@@ -171,7 +171,7 @@ public class ViewMythicStorageGUI implements IGUI {
 
                         if (meta != null) {
                             int amount = MythicStorageManager.getPlayerItem(targetName, itemName);
-                            int maxStorage = MythicStorageManager.getMaxStorage(targetName);
+                            int maxStorage = MythicStorageManager.getMaxStorage();
 
                             if (meta.hasDisplayName()) {
                                 meta.setDisplayName(ChatUtils.colorizewp(meta.getDisplayName()));

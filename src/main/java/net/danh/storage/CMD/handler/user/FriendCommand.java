@@ -747,7 +747,7 @@ public class FriendCommand extends BaseCommand {
         }
 
         // Execute withdraw - remove from owner's storage
-        MineManager.removeItemAmount(ownerName, normalizedMaterial, amount, false);
+        MineManager.removeItemAmount(ownerName, normalizedMaterial, amount);
         // Add items to player's inventory
         addItemsToInventory(player, normalizedMaterial, amount);
 
@@ -771,7 +771,7 @@ public class FriendCommand extends BaseCommand {
 
         // Check owner storage space
         int ownerCurrent = MineManager.getPlayerBlock(ownerName, normalizedMaterial);
-        int ownerMax = MineManager.getMaxStorage(ownerName);
+        int ownerMax = MineManager.getMaxStorage();
         int availableSpace = ownerMax - ownerCurrent;
 
         if (availableSpace < amount) {
@@ -783,7 +783,7 @@ public class FriendCommand extends BaseCommand {
 
         // Execute deposit - remove from player inventory, add to owner storage
         removePlayerItems(player, normalizedMaterial, amount);
-        MineManager.addItemAmount(ownerName, normalizedMaterial, amount, false);
+        MineManager.addItemAmount(ownerName, normalizedMaterial, amount);
 
         sendMessage(player, "friends.deposit_success",
                 new String[]{"#amount#", "#material#", "#player#"},
@@ -809,7 +809,7 @@ public class FriendCommand extends BaseCommand {
         }
 
         // Execute withdraw - remove from owner, give to player
-        MythicStorageManager.removeItemAmount(ownerName, item, amount, false);
+        MythicStorageManager.removeItemAmount(ownerName, item, amount);
         giveMythicItem(player, item, amount);
 
         sendMessage(player, "friends.withdraw_success",
@@ -830,7 +830,7 @@ public class FriendCommand extends BaseCommand {
 
         // Check owner storage space
         int ownerCurrent = MythicStorageManager.getPlayerItem(ownerName, item);
-        int ownerMax = MythicStorageManager.getMaxStorage(ownerName);
+        int ownerMax = MythicStorageManager.getMaxStorage();
         int availableSpace = ownerMax - ownerCurrent;
 
         if (availableSpace < amount) {
@@ -842,7 +842,7 @@ public class FriendCommand extends BaseCommand {
 
         // Execute deposit - remove from player, add to owner
         removeMythicItems(player, item, amount);
-        MythicStorageManager.addItemAmount(ownerName, item, amount, false);
+        MythicStorageManager.addItemAmount(ownerName, item, amount);
 
         sendMessage(player, "friends.deposit_success",
                 new String[]{"#amount#", "#material#", "#player#"},
@@ -993,7 +993,7 @@ public class FriendCommand extends BaseCommand {
         }
 
         int ownerCurrent = MineManager.getPlayerBlock(ownerName, normalizedMaterial);
-        int ownerMax = MineManager.getMaxStorage(ownerName);
+        int ownerMax = MineManager.getMaxStorage();
         int availableSpace = ownerMax - ownerCurrent;
         if (availableSpace < amount) {
             sendMessage(player, "friends.owner_storage_full",
@@ -1002,8 +1002,8 @@ public class FriendCommand extends BaseCommand {
             return false;
         }
 
-        MineManager.removeItemAmount(playerName, normalizedMaterial, amount, false);
-        MineManager.addItemAmount(ownerName, normalizedMaterial, amount, false);
+        MineManager.removeItemAmount(playerName, normalizedMaterial, amount);
+        MineManager.addItemAmount(ownerName, normalizedMaterial, amount);
 
         sendMessage(player, "friends.deposit_from_storage_success",
                 new String[]{"#amount#", "#material#", "#player#"},
@@ -1024,7 +1024,7 @@ public class FriendCommand extends BaseCommand {
         }
 
         int ownerCurrent = MythicStorageManager.getPlayerItem(ownerName, item);
-        int ownerMax = MythicStorageManager.getMaxStorage(ownerName);
+        int ownerMax = MythicStorageManager.getMaxStorage();
         int availableSpace = ownerMax - ownerCurrent;
         if (availableSpace < amount) {
             sendMessage(player, "friends.owner_storage_full",
@@ -1033,8 +1033,8 @@ public class FriendCommand extends BaseCommand {
             return false;
         }
 
-        MythicStorageManager.removeItemAmount(playerName, item, amount, false);
-        MythicStorageManager.addItemAmount(ownerName, item, amount, false);
+        MythicStorageManager.removeItemAmount(playerName, item, amount);
+        MythicStorageManager.addItemAmount(ownerName, item, amount);
 
         sendMessage(player, "friends.deposit_from_storage_success",
                 new String[]{"#amount#", "#material#", "#player#"},

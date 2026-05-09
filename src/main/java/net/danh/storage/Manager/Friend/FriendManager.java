@@ -18,9 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FriendManager {
 
-    // In-memory cache: player UUID -> set of friend UUIDs
     private static final Map<UUID, Set<UUID>> friendCache = new ConcurrentHashMap<>();
-    // In-memory cache: receiver UUID -> (sender UUID -> expires_at)
     private static final Map<UUID, Map<UUID, Long>> pendingRequestCache = new ConcurrentHashMap<>();
     private static FriendDatabase database;
     private static boolean systemEnabled = false;
@@ -61,8 +59,6 @@ public class FriendManager {
         return database;
     }
 
-    // ==================== Player Data Lifecycle ====================
-
     public static void loadPlayerData(@NotNull Player player) {
         if (!systemEnabled || database == null) return;
 
@@ -79,8 +75,6 @@ public class FriendManager {
         friendCache.remove(uuid);
         pendingRequestCache.remove(uuid);
     }
-
-    // ==================== Friend Requests ====================
 
     public static boolean sendRequest(@NotNull Player sender, @NotNull Player target) {
         if (!systemEnabled) return false;
@@ -200,7 +194,6 @@ public class FriendManager {
         return true;
     }
 
-    // ==================== Friend Management ====================
 
     public static boolean removeFriend(@NotNull Player player, @NotNull UUID friendUuid) {
         if (!systemEnabled) return false;
@@ -233,8 +226,6 @@ public class FriendManager {
         return true;
     }
 
-    // ==================== Queries ====================
-
     public static boolean isFriend(@NotNull UUID playerUuid, @NotNull UUID friendUuid) {
         Set<UUID> friends = friendCache.get(playerUuid);
         if (friends != null) {
@@ -249,8 +240,6 @@ public class FriendManager {
         if (ownerUuid.equals(actorUuid)) return true;
         return isFriend(ownerUuid, actorUuid);
     }
-
-    // ==================== Access Settings ====================
 
     public static boolean isStorageAccessAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
         if (!systemEnabled || database == null) return false;
@@ -274,13 +263,6 @@ public class FriendManager {
         }
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
         return database.getAllAccessSettings(ownerUuid, defaultValue);
-    }
-
-    public static boolean canAccessStorage(@NotNull UUID ownerUuid, @NotNull UUID actorUuid, @NotNull String storageType) {
-        if (!systemEnabled) return false;
-        if (ownerUuid.equals(actorUuid)) return true;
-        if (!isFriend(ownerUuid, actorUuid)) return false;
-        return isStorageAccessAllowed(ownerUuid, storageType);
     }
 
     public static Set<UUID> getFriends(@NotNull UUID playerUuid) {
@@ -349,8 +331,6 @@ public class FriendManager {
         return permMax;
     }
 
-    // ==================== Join Notification ====================
-
     public static void notifyPendingRequests(@NotNull Player player) {
         if (!systemEnabled) return;
         if (!File.getFriendStorageConfig().getBoolean("settings.notify_on_join", true)) return;
@@ -365,45 +345,28 @@ public class FriendManager {
         }
     }
 
-    // ==================== Action Permission Settings ====================
-
-    /**
-     * Check if deposit is allowed for a specific storage type
-     */
     public static boolean isDepositAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
         if (!systemEnabled || database == null) return false;
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
         return database.getActionSetting(ownerUuid, storageType, "deposit", defaultValue);
     }
 
-    /**
-     * Check if withdraw is allowed for a specific storage type
-     */
     public static boolean isWithdrawAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
         if (!systemEnabled || database == null) return false;
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
         return database.getActionSetting(ownerUuid, storageType, "withdraw", defaultValue);
     }
 
-    /**
-     * Set deposit permission for a specific storage type
-     */
     public static void setDepositAllowed(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
         if (!systemEnabled || database == null) return;
         database.setActionSetting(ownerUuid, storageType, "deposit", allowed);
     }
 
-    /**
-     * Set withdraw permission for a specific storage type
-     */
     public static void setWithdrawAllowed(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
         if (!systemEnabled || database == null) return;
         database.setActionSetting(ownerUuid, storageType, "withdraw", allowed);
     }
 
-    /**
-     * Unified notification for owner when friend performs an action
-     */
     public static void notifyOwnerAction(UUID ownerUuid, UUID actorUuid, String action, String storageType, String material, int amount) {
         if ("deposit".equalsIgnoreCase(action)) {
             notifyOwnerDeposit(ownerUuid, actorUuid, material, amount, storageType);
@@ -411,8 +374,6 @@ public class FriendManager {
             notifyOwnerWithdraw(ownerUuid, actorUuid, material, amount, storageType);
         }
     }
-
-    // ==================== Shutdown ====================
 
     public static void shutdown() {
         if (autoCleanTask != null) {
@@ -454,11 +415,6 @@ public class FriendManager {
         }, periodTicks, periodTicks);
     }
 
-    // ==================== Notifications & Logging ====================
-
-    /**
-     * Log friend storage action
-     */
     public static void logAction(UUID ownerUuid, UUID actorUuid, String action, String details) {
         if (!File.getFriendStorageConfig().getBoolean("settings.log_actions", true)) {
             return;
@@ -480,10 +436,6 @@ public class FriendManager {
         database.insertLog(ownerUuid, actorUuid, action, details);
     }
 
-
-    /**
-     * Notify owner when friend deposits items
-     */
     public static void notifyOwnerDeposit(UUID ownerUuid, UUID actorUuid, String material, int amount, String storageType) {
         if (!File.getFriendStorageConfig().getBoolean("settings.notify_on_deposit", true)) {
             return;
@@ -506,9 +458,6 @@ public class FriendManager {
         owner.sendMessage(ChatUtils.colorize(message));
     }
 
-    /**
-     * Notify owner when friend withdraws items
-     */
     public static void notifyOwnerWithdraw(UUID ownerUuid, UUID actorUuid, String material, int amount, String storageType) {
         if (!File.getFriendStorageConfig().getBoolean("settings.notify_on_withdraw", true)) {
             return;
@@ -531,20 +480,4 @@ public class FriendManager {
         owner.sendMessage(ChatUtils.colorize(message));
     }
 
-    /**
-     * Notify player when their friend access settings change
-     */
-    public static void notifyAccessSettingsChanged(UUID playerUuid, String storageType, boolean allowed) {
-        Player player = Bukkit.getPlayer(playerUuid);
-        if (player == null || !player.isOnline()) {
-            return;
-        }
-
-        String status = allowed ? "&aallowed" : "&cdenied";
-        String message = File.getMessage().getString("friends.notification.settings_changed",
-                        "#prefix# &aAccess to your &e#type# &ahas been &e#status# &afor friends.")
-                .replace("#type#", storageType)
-                .replace("#status#", status);
-        player.sendMessage(ChatUtils.colorize(message));
-    }
 }

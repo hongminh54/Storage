@@ -100,7 +100,7 @@ public class MineManager {
         if (cfg.getConfigurationSection(PLACED_BLOCKS_ROOT) == null) {
             return;
         }
-        for (String worldId : cfg.getConfigurationSection(PLACED_BLOCKS_ROOT).getKeys(false)) {
+        for (String worldId : Objects.requireNonNull(cfg.getConfigurationSection(PLACED_BLOCKS_ROOT)).getKeys(false)) {
             if (worldId == null || worldId.trim().isEmpty()) {
                 continue;
             }
@@ -382,11 +382,7 @@ public class MineManager {
                                           @NotNull String material,
                                           boolean enabled) {
         String playerName = player.getName();
-        Set<String> set = autoSellItems.get(playerName);
-        if (set == null) {
-            set = new HashSet<>();
-            autoSellItems.put(playerName, set);
-        }
+        Set<String> set = autoSellItems.computeIfAbsent(playerName, k -> new HashSet<>());
 
         boolean changed;
         if (enabled) {
@@ -600,38 +596,10 @@ public class MineManager {
         return !disabledItems.contains(material);
     }
 
-    /**
-     * Kiểm tra autopickup status cho item dựa trên UUID (dùng cho offline player lookup)
-     */
-    public static boolean isAutoPickupEnabledForItemByUUID(@NotNull UUID playerUuid,
-                                                           @NotNull String material) {
-        // Lấy toggle status từ cache
-        Boolean toggleStatus = toggle.get(playerUuid);
-        if (toggleStatus != null && !toggleStatus) {
-            return false;
-        }
-
-        // Tìm player name từ UUID để lấy disabled items
-        org.bukkit.OfflinePlayer offlinePlayer = org.bukkit.Bukkit.getOfflinePlayer(playerUuid);
-        if (offlinePlayer.getName() == null) {
-            return toggleStatus != null ? toggleStatus : true;
-        }
-
-        Set<String> disabledItems = disabledAutoPickupItems.get(offlinePlayer.getName());
-        if (disabledItems == null || disabledItems.isEmpty()) {
-            return true;
-        }
-        return !disabledItems.contains(material);
-    }
-
     public static boolean toggleItemAutoPickup(@NotNull Player player,
                                                @NotNull String material) {
         String playerName = player.getName();
-        Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
-        if (disabledItems == null) {
-            disabledItems = new HashSet<>();
-            disabledAutoPickupItems.put(playerName, disabledItems);
-        }
+        Set<String> disabledItems = disabledAutoPickupItems.computeIfAbsent(playerName, k -> new HashSet<>());
 
         if (disabledItems.contains(material)) {
             disabledItems.remove(material);
@@ -801,11 +769,7 @@ public class MineManager {
     public static boolean toggleItemAutoSell(@NotNull Player player,
                                              @NotNull String material) {
         String playerName = player.getName();
-        Set<String> enabled = autoSellItems.get(playerName);
-        if (enabled == null) {
-            enabled = new HashSet<>();
-            autoSellItems.put(playerName, enabled);
-        }
+        Set<String> enabled = autoSellItems.computeIfAbsent(playerName, k -> new HashSet<>());
 
         boolean next;
         if (enabled.contains(material)) {
@@ -1464,7 +1428,7 @@ public class MineManager {
         return playerdata.getOrDefault(playerName + "_" + material, 0);
     }
 
-    public static int getMaxStorage(@NotNull String playerName) {
+    public static int getMaxStorage() {
         return File.getConfig().getInt("settings.default_max_storage", 100000);
     }
 
@@ -1503,10 +1467,6 @@ public class MineManager {
         return true;
     }
 
-    public static boolean hasOfflinePlayerData(@NotNull String playerName) {
-        return Storage.db.getData(playerName) != null;
-    }
-
     public static void cleanupOfflinePlayerData(@NotNull String playerName) {
         // Don't cleanup if player is online
         Player onlinePlayer = Bukkit.getPlayer(playerName);
@@ -1519,26 +1479,17 @@ public class MineManager {
         autoSellItems.remove(playerName);
     }
 
-    /**
-     * Lấy số lượng item của player từ storage (alias cho getPlayerBlock)
-     */
     public static int getPlayerItem(@NotNull String playerName, @NotNull String material) {
         return getPlayerBlock(playerName, material);
     }
 
-    /**
-     * Thêm item amount vào storage của player (cho friend deposit)
-     */
-    public static void addItemAmount(@NotNull String playerName, @NotNull String material, int amount, boolean fireEvent) {
+    public static void addItemAmount(@NotNull String playerName, @NotNull String material, int amount) {
         if (amount <= 0) return;
         int current = getPlayerBlock(playerName, material);
         playerdata.put(playerName + "_" + material, current + amount);
     }
 
-    /**
-     * Remove item amount từ storage của player (cho friend withdraw)
-     */
-    public static void removeItemAmount(@NotNull String playerName, @NotNull String material, int amount, boolean fireEvent) {
+    public static void removeItemAmount(@NotNull String playerName, @NotNull String material, int amount) {
         if (amount <= 0) return;
         int current = getPlayerBlock(playerName, material);
         playerdata.put(playerName + "_" + material, Math.max(0, current - amount));

@@ -51,9 +51,6 @@ public class MythicMobsHelper {
         return MythicStorageManager.getMythicMobsHelper();
     }
 
-    /**
-     * Tạo MythicItemStack từ internal name
-     */
     public static ItemStack getMythicItemStack(@NotNull String internalName, int amount) {
         MythicMobsHelper helper = getHelperInstance();
         if (helper == null || !helper.isInitialized()) return null;

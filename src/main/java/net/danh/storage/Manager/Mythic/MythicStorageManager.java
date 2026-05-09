@@ -248,19 +248,11 @@ public class MythicStorageManager {
         return playerdata.getOrDefault(player.getName() + "_" + itemName, 0);
     }
 
-    public static boolean hasPlayerItem(@NotNull Player player, @NotNull String itemName) {
-        return playerdata.containsKey(player.getName() + "_" + itemName);
-    }
-
     public static int getMaxStorage(@NotNull Player player) {
         return playermaxdata.getOrDefault(player.getUniqueId(),
                 File.getMythicStorageConfig().getInt(
                         "settings.default_max_storage",
                         100000));
-    }
-
-    public static Integer getMaxStorageOverride(@NotNull Player player) {
-        return maxOverrideData.get(player.getUniqueId());
     }
 
     public static void setMaxStorageOverride(@NotNull Player player,
@@ -334,11 +326,6 @@ public class MythicStorageManager {
         return bestLimit >= 0 ? bestLimit : defaultMax;
     }
 
-    public static void refreshPermissionMaxStorage(@NotNull Player player) {
-        int computed = getPermissionMaxStorage(player);
-        playermaxdata.put(player.getUniqueId(), Math.max(0, computed));
-    }
-
     public static boolean getToggleStatus(@NotNull Player player) {
         UUID playerId = player.getUniqueId();
         Boolean status = toggle.get(playerId);
@@ -365,23 +352,10 @@ public class MythicStorageManager {
         return !disabledItems.contains(itemName);
     }
 
-    public static boolean isItemAutoPickupDisabled(@NotNull Player player,
-                                                   @NotNull String itemName) {
-        Set<String> disabledItems = disabledAutoPickupItems.get(player.getName());
-        if (disabledItems == null || disabledItems.isEmpty()) {
-            return false;
-        }
-        return disabledItems.contains(itemName);
-    }
-
     public static boolean toggleItemAutoPickup(@NotNull Player player,
                                                @NotNull String itemName) {
         String playerName = player.getName();
-        Set<String> disabledItems = disabledAutoPickupItems.get(playerName);
-        if (disabledItems == null) {
-            disabledItems = new HashSet<>();
-            disabledAutoPickupItems.put(playerName, disabledItems);
-        }
+        Set<String> disabledItems = disabledAutoPickupItems.computeIfAbsent(playerName, k -> new HashSet<>());
 
         if (disabledItems.contains(itemName)) {
             disabledItems.remove(itemName);
@@ -762,33 +736,33 @@ public class MythicStorageManager {
         return playerdata.getOrDefault(playerName + "_" + itemName, 0);
     }
 
-    public static int getMaxStorage(@NotNull String playerName) {
+    public static int getMaxStorage() {
         return File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000);
     }
 
-    public static boolean loadOfflinePlayerData(@NotNull String playerName) {
+    public static void loadOfflinePlayerData(@NotNull String playerName) {
         if (!isSystemEnabled())
-            return false;
+            return;
 
         Player onlinePlayer = Bukkit.getPlayer(playerName);
         if (onlinePlayer != null) {
-            return true; // Player is online, data already loaded
+            return; // Player is online, data already loaded
         }
 
         for (String key : playerdata.keySet()) {
             if (key.startsWith(playerName + "_")) {
-                return true; // Data already loaded
+                return; // Data already loaded
             }
         }
 
         PlayerData data = Storage.dataStorage.getData(playerName);
         if (data == null) {
-            return false; // Player has no data
+            return; // Player has no data
         }
 
         String dataString = data.getData();
         if (dataString == null || dataString.isEmpty()) {
-            return false;
+            return;
         }
 
         Set<String> disabledItems = null;
@@ -842,13 +816,6 @@ public class MythicStorageManager {
             disabledAutoPickupItems.put(playerName, disabledItems);
         }
 
-        return true;
-    }
-
-    public static boolean hasOfflinePlayerData(@NotNull String playerName) {
-        if (!isSystemEnabled())
-            return false;
-        return Storage.dataStorage.getData(playerName) != null;
     }
 
     public static void cleanupOfflinePlayerData(@NotNull String playerName) {
@@ -862,62 +829,18 @@ public class MythicStorageManager {
         disabledAutoPickupItems.remove(playerName);
     }
 
-    /**
-     * Lấy danh sách các item đã cấu hình (cho GUI)
-     */
-    public static List<String> getOrderedPluginBlocks() {
-        return new ArrayList<>(configuredDrops);
-    }
-
-    /**
-     * Lấy display name cho internal name
-     */
     public static String getDisplayName(String internalName) {
         if (internalName == null) return "Unknown";
-        // Lấy từ config nếu có
-        String name = File.getMythicStorageConfig().getString("items." + internalName, internalName);
-        return name;
+        return File.getMythicStorageConfig().getString("items." + internalName, internalName);
     }
 
-    /**
-     * Kiểm tra autopickup status cho item dựa trên UUID (dùng cho offline player lookup)
-     */
-    public static boolean isAutoPickupEnabledForItemByUUID(@NotNull UUID playerUuid,
-                                                           @NotNull String internalName) {
-        if (!isSystemEnabled()) return false;
-
-        // Lấy toggle status từ cache
-        Boolean toggleStatus = toggle.get(playerUuid);
-        if (toggleStatus != null && !toggleStatus) {
-            return false;
-        }
-
-        // Tìm player name từ UUID để lấy disabled items
-        org.bukkit.OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUuid);
-        if (offlinePlayer.getName() == null) {
-            return toggleStatus != null ? toggleStatus : true;
-        }
-
-        Set<String> disabledItems = disabledAutoPickupItems.get(offlinePlayer.getName());
-        if (disabledItems == null || disabledItems.isEmpty()) {
-            return true;
-        }
-        return !disabledItems.contains(internalName);
-    }
-
-    /**
-     * Thêm item amount vào storage (cho friend deposit)
-     */
-    public static void addItemAmount(@NotNull String playerName, @NotNull String internalName, int amount, boolean fireEvent) {
+    public static void addItemAmount(@NotNull String playerName, @NotNull String internalName, int amount) {
         if (!isSystemEnabled() || amount <= 0) return;
         int current = getPlayerItem(playerName, internalName);
         playerdata.put(playerName + "_" + internalName, current + amount);
     }
 
-    /**
-     * Remove item amount từ storage (cho friend withdraw)
-     */
-    public static void removeItemAmount(@NotNull String playerName, @NotNull String internalName, int amount, boolean fireEvent) {
+    public static void removeItemAmount(@NotNull String playerName, @NotNull String internalName, int amount) {
         if (!isSystemEnabled() || amount <= 0) return;
         int current = getPlayerItem(playerName, internalName);
         playerdata.put(playerName + "_" + internalName, Math.max(0, current - amount));
