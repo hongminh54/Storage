@@ -7,6 +7,7 @@ import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -740,6 +741,10 @@ public class MythicStorageManager {
         return File.getMythicStorageConfig().getInt("settings.default_max_storage", 100000);
     }
 
+    public static int getMaxStorage(@NotNull UUID playerId) {
+        return playermaxdata.getOrDefault(playerId, getMaxStorage());
+    }
+
     public static void loadOfflinePlayerData(@NotNull String playerName) {
         if (!isSystemEnabled())
             return;
@@ -758,6 +763,14 @@ public class MythicStorageManager {
         PlayerData data = Storage.dataStorage.getData(playerName);
         if (data == null) {
             return; // Player has no data
+        }
+
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        if (offlinePlayer != null) {
+            UUID offlineId = offlinePlayer.getUniqueId();
+            if (offlineId != null) {
+                playermaxdata.put(offlineId, Math.max(0, data.getMax()));
+            }
         }
 
         String dataString = data.getData();

@@ -771,7 +771,10 @@ public class FriendCommand extends BaseCommand {
 
         // Check owner storage space
         int ownerCurrent = MineManager.getPlayerBlock(ownerName, normalizedMaterial);
-        int ownerMax = MineManager.getMaxStorage();
+        Player ownerPlayer = Bukkit.getPlayer(ownerUuid);
+        int ownerMax = ownerPlayer != null
+                ? MineManager.getMaxBlock(ownerPlayer)
+                : MineManager.getMaxStorage(ownerUuid);
         int availableSpace = ownerMax - ownerCurrent;
 
         if (availableSpace < amount) {
@@ -830,7 +833,10 @@ public class FriendCommand extends BaseCommand {
 
         // Check owner storage space
         int ownerCurrent = MythicStorageManager.getPlayerItem(ownerName, item);
-        int ownerMax = MythicStorageManager.getMaxStorage();
+        Player ownerPlayer = Bukkit.getPlayer(ownerUuid);
+        int ownerMax = ownerPlayer != null
+                ? MythicStorageManager.getMaxStorage(ownerPlayer)
+                : MythicStorageManager.getMaxStorage(ownerUuid);
         int availableSpace = ownerMax - ownerCurrent;
 
         if (availableSpace < amount) {
@@ -993,7 +999,11 @@ public class FriendCommand extends BaseCommand {
         }
 
         int ownerCurrent = MineManager.getPlayerBlock(ownerName, normalizedMaterial);
-        int ownerMax = MineManager.getMaxStorage();
+        UUID ownerUuid = resolveUuid(ownerName);
+        Player ownerPlayer = ownerUuid != null ? Bukkit.getPlayer(ownerUuid) : null;
+        int ownerMax = ownerUuid != null
+                ? (ownerPlayer != null ? MineManager.getMaxBlock(ownerPlayer) : MineManager.getMaxStorage(ownerUuid))
+                : MineManager.getMaxStorage();
         int availableSpace = ownerMax - ownerCurrent;
         if (availableSpace < amount) {
             sendMessage(player, "friends.owner_storage_full",
@@ -1024,7 +1034,11 @@ public class FriendCommand extends BaseCommand {
         }
 
         int ownerCurrent = MythicStorageManager.getPlayerItem(ownerName, item);
-        int ownerMax = MythicStorageManager.getMaxStorage();
+        UUID ownerUuid = resolveUuid(ownerName);
+        Player ownerPlayer = ownerUuid != null ? Bukkit.getPlayer(ownerUuid) : null;
+        int ownerMax = ownerUuid != null
+                ? (ownerPlayer != null ? MythicStorageManager.getMaxStorage(ownerPlayer) : MythicStorageManager.getMaxStorage(ownerUuid))
+                : MythicStorageManager.getMaxStorage();
         int availableSpace = ownerMax - ownerCurrent;
         if (availableSpace < amount) {
             sendMessage(player, "friends.owner_storage_full",

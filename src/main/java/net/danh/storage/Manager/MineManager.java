@@ -12,6 +12,7 @@ import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -1432,6 +1433,10 @@ public class MineManager {
         return File.getConfig().getInt("settings.default_max_storage", 100000);
     }
 
+    public static int getMaxStorage(@NotNull UUID playerId) {
+        return playermaxdata.getOrDefault(playerId, getMaxStorage());
+    }
+
     public static boolean loadOfflinePlayerData(@NotNull String playerName) {
         Player onlinePlayer = Bukkit.getPlayer(playerName);
         if (onlinePlayer != null) {
@@ -1447,6 +1452,14 @@ public class MineManager {
         PlayerData data = Storage.db.getData(playerName);
         if (data == null) {
             return false;
+        }
+
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        if (offlinePlayer != null) {
+            UUID offlineId = offlinePlayer.getUniqueId();
+            if (offlineId != null) {
+                playermaxdata.put(offlineId, Math.max(0, data.getMax()));
+            }
         }
 
         String rawData = data.getData();
