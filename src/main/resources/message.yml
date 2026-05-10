@@ -1,4 +1,4 @@
-message_version: 6
+message_version: 7
 admin:
   new_version_available: "#prefix# &6&lNew version is available. You are using &e&lv#old_version#&6&l, new version &e&lv#new_version#"
   add_material_amount: "#prefix# &bAdded &6#amount# #material# &bto &e#player#"

@@ -1,4 +1,4 @@
-mythicstorage_version: 2
+mythicstorage_version: 3
 
 # Worlds that will not be affected by MythicStorage feature
 blacklist_world:

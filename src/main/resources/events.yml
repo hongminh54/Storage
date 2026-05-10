@@ -1,7 +1,7 @@
 # Event system configuration
 
 # Do not touch it
-config_version: 2
+config_version: 3
 
 # Global event settings
 global:

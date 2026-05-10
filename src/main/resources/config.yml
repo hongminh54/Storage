@@ -1,5 +1,5 @@
 #Do not touch it
-config_version: 5
+config_version: 6
 
 #Database configuration
 database:

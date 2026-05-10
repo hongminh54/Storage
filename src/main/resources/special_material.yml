@@ -1,7 +1,7 @@
 # Special Material Configuration
 
 # Do not touch it
-special_materials_version: 1
+special_materials_version: 2
 
 settings:
   # Enable/disable special material system
