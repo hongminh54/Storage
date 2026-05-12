@@ -81,6 +81,10 @@ permissions:
       storage.friends.deny: true
       storage.friends.remove: true
       storage.friends.list: true
+      storage.friends.deposit: true
+      storage.friends.withdraw: true
+      storage.friends.history: true
+      storage.friends.settings: true
       storage.friends.open: true
 
   storage.toggle:
@@ -316,6 +320,22 @@ permissions:
 
   storage.friends.list:
     description: View friend list
+    default: true
+
+  storage.friends.deposit:
+    description: Deposit items into friends storage
+    default: true
+
+  storage.friends.withdraw:
+    description: Withdraw items from friends storage
+    default: true
+
+  storage.friends.history:
+    description: View friend storage history
+    default: true
+
+  storage.friends.settings:
+    description: Manage friend storage access settings
     default: true
 
   storage.friends.open:

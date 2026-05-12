@@ -7,8 +7,11 @@ import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
+import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -326,14 +329,20 @@ public class FriendCommand extends BaseCommand {
         String item = args[3];
         String amountStr = args.length >= 5 ? args[4] : "all";
 
+        if (!isValidStorageType(storageType)) {
+            sendMessage(player, "friends.invalid_storage_type", "#type#", storageType);
+            return;
+        }
+
         UUID ownerUuid = resolveUuid(friendName);
         if (ownerUuid == null) {
             sendMessage(player, "friends.player_not_found", "#player#", friendName);
             return;
         }
+        String ownerName = resolvePlayerName(ownerUuid);
 
         if (!FriendManager.isFriend(player.getUniqueId(), ownerUuid)) {
-            sendMessage(player, "friends.not_friends", "#player#", friendName);
+            sendMessage(player, "friends.not_friends", "#player#", ownerName);
             return;
         }
 
@@ -341,7 +350,7 @@ public class FriendCommand extends BaseCommand {
         if (!FriendManager.isStorageAccessAllowed(ownerUuid, storageType)) {
             sendMessage(player, "friends.storage_access_denied",
                     new String[]{"#player#", "#type#"},
-                    new String[]{friendName, storageType});
+                    new String[]{ownerName, storageType});
             return;
         }
 
@@ -349,7 +358,7 @@ public class FriendCommand extends BaseCommand {
         if (!FriendManager.isWithdrawAllowed(ownerUuid, storageType)) {
             sendMessage(player, "friends.withdraw_not_allowed",
                     new String[]{"#player#", "#type#"},
-                    new String[]{friendName, storageType});
+                    new String[]{ownerName, storageType});
             return;
         }
 
@@ -357,14 +366,13 @@ public class FriendCommand extends BaseCommand {
         Player owner = Bukkit.getPlayer(ownerUuid);
         if (owner == null) {
             if (!File.getFriendStorageConfig().getBoolean("settings.allow_offline_access", false)) {
-                sendMessage(player, "friends.offline_access_denied", "#player#", friendName);
+                sendMessage(player, "friends.offline_access_denied", "#player#", ownerName);
                 return;
             }
-            loadOfflineData(friendName, storageType);
+            loadOfflineData(ownerName, storageType);
         }
 
-        // Execute withdraw based on storage type
-        int amount = parseAmount(amountStr, player, item, storageType);
+        int amount = parseWithdrawAmount(amountStr, ownerName, item, storageType);
         if (amount <= 0) {
             if (!amountStr.equalsIgnoreCase("all")) {
                 sendMessage(player, "admin.invalid_number", "#number#", amountStr);
@@ -372,7 +380,7 @@ public class FriendCommand extends BaseCommand {
             return;
         }
 
-        boolean success = executeWithdraw(player, ownerUuid, friendName, storageType, item, amount);
+        boolean success = executeWithdraw(player, ownerUuid, ownerName, storageType, item, amount);
 
         if (success) {
             // Log action
@@ -401,6 +409,11 @@ public class FriendCommand extends BaseCommand {
         String storageType = args[2].toLowerCase();
         String item = args[3];
 
+        if (!isValidStorageType(storageType)) {
+            sendMessage(player, "friends.invalid_storage_type", "#type#", storageType);
+            return;
+        }
+
         // Parse optional args: [amount|all] [hand]  (order-insensitive)
         String amountStr = "all";
         boolean fromHand = false;
@@ -417,9 +430,10 @@ public class FriendCommand extends BaseCommand {
             sendMessage(player, "friends.player_not_found", "#player#", friendName);
             return;
         }
+        String ownerName = resolvePlayerName(ownerUuid);
 
         if (!FriendManager.isFriend(player.getUniqueId(), ownerUuid)) {
-            sendMessage(player, "friends.not_friends", "#player#", friendName);
+            sendMessage(player, "friends.not_friends", "#player#", ownerName);
             return;
         }
 
@@ -427,7 +441,7 @@ public class FriendCommand extends BaseCommand {
         if (!FriendManager.isStorageAccessAllowed(ownerUuid, storageType)) {
             sendMessage(player, "friends.storage_access_denied",
                     new String[]{"#player#", "#type#"},
-                    new String[]{friendName, storageType});
+                    new String[]{ownerName, storageType});
             return;
         }
 
@@ -435,7 +449,7 @@ public class FriendCommand extends BaseCommand {
         if (!FriendManager.isDepositAllowed(ownerUuid, storageType)) {
             sendMessage(player, "friends.deposit_not_allowed",
                     new String[]{"#player#", "#type#"},
-                    new String[]{friendName, storageType});
+                    new String[]{ownerName, storageType});
             return;
         }
 
@@ -443,10 +457,10 @@ public class FriendCommand extends BaseCommand {
         Player owner = Bukkit.getPlayer(ownerUuid);
         if (owner == null) {
             if (!File.getFriendStorageConfig().getBoolean("settings.allow_offline_access", false)) {
-                sendMessage(player, "friends.offline_access_denied", "#player#", friendName);
+                sendMessage(player, "friends.offline_access_denied", "#player#", ownerName);
                 return;
             }
-            loadOfflineData(friendName, storageType);
+            loadOfflineData(ownerName, storageType);
         }
 
         // Also need player's own data loaded if depositing from their storage
@@ -469,8 +483,8 @@ public class FriendCommand extends BaseCommand {
         }
 
         boolean success = fromHand
-                ? executeDeposit(player, ownerUuid, friendName, storageType, item, amount)
-                : executeDepositFromStorage(player, ownerUuid, friendName, storageType, item, amount);
+                ? executeDeposit(player, ownerUuid, ownerName, storageType, item, amount)
+                : executeDepositFromStorage(player, ownerUuid, ownerName, storageType, item, amount);
 
         if (success) {
             FriendManager.logAction(ownerUuid, player.getUniqueId(), "DEPOSIT",
@@ -576,7 +590,7 @@ public class FriendCommand extends BaseCommand {
                         .replace("#page#", String.valueOf(page + 1))
                         .replace("#mode#", modeFlag.trim()));
             }
-            player.sendMessage(net.danh.storage.Utils.ChatUtils.colorize(nav.toString()));
+            player.sendMessage(ChatUtils.colorize(nav.toString()));
         }
 
         // Hint about switching mode
@@ -941,6 +955,26 @@ public class FriendCommand extends BaseCommand {
         }
     }
 
+    private int parseWithdrawAmount(String amountStr, String ownerName, String item, String storageType) {
+        if (amountStr.equalsIgnoreCase("all")) {
+            switch (storageType) {
+                case "storage":
+                    return MineManager.getPlayerBlock(ownerName, normalizeMaterial(item));
+                case "mythicstorage":
+                    return MythicStorageManager.getPlayerItem(ownerName, item);
+                case "cropstorage":
+                    return CropStorageManager.getPlayerItem(ownerName, normalizeCrop(item));
+                default:
+                    return 0;
+            }
+        }
+        try {
+            return Integer.parseInt(amountStr);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     private int parseAmountForDeposit(String amountStr, Player player, String item,
                                       String storageType, boolean fromHand) {
         if (amountStr.equalsIgnoreCase("all")) {
@@ -1223,8 +1257,8 @@ public class FriendCommand extends BaseCommand {
     private ItemStack getItemStack(String material) {
         // Strip data suffix like ";0" before passing to XMaterial
         String matName = material.contains(";") ? material.split(";")[0] : material;
-        Optional<com.cryptomorin.xseries.XMaterial> xMaterial = com.cryptomorin.xseries.XMaterial.matchXMaterial(matName);
-        return xMaterial.map(com.cryptomorin.xseries.XMaterial::parseItem).orElse(null);
+        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(matName);
+        return xMaterial.map(XMaterial::parseItem).orElse(null);
     }
 
     private int calculateFreeItemSlots(Player player, String material) {
@@ -1232,8 +1266,8 @@ public class FriendCommand extends BaseCommand {
         if (template == null) return 0;
 
         int freeSlots = 0;
-        for (ItemStack item : player.getInventory().getStorageContents()) {
-            if (item == null || item.getType().isAir()) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (isEmptyItem(item)) {
                 freeSlots += template.getMaxStackSize();
             } else if (item.isSimilar(template)) {
                 freeSlots += template.getMaxStackSize() - item.getAmount();
@@ -1244,12 +1278,16 @@ public class FriendCommand extends BaseCommand {
 
     private int calculateFreeSlots(Player player) {
         int freeSlots = 0;
-        for (ItemStack item : player.getInventory().getStorageContents()) {
-            if (item == null || item.getType().isAir()) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (isEmptyItem(item)) {
                 freeSlots++;
             }
         }
         return freeSlots * 64;
+    }
+
+    private boolean isEmptyItem(ItemStack item) {
+        return item == null || item.getType() == Material.AIR;
     }
 
     private UUID resolveUuid(String playerName) {

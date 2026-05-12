@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FriendManager {
 
+    private static final String[] STORAGE_TYPES = {"storage", "mythicstorage", "cropstorage"};
     private static final Map<UUID, Set<UUID>> friendCache = new ConcurrentHashMap<>();
     private static final Map<UUID, Map<UUID, Long>> pendingRequestCache = new ConcurrentHashMap<>();
     private static FriendDatabase database;
@@ -149,6 +150,7 @@ public class FriendManager {
         // Remove request and add friendship
         database.removeRequest(senderUuid, playerUuid);
         database.addFriend(playerUuid, senderUuid);
+        applyMutualAccessSettings(playerUuid, senderUuid);
 
         // Update caches
         Map<UUID, Long> pending = pendingRequestCache.get(playerUuid);
@@ -412,28 +414,32 @@ public class FriendManager {
                 return;
             }
             database.cleanExpiredRequests();
+            cleanExpiredRequestCache();
         }, periodTicks, periodTicks);
     }
 
     public static void logAction(UUID ownerUuid, UUID actorUuid, String action, String details) {
-        if (!File.getFriendStorageConfig().getBoolean("settings.log_actions", true)) {
-            return;
-        }
         if (database == null) return;
+
+        boolean logToConsole = File.getFriendStorageConfig().getBoolean("settings.log_actions", true);
+        boolean logToDatabase = File.getFriendStorageConfig().getBoolean("settings.log_to_database", true);
+        if (!logToConsole && !logToDatabase) return;
 
         String ownerName = Bukkit.getOfflinePlayer(ownerUuid).getName();
         String actorName = Bukkit.getOfflinePlayer(actorUuid).getName();
         if (ownerName == null) ownerName = ownerUuid.toString();
         if (actorName == null) actorName = actorUuid.toString();
 
-        // Always log to console
-        Storage.getStorage().getLogger().info(String.format(
-                "[FriendStorage] %s - Owner: %s, Actor: %s, Details: %s",
-                action, ownerName, actorName, details
-        ));
+        if (logToConsole) {
+            Storage.getStorage().getLogger().info(String.format(
+                    "[FriendStorage] %s - Owner: %s, Actor: %s, Details: %s",
+                    action, ownerName, actorName, details
+            ));
+        }
 
-        // Always write to database (required for /storage friends history)
-        database.insertLog(ownerUuid, actorUuid, action, details);
+        if (logToDatabase) {
+            database.insertLog(ownerUuid, actorUuid, action, details);
+        }
     }
 
     public static void notifyOwnerDeposit(UUID ownerUuid, UUID actorUuid, String material, int amount, String storageType) {
@@ -478,6 +484,27 @@ public class FriendManager {
                 .replace("#material#", material)
                 .replace("#type#", storageType);
         owner.sendMessage(ChatUtils.colorize(message));
+    }
+
+    private static void applyMutualAccessSettings(UUID playerUuid, UUID senderUuid) {
+        if (!File.getFriendStorageConfig().getBoolean("settings.mutual_access_on_accept", true)) {
+            return;
+        }
+        for (String storageType : STORAGE_TYPES) {
+            setStorageAccess(playerUuid, storageType, true);
+            setStorageAccess(senderUuid, storageType, true);
+            setDepositAllowed(playerUuid, storageType, true);
+            setDepositAllowed(senderUuid, storageType, true);
+            setWithdrawAllowed(playerUuid, storageType, true);
+            setWithdrawAllowed(senderUuid, storageType, true);
+        }
+    }
+
+    private static void cleanExpiredRequestCache() {
+        long now = System.currentTimeMillis();
+        for (Map<UUID, Long> requests : pendingRequestCache.values()) {
+            requests.entrySet().removeIf(entry -> entry.getValue() != 0 && entry.getValue() <= now);
+        }
     }
 
 }
