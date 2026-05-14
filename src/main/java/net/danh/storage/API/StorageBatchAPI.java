@@ -219,9 +219,12 @@ public class StorageBatchAPI {
     public static CompletableFuture<Map<String, Boolean>> addItemsAsync(@NotNull Player player,
                                                                         @NotNull Map<String, Integer> items) {
         CompletableFuture<Map<String, Boolean>> future = new CompletableFuture<>();
-        org.bukkit.Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
-            Map<String, Boolean> result = addItems(player, items);
-            future.complete(result);
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), player, () -> {
+            try {
+                future.complete(addItems(player, items));
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
         });
         return future;
     }
@@ -238,9 +241,12 @@ public class StorageBatchAPI {
     public static CompletableFuture<Map<String, Boolean>> removeItemsAsync(@NotNull Player player,
                                                                            @NotNull Map<String, Integer> items) {
         CompletableFuture<Map<String, Boolean>> future = new CompletableFuture<>();
-        org.bukkit.Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
-            Map<String, Boolean> result = removeItems(player, items);
-            future.complete(result);
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), player, () -> {
+            try {
+                future.complete(removeItems(player, items));
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
         });
         return future;
     }

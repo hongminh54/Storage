@@ -49,7 +49,7 @@ public class StorageAsyncAPI {
     @NotNull
     public static CompletableFuture<Boolean> addItemAsync(@NotNull Player player, @NotNull String material, int amount) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), player, () -> {
             try {
                 boolean result = StorageAPI.addItem(player, material, amount);
                 future.complete(result);
@@ -72,7 +72,7 @@ public class StorageAsyncAPI {
     @NotNull
     public static CompletableFuture<Boolean> removeItemAsync(@NotNull Player player, @NotNull String material, int amount) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), player, () -> {
             try {
                 boolean result = StorageAPI.removeItem(player, material, amount);
                 future.complete(result);
@@ -163,7 +163,7 @@ public class StorageAsyncAPI {
     public static CompletableFuture<Boolean> transferItemAsync(@NotNull Player sender, @NotNull Player receiver,
                                                                @NotNull String material, int amount) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
+        SchedulerUtil.runTask(StorageAPI.getPlugin(), sender, () -> {
             try {
                 boolean result = StorageAPI.transferItem(sender, receiver, material, amount);
                 future.complete(result);
@@ -296,7 +296,7 @@ public class StorageAsyncAPI {
     public static <T> void executeWithCallback(@NotNull CompletableFuture<T> operation,
                                                @NotNull AsyncCallback<T> callback) {
         operation.whenComplete((result, error) -> {
-            Bukkit.getScheduler().runTask(StorageAPI.getPlugin(), () -> {
+            SchedulerUtil.runTask(StorageAPI.getPlugin(), () -> {
                 if (error != null) {
                     callback.onError(error);
                 } else {

@@ -4,6 +4,7 @@ import net.danh.storage.API.events.*;
 import net.danh.storage.Database.PlayerData;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -728,7 +729,7 @@ public class CropStorageManager {
         long scheduleDelayMillis = Math.max(0L, earliest - now);
         long scheduleDelayTicks = Math.max(1L, (long) Math.ceil(scheduleDelayMillis / 50D));
 
-        net.danh.storage.Utils.SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+        SchedulerUtil.runTaskLater(Storage.getStorage(), player, () -> {
             synchronized (pendingAutoSell) {
                 pendingAutoSell.remove(key);
             }

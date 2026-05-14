@@ -237,7 +237,7 @@ public class VeinMinerEnchant {
     private static void createCustomEffects(Location location, EnchantManager.EnchantData enchantData) {
         if (!enchantData.particlesEnabled) return;
 
-        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+        SchedulerUtil.runTaskLater(Storage.getStorage(), location, () -> {
             if (location.getWorld() == null) return;
 
             if (enchantData.particlesEnabled) {

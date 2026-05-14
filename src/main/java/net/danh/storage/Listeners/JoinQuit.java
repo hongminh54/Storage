@@ -42,7 +42,7 @@ public class JoinQuit implements Listener {
         CropStorageManager.loadPlayerData(p);
         FriendManager.loadPlayerData(p);
 
-        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+        SchedulerUtil.runTaskLater(Storage.getStorage(), p, () -> {
             if (!p.isOnline()) {
                 return;
             }

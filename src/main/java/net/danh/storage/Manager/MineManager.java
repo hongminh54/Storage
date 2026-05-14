@@ -814,7 +814,7 @@ public class MineManager {
 
         long scheduleDelayMillis = Math.max(0L, earliest - now);
         long scheduleDelayTicks = Math.max(1L, (long) Math.ceil(scheduleDelayMillis / 50D));
-        SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+        SchedulerUtil.runTaskLater(Storage.getStorage(), player, () -> {
             synchronized (pendingAutoSell) {
                 pendingAutoSell.remove(key);
             }

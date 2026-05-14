@@ -82,7 +82,7 @@ public class TNTEnchant {
 
         if (enchantData.soundsEnabled) {
             if (enchantData.soundDelayTicks > 0) {
-                SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+                SchedulerUtil.runTaskLater(Storage.getStorage(), location, () -> {
                     playCustomSound(location, enchantData);
                 }, enchantData.soundDelayTicks);
             } else {
@@ -92,7 +92,7 @@ public class TNTEnchant {
 
         if (enchantData.particlesEnabled) {
             if (enchantData.particleDelayTicks > 0) {
-                SchedulerUtil.runTaskLater(Storage.getStorage(), () -> {
+                SchedulerUtil.runTaskLater(Storage.getStorage(), location, () -> {
                     spawnCustomParticles(location, enchantData);
                 }, enchantData.particleDelayTicks);
             } else {

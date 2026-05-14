@@ -18,6 +18,7 @@ import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -606,7 +607,7 @@ public class ChatListener implements Listener {
                 e.setCancelled(true);
                 return;
             }
-            Player targetPlayer = org.bukkit.Bukkit.getPlayer(message);
+            Player targetPlayer = Bukkit.getPlayer(message);
             if (targetPlayer != null && targetPlayer.isOnline()) {
                 CropTransferGUI activeGUI = CropTransferGUI.getActiveGUI(p);
                 if (activeGUI != null) {
@@ -689,7 +690,7 @@ public class ChatListener implements Listener {
                 e.setCancelled(true);
                 return;
             }
-            Player targetPlayer = org.bukkit.Bukkit.getPlayer(message);
+            Player targetPlayer = Bukkit.getPlayer(message);
             if (targetPlayer != null && targetPlayer.isOnline()) {
                 CropTransferMultiGUI activeGUI = CropTransferMultiGUI.getActiveGUI(p);
                 if (activeGUI != null) {

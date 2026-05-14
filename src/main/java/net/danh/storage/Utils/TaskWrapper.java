@@ -19,11 +19,7 @@ public class TaskWrapper {
         TaskWrapper wrapper = new TaskWrapper();
         if (SchedulerUtil.isFolia()) {
             try {
-                long foliaDelayTicks = Math.max(1L, delayTicks);
-
-                Object globalRegionScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
-                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
-                Object consumer = java.lang.reflect.Proxy.newProxyInstance(consumerClass.getClassLoader(), new Class[]{consumerClass}, (proxy, method, args) -> {
+                wrapper.foliaTask = SchedulerUtil.runGlobalTaskLater(plugin, () -> {
                     if (!wrapper.cancelled) {
                         try {
                             task.run();
@@ -31,9 +27,7 @@ public class TaskWrapper {
                             plugin.getLogger().warning("Error in Folia delayed task: " + taskEx.getMessage());
                         }
                     }
-                    return null;
-                });
-                wrapper.foliaTask = globalRegionScheduler.getClass().getMethod("runDelayed", Plugin.class, consumerClass, long.class).invoke(globalRegionScheduler, plugin, consumer, foliaDelayTicks);
+                }, delayTicks);
             } catch (Exception e) {
                 Throwable cause = e instanceof InvocationTargetException ? ((InvocationTargetException) e).getTargetException() : e;
                 String errorMsg = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
@@ -50,12 +44,7 @@ public class TaskWrapper {
         TaskWrapper wrapper = new TaskWrapper();
         if (SchedulerUtil.isFolia()) {
             try {
-                long foliaDelayTicks = Math.max(1L, delayTicks);
-                long foliaPeriodTicks = Math.max(1L, periodTicks);
-
-                Object globalRegionScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
-                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
-                Object consumer = java.lang.reflect.Proxy.newProxyInstance(consumerClass.getClassLoader(), new Class[]{consumerClass}, (proxy, method, args) -> {
+                wrapper.foliaTask = SchedulerUtil.runGlobalTaskTimer(plugin, () -> {
                     if (!wrapper.cancelled) {
                         try {
                             task.run();
@@ -63,9 +52,7 @@ public class TaskWrapper {
                             plugin.getLogger().warning("Error in Folia timer task: " + taskEx.getMessage());
                         }
                     }
-                    return null;
-                });
-                wrapper.foliaTask = globalRegionScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, consumerClass, long.class, long.class).invoke(globalRegionScheduler, plugin, consumer, foliaDelayTicks, foliaPeriodTicks);
+                }, delayTicks, periodTicks);
             } catch (Exception e) {
                 Throwable cause = e instanceof InvocationTargetException ? ((InvocationTargetException) e).getTargetException() : e;
                 String errorMsg = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
