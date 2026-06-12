@@ -1,6 +1,5 @@
 package net.danh.storage.Manager;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.API.StorageHookAPI;
 import net.danh.storage.API.events.StorageDepositEvent;
 import net.danh.storage.API.events.StorageToggleEvent;
@@ -9,6 +8,7 @@ import net.danh.storage.Database.PlayerData;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
@@ -1343,12 +1343,7 @@ public class MineManager {
             }
         }
 
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-        if (!xMaterial.isPresent()) {
-            return;
-        }
-
-        Material material = xMaterial.get().parseMaterial();
+        Material material = MaterialUtils.matchMaterial(materialName);
         if (material == null) {
             return;
         }

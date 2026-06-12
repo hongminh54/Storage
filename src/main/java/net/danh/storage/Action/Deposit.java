@@ -1,10 +1,10 @@
 package net.danh.storage.Action;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import net.danh.storage.Utils.Number;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class Deposit {
     private final Player p;
@@ -168,8 +167,7 @@ public class Deposit {
     }
 
     public ItemStack getItemStack() {
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(material);
-        return xMaterial.map(XMaterial::parseItem).orElse(null);
+        return MaterialUtils.createItem(material);
     }
 
     public int getPlayerAmount() {

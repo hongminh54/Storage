@@ -1,6 +1,5 @@
 package net.danh.storage.CMD.handler.user;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.Database.FriendDatabase;
 import net.danh.storage.Manager.Crop.CropStorageManager;
@@ -10,6 +9,7 @@ import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -1255,10 +1255,7 @@ public class FriendCommand extends BaseCommand {
     }
 
     private ItemStack getItemStack(String material) {
-        // Strip data suffix like ";0" before passing to XMaterial
-        String matName = material.contains(";") ? material.split(";")[0] : material;
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(matName);
-        return xMaterial.map(XMaterial::parseItem).orElse(null);
+        return MaterialUtils.createItem(material);
     }
 
     private int calculateFreeItemSlots(Player player, String material) {

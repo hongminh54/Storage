@@ -1,7 +1,6 @@
 package net.danh.storage.Enchant;
 
 import com.cryptomorin.xseries.XEnchantment;
-import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.particles.XParticle;
@@ -11,10 +10,12 @@ import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -202,12 +203,12 @@ public class TNTEnchant {
                             // Add to storage if autopickup is enabled and storage integration is true
                             if (MineManager.addBlockAmount(player, drop, totalAmount)) {
                                 EventManager.onPlayerMine(player, drop, amount);
-                                block.setType(XMaterial.AIR.parseMaterial());
+                                block.setType(Material.AIR);
                             }
                         } else {
                             // Drop items vanilla style when storage integration is false or autopickup is disabled
                             EventManager.onPlayerMine(player, drop, amount);
-                            block.setType(XMaterial.AIR.parseMaterial());
+                            block.setType(Material.AIR);
                             dropItemsVanilla(block.getLocation(), drop, totalAmount);
                         }
                     }
@@ -298,21 +299,18 @@ public class TNTEnchant {
             String[] dropData = drop.split(";");
             String materialName = dropData[0];
 
-            Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-            if (xMaterial.isPresent()) {
-                ItemStack itemStack = xMaterial.get().parseItem();
-                if (itemStack != null) {
-                    itemStack.setAmount(Math.min(amount, itemStack.getMaxStackSize()));
+            ItemStack itemStack = MaterialUtils.createItem(materialName);
+            if (itemStack != null) {
+                itemStack.setAmount(Math.min(amount, itemStack.getMaxStackSize()));
 
-                    // Drop items in stacks if amount exceeds max stack size
-                    int remaining = amount;
-                    while (remaining > 0) {
-                        int dropAmount = Math.min(remaining, itemStack.getMaxStackSize());
-                        ItemStack dropItem = itemStack.clone();
-                        dropItem.setAmount(dropAmount);
-                        location.getWorld().dropItemNaturally(location, dropItem);
-                        remaining -= dropAmount;
-                    }
+                // Drop items in stacks if amount exceeds max stack size
+                int remaining = amount;
+                while (remaining > 0) {
+                    int dropAmount = Math.min(remaining, itemStack.getMaxStackSize());
+                    ItemStack dropItem = itemStack.clone();
+                    dropItem.setAmount(dropAmount);
+                    location.getWorld().dropItemNaturally(location, dropItem);
+                    remaining -= dropAmount;
                 }
             }
         } catch (Exception e) {

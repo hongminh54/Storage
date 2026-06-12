@@ -39,8 +39,8 @@ public class NMSVersion {
         String version = Bukkit.getServer().getBukkitVersion();
         version = version.split("-")[0];
         final String[] versionDetails = version.split("\\.");
-        major = Integer.parseInt(versionDetails[0]); // Always probably going to be '1'.
-        minor = Integer.parseInt(versionDetails[1]); // 16/18/7/8 etc. etc.
+        major = Integer.parseInt(versionDetails[0]);
+        minor = major == 1 ? Integer.parseInt(versionDetails[1]) : major;
         revision = versionDetails.length == 3 ? Integer.parseInt(versionDetails[2]) : 0;
     }
 

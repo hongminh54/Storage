@@ -1,6 +1,5 @@
 package net.danh.storage.Manager.SpecialMaterial;
 
-import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.Manager.EnchantManager;
@@ -9,6 +8,7 @@ import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -94,14 +94,11 @@ public class SpecialMaterialManager {
         String materialName = itemSection.getString("material");
         if (materialName == null) return null;
 
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-        if (!xMaterial.isPresent()) {
+        ItemStack item = MaterialUtils.createItem(materialName);
+        if (item == null) {
             Storage.getStorage().getLogger().warning("Invalid material for special material " + id + ": " + materialName);
             return null;
         }
-
-        ItemStack item = xMaterial.get().parseItem();
-        if (item == null) return null;
 
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return null;

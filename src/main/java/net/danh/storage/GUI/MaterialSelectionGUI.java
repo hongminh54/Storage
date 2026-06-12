@@ -1,6 +1,5 @@
 package net.danh.storage.GUI;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
@@ -10,11 +9,10 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -137,11 +135,10 @@ public class MaterialSelectionGUI implements IGUI {
 
         String displayName = File.getConfig().getString("items." + materialName, baseMaterial);
 
-        Optional<XMaterial> xMaterialOpt = XMaterial.matchXMaterial(baseMaterial);
-        if (!xMaterialOpt.isPresent()) {
-            xMaterialOpt = Optional.of(XMaterial.STONE);
+        ItemStack item = MaterialUtils.createItem(baseMaterial);
+        if (item == null) {
+            item = new ItemStack(Material.STONE);
         }
-        ItemStack item = xMaterialOpt.get().parseItem();
         if (item == null) return null;
 
         ItemMeta meta = item.getItemMeta();

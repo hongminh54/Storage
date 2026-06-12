@@ -1,6 +1,5 @@
 package net.danh.storage.GUI;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.Mythic.MythicMaterialSelectionGUI;
 import net.danh.storage.GUI.manager.IGUI;
@@ -13,11 +12,10 @@ import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Recipe.Recipe;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -26,7 +24,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class MaterialEditorGUI implements IGUI {
 
@@ -222,12 +223,10 @@ public class MaterialEditorGUI implements IGUI {
         String displayName = File.getConfig().getString("items." + normalized,
                 displayMaterial);
 
-        Optional<XMaterial> xMaterialOpt = XMaterial.matchXMaterial(displayMaterial);
-        if (!xMaterialOpt.isPresent()) {
-            xMaterialOpt = Optional.of(XMaterial.STONE);
+        ItemStack item = MaterialUtils.createItem(displayMaterial);
+        if (item == null) {
+            item = new ItemStack(Material.STONE);
         }
-
-        ItemStack item = xMaterialOpt.get().parseItem();
         if (item == null) {
             return null;
         }
@@ -251,7 +250,7 @@ public class MaterialEditorGUI implements IGUI {
         }
 
         if (item == null) {
-            item = XMaterial.STONE.parseItem();
+            item = new ItemStack(Material.STONE);
             if (item == null) {
                 return null;
             }

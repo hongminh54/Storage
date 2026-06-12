@@ -1,7 +1,6 @@
 package net.danh.storage.Manager.Crafting;
 
 import com.cryptomorin.xseries.XEnchantment;
-import com.cryptomorin.xseries.XMaterial;
 import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.API.events.RecipeCraftEvent;
@@ -13,10 +12,7 @@ import net.danh.storage.Manager.ParticleManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
-import net.danh.storage.Utils.SchedulerUtil;
-import net.danh.storage.Utils.TaskWrapper;
+import net.danh.storage.Utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -421,16 +417,16 @@ public class CraftingManager {
             }
         }
 
-        Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(cleanedMaterialKey);
-        if (!xMaterial.isPresent()) return null;
+        Material material = MaterialUtils.matchMaterial(materialKey);
+        if (material == null) return null;
 
         if (materialKey != null && cleanedMaterialKey != null
                 && !materialKey.equals(cleanedMaterialKey)
-                && xMaterial.get().name().equalsIgnoreCase(cleanedMaterialKey)) {
-            recipe.setResultMaterial(xMaterial.get().name());
+                && material.name().equalsIgnoreCase(cleanedMaterialKey)) {
+            recipe.setResultMaterial(material.name());
         }
 
-        ItemStack item = xMaterial.get().parseItem();
+        ItemStack item = MaterialUtils.createItem(materialKey);
         if (item == null) return null;
 
         item.setAmount(recipe.getResultAmount());

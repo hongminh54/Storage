@@ -1,11 +1,11 @@
 package net.danh.storage.Manager;
 
 import com.cryptomorin.xseries.XEnchantment;
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import net.danh.storage.Utils.PlaceholderUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -133,27 +133,19 @@ public class ItemManager {
         if (section == null) return null;
 
         String materialString = materialOverride != null ? materialOverride : section.getString("material");
-        Optional<XMaterial> xMaterialOptional = XMaterial.matchXMaterial(materialString != null ? materialString : "BLACK_STAINED_GLASS_PANE");
+        ItemStack itemStack = MaterialUtils.createItem(materialString != null ? materialString : "BLACK_STAINED_GLASS_PANE");
 
-        if (!xMaterialOptional.isPresent()) {
+        if (itemStack == null) {
             logInvalidMaterial(materialString, section, "unknown material");
             return new ItemStack(Material.AIR);
         }
 
-        Material material = xMaterialOptional.get().get();
+        Material material = itemStack.getType();
         if (!isItemMaterial(material)) {
             logInvalidMaterial(materialString, section, "not an item material");
             return new ItemStack(Material.AIR);
         }
 
-        ItemStack itemStack;
-        try {
-            itemStack = xMaterialOptional.get().parseItem();
-        } catch (IllegalArgumentException ignored) {
-            logInvalidMaterial(materialString, section, "material cannot be created as item");
-            return new ItemStack(Material.AIR);
-        }
-        if (itemStack == null) return new ItemStack(Material.AIR);
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null) return itemStack;
 

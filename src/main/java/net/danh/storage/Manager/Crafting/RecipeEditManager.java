@@ -1,7 +1,6 @@
 package net.danh.storage.Manager.Crafting;
 
 import com.cryptomorin.xseries.XEnchantment;
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.MaterialEditorGUI;
 import net.danh.storage.Manager.MineManager;
@@ -10,6 +9,7 @@ import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -403,26 +403,18 @@ public class RecipeEditManager {
                         return false;
                     }
 
-                    String materialKey = input.trim();
-                    if (materialKey.contains(";")) {
-                        materialKey = materialKey.split(";", 2)[0];
-                    }
-                    if (materialKey.contains(":")) {
-                        materialKey = materialKey.split(":", 2)[0];
-                    }
-
-                    Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialKey.toUpperCase());
-                    if (!xMaterial.isPresent()) {
+                    Material resolvedMaterial = MaterialUtils.matchMaterial(input);
+                    if (resolvedMaterial == null) {
                         player.sendMessage(ChatUtils.colorize(
                                 File.getMessage().getString("crafting.edit_material_invalid")
                                         .replace("#material#", input)));
                         promptMaterialRetry(player, recipe);
                         return false;
                     }
-                    recipe.setResultMaterial(xMaterial.get().name());
+                    recipe.setResultMaterial(resolvedMaterial.name());
                     player.sendMessage(ChatUtils.colorize(
                             File.getMessage().getString("crafting.edit_material_success")
-                                    .replace("#material#", xMaterial.get().name())));
+                                    .replace("#material#", resolvedMaterial.name())));
                     return true;
 
                 case "name":

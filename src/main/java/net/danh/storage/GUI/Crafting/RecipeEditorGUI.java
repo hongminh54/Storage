@@ -1,6 +1,5 @@
 package net.danh.storage.GUI.Crafting;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.ConfirmationGUI;
 import net.danh.storage.GUI.MaterialEditorGUI;
 import net.danh.storage.GUI.manager.IGUI;
@@ -11,11 +10,10 @@ import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Storage;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -419,7 +417,7 @@ public class RecipeEditorGUI implements IGUI {
     }
 
     private ItemStack createFallbackItem(String configPath) {
-        ItemStack fallback = XMaterial.STONE.parseItem();
+        ItemStack fallback = new ItemStack(Material.STONE);
         if (fallback != null) {
             ItemMeta meta = fallback.getItemMeta();
             if (meta != null) {
@@ -445,10 +443,7 @@ public class RecipeEditorGUI implements IGUI {
             ItemStack item = null;
             if (recipeMaterial != null && !recipeMaterial.isEmpty()) {
                 String materialName = recipeMaterial.contains(";") ? recipeMaterial.split(";")[0] : recipeMaterial;
-                Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
-                if (xMaterial.isPresent() && xMaterial.get() != XMaterial.AIR) {
-                    item = xMaterial.get().parseItem();
-                }
+                item = MaterialUtils.createItem(materialName);
             }
 
             if (item == null) {

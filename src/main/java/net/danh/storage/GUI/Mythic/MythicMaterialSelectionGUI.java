@@ -1,6 +1,5 @@
 package net.danh.storage.GUI.Mythic;
 
-import com.cryptomorin.xseries.XMaterial;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.MaterialEditorGUI;
 import net.danh.storage.GUI.manager.IGUI;
@@ -17,6 +16,7 @@ import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class MythicMaterialSelectionGUI implements IGUI {
 
@@ -140,8 +139,7 @@ public class MythicMaterialSelectionGUI implements IGUI {
     private ItemStack createMythicItem(String itemId, MythicMobsHelper helper) {
         ItemStack mythicItem = helper.getMythicItem(itemId);
         if (mythicItem == null) {
-            Optional<XMaterial> fallback = XMaterial.matchXMaterial("STONE");
-            return fallback.map(XMaterial::parseItem).orElse(null);
+            return new ItemStack(Material.STONE);
         }
 
         ItemStack display = mythicItem.clone();
