@@ -49,7 +49,7 @@ public class GroundStoreListener implements Listener {
     private static volatile Method GET_PDC;
     private static volatile boolean reflectionInitialized = false;
 
-    private static void initReflectionCache(@NotNull ItemMeta sampleMeta) {
+    private static void initReflectionCache() {
         if (reflectionInitialized) {
             return;
         }
@@ -58,12 +58,12 @@ public class GroundStoreListener implements Listener {
                 return;
             }
             try {
-                HAS_CUSTOM_MODEL_DATA = sampleMeta.getClass().getMethod("hasCustomModelData");
+                HAS_CUSTOM_MODEL_DATA = ItemMeta.class.getMethod("hasCustomModelData");
             } catch (NoSuchMethodException ignored) {
                 // Not available before 1.14 – leave null
             }
             try {
-                GET_PDC = sampleMeta.getClass().getMethod("getPersistentDataContainer");
+                GET_PDC = ItemMeta.class.getMethod("getPersistentDataContainer");
             } catch (NoSuchMethodException ignored) {
                 // Not available before 1.14 – leave null
             }
@@ -240,7 +240,7 @@ public class GroundStoreListener implements Listener {
             return false;
         }
 
-        initReflectionCache(meta);
+        initReflectionCache();
 
         if (HAS_CUSTOM_MODEL_DATA != null) {
             try {
