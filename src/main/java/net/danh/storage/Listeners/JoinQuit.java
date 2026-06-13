@@ -40,7 +40,11 @@ public class JoinQuit implements Listener {
         MineManager.loadPlayerData(p);
         MythicStorageManager.loadPlayerData(p);
         CropStorageManager.loadPlayerData(p);
-        FriendManager.loadPlayerData(p);
+        FriendManager.loadPlayerDataAsync(p, () -> {
+            if (p.isOnline()) {
+                FriendManager.notifyPendingRequests(p);
+            }
+        });
 
         SchedulerUtil.runTaskLater(Storage.getStorage(), p, () -> {
             if (!p.isOnline()) {
@@ -48,7 +52,6 @@ public class JoinQuit implements Listener {
             }
             MineManager.scheduleAutoSellOnJoin(p);
             CropStorageManager.scheduleAutoSellOnJoin(p);
-            FriendManager.notifyPendingRequests(p);
         }, 1L);
     }
 

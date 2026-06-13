@@ -7,9 +7,11 @@ import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.MaterialUtils;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -24,7 +26,7 @@ import java.util.*;
 public class FriendCommand extends BaseCommand {
 
     private static final String[] SUBCOMMANDS = {"add", "accept", "deny", "remove", "list", "withdraw", "deposit", "history", "settings", "help"};
-    private static final String[] STORAGE_TYPES = {"storage", "mythicstorage", "cropstorage"};
+    private static final String[] STORAGE_TYPES = FriendManager.getStorageTypes();
 
     @Override
     public void execute(CommandSender sender, String[] args) {
@@ -525,25 +527,35 @@ public class FriendCommand extends BaseCommand {
             return;
         }
 
-        int pageSize = 10;
-        List<FriendDatabase.FriendActionLog> logs;
-        int totalLogs;
+        final int requestedPage = page;
+        final boolean finalMineMode = mineMode;
+        final UUID playerUuid = player.getUniqueId();
+        final int pageSize = 10;
 
-        if (mineMode) {
-            // Show actions I performed on others' storage
-            logs = db.getActorActionLogs(player.getUniqueId(), page, pageSize);
-            totalLogs = db.getActorActionLogCount(player.getUniqueId());
-        } else {
-            // Show actions others performed on my storage
-            logs = db.getPlayerActionLogs(player.getUniqueId(), page, pageSize);
-            totalLogs = db.getPlayerActionLogCount(player.getUniqueId());
-        }
+        SchedulerUtil.runTaskAsynchronously(Storage.getStorage(), () -> {
+            int totalLogs = finalMineMode
+                    ? db.getActorActionLogCount(playerUuid)
+                    : db.getPlayerActionLogCount(playerUuid);
+            int totalPages = (int) Math.ceil((double) totalLogs / pageSize);
+            if (totalPages == 0) totalPages = 1;
+            int queryPage = Math.min(requestedPage, totalPages);
+            List<FriendDatabase.FriendActionLog> logs = finalMineMode
+                    ? db.getActorActionLogs(playerUuid, queryPage, pageSize)
+                    : db.getPlayerActionLogs(playerUuid, queryPage, pageSize);
+            final int displayPage = queryPage;
+            final int displayTotalPages = totalPages;
 
-        int totalPages = (int) Math.ceil((double) totalLogs / pageSize);
-        if (totalPages == 0) totalPages = 1;
-        if (page > totalPages) page = totalPages;
+            SchedulerUtil.runTask(Storage.getStorage(), player, () -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                showHistory(player, logs, displayPage, displayTotalPages, finalMineMode);
+            });
+        });
+    }
 
-        // Header — tell player which mode they're viewing
+    private void showHistory(Player player, List<FriendDatabase.FriendActionLog> logs,
+                             int page, int totalPages, boolean mineMode) {
         if (mineMode) {
             sendMessage(player, "friends.history_header_mine",
                     new String[]{"#page#", "#total#"},
@@ -645,48 +657,57 @@ public class FriendCommand extends BaseCommand {
         boolean setWithdraw = permissionType.equals("withdraw") || permissionType.equals("both") || permissionType.equals("all");
         boolean setAccess = permissionType.equals("access") || permissionType.equals("all");
 
-        if (setting.equals("all")) {
-            // Set all storage types
-            if (setDeposit) {
-                FriendManager.setDepositAllowed(player.getUniqueId(), "storage", allowed);
-                FriendManager.setDepositAllowed(player.getUniqueId(), "mythicstorage", allowed);
-                FriendManager.setDepositAllowed(player.getUniqueId(), "cropstorage", allowed);
-            }
-            if (setWithdraw) {
-                FriendManager.setWithdrawAllowed(player.getUniqueId(), "storage", allowed);
-                FriendManager.setWithdrawAllowed(player.getUniqueId(), "mythicstorage", allowed);
-                FriendManager.setWithdrawAllowed(player.getUniqueId(), "cropstorage", allowed);
-            }
-            if (setAccess) {
-                FriendManager.setStorageAccess(player.getUniqueId(), "storage", allowed);
-                FriendManager.setStorageAccess(player.getUniqueId(), "mythicstorage", allowed);
-                FriendManager.setStorageAccess(player.getUniqueId(), "cropstorage", allowed);
-            }
-            String status = allowed ?
-                    File.getMessage().getString("user.status.status_on", "&aOn") :
-                    File.getMessage().getString("user.status.status_off", "&cOff");
-            sendMessage(player, "friends.settings_all_updated",
-                    new String[]{"#type#", "#status#"},
-                    new String[]{permissionType, status});
-        } else if (isValidStorageType(setting)) {
-            // Set specific storage type
-            if (setDeposit) {
-                FriendManager.setDepositAllowed(player.getUniqueId(), setting, allowed);
-            }
-            if (setWithdraw) {
-                FriendManager.setWithdrawAllowed(player.getUniqueId(), setting, allowed);
-            }
-            if (setAccess) {
-                FriendManager.setStorageAccess(player.getUniqueId(), setting, allowed);
-            }
-            String status = allowed ?
-                    File.getMessage().getString("user.status.status_on", "&aOn") :
-                    File.getMessage().getString("user.status.status_off", "&cOff");
-            sendMessage(player, "friends.settings_updated",
-                    new String[]{"#storage#", "#type#", "#status#"},
-                    new String[]{setting, permissionType, status});
-        } else {
+        if (!setting.equals("all") && !isValidStorageType(setting)) {
             sendMessage(player, "friends.invalid_storage_type", "#type#", setting);
+            return;
+        }
+
+        applySettingsAsync(player, setting, allowed, setDeposit, setWithdraw, setAccess, permissionType);
+    }
+
+    private void applySettingsAsync(Player player, String setting, boolean allowed,
+                                    boolean setDeposit, boolean setWithdraw, boolean setAccess,
+                                    String permissionType) {
+        UUID playerUuid = player.getUniqueId();
+        SchedulerUtil.runTaskAsynchronously(Storage.getStorage(), () -> {
+            if (setting.equals("all")) {
+                for (String storageType : STORAGE_TYPES) {
+                    applySetting(playerUuid, storageType, allowed, setDeposit, setWithdraw, setAccess);
+                }
+            } else {
+                applySetting(playerUuid, setting, allowed, setDeposit, setWithdraw, setAccess);
+            }
+
+            SchedulerUtil.runTask(Storage.getStorage(), player, () -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                String status = allowed
+                        ? File.getMessage().getString("user.status.status_on", "&aOn")
+                        : File.getMessage().getString("user.status.status_off", "&cOff");
+                if (setting.equals("all")) {
+                    sendMessage(player, "friends.settings_all_updated",
+                            new String[]{"#type#", "#status#"},
+                            new String[]{permissionType, status});
+                } else {
+                    sendMessage(player, "friends.settings_updated",
+                            new String[]{"#storage#", "#type#", "#status#"},
+                            new String[]{setting, permissionType, status});
+                }
+            });
+        });
+    }
+
+    private void applySetting(UUID playerUuid, String storageType, boolean allowed,
+                              boolean setDeposit, boolean setWithdraw, boolean setAccess) {
+        if (setDeposit) {
+            FriendManager.setDepositAllowed(playerUuid, storageType, allowed);
+        }
+        if (setWithdraw) {
+            FriendManager.setWithdrawAllowed(playerUuid, storageType, allowed);
+        }
+        if (setAccess) {
+            FriendManager.setStorageAccess(playerUuid, storageType, allowed);
         }
     }
 
@@ -1405,13 +1426,13 @@ public class FriendCommand extends BaseCommand {
                     String friendName = args[1];
                     UUID friendUuid = resolveUuid(friendName);
                     if (friendUuid != null) {
-                        completions.addAll(getStorageItems(friendUuid, storageType));
+                        completions.addAll(getStorageItems(friendUuid, storageType, args[3]));
                     }
                 }
             } else if (sub.equals("settings")) {
                 String setting = args[1].toLowerCase();
                 if (isValidStorageType(setting) || setting.equals("all")) {
-                    StringUtil.copyPartialMatches(args[3], Arrays.asList("deposit", "withdraw", "both"), completions);
+                    StringUtil.copyPartialMatches(args[3], Arrays.asList("deposit", "withdraw", "access", "both", "all"), completions);
                 }
             }
         } else if (args.length == 5) {
@@ -1430,50 +1451,55 @@ public class FriendCommand extends BaseCommand {
         return completions;
     }
 
-    private List<String> getStorageItems(UUID ownerUuid, String storageType) {
-        List<String> items = new ArrayList<>();
+    private List<String> getStorageItems(UUID ownerUuid, String storageType, String partial) {
+        Set<String> items = new LinkedHashSet<>();
+        String normalizedPartial = partial.toLowerCase();
         String ownerName = resolvePlayerName(ownerUuid);
         if (ownerName == null || ownerName.equals(ownerUuid.toString())) {
-            return items;
+            return new ArrayList<>(items);
         }
 
         switch (storageType) {
             case "storage":
-                for (String key : MineManager.playerdata.keySet()) {
+                for (String key : new ArrayList<>(MineManager.playerdata.keySet())) {
                     if (key.startsWith(ownerName + "_")) {
                         String material = key.substring(ownerName.length() + 1);
                         int amount = MineManager.playerdata.getOrDefault(key, 0);
-                        if (amount > 0) {
-                            items.add(material.split(";")[0]);
+                        String display = material.split(";")[0];
+                        if (amount > 0 && display.toLowerCase().startsWith(normalizedPartial)) {
+                            items.add(display);
+                            if (items.size() >= 80) return new ArrayList<>(items);
                         }
                     }
                 }
                 break;
             case "mythicstorage":
-                for (String key : MythicStorageManager.playerdata.keySet()) {
+                for (String key : new ArrayList<>(MythicStorageManager.playerdata.keySet())) {
                     if (key.startsWith(ownerName + "_")) {
                         String material = key.substring(ownerName.length() + 1);
                         int amount = MythicStorageManager.playerdata.getOrDefault(key, 0);
-                        if (amount > 0) {
+                        if (amount > 0 && material.toLowerCase().startsWith(normalizedPartial)) {
                             items.add(material);
+                            if (items.size() >= 80) return new ArrayList<>(items);
                         }
                     }
                 }
                 break;
             case "cropstorage":
-                for (String key : CropStorageManager.playerdata.keySet()) {
+                for (String key : new ArrayList<>(CropStorageManager.playerdata.keySet())) {
                     if (key.startsWith(ownerName + "_")) {
                         String material = key.substring(ownerName.length() + 1);
                         int amount = CropStorageManager.playerdata.getOrDefault(key, 0);
-                        if (amount > 0) {
+                        if (amount > 0 && material.toLowerCase().startsWith(normalizedPartial)) {
                             items.add(material);
+                            if (items.size() >= 80) return new ArrayList<>(items);
                         }
                     }
                 }
                 break;
         }
 
-        return items;
+        return new ArrayList<>(items);
     }
 
     @Override

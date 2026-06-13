@@ -77,6 +77,11 @@ public class FriendDatabase {
                         "allowed BOOLEAN NOT NULL DEFAULT 0," +
                         "PRIMARY KEY (player_uuid, storage_type, action)" +
                         ")" + engine + ";");
+
+                createIndexIfMissing(conn, LOGS_TABLE, "idx_storage_friend_logs_owner_time",
+                        "CREATE INDEX idx_storage_friend_logs_owner_time ON " + LOGS_TABLE + " (owner_uuid, timestamp)");
+                createIndexIfMissing(conn, LOGS_TABLE, "idx_storage_friend_logs_actor_time",
+                        "CREATE INDEX idx_storage_friend_logs_actor_time ON " + LOGS_TABLE + " (actor_uuid, timestamp)");
             }
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, "[FriendStorage] Failed to create tables", ex);
@@ -686,6 +691,36 @@ public class FriendDatabase {
 
     private boolean isMySQL() {
         return Storage.dataStorage instanceof MySQLAdapter;
+    }
+
+    private void createIndexIfMissing(Connection conn, String table, String index, String sql) throws SQLException {
+        if (indexExists(conn, table, index)) {
+            return;
+        }
+        try (java.sql.Statement s = conn.createStatement()) {
+            s.executeUpdate(sql);
+        } catch (SQLException ex) {
+            if (!isDuplicateIndexError(ex)) {
+                throw ex;
+            }
+        }
+    }
+
+    private boolean indexExists(Connection conn, String table, String index) throws SQLException {
+        try (ResultSet rs = conn.getMetaData().getIndexInfo(null, null, table, false, false)) {
+            while (rs.next()) {
+                String indexName = rs.getString("INDEX_NAME");
+                if (index.equalsIgnoreCase(indexName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isDuplicateIndexError(SQLException ex) {
+        return ex.getErrorCode() == 1061
+                || (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("already exists"));
     }
 
     private void rollback(Connection conn) {

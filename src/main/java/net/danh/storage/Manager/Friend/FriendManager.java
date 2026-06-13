@@ -8,6 +8,7 @@ import net.danh.storage.Database.FriendDatabase;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.SchedulerUtil;
 import net.danh.storage.Utils.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,6 +22,9 @@ public class FriendManager {
     private static final String[] STORAGE_TYPES = {"storage", "mythicstorage", "cropstorage"};
     private static final Map<UUID, Set<UUID>> friendCache = new ConcurrentHashMap<>();
     private static final Map<UUID, Map<UUID, Long>> pendingRequestCache = new ConcurrentHashMap<>();
+    private static final Map<UUID, Map<String, Boolean>> accessSettingCache = new ConcurrentHashMap<>();
+    private static final Map<UUID, Map<String, Boolean>> actionSettingCache = new ConcurrentHashMap<>();
+    private static final Set<UUID> loadingPlayerData = ConcurrentHashMap.newKeySet();
     private static FriendDatabase database;
     private static boolean systemEnabled = false;
     private static TaskWrapper autoCleanTask;
@@ -30,6 +34,9 @@ public class FriendManager {
 
         friendCache.clear();
         pendingRequestCache.clear();
+        accessSettingCache.clear();
+        actionSettingCache.clear();
+        loadingPlayerData.clear();
         database = null;
 
         if (autoCleanTask != null) {
@@ -64,17 +71,61 @@ public class FriendManager {
         if (!systemEnabled || database == null) return;
 
         UUID uuid = player.getUniqueId();
-        Set<UUID> friends = database.getFriends(uuid);
-        friendCache.put(uuid, Collections.synchronizedSet(new LinkedHashSet<>(friends)));
+        loadingPlayerData.remove(uuid);
+        loadPlayerData(uuid);
+    }
 
-        Map<UUID, Long> pending = database.getPendingRequests(uuid);
+    public static void loadPlayerDataAsync(@NotNull Player player, Runnable callback) {
+        if (!systemEnabled || database == null) {
+            if (callback != null) {
+                SchedulerUtil.runTask(Storage.getStorage(), player, callback);
+            }
+            return;
+        }
+
+        UUID uuid = player.getUniqueId();
+        FriendDatabase currentDatabase = database;
+        loadingPlayerData.add(uuid);
+        SchedulerUtil.runTaskAsynchronously(Storage.getStorage(), () -> {
+            boolean loaded = loadPlayerData(uuid, currentDatabase, true);
+            if (loaded && callback != null) {
+                SchedulerUtil.runTask(Storage.getStorage(), player, callback);
+            }
+        });
+    }
+
+    private static void loadPlayerData(@NotNull UUID uuid) {
+        loadPlayerData(uuid, database, false);
+    }
+
+    private static boolean loadPlayerData(@NotNull UUID uuid, FriendDatabase currentDatabase, boolean requireLoadingToken) {
+        if (currentDatabase == null) return false;
+
+        Set<UUID> friends = currentDatabase.getFriends(uuid);
+        Map<UUID, Long> pending = currentDatabase.getPendingRequests(uuid);
+        boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+        Map<String, Boolean> accessSettings = currentDatabase.getAllAccessSettings(uuid, defaultValue);
+        Map<String, Boolean> actionSettings = flattenActionSettings(
+                currentDatabase.getAllActionSettings(uuid, defaultValue, defaultValue));
+
+        if (requireLoadingToken && !loadingPlayerData.remove(uuid)) {
+            return false;
+        }
+
+        friendCache.put(uuid, Collections.synchronizedSet(new LinkedHashSet<>(friends)));
         pendingRequestCache.put(uuid, Collections.synchronizedMap(new LinkedHashMap<>(pending)));
+        accessSettingCache.put(uuid, new ConcurrentHashMap<>(accessSettings));
+        actionSettingCache.put(uuid, new ConcurrentHashMap<>(actionSettings));
+        return true;
     }
 
     public static void cleanupPlayerData(@NotNull Player player) {
         UUID uuid = player.getUniqueId();
         friendCache.remove(uuid);
         pendingRequestCache.remove(uuid);
+        accessSettingCache.remove(uuid);
+        actionSettingCache.remove(uuid);
+        loadingPlayerData.remove(uuid);
     }
 
     public static boolean sendRequest(@NotNull Player sender, @NotNull Player target) {
@@ -246,25 +297,37 @@ public class FriendManager {
     public static boolean isStorageAccessAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
         if (!systemEnabled || database == null) return false;
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
-        return database.getAccessSetting(ownerUuid, storageType, defaultValue);
+        String normalizedType = normalizeStorageType(storageType);
+        Map<String, Boolean> cached = accessSettingCache.get(ownerUuid);
+        if (cached != null && cached.containsKey(normalizedType)) {
+            return cached.get(normalizedType);
+        }
+        boolean allowed = database.getAccessSetting(ownerUuid, normalizedType, defaultValue);
+        cacheAccessSetting(ownerUuid, normalizedType, allowed);
+        return allowed;
     }
 
     public static void setStorageAccess(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
         if (!systemEnabled || database == null) return;
-        database.setAccessSetting(ownerUuid, storageType, allowed);
+        String normalizedType = normalizeStorageType(storageType);
+        database.setAccessSetting(ownerUuid, normalizedType, allowed);
+        cacheAccessSetting(ownerUuid, normalizedType, allowed);
     }
 
     public static Map<String, Boolean> getAllStorageAccess(@NotNull UUID ownerUuid) {
-        if (!systemEnabled || database == null) {
-            Map<String, Boolean> defaults = new HashMap<>();
-            boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
-            defaults.put("storage", defaultValue);
-            defaults.put("mythicstorage", defaultValue);
-            defaults.put("cropstorage", defaultValue);
-            return defaults;
-        }
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
-        return database.getAllAccessSettings(ownerUuid, defaultValue);
+        if (!systemEnabled || database == null) {
+            return createDefaultAccessSettings(defaultValue);
+        }
+        Map<String, Boolean> cached = accessSettingCache.get(ownerUuid);
+        if (cached != null) {
+            Map<String, Boolean> settings = createDefaultAccessSettings(defaultValue);
+            settings.putAll(cached);
+            return settings;
+        }
+        Map<String, Boolean> settings = database.getAllAccessSettings(ownerUuid, defaultValue);
+        accessSettingCache.put(ownerUuid, new ConcurrentHashMap<>(settings));
+        return settings;
     }
 
     public static Set<UUID> getFriends(@NotNull UUID playerUuid) {
@@ -350,23 +413,23 @@ public class FriendManager {
     public static boolean isDepositAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
         if (!systemEnabled || database == null) return false;
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
-        return database.getActionSetting(ownerUuid, storageType, "deposit", defaultValue);
+        return getActionSetting(ownerUuid, storageType, "deposit", defaultValue);
     }
 
     public static boolean isWithdrawAllowed(@NotNull UUID ownerUuid, @NotNull String storageType) {
         if (!systemEnabled || database == null) return false;
         boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
-        return database.getActionSetting(ownerUuid, storageType, "withdraw", defaultValue);
+        return getActionSetting(ownerUuid, storageType, "withdraw", defaultValue);
     }
 
     public static void setDepositAllowed(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
         if (!systemEnabled || database == null) return;
-        database.setActionSetting(ownerUuid, storageType, "deposit", allowed);
+        setActionSetting(ownerUuid, storageType, "deposit", allowed);
     }
 
     public static void setWithdrawAllowed(@NotNull UUID ownerUuid, @NotNull String storageType, boolean allowed) {
         if (!systemEnabled || database == null) return;
-        database.setActionSetting(ownerUuid, storageType, "withdraw", allowed);
+        setActionSetting(ownerUuid, storageType, "withdraw", allowed);
     }
 
     public static void notifyOwnerAction(UUID ownerUuid, UUID actorUuid, String action, String storageType, String material, int amount) {
@@ -384,6 +447,9 @@ public class FriendManager {
         }
         friendCache.clear();
         pendingRequestCache.clear();
+        accessSettingCache.clear();
+        actionSettingCache.clear();
+        loadingPlayerData.clear();
         if (database != null) {
             database.cleanExpiredRequests();
         }
@@ -413,13 +479,15 @@ public class FriendManager {
                 }
                 return;
             }
-            database.cleanExpiredRequests();
+            FriendDatabase currentDatabase = database;
+            SchedulerUtil.runTaskAsynchronously(Storage.getStorage(), currentDatabase::cleanExpiredRequests);
             cleanExpiredRequestCache();
         }, periodTicks, periodTicks);
     }
 
     public static void logAction(UUID ownerUuid, UUID actorUuid, String action, String details) {
-        if (database == null) return;
+        FriendDatabase currentDatabase = database;
+        if (currentDatabase == null) return;
 
         boolean logToConsole = File.getFriendStorageConfig().getBoolean("settings.log_actions", true);
         boolean logToDatabase = File.getFriendStorageConfig().getBoolean("settings.log_to_database", true);
@@ -438,7 +506,8 @@ public class FriendManager {
         }
 
         if (logToDatabase) {
-            database.insertLog(ownerUuid, actorUuid, action, details);
+            SchedulerUtil.runTaskAsynchronously(Storage.getStorage(),
+                    () -> currentDatabase.insertLog(ownerUuid, actorUuid, action, details));
         }
     }
 
@@ -505,6 +574,75 @@ public class FriendManager {
         for (Map<UUID, Long> requests : pendingRequestCache.values()) {
             requests.entrySet().removeIf(entry -> entry.getValue() != 0 && entry.getValue() <= now);
         }
+    }
+
+    public static String[] getStorageTypes() {
+        return STORAGE_TYPES.clone();
+    }
+
+    private static void cachePlayerSettings(UUID uuid) {
+        cachePlayerSettings(uuid, database);
+    }
+
+    private static void cachePlayerSettings(UUID uuid, FriendDatabase currentDatabase) {
+        if (currentDatabase == null) return;
+        boolean defaultValue = File.getFriendStorageConfig().getBoolean("settings.default_access_allowed", false);
+        accessSettingCache.put(uuid, new ConcurrentHashMap<>(currentDatabase.getAllAccessSettings(uuid, defaultValue)));
+        actionSettingCache.put(uuid, new ConcurrentHashMap<>(flattenActionSettings(
+                currentDatabase.getAllActionSettings(uuid, defaultValue, defaultValue))));
+    }
+
+    private static Map<String, Boolean> flattenActionSettings(Map<String, Map<String, Boolean>> settings) {
+        Map<String, Boolean> flattened = new ConcurrentHashMap<>();
+        for (Map.Entry<String, Map<String, Boolean>> entry : settings.entrySet()) {
+            String storageType = normalizeStorageType(entry.getKey());
+            for (Map.Entry<String, Boolean> actionEntry : entry.getValue().entrySet()) {
+                flattened.put(actionKey(storageType, actionEntry.getKey()), actionEntry.getValue());
+            }
+        }
+        return flattened;
+    }
+
+    private static boolean getActionSetting(UUID ownerUuid, String storageType, String action, boolean defaultValue) {
+        String key = actionKey(storageType, action);
+        Map<String, Boolean> cached = actionSettingCache.get(ownerUuid);
+        if (cached != null && cached.containsKey(key)) {
+            return cached.get(key);
+        }
+        boolean allowed = database.getActionSetting(ownerUuid, normalizeStorageType(storageType), action.toLowerCase(), defaultValue);
+        cacheActionSetting(ownerUuid, key, allowed);
+        return allowed;
+    }
+
+    private static void setActionSetting(UUID ownerUuid, String storageType, String action, boolean allowed) {
+        String normalizedType = normalizeStorageType(storageType);
+        String normalizedAction = action.toLowerCase();
+        database.setActionSetting(ownerUuid, normalizedType, normalizedAction, allowed);
+        cacheActionSetting(ownerUuid, actionKey(normalizedType, normalizedAction), allowed);
+    }
+
+    private static void cacheAccessSetting(UUID ownerUuid, String storageType, boolean allowed) {
+        accessSettingCache.computeIfAbsent(ownerUuid, uuid -> new ConcurrentHashMap<>()).put(storageType, allowed);
+    }
+
+    private static void cacheActionSetting(UUID ownerUuid, String key, boolean allowed) {
+        actionSettingCache.computeIfAbsent(ownerUuid, uuid -> new ConcurrentHashMap<>()).put(key, allowed);
+    }
+
+    private static Map<String, Boolean> createDefaultAccessSettings(boolean defaultValue) {
+        Map<String, Boolean> defaults = new HashMap<>();
+        for (String storageType : STORAGE_TYPES) {
+            defaults.put(storageType, defaultValue);
+        }
+        return defaults;
+    }
+
+    private static String actionKey(String storageType, String action) {
+        return normalizeStorageType(storageType) + ":" + action.toLowerCase();
+    }
+
+    private static String normalizeStorageType(String storageType) {
+        return storageType.toLowerCase();
     }
 
 }
