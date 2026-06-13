@@ -38,7 +38,7 @@ admin:
     error: "#prefix# &cError during &eauto-save: #error#"
     manual_executed: "#prefix# &7Manual save executed"
   help:
-    - "&6=== &eStorage Admin Commands &6v2.3.4 &6==="
+    - "&6=== &eStorage Admin Commands &6v2.3.9 &6==="
     - "&e/Storage reload &f- &7Reload Files"
     - "&e/Storage max &a<player> &6<amount> &f- &7Set max item player can storage"
     - "&e/Storage resetlimit &a<player> &f- &7Remove admin max override and use permission/default"
@@ -111,7 +111,7 @@ user:
     no_permission: "#prefix# &cYou don't have permission to use this feature."
     notify: "#prefix# &aStored picked up items into storage"
   help:
-    - "&6=== &eStorage Commands &6v2.3.4 &6==="
+    - "&6=== &eStorage Commands &6v2.3.9 &6==="
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
     - "&e/Storage deposit &b<material;data> &6[amount|all] &f- &7Deposit items into storage"
