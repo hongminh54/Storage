@@ -1,4 +1,6 @@
-cropstorage_version: 2
+# CropStorage Configuration
+
+cropstorage_version: 3
 
 # Worlds that will not be affected by CropStorage feature
 blacklist_world:

@@ -1,4 +1,7 @@
-mythicstorage_version: 3
+#MythicStorage (Mythicmobs Storage) Configuration
+
+
+mythicstorage_version: 4
 
 # Worlds that will not be affected by MythicStorage feature
 blacklist_world:

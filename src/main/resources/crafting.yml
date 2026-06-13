@@ -1,5 +1,5 @@
 # Crafting System Configuration
-crafting_version: 1
+crafting_version: 2
 
 settings:
   # Enable/disable crafting system

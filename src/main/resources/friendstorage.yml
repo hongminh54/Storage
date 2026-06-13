@@ -1,8 +1,6 @@
 # Friend Storage Configuration
 
-#Warning: This feature is still under development, so some features may be unstable or incomplete.
-#If you encounter any issues with this feature, please report them to me at: https://github.com/TheBlueSkyARL/Storage/issues
-friendstorage_version: 1
+friendstorage_version: 2
 
 settings:
   # Enable or disable the Friend Storage feature

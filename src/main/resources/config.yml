@@ -1,5 +1,8 @@
+#Storage & Main Configuration
+#If you encounter any issues, please report them to me at: https://github.com/TheBlueSkyARL/Storage/issues
+
 #Do not touch it
-config_version: 6
+config_version: 7
 
 #Database configuration
 database:

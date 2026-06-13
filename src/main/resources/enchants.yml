@@ -1,4 +1,6 @@
-enchant_version: 3
+#Enchants Configuration
+
+enchant_version: 4
 
 # Available particles: EXPLOSION_LARGE, EXPLOSION_HUGE, SMOKE_NORMAL, FLAME, CRIT, HEART, VILLAGER_HAPPY, etc.
 # Available sounds: ENTITY_GENERIC_EXPLODE, ENTITY_TNT_PRIMED, BLOCK_ANVIL_LAND, ENTITY_LIGHTNING_BOLT_THUNDER, etc.
