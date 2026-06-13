@@ -1,4 +1,4 @@
-# Storage [1.8.x - 1.21.11]
+# Storage [1.8.x - 26.1.x]
 
 > A comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined blocks, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
 
