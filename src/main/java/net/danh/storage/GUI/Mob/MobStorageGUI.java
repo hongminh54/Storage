@@ -120,7 +120,7 @@ public class MobStorageGUI implements IGUI {
                 continue;
             }
             String itemName = configuredDrops.get(i);
-            Material material = Material.getMaterial(itemName);
+            Material material = MobStorageManager.resolveMaterial(itemName);
             if (material == null || material == Material.AIR) {
                 continue;
             }

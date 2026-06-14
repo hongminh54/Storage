@@ -5,6 +5,7 @@ import net.danh.storage.Action.MobSell;
 import net.danh.storage.Database.PlayerData;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.MaterialUtils;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -30,12 +31,13 @@ public class MobStorageManager {
     private static final Map<String, Long> lastAutoSellAt = new HashMap<>();
     private static final HashMap<UUID, Boolean> groundStoreToggle = new HashMap<>();
     private static final HashMap<UUID, Integer> maxOverrideData = new HashMap<>();
+    private static final Map<String, Set<String>> MOB_NAME_ALIASES = createMobNameAliases();
     public static HashMap<String, Integer> playerdata = new HashMap<>();
     public static HashMap<UUID, Boolean> toggle = new HashMap<>();
     public static HashMap<UUID, Integer> playermaxdata = new HashMap<>();
     private static List<String> configuredDrops = new ArrayList<>();
     private static List<String> invalidItems = new ArrayList<>();
-    private static Set<String> allowedEntityTypes = new HashSet<>();
+    private static Map<String, Set<String>> configuredMobDrops = new HashMap<>();
     private static boolean systemEnabled = false;
 
     @NotNull
@@ -107,12 +109,11 @@ public class MobStorageManager {
             return;
         }
 
-        loadConfiguredDrops();
-        loadAllowedEntityTypes();
+        loadConfiguredMobDrops();
 
         Storage.getStorage().getLogger().info("[MobStorage] ========== INITIALIZATION SUMMARY ==========");
         Storage.getStorage().getLogger().info("[MobStorage] Valid items loaded: " + configuredDrops.size());
-        Storage.getStorage().getLogger().info("[MobStorage] Enabled entity types loaded: " + allowedEntityTypes.size());
+        Storage.getStorage().getLogger().info("[MobStorage] Valid mob drop mappings loaded: " + configuredMobDrops.size());
 
         if (!invalidItems.isEmpty()) {
             Storage.getStorage().getLogger().warning("[MobStorage] Invalid items found: " + invalidItems.size());
@@ -187,67 +188,75 @@ public class MobStorageManager {
         return allowed.contains(itemName.toUpperCase(Locale.ENGLISH));
     }
 
-    private static void loadConfiguredDrops() {
-        List<String> items = File.getMobStorageConfig().getStringList("items_drop");
+    private static void loadConfiguredMobDrops() {
+        List<String> entries = File.getMobStorageConfig().getStringList("mob_drops");
         configuredDrops = new ArrayList<>();
         invalidItems = new ArrayList<>();
-        if (items == null) {
+        configuredMobDrops = new HashMap<>();
+        Set<String> uniqueDrops = new LinkedHashSet<>();
+        if (entries == null) {
             return;
         }
 
-        for (String itemName : items) {
-            if (itemName == null || itemName.trim().isEmpty()) {
-                invalidItems.add("<empty>");
-                continue;
-            }
-
-            String upper = itemName.trim().toUpperCase(Locale.ENGLISH);
-            Material material = Material.getMaterial(upper);
-            if (material == null || material == Material.AIR) {
-                invalidItems.add(itemName);
-                continue;
-            }
-
-            configuredDrops.add(upper);
+        for (String entry : entries) {
+            parseMobDropEntry(entry, uniqueDrops);
         }
+        configuredDrops = new ArrayList<>(uniqueDrops);
     }
 
-    private static void loadAllowedEntityTypes() {
-        Set<String> result = new LinkedHashSet<>();
-        ConfigurationSection groups = File.getMobStorageConfig().getConfigurationSection("mob_groups");
-        ConfigurationSection enabled = File.getMobStorageConfig().getConfigurationSection("enabled_groups");
-        if (groups == null) {
-            allowedEntityTypes = result;
+    private static void parseMobDropEntry(String entry, Set<String> uniqueDrops) {
+        if (entry == null || entry.trim().isEmpty()) {
+            invalidItems.add("<empty>");
             return;
         }
 
-        for (String groupName : groups.getKeys(false)) {
-            if (enabled != null && !enabled.getBoolean(groupName, false)) {
+        String[] parts = entry.split(";");
+        if (parts.length < 2) {
+            invalidItems.add(entry);
+            return;
+        }
+
+        String mobName = parts[0].trim().toUpperCase(Locale.ENGLISH);
+        if (mobName.isEmpty()) {
+            invalidItems.add(entry);
+            return;
+        }
+
+        List<String> parsedDrops = new ArrayList<>();
+
+        for (int i = 1; i < parts.length; i++) {
+            String itemName = parts[i] == null ? "" : parts[i].trim().toUpperCase(Locale.ENGLISH);
+            if (itemName.isEmpty()) {
                 continue;
             }
-            List<String> types = groups.getStringList(groupName);
-            for (String rawType : types) {
-                if (rawType == null || rawType.trim().isEmpty()) {
-                    continue;
-                }
-                String upper = rawType.trim().toUpperCase(Locale.ENGLISH);
-                try {
-                    EntityType.valueOf(upper);
-                    result.add(upper);
-                } catch (IllegalArgumentException ignored) {
-                    Storage.getStorage().getLogger().warning("[MobStorage] Invalid entity type in group '" + groupName + "': " + rawType);
-                }
-            }
+            parsedDrops.add(itemName);
+            uniqueDrops.add(itemName);
         }
-        allowedEntityTypes = result;
+
+        if (parsedDrops.isEmpty()) {
+            invalidItems.add(entry);
+            return;
+        }
+
+        for (String key : getMobLookupKeys(mobName)) {
+            Set<String> drops = configuredMobDrops.get(key);
+            if (drops == null) {
+                drops = new LinkedHashSet<>();
+                configuredMobDrops.put(key, drops);
+            }
+            drops.addAll(parsedDrops);
+        }
     }
 
     public static void reloadConfiguredDrops() {
+        systemEnabled = File.getMobStorageConfig().getBoolean("settings.enabled", true);
         if (!isSystemEnabled()) {
+            configuredDrops = new ArrayList<>();
+            invalidItems = new ArrayList<>();
+            configuredMobDrops = new HashMap<>();
             return;
         }
-        loadConfiguredDrops();
-        loadAllowedEntityTypes();
+        loadConfiguredMobDrops();
     }
 
     public static List<String> getConfiguredDrops() {
@@ -259,7 +268,60 @@ public class MobStorageManager {
     }
 
     public static boolean isEntityTypeAllowed(@NotNull EntityType entityType) {
-        return allowedEntityTypes.contains(entityType.name());
+        for (String key : getMobLookupKeys(entityType.name())) {
+            if (configuredMobDrops.containsKey(key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isConfiguredDropForMob(@NotNull EntityType entityType, @NotNull String itemName) {
+        String item = itemName.toUpperCase(Locale.ENGLISH);
+        for (String key : getMobLookupKeys(entityType.name())) {
+            Set<String> drops = configuredMobDrops.get(key);
+            if (drops != null && drops.contains(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Material resolveMaterial(@NotNull String itemName) {
+        return MaterialUtils.matchMaterial(itemName.toUpperCase(Locale.ENGLISH));
+    }
+
+    private static Set<String> getMobLookupKeys(@NotNull String mobName) {
+        String upper = mobName.toUpperCase(Locale.ENGLISH);
+        Set<String> keys = new LinkedHashSet<>();
+        keys.add(upper);
+        Set<String> aliases = MOB_NAME_ALIASES.get(upper);
+        if (aliases != null) {
+            keys.addAll(aliases);
+        }
+        return keys;
+    }
+
+    private static Map<String, Set<String>> createMobNameAliases() {
+        Map<String, Set<String>> aliases = new HashMap<>();
+        addMobAliasGroup(aliases, "SNOWMAN", "SNOW_GOLEM");
+        addMobAliasGroup(aliases, "MUSHROOM_COW", "MOOSHROOM");
+        addMobAliasGroup(aliases, "PIG_ZOMBIE", "ZOMBIFIED_PIGLIN");
+        return aliases;
+    }
+
+    private static void addMobAliasGroup(Map<String, Set<String>> aliases, String first, String second) {
+        addMobAlias(aliases, first, second);
+        addMobAlias(aliases, second, first);
+    }
+
+    private static void addMobAlias(Map<String, Set<String>> aliases, String key, String alias) {
+        Set<String> values = aliases.get(key);
+        if (values == null) {
+            values = new LinkedHashSet<>();
+            aliases.put(key, values);
+        }
+        values.add(alias);
     }
 
     @NotNull

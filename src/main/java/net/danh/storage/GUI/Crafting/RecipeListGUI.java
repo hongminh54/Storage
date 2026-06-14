@@ -3,8 +3,10 @@ package net.danh.storage.GUI.Crafting;
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.Crafting.CraftingManager;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
@@ -224,12 +226,24 @@ public class RecipeListGUI implements IGUI {
             String mythicId = getMythicItemId(normalizedMaterial);
             int playerAmount;
             String displayName;
+            String cropItem;
+            String mobItem;
             if (mythicId != null) {
                 playerAmount = MythicStorageManager.isSystemEnabled()
                         ? MythicStorageManager.getPlayerItem(player, mythicId)
                         : 0;
                 displayName = MythicStorageManager.getItemDisplayNameOrId(
                         mythicId, player);
+            } else if ((cropItem = getTypedStorageItemId(normalizedMaterial, "crop")) != null) {
+                playerAmount = CropStorageManager.isSystemEnabled()
+                        ? CropStorageManager.getPlayerItem(player, cropItem)
+                        : 0;
+                displayName = CropStorageManager.getItemDisplayName(cropItem);
+            } else if ((mobItem = getTypedStorageItemId(normalizedMaterial, "mob")) != null) {
+                playerAmount = MobStorageManager.isSystemEnabled()
+                        ? MobStorageManager.getPlayerItem(player, mobItem)
+                        : 0;
+                displayName = MobStorageManager.getItemDisplayName(mobItem);
             } else {
                 playerAmount = MineManager.getPlayerBlock(player, normalizedMaterial);
                 String displayMaterial = normalizedMaterial;
@@ -248,10 +262,14 @@ public class RecipeListGUI implements IGUI {
     }
 
     private String getMythicItemId(String normalizedKey) {
+        return getTypedStorageItemId(normalizedKey, "mythic");
+    }
+
+    private String getTypedStorageItemId(String normalizedKey, String type) {
         if (normalizedKey == null || normalizedKey.isEmpty()) {
             return null;
         }
-        if (!normalizedKey.startsWith("mythic;")) {
+        if (!normalizedKey.startsWith(type + ";")) {
             return null;
         }
         String[] parts = normalizedKey.split(";", 3);

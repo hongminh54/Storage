@@ -105,7 +105,7 @@ public class MobDeath implements Listener {
             }
 
             String itemName = drop.getType().name();
-            if (!MobStorageManager.isConfiguredDrop(itemName)) {
+            if (!MobStorageManager.isConfiguredDropForMob(event.getEntityType(), itemName)) {
                 continue;
             }
 

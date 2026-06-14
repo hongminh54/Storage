@@ -914,6 +914,7 @@ mobstorage:
       - "&e/mobstorage sell &a<item> &b[amount|all] &f- &7Sell mob drops"
       - "&e/mobstorage autosell &a<toggle|set|list|clear> &b[item] [on|off] &f- &7Manage AutoSell"
       - "&e/mobstorage view &a[player] &f- &7View MobStorage contents"
+      - "&e/mobstorage reload &f- &7Reload MobStorage configuration"
   admin:
     add_success: "#prefix# &aAdded &e#amount#x #item# &ato &6#player#'s MobStorage"
     remove_success: "#prefix# &aRemoved &e#amount#x #item# &afrom &6#player#'s MobStorage"

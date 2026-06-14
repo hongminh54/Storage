@@ -45,7 +45,7 @@ public class MobWithdraw {
             return;
         }
 
-        Material material = Material.getMaterial(upper);
+        Material material = MobStorageManager.resolveMaterial(upper);
         if (material == null) {
             sendMessage("mobstorage.invalid_item", "#item#", MobStorageManager.getItemDisplayName(upper));
             return;

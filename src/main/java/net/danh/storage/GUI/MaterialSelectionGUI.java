@@ -5,8 +5,10 @@ import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Recipe.Recipe;
 import net.danh.storage.Utils.*;
@@ -59,7 +61,7 @@ public class MaterialSelectionGUI implements IGUI {
 
         String title = ChatUtils.colorizewp(player, Objects.requireNonNull(
                         config.getString("title")).replace("#category_name#",
-                        "Available Materials")
+                        getSelectionTitle())
                 .replace("#player#", player.getName()));
 
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
@@ -133,7 +135,7 @@ public class MaterialSelectionGUI implements IGUI {
     private ItemStack createMaterialItem(String materialName) {
         String baseMaterial = materialName.contains(";") ? materialName.split(";")[0] : materialName;
 
-        String displayName = File.getConfig().getString("items." + materialName, baseMaterial);
+        String displayName = getMaterialDisplayName(materialName, baseMaterial);
 
         ItemStack item = MaterialUtils.createItem(baseMaterial);
         if (item == null) {
@@ -148,8 +150,11 @@ public class MaterialSelectionGUI implements IGUI {
 
             List<String> lore = new ArrayList<>();
             String selectionLore = config.getString("selection_lore." + selectionType, "");
-            for (String line : config.getStringList("items.material_item.lore")) {
-                lore.add(ChatUtils.colorizewp(line.replace("#selection_type_lore#", selectionLore)));
+            for (String line : getMaterialItemLore()) {
+                lore.add(ChatUtils.colorizewp(line
+                        .replace("#selection_type_lore#", selectionLore)
+                        .replace("#material_id#", materialName)
+                        .replace("#storage_type#", getStorageTypeName())));
             }
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -157,17 +162,60 @@ public class MaterialSelectionGUI implements IGUI {
         return item;
     }
 
+    private List<String> getMaterialItemLore() {
+        List<String> lore = config.getStringList("selection_item_lore." + selectionType);
+        if (!lore.isEmpty()) {
+            return lore;
+        }
+        return config.getStringList("items.material_item.lore");
+    }
+
+    private String getMaterialDisplayName(String materialName, String baseMaterial) {
+        if (selectionType.equals("crop_requirement")) {
+            return CropStorageManager.getItemDisplayName(materialName);
+        }
+        if (selectionType.equals("mob_requirement")) {
+            return MobStorageManager.getItemDisplayName(materialName);
+        }
+        return File.getConfig().getString("items." + materialName, baseMaterial);
+    }
+
     private List<String> getPlayerStorageMaterials() {
         List<String> materials = new ArrayList<>();
 
-        FileConfiguration config = File.getConfig();
-        if (config.contains("items")) {
-            Set<String> itemKeys = config.getConfigurationSection("items").getKeys(false);
-            materials.addAll(itemKeys);
+        if (selectionType.equals("crop_requirement")) {
+            if (CropStorageManager.isSystemEnabled()) {
+                materials.addAll(CropStorageManager.getConfiguredDrops());
+            }
+        } else if (selectionType.equals("mob_requirement")) {
+            if (MobStorageManager.isSystemEnabled()) {
+                materials.addAll(MobStorageManager.getConfiguredDrops());
+            }
+        } else {
+            FileConfiguration config = File.getConfig();
+            if (config.contains("items")) {
+                Set<String> itemKeys = config.getConfigurationSection("items").getKeys(false);
+                materials.addAll(itemKeys);
+            }
         }
 
         Collections.sort(materials);
         return materials;
+    }
+
+    private String getSelectionTitle() {
+        return config.getString("selection_titles." + selectionType,
+                config.getString("selection_titles.default", "Available Materials"));
+    }
+
+    private String getStorageTypeName() {
+        if (selectionType.equals("crop_requirement")) {
+            return "CropStorage";
+        }
+        if (selectionType.equals("mob_requirement")) {
+            return "MobStorage";
+        }
+        return "Storage";
     }
 
     private void selectMaterial(Player player, String materialName) {
@@ -189,6 +237,18 @@ public class MaterialSelectionGUI implements IGUI {
             returnToRecipeEditor(player);
         } else if (selectionType.equals("requirement")) {
             String normalizedMaterial = MineManager.normalizeMaterial(materialName);
+            recipe.getMaterialRequirements().put(normalizedMaterial, 1);
+            player.sendMessage(ChatUtils.colorize(
+                    File.getMessage().getString("crafting.requirement_added_gui")
+                            .replace("#material#", materialName)
+                            .replace("#amount#", "1")));
+            CraftingManager.updateRecipe(recipe);
+            RecipeEditorGUI.updateBackup(player.getUniqueId(), recipe);
+            returnToMaterialEditor(player);
+        } else if (selectionType.equals("crop_requirement")
+                || selectionType.equals("mob_requirement")) {
+            String prefix = selectionType.equals("crop_requirement") ? "crop:" : "mob:";
+            String normalizedMaterial = MineManager.normalizeMaterial(prefix + materialName);
             recipe.getMaterialRequirements().put(normalizedMaterial, 1);
             player.sendMessage(ChatUtils.colorize(
                     File.getMessage().getString("crafting.requirement_added_gui")
@@ -279,7 +339,7 @@ public class MaterialSelectionGUI implements IGUI {
                     int slot = Number.getInteger(slotStr.trim());
                     InteractiveItem backButton = new InteractiveItem(backItem.clone(), slot)
                             .onLeftClick(p -> {
-                                if (selectionType.equals("requirement")) {
+                                if (isMaterialRequirementSelection()) {
                                     returnToMaterialEditor(p);
                                 } else {
                                     returnToRecipeEditor(p);
@@ -291,7 +351,7 @@ public class MaterialSelectionGUI implements IGUI {
                 int slot = Number.getInteger(slotConfig);
                 InteractiveItem backButton = new InteractiveItem(backItem, slot)
                         .onLeftClick(p -> {
-                            if (selectionType.equals("requirement")) {
+                            if (isMaterialRequirementSelection()) {
                                 returnToMaterialEditor(p);
                             } else {
                                 returnToRecipeEditor(p);
@@ -303,6 +363,10 @@ public class MaterialSelectionGUI implements IGUI {
     }
 
     private void addSearchButton(Inventory inventory) {
+        if (!selectionType.equals("result") && !selectionType.equals("requirement")) {
+            return;
+        }
+
         ItemStack searchItem = ItemManager.getItemConfig(config.getConfigurationSection("items.search"));
         if (searchItem != null) {
             String slotConfig = config.getString("items.search.slot", "4");
@@ -313,7 +377,7 @@ public class MaterialSelectionGUI implements IGUI {
                             .onLeftClick(p -> {
                                 if (selectionType.equals("result")) {
                                     RecipeEditManager.requestMaterialEdit(p, recipe);
-                                } else {
+                                } else if (selectionType.equals("requirement")) {
                                     RecipeEditManager.requestRequirementAdd(p, recipe);
                                 }
                             });
@@ -325,13 +389,19 @@ public class MaterialSelectionGUI implements IGUI {
                         .onLeftClick(p -> {
                             if (selectionType.equals("result")) {
                                 RecipeEditManager.requestMaterialEdit(p, recipe);
-                            } else {
+                            } else if (selectionType.equals("requirement")) {
                                 RecipeEditManager.requestRequirementAdd(p, recipe);
                             }
                         });
                 inventory.setItem(searchButton.getSlot(), searchButton);
             }
         }
+    }
+
+    private boolean isMaterialRequirementSelection() {
+        return selectionType.equals("requirement")
+                || selectionType.equals("crop_requirement")
+                || selectionType.equals("mob_requirement");
     }
 
 }

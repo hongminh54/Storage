@@ -30,7 +30,7 @@ public class MobDeposit {
         }
 
         String upper = itemName.toUpperCase(Locale.ENGLISH);
-        Material material = Material.getMaterial(upper);
+        Material material = MobStorageManager.resolveMaterial(upper);
         if (material == null) {
             sendMessage("mobstorage.invalid_item", "#item#", MobStorageManager.getItemDisplayName(upper));
             return;

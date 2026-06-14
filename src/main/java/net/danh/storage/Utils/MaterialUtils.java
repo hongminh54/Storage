@@ -26,10 +26,6 @@ public final class MaterialUtils {
             return material;
         }
 
-        if (NMS.isVersionGreaterThanOrEqualTo(13)) {
-            return null;
-        }
-
         try {
             Optional<XMaterial> xMaterial = XMaterial.matchXMaterial(materialName);
             return xMaterial.map(XMaterial::parseMaterial).orElse(null);

@@ -4,6 +4,13 @@
 title: "&0#category_name# | #player#"
 size: 6
 
+selection_titles:
+  default: "Available Materials"
+  result: "Available Materials"
+  requirement: "Storage Materials"
+  crop_requirement: "CropStorage Materials"
+  mob_requirement: "MobStorage Materials"
+
 # Sound when opening this GUI
 gui_open_sound:
   enabled: true
@@ -210,3 +217,17 @@ items:
 selection_lore:
   result: "&7for the result item"
   requirement: "&7as a requirement"
+  crop_requirement: "&7as a CropStorage requirement"
+  mob_requirement: "&7as a MobStorage requirement"
+
+selection_item_lore:
+  crop_requirement:
+    - "&7Click to add this crop item"
+    - "#selection_type_lore#"
+    - "&7Source: &a#storage_type#"
+    - "&7ID: &f#material_id#"
+  mob_requirement:
+    - "&7Click to add this mob drop"
+    - "#selection_type_lore#"
+    - "&7Source: &c#storage_type#"
+    - "&7ID: &f#material_id#"

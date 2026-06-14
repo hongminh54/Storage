@@ -6,7 +6,9 @@ import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.API.events.RecipeCraftEvent;
 import net.danh.storage.API.events.RecipeCreateEvent;
 import net.danh.storage.Listeners.ChatListener;
+import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.ParticleManager;
 import net.danh.storage.Manager.SoundManager;
@@ -622,14 +624,34 @@ public class CraftingManager {
             }
             return MythicStorageManager.getPlayerItem(player, mythicId);
         }
+
+        String cropItem = getTypedStorageItemId(normalized, "crop");
+        if (cropItem != null) {
+            if (!CropStorageManager.isSystemEnabled()) {
+                return 0;
+            }
+            return CropStorageManager.getPlayerItem(player, cropItem);
+        }
+
+        String mobItem = getTypedStorageItemId(normalized, "mob");
+        if (mobItem != null) {
+            if (!MobStorageManager.isSystemEnabled()) {
+                return 0;
+            }
+            return MobStorageManager.getPlayerItem(player, mobItem);
+        }
         return MineManager.getPlayerBlock(player, normalized);
     }
 
     private static String getMythicItemId(String normalizedKey) {
+        return getTypedStorageItemId(normalizedKey, "mythic");
+    }
+
+    private static String getTypedStorageItemId(String normalizedKey, String type) {
         if (normalizedKey == null || normalizedKey.isEmpty()) {
             return null;
         }
-        if (!normalizedKey.startsWith("mythic;")) {
+        if (!normalizedKey.startsWith(type + ";")) {
             return null;
         }
         String[] parts = normalizedKey.split(";", 3);
@@ -973,6 +995,30 @@ public class CraftingManager {
                     return false;
                 }
                 if (!MythicStorageManager.removeItemAmount(player, mythicId,
+                        totalRequired, true)) {
+                    return false;
+                }
+                continue;
+            }
+
+            String cropItem = getTypedStorageItemId(normalizedMaterial, "crop");
+            if (cropItem != null) {
+                if (!CropStorageManager.isSystemEnabled()) {
+                    return false;
+                }
+                if (!CropStorageManager.removeItemAmount(player, cropItem,
+                        totalRequired, true)) {
+                    return false;
+                }
+                continue;
+            }
+
+            String mobItem = getTypedStorageItemId(normalizedMaterial, "mob");
+            if (mobItem != null) {
+                if (!MobStorageManager.isSystemEnabled()) {
+                    return false;
+                }
+                if (!MobStorageManager.removeItemAmount(player, mobItem,
                         totalRequired, true)) {
                     return false;
                 }

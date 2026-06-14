@@ -6,6 +6,7 @@ import net.danh.storage.Action.MobWithdraw;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.GUI.Mob.MobStorageGUI;
 import net.danh.storage.Manager.Mob.MobStorageManager;
+import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.Number;
@@ -21,10 +22,15 @@ import java.util.stream.Collectors;
 
 public class MobStorageCommandManager extends BaseCommand {
 
-    private static final List<String> USER_COMMANDS = Arrays.asList("help", "toggle", "view", "deposit", "withdraw", "sell", "autosell", "itemtoggle", "groundstore");
+    private static final List<String> USER_COMMANDS = Arrays.asList("help", "toggle", "view", "deposit", "withdraw", "sell", "autosell", "itemtoggle", "groundstore", "reload");
     private static final List<String> ADMIN_COMMANDS = Arrays.asList("add", "remove", "set", "max", "reload");
 
     public void handleCommand(CommandSender sender, String[] args) {
+        if (args.length > 0 && isReloadCommand(args)) {
+            reload(sender);
+            return;
+        }
+
         if (!MobStorageManager.isSystemEnabled()) {
             sendMessage(sender, "mobstorage.system_disabled");
             return;
@@ -41,7 +47,9 @@ public class MobStorageCommandManager extends BaseCommand {
             return;
         }
 
-        if ("help".equals(commandName)) {
+        if ("reload".equals(commandName)) {
+            reload(sender);
+        } else if ("help".equals(commandName)) {
             sendMessageList(sender, "mobstorage.user.help");
         } else if ("toggle".equals(commandName)) {
             toggle(sender);
@@ -374,11 +382,7 @@ public class MobStorageCommandManager extends BaseCommand {
             return;
         }
         if ("reload".equals(action)) {
-            File.getFileSetting().reload("mobstorage.yml");
-            File.updateMobStorageConfig();
-            MobStorageManager.reloadConfiguredDrops();
-            reloadOnlinePlayers();
-            sendMessage(sender, "mobstorage.admin.reload_success");
+            reload(sender);
             return;
         }
         if ("max".equals(action)) {
@@ -390,6 +394,13 @@ public class MobStorageCommandManager extends BaseCommand {
             return;
         }
         sendMessage(sender, "mobstorage.admin.unknown_command", "#command#", action);
+    }
+
+    private boolean isReloadCommand(String[] args) {
+        if ("reload".equalsIgnoreCase(args[0])) {
+            return true;
+        }
+        return args.length >= 2 && "admin".equalsIgnoreCase(args[0]) && "reload".equalsIgnoreCase(args[1]);
     }
 
     private void adminMax(CommandSender sender, String[] args) {
@@ -455,7 +466,7 @@ public class MobStorageCommandManager extends BaseCommand {
     }
 
     private long countEligibleItems(Player player, String itemName) {
-        Material material = Material.getMaterial(itemName.toUpperCase(Locale.ENGLISH));
+        Material material = MobStorageManager.resolveMaterial(itemName.toUpperCase(Locale.ENGLISH));
         if (material == null) {
             return 0;
         }
@@ -482,6 +493,19 @@ public class MobStorageCommandManager extends BaseCommand {
             MobStorageManager.savePlayerData(player);
             MobStorageManager.loadPlayerData(player);
         }
+    }
+
+    private void reload(CommandSender sender) {
+        if (!sender.hasPermission("storage.mobstorage.admin.reload") && !sender.hasPermission("storage.mobstorage.admin")) {
+            sendMessage(sender, "mobstorage.admin.no_permission");
+            return;
+        }
+        File.getFileSetting().reload("mobstorage.yml", "GUI/mobstorage.yml", "GUI/mob-items.yml", "message.yml");
+        File.updateMobStorageConfig();
+        MobStorageManager.reloadConfiguredDrops();
+        AutoPickupCache.reload();
+        reloadOnlinePlayers();
+        sendMessage(sender, "mobstorage.admin.reload_success");
     }
 
     public List<String> getCommandTabCompletions(CommandSender sender, String[] args) {
