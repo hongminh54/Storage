@@ -1,0 +1,229 @@
+# MobStorage Configuration
+
+mobstorage_version: 2
+
+blacklist_world:
+  - defaultworld
+  - exampleworld
+
+settings:
+  enabled: true
+  default_max_storage: 5000
+  # PERMISSION: use permission-based value.
+  # DATABASE: use database value from commands/external systems.
+  # MAX: use the higher value between permission and database.
+  # MIN: use the lower value between permission and database.
+  max_storage_mode: PERMISSION
+  default_auto_pickup: false
+  allow_custom_item_meta: false
+  ignore_mythic_items: true
+
+sell_method: commands
+number_format: "#.##"
+sell:
+  - "eco give #player# #money#"
+
+auto_sell:
+  enabled: true
+  trigger: BOTH
+  default_delay: 5
+
+enabled_groups:
+  passive: true
+  neutral: true
+  hostile: true
+  boss: false
+  utility: false
+
+mob_groups:
+  passive:
+    - COW
+    - MUSHROOM_COW
+    - CHICKEN
+    - PIG
+    - SHEEP
+    - RABBIT
+    - HORSE
+    - DONKEY
+    - MULE
+    - LLAMA
+    - TURTLE
+    - COD
+    - SALMON
+    - PUFFERFISH
+    - TROPICAL_FISH
+  neutral:
+    - ENDERMAN
+    - SPIDER
+    - CAVE_SPIDER
+    - WOLF
+    - BEE
+    - ZOMBIFIED_PIGLIN
+    - PIG_ZOMBIE
+    - PIGLIN
+    - POLAR_BEAR
+    - DOLPHIN
+  hostile:
+    - ZOMBIE
+    - SKELETON
+    - CREEPER
+    - BLAZE
+    - DROWNED
+    - HUSK
+    - STRAY
+    - WITCH
+    - SLIME
+    - MAGMA_CUBE
+    - GHAST
+    - PHANTOM
+    - WITHER_SKELETON
+    - ZOMBIE_VILLAGER
+    - SILVERFISH
+    - ENDERMITE
+  boss:
+    - ENDER_DRAGON
+    - WITHER
+  utility:
+    - IRON_GOLEM
+    - SNOWMAN
+    - VILLAGER
+    - WANDERING_TRADER
+
+ground_store:
+  enabled: true
+  default_enabled: false
+  allowed_items:
+    - ROTTEN_FLESH
+    - BONE
+    - STRING
+  notification:
+    actionbar:
+      enable: true
+    title:
+      enable: true
+  sound:
+    enabled: true
+    name: ENTITY_ITEM_PICKUP
+    volume: 0.7
+    pitch: 1.0
+
+mob_storage_permissions:
+  vip:
+    max_storage: 200
+    priority: 1
+  premium:
+    max_storage: 500
+    priority: 2
+  ultimate:
+    max_storage: 1000
+    priority: 3
+
+storage_full_notification:
+  enabled: true
+  cooldown_seconds: 10
+
+notification:
+  title:
+    enable: false
+    item_added:
+      title: "&a+ #amount# #item#"
+      subtitle: "&a#storage#&7/&a#max#"
+    storage_full:
+      title: "&cMobStorage Full!"
+      subtitle: "&7(&c#storage#&7/&c#max#&7)"
+  actionbar:
+    enable: true
+    item_added: "&a+ #amount# #item# &7| &a#storage#&7/&a#max#"
+    storage_full: "&cMobStorage Full! &7(&c#storage#&7/&c#max#&7)"
+
+worth:
+  ROTTEN_FLESH: 0.5
+  BONE: 0.75
+  ARROW: 0.5
+  STRING: 0.5
+  SPIDER_EYE: 1.0
+  GUNPOWDER: 1.5
+  ENDER_PEARL: 3.0
+  LEATHER: 1.0
+  BEEF: 1.0
+  COOKED_BEEF: 1.5
+  CHICKEN: 0.8
+  COOKED_CHICKEN: 1.2
+  PORKCHOP: 1.0
+  COOKED_PORKCHOP: 1.5
+  MUTTON: 1.0
+  COOKED_MUTTON: 1.5
+  RABBIT: 1.0
+  COOKED_RABBIT: 1.5
+  RABBIT_HIDE: 0.75
+  RABBIT_FOOT: 5.0
+  SLIME_BALL: 2.0
+  BLAZE_ROD: 4.0
+  GHAST_TEAR: 8.0
+  PHANTOM_MEMBRANE: 5.0
+  FEATHER: 0.5
+  EGG: 0.3
+  WOOL: 0.8
+  WHITE_WOOL: 0.8
+  INK_SAC: 1.0
+  PRISMARINE_SHARD: 2.0
+  PRISMARINE_CRYSTALS: 2.0
+
+items_drop:
+  - ROTTEN_FLESH
+  - BONE
+  - ARROW
+  - STRING
+  - SPIDER_EYE
+  - GUNPOWDER
+  - ENDER_PEARL
+  - LEATHER
+  - BEEF
+  - COOKED_BEEF
+  - CHICKEN
+  - COOKED_CHICKEN
+  - PORKCHOP
+  - COOKED_PORKCHOP
+  - MUTTON
+  - COOKED_MUTTON
+  - RABBIT
+  - COOKED_RABBIT
+  - RABBIT_HIDE
+  - RABBIT_FOOT
+  - SLIME_BALL
+  - BLAZE_ROD
+  - GHAST_TEAR
+  - PHANTOM_MEMBRANE
+  - FEATHER
+  - EGG
+  - WOOL
+  - WHITE_WOOL
+  - INK_SAC
+  - PRISMARINE_SHARD
+  - PRISMARINE_CRYSTALS
+
+mob_display_names:
+  ROTTEN_FLESH: "&aRotten Flesh"
+  BONE: "&fBone"
+  ARROW: "&fArrow"
+  STRING: "&fString"
+  SPIDER_EYE: "&cSpider Eye"
+  GUNPOWDER: "&7Gunpowder"
+  ENDER_PEARL: "&5Ender Pearl"
+  LEATHER: "&6Leather"
+  BEEF: "&cRaw Beef"
+  COOKED_BEEF: "&6Steak"
+  CHICKEN: "&cRaw Chicken"
+  COOKED_CHICKEN: "&6Cooked Chicken"
+  PORKCHOP: "&cRaw Porkchop"
+  COOKED_PORKCHOP: "&6Cooked Porkchop"
+  MUTTON: "&cRaw Mutton"
+  COOKED_MUTTON: "&6Cooked Mutton"
+  RABBIT: "&cRaw Rabbit"
+  COOKED_RABBIT: "&6Cooked Rabbit"
+  RABBIT_HIDE: "&6Rabbit Hide"
+  RABBIT_FOOT: "&eRabbit Foot"
+  SLIME_BALL: "&aSlime Ball"
+  BLAZE_ROD: "&6Blaze Rod"
+  GHAST_TEAR: "&fGhast Tear"
+  PHANTOM_MEMBRANE: "&bPhantom Membrane"

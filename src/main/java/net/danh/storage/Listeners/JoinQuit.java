@@ -10,10 +10,12 @@ import net.danh.storage.GUI.Crop.CropStorageGUI;
 import net.danh.storage.GUI.Crop.CropTransferGUI;
 import net.danh.storage.GUI.Crop.CropTransferMultiGUI;
 import net.danh.storage.GUI.Crop.ViewCropStorageGUI;
+import net.danh.storage.GUI.Mob.MobStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
 import net.danh.storage.GUI.Mythic.ViewMythicStorageGUI;
+import net.danh.storage.Listeners.Mob.MobDeath;
 import net.danh.storage.Listeners.Mythic.MythicMobDeath;
 import net.danh.storage.Manager.Crafting.CraftingManager;
 import net.danh.storage.Manager.Crafting.RecipeEditManager;
@@ -21,6 +23,7 @@ import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.*;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
@@ -40,6 +43,7 @@ public class JoinQuit implements Listener {
         MineManager.loadPlayerData(p);
         MythicStorageManager.loadPlayerData(p);
         CropStorageManager.loadPlayerData(p);
+        MobStorageManager.loadPlayerData(p);
         FriendManager.loadPlayerDataAsync(p, () -> {
             if (p.isOnline()) {
                 FriendManager.notifyPendingRequests(p);
@@ -52,6 +56,7 @@ public class JoinQuit implements Listener {
             }
             MineManager.scheduleAutoSellOnJoin(p);
             CropStorageManager.scheduleAutoSellOnJoin(p);
+            MobStorageManager.scheduleAutoSellOnJoin(p);
         }, 1L);
     }
 
@@ -71,17 +76,26 @@ public class JoinQuit implements Listener {
             CropStorageManager.savePlayerData(p);
             CropStorageManager.cleanupPlayerData(p);
         }
+        if (MobStorageManager.isSystemEnabled()) {
+            MobStorageManager.savePlayerData(p);
+            MobStorageManager.cleanupPlayerData(p);
+            MobDeath.cleanupPlayer(p);
+        }
         PersonalStorage.playerCurrentPage.remove(p.getUniqueId());
         MythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ViewMythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         CropStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ViewCropStorageGUI.playerCurrentPage.remove(p.getUniqueId());
+        MobStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ChatListener.chat_return_page.remove(p.getUniqueId());
         ChatListener.chat_mythic_withdraw.remove(p.getUniqueId());
         ChatListener.chat_mythic_deposit.remove(p.getUniqueId());
         ChatListener.chat_crop_withdraw.remove(p.getUniqueId());
         ChatListener.chat_crop_deposit.remove(p.getUniqueId());
         ChatListener.chat_crop_sell.remove(p.getUniqueId());
+        ChatListener.chat_mob_withdraw.remove(p.getUniqueId());
+        ChatListener.chat_mob_deposit.remove(p.getUniqueId());
+        ChatListener.chat_mob_sell.remove(p.getUniqueId());
 
 
         // Cleanup transfer data

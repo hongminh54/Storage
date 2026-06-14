@@ -1,4 +1,4 @@
-message_version: 8
+message_version: 10
 admin:
   new_version_available: "#prefix# &6&lNew version is available. You are using &e&lv#old_version#&6&l, new version &e&lv#new_version#"
   add_material_amount: "#prefix# &bAdded &6#amount# #material# &bto &e#player#"
@@ -850,4 +850,87 @@ action:
     chat_number: "#prefix# &aHow many crops do you want to withdraw? &7(Type 'cancel' to exit)"
     owner_not_enough: "#prefix# &c#player# &cdoesn't have enough crops!"
     success: "#prefix# &aWithdrew &e#amount# #material# &afrom &e#player#'s&a CropStorage."
+
+mobstorage:
+  viewing_storage: "#prefix# &aViewing &e#player#'s &aMobStorage"
+  player_not_found: "#prefix# &cPlayer &e#player# &cnot found or offline"
+  invalid_item: "#prefix# &cInvalid mob drop item: &e#item#"
+  system_disabled: "#prefix# &cMobStorage feature is disabled!"
+  no_items: "#prefix# &cNo MobStorage items found."
+  status_enabled: "&aEnabled"
+  status_disabled: "&cDisabled"
+  sellable:
+    "yes": "&a✔"
+    "no": "&c✘"
+  autosell:
+    "yes": "&a✔"
+    "no": "&c✘"
+    system_disabled: "#prefix# &cMobStorage AutoSell is disabled by server configuration."
+    toggle_on: "#prefix# &aAutoSell enabled for &e#material#"
+    toggle_off: "#prefix# &cAutoSell disabled for &e#material#"
+    cleared: "#prefix# &aCleared &e#count# &aAutoSell mob drops."
+    list: "#prefix# &aAutoSell mob drops: &f#items#"
+    list_empty: "#prefix# &7You don't have any AutoSell mob drops enabled."
+  toggle_enabled: "#prefix# &aMobStorage auto-pickup enabled!"
+  toggle_disabled: "#prefix# &cMobStorage auto-pickup disabled!"
+  ground_store_toggle_on: "#prefix# &aMobStorage ground-store mode enabled."
+  ground_store_toggle_off: "#prefix# &cMobStorage ground-store mode disabled."
+  ground_store_system_disabled: "#prefix# &cMobStorage ground-store mode is disabled by server configuration."
+  ground_store_no_permission: "#prefix# &cYou don't have permission to use this feature."
+  item_toggle: "#prefix# &aMobStorage auto-pickup for &e#item#&a: #status#"
+  action:
+    withdraw:
+      chat_number: "#prefix# &aHow many mob drops do you want to withdraw? &7(Type 'cancel' to exit)"
+      withdraw_item: "#prefix# &aYou withdrew &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      not_enough: "#prefix# &cYou don't have enough items! You only have &e#amount#"
+      inventory_full: "#prefix# &cYour inventory is full! Cannot withdraw more items"
+    deposit:
+      chat_number: "#prefix# &aHow many mob drops do you want to deposit? &7(Type 'cancel' to exit)"
+      deposit_item: "#prefix# &aYou deposited &ex#amount# #material# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      full_storage: "#prefix# &cStorage is full &8(#item_amount#/#max_storage#)&c, cannot deposit &e#amount# #material#"
+      no_items: "#prefix# &cYou don't have this mob drop item in your inventory!"
+    sell:
+      chat_number: "#prefix# &aHow many mob drops do you want to sell? &7(Type 'cancel' to exit)"
+      sell_item: "#prefix# &aYou sold &e#amount# #material# &aand got &e#money# &7| &a#item_amount#&7/&a#max_storage# &7Items"
+      not_enough: "#prefix# &cYou don't have enough items! You only have &e<amount>"
+      no_worth_config: "#prefix# &cMobStorage sell worth is not configured."
+      item_not_sellable: "#prefix# &cThis mob drop is not sellable!"
+      can_not_sell: "#prefix# &cThis mob drop can't be sold."
+      failed_to_remove: "#prefix# &cFailed to remove items from MobStorage."
+      payout_error: "#prefix# &cAn error occurred while processing your payment. Attempting command fallback..."
+      payout_fixed: "#prefix# &aFixed! You have received your money."
+      playerpoints:
+        payout_error: "#prefix# &cAn error occurred while processing your points. Attempting command fallback..."
+        payout_fixed: "#prefix# &aFixed! You have received your points."
+  user:
+    help:
+      - "&6=== &eMobStorage Commands &6==="
+      - "&e/mobstorage &f- &7Open MobStorage GUI"
+      - "&e/mobstorage toggle &f- &7Toggle auto-pickup"
+      - "&e/mobstorage groundstore &f- &7Toggle ground-store"
+      - "&e/mobstorage itemtoggle &a<item> &f- &7Toggle item auto-pickup"
+      - "&e/mobstorage deposit &a<item> &b[amount|all] &f- &7Deposit mob drops from inventory"
+      - "&e/mobstorage withdraw &a<item> &b[amount|all] &f- &7Withdraw mob drops to inventory"
+      - "&e/mobstorage sell &a<item> &b[amount|all] &f- &7Sell mob drops"
+      - "&e/mobstorage autosell &a<toggle|set|list|clear> &b[item] [on|off] &f- &7Manage AutoSell"
+      - "&e/mobstorage view &a[player] &f- &7View MobStorage contents"
+  admin:
+    add_success: "#prefix# &aAdded &e#amount#x #item# &ato &6#player#'s MobStorage"
+    remove_success: "#prefix# &aRemoved &e#amount#x #item# &afrom &6#player#'s MobStorage"
+    set_success: "#prefix# &aSet &e#item# &ato &6#amount# &afor &6#player#"
+    set_max_storage: "#prefix# &aSet MobStorage max of &e#player# &ato &b#amount#"
+    reload_success: "#prefix# &aMobStorage configuration reloaded!"
+    storage_full: "#prefix# &cStorage is full for &e#player#&c! Cannot add &e#amount#x #item#"
+    not_enough_items: "#prefix# &c#player# doesn't have enough &e#item# &cin MobStorage!"
+    no_permission: "#prefix# &cYou don't have permission to use this command"
+    unknown_command: "#prefix# &cUnknown command '&e#command#&c'. Type &e/mobstorage help &cfor available commands."
+    invalid_number: "#prefix# &c'&e#number#&c' is not a valid number!"
+    invalid_usage: "#prefix# &cInvalid usage! &eUsage: #usage#"
+    help:
+      - "&6=== &eMobStorage Admin Commands &6==="
+      - "&e/mobstorage admin add &a<player> &b<item> &6<amount> &f- &7Add items"
+      - "&e/mobstorage admin remove &a<player> &b<item> &6<amount> &f- &7Remove items"
+      - "&e/mobstorage admin set &a<player> &b<item> &6<amount> &f- &7Set item amount"
+      - "&e/mobstorage admin max &a<player> &6<amount> &f- &7Set max override"
+      - "&e/mobstorage admin reload &f- &7Reload MobStorage configuration"
 

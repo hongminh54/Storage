@@ -14,6 +14,7 @@ import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
@@ -200,6 +201,11 @@ public class PAPI extends PlaceholderExpansion {
         // MythicStorage Placeholders
         if (args.startsWith("mythic_")) {
             return handleMythicStoragePlaceholders(p, args);
+        }
+
+        // MobStorage Placeholders
+        if (args.startsWith("mob_")) {
+            return handleMobStoragePlaceholders(p, args);
         }
 
         // Storage Leaderboard Placeholders
@@ -882,6 +888,151 @@ public class PAPI extends PlaceholderExpansion {
         return "0";
     }
 
+    // MobStorage Placeholder Handlers
+    private String handleMobStoragePlaceholders(Player p, String args) {
+        if (!MobStorageManager.isSystemEnabled()) {
+            return "0";
+        }
+
+        String placeholder = args.substring(4); // Remove "mob_"
+
+        if (placeholder.equals("percentage")) {
+            return String.valueOf(getMobStoragePercentage(p));
+        }
+
+        if (placeholder.equals("total_items")) {
+            Map<String, Integer> items = MobStorageManager.getPlayerAllItems(p);
+            return String.valueOf(items.size());
+        }
+
+        if (placeholder.equals("total_amount")) {
+            Map<String, Integer> items = MobStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            return String.valueOf(total);
+        }
+
+        if (placeholder.equals("total_amount_formatted")) {
+            Map<String, Integer> items = MobStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            return formatNumber(total);
+        }
+
+        if (placeholder.equals("max_storage")) {
+            return String.valueOf(MobStorageManager.getMaxStorage(p));
+        }
+
+        if (placeholder.equals("available_space")) {
+            Map<String, Integer> items = MobStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            int max = MobStorageManager.getMaxStorage(p);
+            return String.valueOf(Math.max(0, max - total));
+        }
+
+        if (placeholder.equals("available_space_formatted")) {
+            Map<String, Integer> items = MobStorageManager.getPlayerAllItems(p);
+            int total = items.values().stream().mapToInt(Integer::intValue).sum();
+            int max = MobStorageManager.getMaxStorage(p);
+            return formatNumber(Math.max(0, max - total));
+        }
+
+        if (placeholder.equals("autopickup_status")) {
+            boolean status = MobStorageManager.getToggleStatus(p);
+            return status ?
+                    File.getMessage().getString("mobstorage.status_enabled", "Enabled") :
+                    File.getMessage().getString("mobstorage.status_disabled", "Disabled");
+        }
+
+        if (placeholder.equals("groundstore_status")) {
+            boolean status = MobStorageManager.isGroundStoreEnabled(p);
+            return status ?
+                    File.getMessage().getString("mobstorage.status_enabled", "Enabled") :
+                    File.getMessage().getString("mobstorage.status_disabled", "Disabled");
+        }
+
+        if (placeholder.startsWith("top_")) {
+            return handleMobLeaderboardPlaceholders(placeholder.substring(4));
+        }
+
+        if (placeholder.endsWith("_amount_formatted")) {
+            String itemName = placeholder.substring(0, placeholder.length() - 17);
+            if (MobStorageManager.isConfiguredDrop(itemName)) {
+                return formatNumber(MobStorageManager.getPlayerItem(p, itemName));
+            }
+            return "0";
+        }
+
+        if (placeholder.endsWith("_amount")) {
+            String itemName = placeholder.substring(0, placeholder.length() - 7);
+            if (MobStorageManager.isConfiguredDrop(itemName)) {
+                return String.valueOf(MobStorageManager.getPlayerItem(p, itemName));
+            }
+            return "0";
+        }
+
+        if (!placeholder.startsWith("total_")
+                && !placeholder.startsWith("autopickup_")
+                && !placeholder.startsWith("groundstore_")
+                && !placeholder.startsWith("max_")
+                && !placeholder.startsWith("top_")
+                && !placeholder.startsWith("available_")
+                && !placeholder.equals("percentage")) {
+            String itemName = placeholder;
+            if (MobStorageManager.isConfiguredDrop(itemName)) {
+                return MobStorageManager.getItemDisplayName(itemName);
+            }
+            return itemName;
+        }
+
+        return "0";
+    }
+
+    private String handleMobLeaderboardPlaceholders(String placeholder) {
+        String[] parts = placeholder.split("_");
+        if (parts.length < 3) {
+            return "N/A";
+        }
+
+        try {
+            int position = Integer.parseInt(parts[parts.length - 2]);
+            String type = parts[parts.length - 1];
+
+            StringBuilder itemNameBuilder = new StringBuilder();
+            for (int i = 0; i < parts.length - 2; i++) {
+                if (i > 0) itemNameBuilder.append("_");
+                itemNameBuilder.append(parts[i]);
+            }
+            String itemName = itemNameBuilder.toString();
+
+            if (!MobStorageManager.isConfiguredDrop(itemName)) {
+                return "N/A";
+            }
+
+            Map<String, Integer> leaderboard = new HashMap<>();
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                int amount = MobStorageManager.getPlayerItem(online, itemName);
+                if (amount > 0) {
+                    leaderboard.put(online.getName(), amount);
+                }
+            }
+
+            List<Map.Entry<String, Integer>> sortedList = leaderboard.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .collect(Collectors.toList());
+
+            if (position > 0 && position <= sortedList.size()) {
+                Map.Entry<String, Integer> entry = sortedList.get(position - 1);
+                if (type.equals("name")) {
+                    return entry.getKey();
+                } else if (type.equals("amount")) {
+                    return String.valueOf(entry.getValue());
+                }
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
+        return "N/A";
+    }
+
     private String handleMythicTransferPlaceholders(Player p, String placeholder) {
         MythicTransferDatabase transferDb = MythicTransferManager.getTransferDatabase();
         if (transferDb == null) {
@@ -1004,6 +1155,14 @@ public class PAPI extends PlaceholderExpansion {
         Map<String, Integer> items = MythicStorageManager.getPlayerAllItems(p);
         int total = items.values().stream().mapToInt(Integer::intValue).sum();
         int max = MythicStorageManager.getMaxStorage(p);
+        if (max <= 0) return 0;
+        return Math.min(100, (int) ((total * 100.0) / max));
+    }
+
+    private int getMobStoragePercentage(Player p) {
+        Map<String, Integer> items = MobStorageManager.getPlayerAllItems(p);
+        int total = items.values().stream().mapToInt(Integer::intValue).sum();
+        int max = MobStorageManager.getMaxStorage(p);
         if (max <= 0) return 0;
         return Math.min(100, (int) ((total * 100.0) / max));
     }

@@ -2,6 +2,7 @@ package net.danh.storage;
 
 import net.danh.storage.API.StorageAPI;
 import net.danh.storage.CMD.CropStorageCMD;
+import net.danh.storage.CMD.MobStorageCMD;
 import net.danh.storage.CMD.MythicStorageCMD;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
@@ -9,6 +10,7 @@ import net.danh.storage.GUI.GUI;
 import net.danh.storage.Listeners.*;
 import net.danh.storage.Listeners.Crop.CropBreak;
 import net.danh.storage.Listeners.LuckPerms.LuckPermsListener;
+import net.danh.storage.Listeners.Mob.MobDeath;
 import net.danh.storage.Listeners.Mythic.MythicMobDeath;
 import net.danh.storage.Listeners.Mythic.MythicMobsLoadListener;
 import net.danh.storage.Manager.*;
@@ -18,6 +20,7 @@ import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Manager.Friend.FriendManager;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
@@ -382,6 +385,7 @@ public final class Storage extends JavaPlugin {
         File.updateCraftingConfig();
         File.updateCropStorageConfig();
         File.updateFriendStorageConfig();
+        File.updateMobStorageConfig();
 
         MineManager.loadPlacedBlocks();
 
@@ -402,6 +406,7 @@ public final class Storage extends JavaPlugin {
         new StorageCMD("storage");
         new MythicStorageCMD("mythicstorage");
         new CropStorageCMD("cropstorage");
+        new MobStorageCMD("mobstorage");
 
         dataStorage = DatabaseFactory.createDatabase(this);
         dataStorage.load();
@@ -430,6 +435,9 @@ public final class Storage extends JavaPlugin {
 
         // Initialize CropStorage
         initializeCropStorage();
+
+        // Initialize MobStorage
+        initializeMobStorage();
 
         // Rebuild hot-path config cache now that all managers are fully initialized
         AutoPickupCache.reload();
@@ -588,10 +596,12 @@ public final class Storage extends JavaPlugin {
             MineManager.savePlayerData(p);
             MythicStorageManager.savePlayerData(p);
             CropStorageManager.savePlayerData(p);
+            MobStorageManager.savePlayerData(p);
             // Cleanup player-specific data from managers
             MineManager.cleanupPlayerData(p);
             MythicStorageManager.cleanupPlayerData(p);
             CropStorageManager.cleanupPlayerData(p);
+            MobStorageManager.cleanupPlayerData(p);
             SoundManager.cleanupPlayer(p);
         }
         TransferManager.cancelAllTransfers();
@@ -644,6 +654,20 @@ public final class Storage extends JavaPlugin {
             }
         } else {
             getLogger().info("[CropStorage] System disabled in config.");
+        }
+    }
+
+    private void initializeMobStorage() {
+        MobStorageManager.initialize();
+        if (MobStorageManager.isSystemEnabled()) {
+            getLogger().info("[MobStorage] System enabled, registering mob death listener...");
+            registerEvents(new MobDeath());
+
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                MobStorageManager.loadPlayerData(p);
+            }
+        } else {
+            getLogger().info("[MobStorage] System disabled in config.");
         }
     }
 }

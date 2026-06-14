@@ -6,6 +6,7 @@ import net.danh.storage.GUI.Crafting.RecipeListGUI;
 import net.danh.storage.GUI.Crop.CropStorageGUI;
 import net.danh.storage.GUI.Crop.CropTransferGUI;
 import net.danh.storage.GUI.Crop.CropTransferMultiGUI;
+import net.danh.storage.GUI.Mob.MobStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
@@ -46,6 +47,9 @@ public class ChatListener implements Listener {
     public static HashMap<UUID, String> chat_crop_withdraw = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_deposit = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_sell = new HashMap<>();
+    public static HashMap<UUID, String> chat_mob_withdraw = new HashMap<>();
+    public static HashMap<UUID, String> chat_mob_deposit = new HashMap<>();
+    public static HashMap<UUID, String> chat_mob_sell = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_multi_transfer_item = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_multi_transfer_target = new HashMap<>();
     public static HashMap<UUID, Integer> chat_return_page = new HashMap<>();
@@ -432,6 +436,105 @@ public class ChatListener implements Listener {
                                 .replace("<number>", message)));
             }
             chat_crop_sell.remove(playerId);
+            chat_return_page.remove(playerId);
+            e.setCancelled(true);
+        }
+
+        if (chat_mob_withdraw.containsKey(playerId)
+                && chat_mob_withdraw.get(playerId) != null) {
+            if (isCancelCommand(message)) {
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MobStorageGUI.getPlayerCurrentPage(p));
+                handleCancel(p,
+                        () -> p.openInventory(new MobStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                chat_mob_withdraw.remove(playerId);
+                chat_return_page.remove(playerId);
+                e.setCancelled(true);
+                return;
+            }
+            if (Number.getInteger(message) > 0) {
+                String itemName = chat_mob_withdraw.get(playerId);
+                int amount = Number.getInteger(message);
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MobStorageGUI.getPlayerCurrentPage(p));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new MobWithdraw(p, itemName, amount).doAction();
+                    SoundManager.playChatWithdrawSound(p);
+                    p.openInventory(new MobStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(
+                        ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                                .replace("<number>", message)));
+            }
+            chat_mob_withdraw.remove(playerId);
+            chat_return_page.remove(playerId);
+            e.setCancelled(true);
+        }
+
+        if (chat_mob_deposit.containsKey(playerId)
+                && chat_mob_deposit.get(playerId) != null) {
+            if (isCancelCommand(message)) {
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MobStorageGUI.getPlayerCurrentPage(p));
+                handleCancel(p,
+                        () -> p.openInventory(new MobStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                chat_mob_deposit.remove(playerId);
+                chat_return_page.remove(playerId);
+                e.setCancelled(true);
+                return;
+            }
+            if (Number.getInteger(message) > 0) {
+                String itemName = chat_mob_deposit.get(playerId);
+                int amount = Number.getInteger(message);
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MobStorageGUI.getPlayerCurrentPage(p));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new MobDeposit(p, itemName, amount).doAction();
+                    SoundManager.playChatDepositSound(p);
+                    p.openInventory(new MobStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(
+                        ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                                .replace("<number>", message)));
+            }
+            chat_mob_deposit.remove(playerId);
+            chat_return_page.remove(playerId);
+            e.setCancelled(true);
+        }
+
+        if (chat_mob_sell.containsKey(playerId)
+                && chat_mob_sell.get(playerId) != null) {
+            if (isCancelCommand(message)) {
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MobStorageGUI.getPlayerCurrentPage(p));
+                handleCancel(p,
+                        () -> p.openInventory(new MobStorageGUI(p, returnPage).getInventory(SoundContext.SILENT)));
+                chat_mob_sell.remove(playerId);
+                chat_return_page.remove(playerId);
+                e.setCancelled(true);
+                return;
+            }
+            if (Number.getInteger(message) > 0) {
+                String itemName = chat_mob_sell.get(playerId);
+                int amount = Number.getInteger(message);
+                int returnPage = chat_return_page.getOrDefault(playerId,
+                        MobStorageGUI.getPlayerCurrentPage(p));
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    new MobSell(p, itemName, amount).doAction();
+                    SoundManager.playChatSellSound(p);
+                    p.openInventory(new MobStorageGUI(p, returnPage).getInventory(SoundContext.SILENT));
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(
+                        ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                                .replace("<number>", message)));
+            }
+            chat_mob_sell.remove(playerId);
             chat_return_page.remove(playerId);
             e.setCancelled(true);
         }

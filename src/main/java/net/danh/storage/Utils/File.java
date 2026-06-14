@@ -4,6 +4,7 @@ import com.tchristofferson.configupdater.ConfigUpdater;
 import net.danh.storage.Manager.ConvertOreManager;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.MineManager;
+import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.Storage;
@@ -195,6 +196,18 @@ public class File {
         return getFileSetting().get("cropstorage.yml");
     }
 
+    public static FileConfiguration getMobStorageConfig() {
+        return getFileSetting().get("mobstorage.yml");
+    }
+
+    public static FileConfiguration getMobStorageGUIConfig() {
+        return getFileSetting().get("GUI/mobstorage.yml");
+    }
+
+    public static FileConfiguration getMobItemStorageGUIConfig() {
+        return getFileSetting().get("GUI/mob-items.yml");
+    }
+
     public static FileConfiguration getCropStorageGUIConfig() {
         return getFileSetting().get("GUI/cropstorage.yml");
     }
@@ -259,19 +272,20 @@ public class File {
     public static void loadFiles() {
         getFileSetting().build("", false, "config.yml", "message.yml", "events.yml", "enchants.yml",
                 "special_material.yml", "mythicstorage.yml", "cropstorage.yml", "crafting.yml",
-                "friendstorage.yml");
+                "friendstorage.yml", "mobstorage.yml");
         copyExampleFiles();
         AutoPickupCache.reload();
     }
 
     public static void reloadFiles() {
         getFileSetting().reload("config.yml", "message.yml", "events.yml", "enchants.yml", "special_material.yml",
-                "mythicstorage.yml", "cropstorage.yml", "crafting.yml", "friendstorage.yml",
+                "mythicstorage.yml", "cropstorage.yml", "crafting.yml", "friendstorage.yml", "mobstorage.yml",
                 "GUI/storage.yml", "GUI/items.yml",
                 "GUI/transfer.yml", "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml",
                 "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml",
                 "GUI/view-cropstorage.yml", "GUI/crop-items.yml", "GUI/crop-transfer.yml",
                 "GUI/crop-transfer-multi.yml",
+                "GUI/mobstorage.yml", "GUI/mob-items.yml",
                 "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml",
                 "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml",
                 "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml",
@@ -289,6 +303,11 @@ public class File {
                 CropStorageManager.savePlayerData(p);
                 CropStorageManager.loadPlayerData(p);
             }
+
+            if (MobStorageManager.isSystemEnabled()) {
+                MobStorageManager.savePlayerData(p);
+                MobStorageManager.loadPlayerData(p);
+            }
         }
         ConvertOreManager.loadConvertOptions();
         SpecialMaterialManager.loadSpecialMaterials();
@@ -300,6 +319,7 @@ public class File {
                 "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml",
                 "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml", "GUI/view-cropstorage.yml",
                 "GUI/crop-items.yml", "GUI/crop-transfer.yml", "GUI/crop-transfer-multi.yml",
+                "GUI/mobstorage.yml", "GUI/mob-items.yml",
                 "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml",
                 "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml",
                 "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");
@@ -347,6 +367,13 @@ public class File {
                 "cropstorage.yml",
                 "cropstorage_version",
                 "cropstorage config");
+    }
+
+    public static void updateMobStorageConfig() {
+        updateVersionedConfig(
+                "mobstorage.yml",
+                "mobstorage_version",
+                "mobstorage config");
     }
 
     public static void updateFriendStorageConfig() {

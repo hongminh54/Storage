@@ -35,6 +35,11 @@ public final class AutoPickupCache {
     private static volatile boolean cropTitleEnabled = false;
     private static volatile Set<String> cropBlacklist = Collections.emptySet();
 
+    // MobStorage (MobDeath + GroundStoreListener)
+    private static volatile boolean mobActionBarEnabled = false;
+    private static volatile boolean mobTitleEnabled = false;
+    private static volatile Set<String> mobBlacklist = Collections.emptySet();
+
 
     // MMOItems autosmelt hook
     private static volatile boolean mmoitemsAutoSmeltEnabled = true;
@@ -48,6 +53,7 @@ public final class AutoPickupCache {
             org.bukkit.configuration.file.FileConfiguration cfg = File.getConfig();
             org.bukkit.configuration.file.FileConfiguration mythic = File.getMythicStorageConfig();
             org.bukkit.configuration.file.FileConfiguration crop = File.getCropStorageConfig();
+            org.bukkit.configuration.file.FileConfiguration mob = File.getMobStorageConfig();
 
             //Storage
             preventRebreak = cfg.getBoolean("prevent_rebreak", false);
@@ -75,6 +81,13 @@ public final class AutoPickupCache {
             cropTitleEnabled = crop.getBoolean("notification.title.enable", false)
                     && crop.getBoolean("ground_store.notification.title.enable", true);
             cropBlacklist = immutableSet(crop.getStringList("blacklist_world"));
+
+            //MobStorage
+            mobActionBarEnabled = mob.getBoolean("notification.actionbar.enable", false)
+                    && mob.getBoolean("ground_store.notification.actionbar.enable", true);
+            mobTitleEnabled = mob.getBoolean("notification.title.enable", false)
+                    && mob.getBoolean("ground_store.notification.title.enable", true);
+            mobBlacklist = immutableSet(mob.getStringList("blacklist_world"));
 
         } catch (Exception ex) {
             getStorage().getLogger()
@@ -134,6 +147,14 @@ public final class AutoPickupCache {
         return cropTitleEnabled;
     }
 
+    public static boolean isMobActionBarEnabled() {
+        return mobActionBarEnabled;
+    }
+
+    public static boolean isMobTitleEnabled() {
+        return mobTitleEnabled;
+    }
+
     public static boolean isStorageWorldBlacklisted(@NotNull String worldName) {
         return !storageBlacklist.isEmpty() && storageBlacklist.contains(worldName);
     }
@@ -144,6 +165,10 @@ public final class AutoPickupCache {
 
     public static boolean isCropWorldBlacklisted(@NotNull String worldName) {
         return !cropBlacklist.isEmpty() && cropBlacklist.contains(worldName);
+    }
+
+    public static boolean isMobWorldBlacklisted(@NotNull String worldName) {
+        return !mobBlacklist.isEmpty() && mobBlacklist.contains(worldName);
     }
 
     public static boolean isFortuneWhitelisted(@NotNull String materialName) {

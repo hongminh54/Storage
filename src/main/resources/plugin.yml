@@ -28,7 +28,6 @@ commands:
   mythicstorage:
     description: MythicMobs storage command
     aliases:
-      - mstorage
       - mythics
       - khoquaivat
       - kqv
@@ -41,6 +40,14 @@ commands:
       - khonongsan
       - khons
       - cropss
+
+  mobstorage:
+    description: Mob drops storage command
+    aliases:
+      - khomob
+      - khosinhvat
+      - ksv
+      - mstore
       
 permissions:
   storage.user:
@@ -75,6 +82,14 @@ permissions:
       storage.cropstorage.transfer.use: true
       storage.cropstorage.transfer.multi: true
       storage.cropstorage.transfer.log: true
+      storage.mobstorage.use: true
+      storage.mobstorage.toggle: true
+      storage.mobstorage.groundstore: true
+      storage.mobstorage.view: true
+      storage.mobstorage.deposit: true
+      storage.mobstorage.withdraw: true
+      storage.mobstorage.sell: true
+      storage.mobstorage.autosell: true
       storage.friends.use: true
       storage.friends.add: true
       storage.friends.accept: true
@@ -131,6 +146,7 @@ permissions:
       storage.craft.admin: true
       storage.mythicstorage.admin: true
       storage.cropstorage.admin: true
+      storage.mobstorage.admin: true
       storage.cropstorage.transfer.log.others: true
       storage.preventrebreak.bypass: true
 
@@ -292,6 +308,68 @@ permissions:
 
   storage.cropstorage.transfer.log.others:
     description: View other players CropStorage transfer logs
+    default: op
+
+  storage.mobstorage.use:
+    description: Use mob storage feature
+    default: true
+
+  storage.mobstorage.toggle:
+    description: Toggle mob drop auto-pickup
+    default: true
+
+  storage.mobstorage.groundstore:
+    description: Toggle MobStorage ground-store
+    default: true
+
+  storage.mobstorage.view:
+    description: View MobStorage contents
+    default: true
+
+  storage.mobstorage.deposit:
+    description: Deposit mob drops into MobStorage
+    default: true
+
+  storage.mobstorage.withdraw:
+    description: Withdraw mob drops from MobStorage
+    default: true
+
+  storage.mobstorage.sell:
+    description: Sell mob drops from MobStorage
+    default: true
+
+  storage.mobstorage.autosell:
+    description: Toggle per-item AutoSell for MobStorage
+    default: true
+
+  storage.mobstorage.admin:
+    description: Admin commands for mob storage
+    default: op
+    children:
+      storage.mobstorage.admin.add: true
+      storage.mobstorage.admin.remove: true
+      storage.mobstorage.admin.set: true
+      storage.mobstorage.admin.max: true
+      storage.mobstorage.admin.reload: true
+
+  storage.mobstorage.admin.add:
+    description: Add items to MobStorage
+    default: op
+
+  storage.mobstorage.admin.remove:
+    description: Remove items from MobStorage
+    default: op
+
+  storage.mobstorage.admin.set:
+    description: Set items in MobStorage
+    default: op
+
+  storage.mobstorage.admin.max:
+    description: Set MobStorage max override
+    default: op
+
+  storage.mobstorage.admin.reload:
+    description: Reload MobStorage config
     default: op
 
   storage.preventrebreak.bypass:
