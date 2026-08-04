@@ -86,6 +86,7 @@ public class MobSell {
         if (requestedAmount <= 0 || worth <= 0) {
             return;
         }
+        current = MobStorageManager.getPlayerItem(player, itemName);
         if (current < requestedAmount) {
             player.sendMessage(ChatUtils.colorizewp(File.getMessage().getString(
                             "mobstorage.action.sell.not_enough",
@@ -213,15 +214,16 @@ public class MobSell {
         if (section == null || itemName == null) {
             return null;
         }
-        if (section.contains(itemName)) {
-            return itemName;
+        String normalized = itemName.replace(":", ";");
+        if (section.contains(normalized)) {
+            return normalized;
         }
-        String withZero = itemName + ";0";
+        String withZero = normalized + ";0";
         if (section.contains(withZero)) {
             return withZero;
         }
-        if (itemName.endsWith(";0")) {
-            String noData = itemName.substring(0, itemName.length() - 2);
+        if (normalized.endsWith(";0")) {
+            String noData = normalized.substring(0, normalized.length() - 2);
             if (section.contains(noData)) {
                 return noData;
             }
@@ -229,13 +231,6 @@ public class MobSell {
         return null;
     }
 
-    private static class WorthEntry {
-        private final double worth;
-        private final String methodOverride;
-
-        private WorthEntry(double worth, String methodOverride) {
-            this.worth = worth;
-            this.methodOverride = methodOverride;
-        }
+    private record WorthEntry(double worth, String methodOverride) {
     }
 }

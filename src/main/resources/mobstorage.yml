@@ -1,7 +1,8 @@
-# MobStorage Configuration
+#MobStorage Configuration
 
-mobstorage_version: 5
+mobstorage_version: 1
 
+# Worlds that will not be affected by MobStorage feature
 blacklist_world:
   - defaultworld
   - exampleworld
@@ -9,25 +10,113 @@ blacklist_world:
 settings:
   enabled: true
   default_max_storage: 5000
-  # PERMISSION: use permission-based value.
-  # DATABASE: use database value from commands/external systems.
-  # MAX: use the higher value between permission and database.
-  # MIN: use the lower value between permission and database.
+  #How to resolve max storage between database/commands and permissions.
+  # PERMISSION: Always use permission-based value.
+  # DATABASE: Always use database value (set by commands or external systems).
+  # MAX: Use the higher value between permission and database.
+  # MIN: Use the lower value between permission and database.
+  # Default: PERMISSION
   max_storage_mode: PERMISSION
   default_auto_pickup: false
+  # When true, store as much of a drop as fits when storage is nearly full
+  # and leave the remainder to drop on the ground.
+  partial_store_when_full: false
+  # When false, only plain vanilla drops are stored.
+  # Items with a custom display name, lore, enchantments, item flags or
+  # custom model data are skipped.
   allow_custom_item_meta: false
+  # When true, drops coming from MythicMobs are never stored in MobStorage.
   ignore_mythic_items: true
 
+# Sell payout method (global default)
+# - commands: Execute configured sell commands (default)
+# - vault: Deposit money via Vault economy; fallback to commands if Vault is unavailable or fails
+# - playerpoints: Give points via PlayerPoints; fallback to commands if PlayerPoints is unavailable or fails
+#
+# Note: You can override the payout method per item in `worth:` using "<price>;<method>".
 sell_method: commands
+
+# Number format used for money when selling mob drops
 number_format: "#.##"
+
+# Sell commands executed when paying via `commands` method or when fallback happens.
+# Placeholders:
+# - #player# : player name
+# - #money#  : formatted amount (see number_format)
 sell:
   - "eco give #player# #money#"
 
 auto_sell:
   enabled: true
+  # Trigger mode:
+  # - BOTH: autosell triggers on deposit AND when enabling autosell for an existing item.
+  # - DEPOSIT_ONLY: autosell triggers only when mob drops are added into MobStorage.
+  # - TOGGLE_ONLY: autosell triggers only when enabling autosell for an item that already exists in MobStorage.
+  # - DISABLED: autosell never triggers automatically.
   trigger: BOTH
+  # Default delay in seconds between auto-sell checks per item.
+  # You can override per-player with permissions:
+  # - storage.mobstorage.autosell.delay.<seconds>
   default_delay: 5
 
+# MobStorage transfer settings
+# Controls the /mobstorage transfer feature (single + multi) and history display.
+transfer:
+  enabled: true
+  # Delay in seconds before completing a transfer.
+  delay: 3
+  # Max number of history entries to show per page in /mobstorage transfer log
+  max_history_display: 10
+
+  particles:
+    enabled: true
+    processing:
+      animation: "circle"
+      type: "ENCHANTMENT_TABLE"
+      count: 8
+      speed: 0.1
+      radius: 1.5
+      duration: 3
+    beam:
+      animation: "line"
+      type: "FIREWORKS_SPARK"
+      count: 3
+      speed: 0.2
+      duration: 3
+    success:
+      animation: "burst"
+      type: "VILLAGER_HAPPY"
+      count: 15
+      speed: 0.1
+      radius: 2.0
+    receive:
+      animation: "circle"
+      type: "HEART"
+      count: 8
+      speed: 0.1
+      radius: 1.2
+    failed:
+      animation: "burst"
+      type: "SMOKE_NORMAL"
+      count: 12
+      speed: 0.15
+      radius: 1.8
+
+  sounds:
+    enabled: true
+    success:
+      name: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 1.0
+      pitch: 1.2
+    receive:
+      name: ENTITY_ITEM_PICKUP
+      volume: 0.8
+      pitch: 1.0
+
+# Mob drops that can be stored and their drop items.
+# Format: MOB_NAME;DROP;DROP;...
+# The mob name must match the vanilla EntityType name (e.g. ZOMBIE, SKELETON).
+# Each listed drop is stored separately when the mob dies.
 mob_drops:
   - ZOMBIE;ROTTEN_FLESH
   - HUSK;ROTTEN_FLESH
@@ -80,23 +169,44 @@ mob_drops:
   - SNOW_GOLEM;SNOWBALL
 
 ground_store:
+  # Enable/disable ground-store system for MobStorage.
   enabled: true
+
+  # Default toggle state for new players.
   default_enabled: false
+
+  # Items that will be stored when picked up from the ground.
+  # IMPORTANT:
+  # - This list depends on mob_drops.
+  # - If an item is not present in mob_drops, it will NOT be stored.
+  # These must match the Material names used in mob_drops.
+  # Examples:
+  # - ROTTEN_FLESH
+  # - BONE
   allowed_items:
     - ROTTEN_FLESH
     - BONE
     - STRING
+
+  # Notification settings for ground-store.
+  # These notifications reuse the existing MobStorage notification formats.
   notification:
     actionbar:
       enable: true
     title:
       enable: true
+
   sound:
     enabled: true
     name: ENTITY_ITEM_PICKUP
     volume: 0.7
     pitch: 1.0
 
+# MobStorage limit based on permissions
+# Players with permission storage.mobstorage.storage.<tier_name> will receive the configured max_storage
+# Priority system: higher number = higher priority (overrides lower priority)
+# If the player has multiple MobStorage limit permissions, the highest priority will be used
+# If no MobStorage limit permission is found, settings.default_max_storage will be used
 mob_storage_permissions:
   vip:
     max_storage: 200
@@ -107,6 +217,10 @@ mob_storage_permissions:
   ultimate:
     max_storage: 1000
     priority: 3
+  # You can add more permissions here.
+  # abc:
+  #  max_storage: 5000
+  #  priority: 4
 
 storage_full_notification:
   enabled: true
@@ -123,9 +237,15 @@ notification:
       subtitle: "&7(&c#storage#&7/&c#max#&7)"
   actionbar:
     enable: true
+    # Placeholders: #item#, #amount#, #storage#, #max#
     item_added: "&a+ #amount# #item# &7| &a#storage#&7/&a#max#"
     storage_full: "&cMobStorage Full! &7(&c#storage#&7/&c#max#&7)"
 
+# Worth per mob drop item. Key supports both MATERIAL and MATERIAL;0.
+# Format:
+# - Default: <price>
+# - With per-item payout override: "<price>;<method>" where method is one of: commands | vault | playerpoints
+#   (This overrides sell_method ONLY for that item)
 worth:
   ROTTEN_FLESH: 0.5
   BONE: 0.75
@@ -183,6 +303,9 @@ worth:
   PRISMARINE_SHARD: 2.0
   PRISMARINE_CRYSTALS: 2.0
 
+# Custom display names for mob drop items (optional)
+# If not set, the Material name will be used with proper formatting
+# Format: MATERIAL_NAME: "Display Name"
 mob_display_names:
   ROTTEN_FLESH: "&aRotten Flesh"
   BONE: "&fBone"

@@ -85,11 +85,10 @@ public class CropBreak implements Listener {
             return;
         }
 
-        if (!(data instanceof Ageable)) {
+        if (!(data instanceof Ageable ageable)) {
             return;
         }
 
-        Ageable ageable = (Ageable) data;
         if (ageable.getAge() < ageable.getMaximumAge()) {
             return;
         }
@@ -573,8 +572,7 @@ public class CropBreak implements Listener {
     private boolean isFullyGrown(@NotNull Block block) {
         try {
             BlockData data = block.getBlockData();
-            if (data instanceof Ageable) {
-                Ageable ageable = (Ageable) data;
+            if (data instanceof Ageable ageable) {
                 return ageable.getAge() >= ageable.getMaximumAge();
             }
             return true; // Non-ageable blocks are always "grown"

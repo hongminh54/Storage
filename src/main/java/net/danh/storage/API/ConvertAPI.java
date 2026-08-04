@@ -128,7 +128,7 @@ public class ConvertAPI {
         }
 
         // Calculate result amount
-        int conversions = amount / option.getFromAmount();
+        int conversions = amount / option.fromAmount();
         int resultAmount = option.calculateResultAmount(conversions);
 
         // Remove source material
@@ -175,7 +175,7 @@ public class ConvertAPI {
             return 0;
         }
 
-        int conversions = amount / option.getFromAmount();
+        int conversions = amount / option.fromAmount();
         return option.calculateResultAmount(conversions);
     }
 
@@ -205,8 +205,8 @@ public class ConvertAPI {
         }
 
         Map<String, Integer> ratio = new HashMap<>();
-        ratio.put("from", option.getFromAmount());
-        ratio.put("to", option.getToAmount());
+        ratio.put("from", option.fromAmount());
+        ratio.put("to", option.toAmount());
         return ratio;
     }
 
@@ -252,10 +252,7 @@ public class ConvertAPI {
     /**
      * Conversion request helper class
      */
-    public static class ConversionRequest {
-        public final String toMaterial;
-        public final int amount;
-
+    public record ConversionRequest(String toMaterial, int amount) {
         public ConversionRequest(@NotNull String toMaterial, int amount) {
             this.toMaterial = toMaterial;
             this.amount = amount;

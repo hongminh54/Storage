@@ -109,7 +109,7 @@ public class MythicStorageManager {
         }
 
         PlayerData data = Storage.dataStorage.getData(player.getName());
-        status = data != null ? parseGroundStoreStatus(data.getData()) : null;
+        status = data != null ? parseGroundStoreStatus(data.data()) : null;
         if (status == null) {
             status = File.getMythicStorageConfig().getBoolean(
                     "ground_store.default_enabled",
@@ -460,7 +460,7 @@ public class MythicStorageManager {
             return;
         }
 
-        String dataString = data.getData();
+        String dataString = data.data();
         if (dataString == null || dataString.isEmpty()) {
             int permissionMax = Math.max(0, getPermissionMaxStorage(player));
             playermaxdata.put(playerId, permissionMax);
@@ -535,7 +535,7 @@ public class MythicStorageManager {
             }
         }
 
-        int databaseMax = Math.max(0, data.getMax());
+        int databaseMax = Math.max(0, data.max());
         int permissionMax = Math.max(0, getPermissionMaxStorage(player));
         Integer overrideMax = maxOverrideData.get(playerId);
         int resolvedMax;
@@ -578,7 +578,7 @@ public class MythicStorageManager {
         }
 
         PlayerData existingData = Storage.dataStorage.getData(playerName);
-        String existingDataString = existingData != null ? existingData.getData() : "";
+        String existingDataString = existingData != null ? existingData.data() : "";
 
         StringBuilder finalData = new StringBuilder();
         if (existingDataString != null && !existingDataString.isEmpty()) {
@@ -654,7 +654,7 @@ public class MythicStorageManager {
 
         int maxStorage;
         if (existingData != null) {
-            maxStorage = existingData.getMax();
+            maxStorage = existingData.max();
         } else {
             maxStorage = File.getMythicStorageConfig().getInt(
                     "settings.default_max_storage",
@@ -769,11 +769,11 @@ public class MythicStorageManager {
         if (offlinePlayer != null) {
             UUID offlineId = offlinePlayer.getUniqueId();
             if (offlineId != null) {
-                playermaxdata.put(offlineId, Math.max(0, data.getMax()));
+                playermaxdata.put(offlineId, Math.max(0, data.max()));
             }
         }
 
-        String dataString = data.getData();
+        String dataString = data.data();
         if (dataString == null || dataString.isEmpty()) {
             return;
         }

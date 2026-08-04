@@ -18,6 +18,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -658,41 +659,9 @@ public class RecipeEditorGUI implements IGUI {
         player.openInventory(new RecipeEditorGUI(player, recipe).getInventory(SoundContext.SILENT));
     }
 
-    private static class RecipeBackup {
-        final String name;
-        final String category;
-        final boolean enabled;
-        final String resultMaterial;
-        final String resultName;
-        final List<String> resultLore;
-        final Map<String, Integer> resultEnchantments;
-        final int resultAmount;
-        final int resultCustomModelData;
-        final boolean resultUnbreakable;
-        final Set<org.bukkit.inventory.ItemFlag> resultFlags;
-        final Map<String, Integer> materialRequirements;
-        final String permissionRequirement;
-
-        RecipeBackup(String name, String category, boolean enabled,
-                     String resultMaterial, String resultName, List<String> resultLore,
-                     Map<String, Integer> resultEnchantments, int resultAmount,
-                     int resultCustomModelData, boolean resultUnbreakable,
-                     Set<org.bukkit.inventory.ItemFlag> resultFlags,
-                     Map<String, Integer> materialRequirements,
-                     String permissionRequirement) {
-            this.name = name;
-            this.category = category;
-            this.enabled = enabled;
-            this.resultMaterial = resultMaterial;
-            this.resultName = resultName;
-            this.resultLore = resultLore;
-            this.resultEnchantments = resultEnchantments;
-            this.resultAmount = resultAmount;
-            this.resultCustomModelData = resultCustomModelData;
-            this.resultUnbreakable = resultUnbreakable;
-            this.resultFlags = resultFlags;
-            this.materialRequirements = materialRequirements;
-            this.permissionRequirement = permissionRequirement;
-        }
+    private record RecipeBackup(String name, String category, boolean enabled, String resultMaterial, String resultName,
+                                List<String> resultLore, Map<String, Integer> resultEnchantments, int resultAmount,
+                                int resultCustomModelData, boolean resultUnbreakable, Set<ItemFlag> resultFlags,
+                                Map<String, Integer> materialRequirements, String permissionRequirement) {
     }
 }

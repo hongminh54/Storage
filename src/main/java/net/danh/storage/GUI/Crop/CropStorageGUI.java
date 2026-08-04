@@ -247,7 +247,7 @@ public class CropStorageGUI implements IGUI {
                                         ? ChatUtils.colorizewp(
                                         File.getMessage().getString("cropstorage.status_enabled", "&aEnabled"))
                                         : ChatUtils.colorizewp(File.getMessage()
-                                                               .getString("cropstorage.status_disabled", "&cDisabled"));
+                                        .getString("cropstorage.status_disabled", "&cDisabled"));
 
                                 itemStack = ItemManager.getItemConfigWithPlaceholders(player, section, "#status#",
                                         status);

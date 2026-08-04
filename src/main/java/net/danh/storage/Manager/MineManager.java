@@ -341,7 +341,7 @@ public class MineManager {
             Storage.db.createTable(playerStats);
             toggle.put(player.getUniqueId(), defaultAutoPickup);
         } else {
-            toggle.put(player.getUniqueId(), playerStats.isAutoPickup());
+            toggle.put(player.getUniqueId(), playerStats.autoPickup());
         }
 
         return playerStats;
@@ -359,7 +359,7 @@ public class MineManager {
         Boolean status = groundStoreToggle.get(playerId);
         if (status == null) {
             PlayerData playerData = getPlayerDatabase(player);
-            status = parseGroundStoreStatus(playerData.getData());
+            status = parseGroundStoreStatus(playerData.data());
             if (status == null) {
                 status = File.getConfig().getBoolean(
                         "ground_store.default_enabled",
@@ -985,15 +985,15 @@ public class MineManager {
 
     public static void loadPlayerData(Player p) {
         PlayerData playerData = getPlayerDatabase(p);
-        List<String> list = convertOnlineData(playerData.getData());
+        List<String> list = convertOnlineData(playerData.data());
 
-        int databaseMax = Math.max(0, playerData.getMax());
+        int databaseMax = Math.max(0, playerData.max());
         int permissionMax = Math.max(0, getPermissionMaxStorage(p));
         Integer overrideMax = null;
 
         setBlock(p, list);
 
-        String rawData = playerData.getData();
+        String rawData = playerData.data();
         if (rawData != null && !rawData.isEmpty()) {
             loadDisabledAutoPickupItems(p.getName(), rawData);
             loadAutoSellItems(p.getName(), rawData);
@@ -1016,7 +1016,7 @@ public class MineManager {
         }
 
         if (!toggle.containsKey(p.getUniqueId())) {
-            toggle.put(p.getUniqueId(), playerData.isAutoPickup());
+            toggle.put(p.getUniqueId(), playerData.autoPickup());
         }
 
         if (!groundStoreToggle.containsKey(p.getUniqueId())) {
@@ -1045,7 +1045,7 @@ public class MineManager {
         PlayerData existing = Storage.db.getData(p.getName());
         int maxToSave;
         if (existing != null) {
-            maxToSave = existing.getMax();
+            maxToSave = existing.max();
         } else {
             maxToSave = File.getConfig().getInt(
                     "settings.default_max_storage",
@@ -1152,8 +1152,8 @@ public class MineManager {
         Boolean status = toggle.get(playerId);
         if (status == null) {
             PlayerData playerData = getPlayerDatabase(p);
-            Boolean parsed = parseToggleStatus(playerData.getData());
-            status = parsed != null ? parsed : playerData.isAutoPickup();
+            Boolean parsed = parseToggleStatus(playerData.data());
+            status = parsed != null ? parsed : playerData.autoPickup();
             toggle.put(playerId, status);
         }
         return status;
@@ -1453,16 +1453,16 @@ public class MineManager {
         if (offlinePlayer != null) {
             UUID offlineId = offlinePlayer.getUniqueId();
             if (offlineId != null) {
-                playermaxdata.put(offlineId, Math.max(0, data.getMax()));
+                playermaxdata.put(offlineId, Math.max(0, data.max()));
             }
         }
 
-        String rawData = data.getData();
+        String rawData = data.data();
         if (rawData != null && !rawData.isEmpty()) {
             loadDisabledAutoPickupItems(playerName, rawData);
         }
 
-        List<String> list = convertOnlineData(data.getData());
+        List<String> list = convertOnlineData(data.data());
         for (String block : list) {
             String[] block_data = block.split(";");
             if (block_data.length >= 3) {
@@ -1503,10 +1503,7 @@ public class MineManager {
         playerdata.put(playerName + "_" + material, Math.max(0, current - amount));
     }
 
-    private static final class InvLookupKey {
-
-        private final Material material;
-        private final short durability;
+    private record InvLookupKey(Material material, short durability) {
 
         private InvLookupKey(@NotNull Material material, short durability) {
             this.material = material;
@@ -1518,10 +1515,9 @@ public class MineManager {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof InvLookupKey)) {
+            if (!(o instanceof InvLookupKey that)) {
                 return false;
             }
-            InvLookupKey that = (InvLookupKey) o;
             return durability == that.durability && material == that.material;
         }
 

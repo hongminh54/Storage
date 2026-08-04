@@ -39,7 +39,7 @@ public class CropResetLimitCommand extends CropCommand {
 
         if (existing != null) {
             Integer parsedOverride = null;
-            String rawData = existing.getData();
+            String rawData = existing.data();
             if (rawData != null && !rawData.isEmpty()) {
                 int idx = rawData.indexOf("cropmaxoverride:");
                 if (idx >= 0) {
@@ -58,12 +58,12 @@ public class CropResetLimitCommand extends CropCommand {
 
             if (parsedOverride != null
                     && parsedOverride >= 0
-                    && existing.getMax() == parsedOverride) {
+                    && existing.max() == parsedOverride) {
                 PlayerData cleaned = new PlayerData(
-                        existing.getPlayer(),
-                        existing.getData(),
+                        existing.player(),
+                        existing.data(),
                         Math.max(0, defaultMax),
-                        existing.isAutoPickup());
+                        existing.autoPickup());
                 Storage.dataStorage.updateTable(cleaned);
             }
         }

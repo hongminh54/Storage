@@ -52,8 +52,9 @@ public class MobDeposit {
 
         long deposited = 0;
         long toDeposit = requestedAmount;
+        long space = Math.max(0, (long) MobStorageManager.getMaxStorage(player) - MobStorageManager.getPlayerItem(player, upper));
 
-        for (int i = 0; i < contents.length && toDeposit > 0; i++) {
+        for (int i = 0; i < contents.length && toDeposit > 0 && space > 0; i++) {
             ItemStack item = contents[i];
             if (item == null || item.getType() != material) {
                 continue;
@@ -63,7 +64,7 @@ public class MobDeposit {
                 continue;
             }
 
-            int canDeposit = (int) Math.min(item.getAmount(), toDeposit);
+            int canDeposit = (int) Math.min(Math.min(item.getAmount(), toDeposit), space);
             if (MobStorageManager.addItemAmount(player, upper, canDeposit, false)) {
                 if (canDeposit == item.getAmount()) {
                     contents[i] = null;
@@ -72,6 +73,7 @@ public class MobDeposit {
                 }
                 deposited += canDeposit;
                 toDeposit -= canDeposit;
+                space -= canDeposit;
             } else {
                 sendFullMessage(upper, canDeposit);
                 break;
@@ -91,8 +93,15 @@ public class MobDeposit {
                     String.valueOf(MobStorageManager.getMaxStorage(player))
             };
             sendMessage("mobstorage.action.deposit.deposit_item", placeholders, replacements);
+            if (toDeposit > 0) {
+                sendFullMessage(upper, (int) Math.min(toDeposit, Integer.MAX_VALUE));
+            }
         } else {
-            sendMessage("mobstorage.action.deposit.no_items");
+            if (space <= 0 && requestedAmount > 0) {
+                sendFullMessage(upper, Math.min(requestedAmount, Integer.MAX_VALUE));
+            } else {
+                sendMessage("mobstorage.action.deposit.no_items");
+            }
         }
     }
 

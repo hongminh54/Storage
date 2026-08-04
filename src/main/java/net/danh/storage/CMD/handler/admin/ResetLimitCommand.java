@@ -42,7 +42,7 @@ public class ResetLimitCommand extends BaseCommand {
 
         if (existing != null) {
             Integer parsedOverride = null;
-            String rawData = existing.getData();
+            String rawData = existing.data();
             if (rawData != null && !rawData.isEmpty()) {
                 int idx = rawData.indexOf(";maxoverride:");
                 if (idx >= 0) {
@@ -61,12 +61,12 @@ public class ResetLimitCommand extends BaseCommand {
 
             if (parsedOverride != null
                     && parsedOverride >= 0
-                    && existing.getMax() == parsedOverride) {
+                    && existing.max() == parsedOverride) {
                 PlayerData cleaned = new PlayerData(
-                        existing.getPlayer(),
-                        existing.getData(),
+                        existing.player(),
+                        existing.data(),
                         Math.max(0, defaultMax),
-                        existing.isAutoPickup()
+                        existing.autoPickup()
                 );
                 Storage.db.updateTable(cleaned);
             }

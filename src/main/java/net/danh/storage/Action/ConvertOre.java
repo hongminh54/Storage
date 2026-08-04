@@ -37,9 +37,9 @@ public class ConvertOre {
         }
 
         int playerAmount = MineManager.getPlayerBlock(player, fromMaterial);
-        if (playerAmount < option.getFromAmount()) {
+        if (playerAmount < option.fromAmount()) {
             sendMessage("convert.insufficient_materials",
-                    "#required#", String.valueOf(option.getFromAmount()),
+                    "#required#", String.valueOf(option.fromAmount()),
                     "#current#", String.valueOf(playerAmount),
                     "#material#", getMaterialName(fromMaterial));
             return;
@@ -50,13 +50,13 @@ public class ConvertOre {
 
         if (actualConversions <= 0) {
             sendMessage("convert.insufficient_materials",
-                    "#required#", String.valueOf(option.getFromAmount()),
+                    "#required#", String.valueOf(option.fromAmount()),
                     "#current#", String.valueOf(playerAmount),
                     "#material#", getMaterialName(fromMaterial));
             return;
         }
 
-        int requiredAmount = actualConversions * option.getFromAmount();
+        int requiredAmount = actualConversions * option.fromAmount();
         int resultAmount = option.calculateResultAmount(actualConversions);
 
         int currentToAmount = MineManager.getPlayerBlock(player, toMaterial);
@@ -64,7 +64,7 @@ public class ConvertOre {
 
         if (currentToAmount + resultAmount > maxStorage) {
             int availableSpace = maxStorage - currentToAmount;
-            int maxPossibleConversions = availableSpace / option.getToAmount();
+            int maxPossibleConversions = availableSpace / option.toAmount();
 
             if (maxPossibleConversions <= 0) {
                 sendMessage("convert.storage_full", "#material#", getMaterialName(toMaterial));
@@ -72,7 +72,7 @@ public class ConvertOre {
             }
 
             actualConversions = maxPossibleConversions;
-            requiredAmount = actualConversions * option.getFromAmount();
+            requiredAmount = actualConversions * option.fromAmount();
             resultAmount = option.calculateResultAmount(actualConversions);
         }
 

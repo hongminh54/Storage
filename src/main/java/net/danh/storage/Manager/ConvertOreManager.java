@@ -91,7 +91,7 @@ public class ConvertOreManager {
     public static boolean canConvert(String fromMaterial, String toMaterial, int amount) {
         String key = fromMaterial + "_to_" + (toMaterial.contains("BLOCK") ? "block" : "ingot");
         ConvertOption option = convertOptions.get(key);
-        return option != null && amount >= option.getFromAmount();
+        return option != null && amount >= option.fromAmount();
     }
 
     public static ConvertOption getConvertOption(String fromMaterial, String toMaterial) {
@@ -179,50 +179,11 @@ public class ConvertOreManager {
         return new ConversionRatio(defaultIngotToBlock, defaultBlockToIngot);
     }
 
-    private static class ConversionRatio {
-        final int ingotToBlock;
-        final int blockToIngot;
-
-        ConversionRatio(int ingotToBlock, int blockToIngot) {
-            this.ingotToBlock = ingotToBlock;
-            this.blockToIngot = blockToIngot;
-        }
+    private record ConversionRatio(int ingotToBlock, int blockToIngot) {
     }
 
-    public static class ConvertOption {
-        private final String fromMaterial;
-        private final String toMaterial;
-        private final int fromAmount;
-        private final int toAmount;
-        private final String convertType;
-
-        public ConvertOption(String fromMaterial, String toMaterial, int fromAmount, int toAmount, String convertType) {
-            this.fromMaterial = fromMaterial;
-            this.toMaterial = toMaterial;
-            this.fromAmount = fromAmount;
-            this.toAmount = toAmount;
-            this.convertType = convertType;
-        }
-
-        public String getFromMaterial() {
-            return fromMaterial;
-        }
-
-        public String getToMaterial() {
-            return toMaterial;
-        }
-
-        public int getFromAmount() {
-            return fromAmount;
-        }
-
-        public int getToAmount() {
-            return toAmount;
-        }
-
-        public String getConvertType() {
-            return convertType;
-        }
+    public record ConvertOption(String fromMaterial, String toMaterial, int fromAmount, int toAmount,
+                                String convertType) {
 
         public String getDisplayName() {
             String fromName = File.getConfig().getString("items." + fromMaterial, fromMaterial.split(";")[0]);

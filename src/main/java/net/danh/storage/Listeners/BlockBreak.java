@@ -546,13 +546,12 @@ public class BlockBreak implements Listener {
                 1.5,
                 1.5,
                 1.5)) {
-            if (!(entity instanceof Item)) {
+            if (!(entity instanceof Item itemEntity)) {
                 continue;
             }
             if (entity.getTicksLived() > 2) {
                 continue;
             }
-            Item itemEntity = (Item) entity;
             ItemStack stack = itemEntity.getItemStack();
             if (stack == null) {
                 continue;
@@ -585,31 +584,16 @@ public class BlockBreak implements Listener {
         mmoitemsCapture.entrySet().removeIf(entry -> now - entry.getValue().createdAtMs > MMOITEMS_CAPTURE_TTL_MS);
     }
 
-    private static final class MmoitemsCaptureKey {
-        private final UUID playerId;
-        private final UUID worldId;
-        private final int x;
-        private final int y;
-        private final int z;
-
-        private MmoitemsCaptureKey(UUID playerId, UUID worldId,
-                                   int x, int y, int z) {
-            this.playerId = playerId;
-            this.worldId = worldId;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+    private record MmoitemsCaptureKey(UUID playerId, UUID worldId, int x, int y, int z) {
 
         @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof MmoitemsCaptureKey)) {
+            if (!(o instanceof MmoitemsCaptureKey that)) {
                 return false;
             }
-            MmoitemsCaptureKey that = (MmoitemsCaptureKey) o;
             return x == that.x
                     && y == that.y
                     && z == that.z
@@ -617,29 +601,8 @@ public class BlockBreak implements Listener {
                     && worldId.equals(that.worldId);
         }
 
-        @Override
-        public int hashCode() {
-            int result = playerId.hashCode();
-            result = 31 * result + worldId.hashCode();
-            result = 31 * result + x;
-            result = 31 * result + y;
-            result = 31 * result + z;
-            return result;
-        }
     }
 
-    private static final class MmoitemsCapture {
-        private final String materialName;
-        private final short data;
-        private final String dropKey;
-        private final long createdAtMs;
-
-        private MmoitemsCapture(String materialName, short data,
-                                String dropKey, long createdAtMs) {
-            this.materialName = materialName;
-            this.data = data;
-            this.dropKey = dropKey;
-            this.createdAtMs = createdAtMs;
-        }
+    private record MmoitemsCapture(String materialName, short data, String dropKey, long createdAtMs) {
     }
 }

@@ -14,7 +14,7 @@ public class CropReloadCommand extends CropCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        File.getFileSetting().reload("cropstorage.yml", "GUI/cropstorage.yml", "message.yml");
+        File.getFileSetting().reload("cropstorage.yml", "GUI/cropstorage.yml", "GUI/view-cropstorage.yml", "GUI/crop-items.yml", "GUI/crop-transfer.yml", "GUI/crop-transfer-multi.yml", "message.yml");
         CropStorageManager.reloadConfiguredDrops();
         CropTransferManager.initialize();
 

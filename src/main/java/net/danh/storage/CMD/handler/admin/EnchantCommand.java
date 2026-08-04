@@ -204,8 +204,7 @@ public class EnchantCommand extends BaseCommand {
         } else if (args.length == 2) {
             String subCommand = args[0].toLowerCase();
             if (subCommand.equals("give") || subCommand.equals("remove")) {
-                if (subCommand.equals("remove") && sender instanceof Player) {
-                    Player player = (Player) sender;
+                if (subCommand.equals("remove") && sender instanceof Player player) {
                     ItemStack item = player.getInventory().getItemInMainHand();
                     if (item == null || item.getType().name().equals("AIR")) {
                         return Collections.emptyList();

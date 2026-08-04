@@ -90,6 +90,7 @@ permissions:
       storage.mobstorage.withdraw: true
       storage.mobstorage.sell: true
       storage.mobstorage.autosell: true
+      storage.mobstorage.transfer.use: true
       storage.friends.use: true
       storage.friends.add: true
       storage.friends.accept: true
@@ -342,6 +343,22 @@ permissions:
     description: Toggle per-item AutoSell for MobStorage
     default: true
 
+  storage.mobstorage.transfer.use:
+    description: Transfer MobStorage items to other players
+    default: true
+
+  storage.mobstorage.transfer.multi:
+    description: Transfer multiple MobStorage items at once
+    default: true
+
+  storage.mobstorage.transfer.log:
+    description: View own MobStorage transfer logs
+    default: true
+
+  storage.mobstorage.transfer.log.others:
+    description: View other players MobStorage transfer logs
+    default: op
+
   storage.mobstorage.admin:
     description: Admin commands for mob storage
     default: op
@@ -350,6 +367,8 @@ permissions:
       storage.mobstorage.admin.remove: true
       storage.mobstorage.admin.set: true
       storage.mobstorage.admin.max: true
+      storage.mobstorage.admin.reset: true
+      storage.mobstorage.admin.resetlimit: true
       storage.mobstorage.admin.reload: true
 
   storage.mobstorage.admin.add:
@@ -368,9 +387,25 @@ permissions:
     description: Set MobStorage max override
     default: op
 
-  storage.mobstorage.admin.reload:
-    description: Reload MobStorage config
+  storage.mobstorage.admin.reset:
+    description: Reset MobStorage contents for a player
     default: op
+
+  storage.mobstorage.admin.resetlimit:
+    description: Reset MobStorage max override for a player
+    default: op
+
+  storage.mobstorage.storage:
+    description: Base node for storage tier permissions.
+    default: false
+
+  storage.mobstorage.storage.max:
+    description: Base node for max storage size permissions.
+    default: false
+
+  storage.mobstorage.autosell.delay:
+    description: Base node for AutoSell delay permissions.
+    default: false
 
   storage.preventrebreak.bypass:
     description: Bypass prevent rebreak placed-block protection

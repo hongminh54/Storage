@@ -322,25 +322,8 @@ public class StorageStatsAPI {
     /**
      * Storage statistics data class
      */
-    public static class StorageStats {
-        public final String playerName;
-        public final long totalItems;
-        public final int maxCapacity;
-        public final double usagePercentage;
-        public final int uniqueMaterials;
-        public final String topMaterial;
-        public final int rank;
-
-        public StorageStats(String playerName, long totalItems, int maxCapacity, double usagePercentage,
-                            int uniqueMaterials, String topMaterial, int rank) {
-            this.playerName = playerName;
-            this.totalItems = totalItems;
-            this.maxCapacity = maxCapacity;
-            this.usagePercentage = usagePercentage;
-            this.uniqueMaterials = uniqueMaterials;
-            this.topMaterial = topMaterial;
-            this.rank = rank;
-        }
+    public record StorageStats(String playerName, long totalItems, int maxCapacity, double usagePercentage,
+                               int uniqueMaterials, String topMaterial, int rank) {
 
         @Override
         public String toString() {
@@ -352,21 +335,8 @@ public class StorageStatsAPI {
     /**
      * Server statistics data class
      */
-    public static class ServerStats {
-        public final long totalItems;
-        public final long totalCapacity;
-        public final double averageUsage;
-        public final int totalPlayers;
-        public final int uniqueMaterials;
-
-        public ServerStats(long totalItems, long totalCapacity, double averageUsage,
-                           int totalPlayers, int uniqueMaterials) {
-            this.totalItems = totalItems;
-            this.totalCapacity = totalCapacity;
-            this.averageUsage = averageUsage;
-            this.totalPlayers = totalPlayers;
-            this.uniqueMaterials = uniqueMaterials;
-        }
+    public record ServerStats(long totalItems, long totalCapacity, double averageUsage, int totalPlayers,
+                              int uniqueMaterials) {
 
         @Override
         public String toString() {

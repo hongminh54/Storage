@@ -235,15 +235,13 @@ public class GUIClickListener implements Listener {
                 }
             }
 
-            if (e.getInventory().getHolder() instanceof ViewStorageGUI) {
-                ViewStorageGUI gui = (ViewStorageGUI) e.getInventory().getHolder();
+            if (e.getInventory().getHolder() instanceof ViewStorageGUI gui) {
                 if (gui.getTarget() == null) {
                     MineManager.cleanupOfflinePlayerData(gui.getTargetName());
                 }
             }
 
-            if (e.getInventory().getHolder() instanceof ViewMythicStorageGUI) {
-                ViewMythicStorageGUI gui = (ViewMythicStorageGUI) e.getInventory().getHolder();
+            if (e.getInventory().getHolder() instanceof ViewMythicStorageGUI gui) {
                 if (gui.getTarget() == null) {
                     MythicStorageManager.cleanupOfflinePlayerData(gui.getTargetName());
                 }

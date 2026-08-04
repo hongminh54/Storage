@@ -21,6 +21,7 @@ import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.Event.EventManager;
 import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.Mob.MobStorageManager;
+import net.danh.storage.Manager.Mob.MobTransferManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
@@ -606,6 +607,8 @@ public final class Storage extends JavaPlugin {
         }
         TransferManager.cancelAllTransfers();
         MythicTransferManager.cancelAllTransfers();
+        CropTransferManager.cancelAllTransfers();
+        MobTransferManager.cancelAllTransfers();
         CraftingManager.cancelAllCrafting();
         ParticleManager.stopAllAnimations();
         RecipeEditManager.clearFlagCache();
@@ -659,6 +662,7 @@ public final class Storage extends JavaPlugin {
 
     private void initializeMobStorage() {
         MobStorageManager.initialize();
+        MobTransferManager.initialize();
         if (MobStorageManager.isSystemEnabled()) {
             getLogger().info("[MobStorage] System enabled, registering mob death listener...");
             registerEvents(new MobDeath());

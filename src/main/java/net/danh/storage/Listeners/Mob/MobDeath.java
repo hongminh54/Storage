@@ -90,6 +90,7 @@ public class MobDeath implements Listener {
 
         boolean allowCustomMeta = File.getMobStorageConfig().getBoolean("settings.allow_custom_item_meta", false);
         boolean ignoreMythicItems = File.getMobStorageConfig().getBoolean("settings.ignore_mythic_items", true);
+        boolean partialStoreWhenFull = File.getMobStorageConfig().getBoolean("settings.partial_store_when_full", false);
 
         for (ItemStack drop : dropsToProcess) {
             if (drop == null || drop.getType() == Material.AIR || drop.getAmount() <= 0) {
@@ -114,7 +115,24 @@ public class MobDeath implements Listener {
             }
 
             int amount = drop.getAmount();
-            if (MobStorageManager.addItemAmount(player, itemName, amount)) {
+            if (partialStoreWhenFull) {
+                int space = Math.max(0, MobStorageManager.getMaxStorage(player) - MobStorageManager.getPlayerItem(player, itemName));
+                if (space <= 0) {
+                    sendStorageFullNotification(player, itemName);
+                    continue;
+                }
+                int toStore = Math.min(amount, space);
+                if (MobStorageManager.addItemAmount(player, itemName, toStore)) {
+                    if (toStore >= amount) {
+                        event.getDrops().remove(drop);
+                    } else {
+                        drop.setAmount(amount - toStore);
+                    }
+                    sendNotification(player, itemName, toStore);
+                } else {
+                    sendStorageFullNotification(player, itemName);
+                }
+            } else if (MobStorageManager.addItemAmount(player, itemName, amount)) {
                 event.getDrops().remove(drop);
                 sendNotification(player, itemName, amount);
             } else {

@@ -570,19 +570,19 @@ public class FriendCommand extends BaseCommand {
             sendMessage(player, "friends.history_empty");
         } else {
             for (FriendDatabase.FriendActionLog log : logs) {
-                String timeStr = formatTimestamp(log.timestamp);
+                String timeStr = formatTimestamp(log.timestamp());
                 if (mineMode) {
                     // Show owner name (whose storage was accessed)
-                    String ownerName = resolvePlayerName(log.ownerUuid);
+                    String ownerName = resolvePlayerName(log.ownerUuid());
                     sendMessage(player, "friends.history_entry_mine",
                             new String[]{"#time#", "#player#", "#action#", "#detail#"},
-                            new String[]{timeStr, ownerName, log.action, log.detail});
+                            new String[]{timeStr, ownerName, log.action(), log.detail()});
                 } else {
                     // Show actor name (who accessed my storage)
-                    String actorName = resolvePlayerName(log.actorUuid);
+                    String actorName = resolvePlayerName(log.actorUuid());
                     sendMessage(player, "friends.history_entry",
                             new String[]{"#time#", "#player#", "#action#", "#detail#"},
-                            new String[]{timeStr, actorName, log.action, log.detail});
+                            new String[]{timeStr, actorName, log.action(), log.detail()});
                 }
             }
         }
@@ -1370,8 +1370,7 @@ public class FriendCommand extends BaseCommand {
                     break;
                 case "accept":
                 case "deny":
-                    if (sender instanceof Player) {
-                        Player player = (Player) sender;
+                    if (sender instanceof Player player) {
                         Map<UUID, Long> pending = FriendManager.getPendingRequests(player.getUniqueId());
                         List<String> senderNames = new ArrayList<>();
                         for (UUID senderUuid : pending.keySet()) {
@@ -1381,8 +1380,7 @@ public class FriendCommand extends BaseCommand {
                     }
                     break;
                 case "remove":
-                    if (sender instanceof Player) {
-                        Player player = (Player) sender;
+                    if (sender instanceof Player player) {
                         Set<UUID> friends = FriendManager.getFriends(player.getUniqueId());
                         List<String> friendNames = new ArrayList<>();
                         for (UUID friendUuid : friends) {

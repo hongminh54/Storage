@@ -14,12 +14,10 @@ public class CraftCommand extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sendMessage(sender, "admin.only_players");
             return;
         }
-
-        Player player = (Player) sender;
 
         SoundManager.setShouldPlayCloseSound(player, false);
         player.openInventory(new RecipeListGUI(player).getInventory(SoundContext.INITIAL_OPEN));

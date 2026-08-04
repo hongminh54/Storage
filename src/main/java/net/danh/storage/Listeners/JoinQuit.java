@@ -11,6 +11,8 @@ import net.danh.storage.GUI.Crop.CropTransferGUI;
 import net.danh.storage.GUI.Crop.CropTransferMultiGUI;
 import net.danh.storage.GUI.Crop.ViewCropStorageGUI;
 import net.danh.storage.GUI.Mob.MobStorageGUI;
+import net.danh.storage.GUI.Mob.MobTransferGUI;
+import net.danh.storage.GUI.Mob.MobTransferMultiGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
@@ -24,6 +26,7 @@ import net.danh.storage.Manager.Crop.CropTransferManager;
 import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.*;
 import net.danh.storage.Manager.Mob.MobStorageManager;
+import net.danh.storage.Manager.Mob.MobTransferManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
@@ -107,6 +110,9 @@ public class JoinQuit implements Listener {
         TransferManager.cancelTransfer(p);
         MythicTransferManager.cancelTransfer(p);
         CropTransferManager.cancelTransfer(p);
+        MobTransferManager.cancelTransfer(p);
+        MobTransferGUI.setWaitingForInput(p, false);
+        MobTransferMultiGUI.setWaitingForReceiver(p, false);
 
         // Cleanup transfer GUI data (TransferGUI and TransferMultiGUI auto-cleanup on
         // close)
@@ -127,9 +133,21 @@ public class JoinQuit implements Listener {
             CropTransferMultiGUI.removeActiveGUI(p);
         }
 
+        if (MobTransferGUI.getActiveGUI(p) != null) {
+            MobTransferGUI.removeActiveGUI(p);
+        }
+
+        if (MobTransferMultiGUI.getActiveGUI(p) != null) {
+            MobTransferMultiGUI.removeActiveGUI(p);
+        }
+
         // Cleanup crop transfer chat data
         ChatListener.chat_crop_multi_transfer_item.remove(p.getUniqueId());
         ChatListener.chat_crop_multi_transfer_target.remove(p.getUniqueId());
+
+        // Cleanup mob transfer chat data
+        ChatListener.chat_mob_multi_transfer_item.remove(p.getUniqueId());
+        ChatListener.chat_mob_multi_transfer_target.remove(p.getUniqueId());
 
         // Cleanup storage full notification data
         StorageFullNotificationManager.removePlayer(p);

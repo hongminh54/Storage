@@ -5,7 +5,12 @@ import net.danh.storage.Action.MobSell;
 import net.danh.storage.Action.MobWithdraw;
 import net.danh.storage.CMD.handler.BaseCommand;
 import net.danh.storage.GUI.Mob.MobStorageGUI;
+import net.danh.storage.GUI.Mob.MobTransferGUI;
+import net.danh.storage.GUI.Mob.MobTransferMultiGUI;
+import net.danh.storage.GUI.Mob.ViewMobStorageGUI;
 import net.danh.storage.Manager.Mob.MobStorageManager;
+import net.danh.storage.Manager.Mob.MobTransferManager;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
@@ -22,8 +27,8 @@ import java.util.stream.Collectors;
 
 public class MobStorageCommandManager extends BaseCommand {
 
-    private static final List<String> USER_COMMANDS = Arrays.asList("help", "toggle", "view", "deposit", "withdraw", "sell", "autosell", "itemtoggle", "groundstore", "reload");
-    private static final List<String> ADMIN_COMMANDS = Arrays.asList("add", "remove", "set", "max", "reload");
+    private static final List<String> USER_COMMANDS = Arrays.asList("help", "toggle", "view", "transfer", "deposit", "withdraw", "sell", "autosell", "groundstore", "reload");
+    private static final List<String> ADMIN_COMMANDS = Arrays.asList("add", "remove", "set", "max", "reset", "resetlimit", "reload");
 
     public void handleCommand(CommandSender sender, String[] args) {
         if (args.length > 0 && isReloadCommand(args)) {
@@ -55,8 +60,6 @@ public class MobStorageCommandManager extends BaseCommand {
             toggle(sender);
         } else if ("groundstore".equals(commandName)) {
             groundStore(sender);
-        } else if ("itemtoggle".equals(commandName)) {
-            itemToggle(sender, args);
         } else if ("deposit".equals(commandName)) {
             deposit(sender, args);
         } else if ("withdraw".equals(commandName)) {
@@ -67,6 +70,8 @@ public class MobStorageCommandManager extends BaseCommand {
             autoSell(sender, args);
         } else if ("view".equals(commandName)) {
             view(sender, args);
+        } else if ("transfer".equals(commandName)) {
+            transfer(sender, args);
         } else {
             sendMessage(sender, "mobstorage.admin.unknown_command", "#command#", commandName);
         }
@@ -127,29 +132,6 @@ public class MobStorageCommandManager extends BaseCommand {
         }
         boolean enabled = MobStorageManager.toggleGroundStore(player, true);
         sendMessage(sender, enabled ? "mobstorage.ground_store_toggle_on" : "mobstorage.ground_store_toggle_off");
-    }
-
-    private void itemToggle(CommandSender sender, String[] args) {
-        if (!requirePlayer(sender)) {
-            return;
-        }
-        if (!sender.hasPermission("storage.mobstorage.toggle")) {
-            sendMessage(sender, "mobstorage.admin.no_permission");
-            return;
-        }
-        if (args.length != 2) {
-            sendMessage(sender, "mobstorage.admin.invalid_usage", "#usage#", "/mobstorage itemtoggle <item>");
-            return;
-        }
-        String itemName = args[1].toUpperCase(Locale.ENGLISH);
-        if (!MobStorageManager.isConfiguredDrop(itemName)) {
-            sendMessage(sender, "mobstorage.invalid_item", "#item#", itemName);
-            return;
-        }
-        boolean enabled = MobStorageManager.toggleItemAutoPickup((Player) sender, itemName, true);
-        String[] placeholders = {"#item#", "#status#"};
-        String[] replacements = {MobStorageManager.getItemDisplayName(itemName), enabled ? File.getMessage().getString("mobstorage.status_enabled", "&aEnabled") : File.getMessage().getString("mobstorage.status_disabled", "&cDisabled")};
-        sendMessage(sender, "mobstorage.item_toggle", placeholders, replacements);
     }
 
     private void deposit(CommandSender sender, String[] args) {
@@ -340,8 +322,16 @@ public class MobStorageCommandManager extends BaseCommand {
     }
 
     private void view(CommandSender sender, String[] args) {
+        if (!requirePlayer(sender)) {
+            return;
+        }
         if (!sender.hasPermission("storage.mobstorage.view")) {
             sendMessage(sender, "mobstorage.admin.no_permission");
+            return;
+        }
+        Player viewer = (Player) sender;
+        if (isMobStorageWorldBlacklisted(viewer)) {
+            sendWorldBlacklisted(sender, "MobStorage", viewer.getWorld().getName());
             return;
         }
         Player target;
@@ -352,23 +342,127 @@ public class MobStorageCommandManager extends BaseCommand {
                 return;
             }
         } else {
-            if (!requirePlayer(sender)) {
-                return;
-            }
-            target = (Player) sender;
+            target = viewer;
         }
         sendMessage(sender, "mobstorage.viewing_storage", "#player#", target.getName());
-        Map<String, Integer> items = MobStorageManager.getPlayerAllItems(target);
-        if (items.isEmpty()) {
-            sendMessage(sender, "mobstorage.no_items");
+        viewer.openInventory(new ViewMobStorageGUI(viewer, target).getInventory());
+    }
+
+    private void transfer(CommandSender sender, String[] args) {
+        if (!requirePlayer(sender)) {
             return;
         }
-        for (String itemName : MobStorageManager.getConfiguredDrops()) {
-            int amount = items.getOrDefault(itemName, 0);
-            if (amount > 0) {
-                sender.sendMessage(ChatUtils.colorizewp("&7- &e" + MobStorageManager.getItemDisplayName(itemName) + "&7: &a" + amount));
+        if (!sender.hasPermission("storage.mobstorage.transfer.use")) {
+            sendMessage(sender, "mobstorage.admin.no_permission");
+            return;
+        }
+        Player player = (Player) sender;
+        if (isMobStorageWorldBlacklisted(player)) {
+            sendWorldBlacklisted(sender, "MobStorage", player.getWorld().getName());
+            return;
+        }
+        if (!File.getMobStorageConfig().getBoolean("transfer.enabled", true)) {
+            sendMessage(sender, "mobstorage.transfer.disabled");
+            return;
+        }
+        if (args.length >= 2) {
+            if ("log".equalsIgnoreCase(args[1])) {
+                handleTransferLog(player, args);
+                return;
+            }
+            if ("multi".equalsIgnoreCase(args[1])) {
+                handleTransferMulti(player, args);
+                return;
             }
         }
+        if (args.length < 3 || args.length > 4) {
+            sendMessage(sender, "mobstorage.transfer.usage");
+            return;
+        }
+        String targetPlayer = args[1];
+        Player receiver = Bukkit.getPlayer(targetPlayer);
+        if (receiver == null || !receiver.isOnline()) {
+            sendMessage(sender, "mobstorage.transfer.failed_offline", "#player#", targetPlayer);
+            return;
+        }
+        if (player.getName().equalsIgnoreCase(receiver.getName())) {
+            sendMessage(sender, "mobstorage.transfer.failed_same_player");
+            return;
+        }
+        String itemName = args[2].toUpperCase(Locale.ENGLISH);
+        if (!MobStorageManager.isConfiguredDrop(itemName)) {
+            sendMessage(sender, "mobstorage.invalid_item", "#item#", itemName);
+            return;
+        }
+        int currentAmount = MobStorageManager.getPlayerItem(player, itemName);
+        if (currentAmount <= 0) {
+            sendMessage(sender, "mobstorage.transfer.failed_insufficient",
+                    new String[]{"#item#", "#current#"},
+                    new String[]{MobStorageManager.getItemDisplayName(itemName), "0"});
+            return;
+        }
+        if (args.length == 3) {
+            player.openInventory(new MobTransferGUI(player, targetPlayer, itemName).getInventory());
+            return;
+        }
+        int amount;
+        if ("all".equalsIgnoreCase(args[3])) {
+            amount = currentAmount;
+        } else {
+            amount = (int) Number.getLong(args[3]);
+            if (amount <= 0) {
+                sendMessage(sender, "mobstorage.admin.invalid_number", "#number#", args[3]);
+                return;
+            }
+        }
+        MobTransferManager.executeTransfer(player, targetPlayer, itemName, amount);
+    }
+
+    private void handleTransferMulti(Player player, String[] args) {
+        if (args.length < 3) {
+            sendMessage(player, "mobstorage.transfer.usage_multi");
+            return;
+        }
+        String targetPlayer = args[2];
+        Player receiver = Bukkit.getPlayer(targetPlayer);
+        if (receiver == null || !receiver.isOnline()) {
+            sendMessage(player, "mobstorage.transfer.failed_offline", "#player#", targetPlayer);
+            return;
+        }
+        if (player.getName().equalsIgnoreCase(receiver.getName())) {
+            sendMessage(player, "mobstorage.transfer.failed_same_player");
+            return;
+        }
+        player.openInventory(new MobTransferMultiGUI(player, targetPlayer).getInventory());
+    }
+
+    private void handleTransferLog(Player player, String[] args) {
+        String targetPlayer = null;
+        int page = 1;
+
+        if (args.length >= 3) {
+            if (args[2] != null && args[2].matches("\\d+")) {
+                page = (int) Number.getLong(args[2]);
+                if (page < 1) {
+                    page = 1;
+                }
+            } else {
+                targetPlayer = args[2];
+            }
+        }
+
+        if (args.length >= 4) {
+            if (args[3] != null && args[3].matches("\\d+")) {
+                page = (int) Number.getLong(args[3]);
+                if (page < 1) {
+                    page = 1;
+                }
+            } else {
+                page = 1;
+            }
+        }
+
+        MobTransferManager.displayTransferHistory(player, targetPlayer, page);
     }
 
     private void handleAdmin(CommandSender sender, String[] args) {
@@ -387,6 +481,14 @@ public class MobStorageCommandManager extends BaseCommand {
         }
         if ("max".equals(action)) {
             adminMax(sender, args);
+            return;
+        }
+        if ("reset".equals(action)) {
+            adminReset(sender, args);
+            return;
+        }
+        if ("resetlimit".equals(action)) {
+            adminResetLimit(sender, args);
             return;
         }
         if ("add".equals(action) || "remove".equals(action) || "set".equals(action)) {
@@ -465,6 +567,97 @@ public class MobStorageCommandManager extends BaseCommand {
                 new String[]{target.getName(), MobStorageManager.getItemDisplayName(itemName), String.valueOf(amount)});
     }
 
+    private void adminReset(CommandSender sender, String[] args) {
+        if (args.length < 2 || args.length > 3) {
+            sendMessage(sender, "mobstorage.admin.invalid_usage", "#usage#", "/mobstorage admin reset <player> [item]");
+            return;
+        }
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            sendMessage(sender, "mobstorage.player_not_found", "#player#", args[1]);
+            return;
+        }
+        if (args.length == 3) {
+            String itemName = args[2].toUpperCase(Locale.ENGLISH);
+            if (!MobStorageManager.isConfiguredDrop(itemName)) {
+                sendMessage(sender, "mobstorage.invalid_item", "#item#", itemName);
+                return;
+            }
+            MobStorageManager.setItemAmount(target, itemName, 0);
+            MobStorageManager.savePlayerData(target);
+            sendMessage(sender, "mobstorage.admin.reset_item_success",
+                    new String[]{"#player#", "#item#"},
+                    new String[]{target.getName(), MobStorageManager.getItemDisplayName(itemName)});
+            if (target.isOnline()) {
+                sendMessage(target, "mobstorage.admin.reset_item_notify",
+                        new String[]{"#player#", "#item#"},
+                        new String[]{sender.getName(), MobStorageManager.getItemDisplayName(itemName)});
+            }
+            return;
+        }
+        for (String itemName : MobStorageManager.getConfiguredDrops()) {
+            MobStorageManager.setItemAmount(target, itemName, 0);
+        }
+        MobStorageManager.savePlayerData(target);
+        sendMessage(sender, "mobstorage.admin.reset_all_success", "#player#", target.getName());
+        if (target.isOnline()) {
+            sendMessage(target, "mobstorage.admin.reset_notify", "#player#", sender.getName());
+        }
+    }
+
+    private void adminResetLimit(CommandSender sender, String[] args) {
+        if (args.length != 2) {
+            sendMessage(sender, "mobstorage.admin.invalid_usage", "#usage#", "/mobstorage admin resetlimit <player>");
+            return;
+        }
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            sendMessage(sender, "mobstorage.player_not_found", "#player#", args[1]);
+            return;
+        }
+        int defaultMax = File.getMobStorageConfig().getInt("settings.default_max_storage", 5000);
+
+        MobStorageManager.clearMaxStorageOverride(target);
+        MobStorageManager.savePlayerData(target);
+
+        net.danh.storage.Database.PlayerData existing = Storage.dataStorage.getData(target.getName());
+        if (existing != null) {
+            Integer parsedOverride = null;
+            String rawData = existing.data();
+            if (rawData != null && !rawData.isEmpty()) {
+                int idx = rawData.indexOf("mobmaxoverride:");
+                if (idx >= 0) {
+                    int start = idx + "mobmaxoverride:".length();
+                    int end = rawData.indexOf(';', start);
+                    String raw = end >= 0
+                            ? rawData.substring(start, end)
+                            : rawData.substring(start);
+                    raw = raw.trim();
+                    try {
+                        parsedOverride = Integer.parseInt(raw);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+
+            if (parsedOverride != null
+                    && parsedOverride >= 0
+                    && existing.max() == parsedOverride) {
+                net.danh.storage.Database.PlayerData cleaned = new net.danh.storage.Database.PlayerData(
+                        existing.player(),
+                        existing.data(),
+                        Math.max(0, defaultMax),
+                        existing.autoPickup());
+                Storage.dataStorage.updateTable(cleaned);
+            }
+        }
+
+        MobStorageManager.loadPlayerData(target);
+        MobStorageManager.savePlayerData(target);
+
+        sendMessage(sender, "mobstorage.admin.reset_limit_storage", "#player#", target.getName());
+    }
+
     private long countEligibleItems(Player player, String itemName) {
         Material material = MobStorageManager.resolveMaterial(itemName.toUpperCase(Locale.ENGLISH));
         if (material == null) {
@@ -500,7 +693,7 @@ public class MobStorageCommandManager extends BaseCommand {
             sendMessage(sender, "mobstorage.admin.no_permission");
             return;
         }
-        File.getFileSetting().reload("mobstorage.yml", "GUI/mobstorage.yml", "GUI/mob-items.yml", "message.yml");
+        File.getFileSetting().reload("mobstorage.yml", "GUI/mobstorage.yml", "GUI/mob-items.yml", "GUI/mob-transfer.yml", "GUI/mob-transfer-multi.yml", "GUI/view-mobstorage.yml", "message.yml");
         File.updateMobStorageConfig();
         MobStorageManager.reloadConfiguredDrops();
         AutoPickupCache.reload();
@@ -516,7 +709,7 @@ public class MobStorageCommandManager extends BaseCommand {
             StringUtil.copyPartialMatches(args[0], options, completions);
         } else if (args.length == 2 && "admin".equalsIgnoreCase(args[0])) {
             StringUtil.copyPartialMatches(args[1], ADMIN_COMMANDS, completions);
-        } else if (args.length == 2 && ("deposit".equalsIgnoreCase(args[0]) || "withdraw".equalsIgnoreCase(args[0]) || "sell".equalsIgnoreCase(args[0]) || "itemtoggle".equalsIgnoreCase(args[0]))) {
+        } else if (args.length == 2 && ("deposit".equalsIgnoreCase(args[0]) || "withdraw".equalsIgnoreCase(args[0]) || "sell".equalsIgnoreCase(args[0]))) {
             StringUtil.copyPartialMatches(args[1], MobStorageManager.getConfiguredDrops(), completions);
         } else if (args.length == 2 && "autosell".equalsIgnoreCase(args[0])) {
             StringUtil.copyPartialMatches(args[1], Arrays.asList("toggle", "set", "list", "clear"), completions);
@@ -526,6 +719,37 @@ public class MobStorageCommandManager extends BaseCommand {
             StringUtil.copyPartialMatches(args[3], Arrays.asList("on", "off"), completions);
         } else if (args.length == 2 && "view".equalsIgnoreCase(args[0])) {
             StringUtil.copyPartialMatches(args[1], getOnlinePlayerNames(), completions);
+        } else if (args.length == 2 && "transfer".equalsIgnoreCase(args[0])) {
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("log");
+            suggestions.add("multi");
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (sender instanceof Player && !p.getName().equalsIgnoreCase(sender.getName())) {
+                    suggestions.add(p.getName());
+                }
+            }
+            StringUtil.copyPartialMatches(args[1], suggestions, completions);
+        } else if (args.length == 3 && "transfer".equalsIgnoreCase(args[0])) {
+            if ("log".equalsIgnoreCase(args[1])) {
+                List<String> suggestions = new ArrayList<>();
+                if (sender.hasPermission("storage.mobstorage.transfer.log.others")) {
+                    suggestions.addAll(getOnlinePlayerNames());
+                }
+                suggestions.add("1");
+                suggestions.add("2");
+                suggestions.add("3");
+                StringUtil.copyPartialMatches(args[2], suggestions, completions);
+            } else if ("multi".equalsIgnoreCase(args[1])) {
+                StringUtil.copyPartialMatches(args[2], getOnlinePlayerNames(), completions);
+            } else {
+                StringUtil.copyPartialMatches(args[2], MobStorageManager.getConfiguredDrops(), completions);
+            }
+        } else if (args.length == 4 && "transfer".equalsIgnoreCase(args[0])) {
+            if ("log".equalsIgnoreCase(args[1])) {
+                StringUtil.copyPartialMatches(args[3], Arrays.asList("1", "2", "3"), completions);
+            } else if (!"multi".equalsIgnoreCase(args[1])) {
+                StringUtil.copyPartialMatches(args[3], Arrays.asList("all", "1", "10", "64", "100"), completions);
+            }
         } else if (args.length == 3 && ("deposit".equalsIgnoreCase(args[0]) || "withdraw".equalsIgnoreCase(args[0]) || "sell".equalsIgnoreCase(args[0]))) {
             StringUtil.copyPartialMatches(args[2], Arrays.asList("all", "1", "10", "64", "100"), completions);
         } else if (args.length == 3 && "admin".equalsIgnoreCase(args[0]) && ADMIN_COMMANDS.contains(args[1].toLowerCase(Locale.ENGLISH))) {

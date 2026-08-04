@@ -291,16 +291,6 @@ public class MythicMobDeath implements Listener {
         }
     }
 
-    private static class MythicDeathEventAccessors {
-        private final Method getEntity;
-        private final Method getKiller;
-        private final Method getDrops;
-
-        private MythicDeathEventAccessors(Method getEntity, Method getKiller,
-                                          Method getDrops) {
-            this.getEntity = getEntity;
-            this.getKiller = getKiller;
-            this.getDrops = getDrops;
-        }
+    private record MythicDeathEventAccessors(Method getEntity, Method getKiller, Method getDrops) {
     }
 }

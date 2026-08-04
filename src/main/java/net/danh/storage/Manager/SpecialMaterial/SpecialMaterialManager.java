@@ -33,7 +33,7 @@ public class SpecialMaterialManager {
             return materialId;
         }
 
-        ItemStack item = material.getItem();
+        ItemStack item = material.item();
         if (item == null) {
             return materialId;
         }
@@ -225,7 +225,7 @@ public class SpecialMaterialManager {
 
         for (SpecialMaterial material : specialMaterials.values()) {
             if (material.canDropFrom(blockKey)) {
-                double dropChance = material.getDropChance();
+                double dropChance = material.dropChance();
 
                 // Apply enchant bonuses/penalties
                 dropChance = applyEnchantModifier(dropChance, enchantType);
@@ -238,7 +238,7 @@ public class SpecialMaterialManager {
     }
 
     private static void dropSpecialMaterial(Player player, Location location, SpecialMaterial material) {
-        int amount = ThreadLocalRandom.current().nextInt(material.getMinAmount(), material.getMaxAmount() + 1);
+        int amount = ThreadLocalRandom.current().nextInt(material.minAmount(), material.maxAmount() + 1);
 
         // Apply Multiplier enchant if present
         ItemStack hand = player.getInventory().getItemInMainHand();
@@ -248,38 +248,38 @@ public class SpecialMaterialManager {
         }
 
         for (int i = 0; i < amount; i++) {
-            ItemStack item = material.getItem().clone();
+            ItemStack item = material.item().clone();
             location.getWorld().dropItemNaturally(location, item);
         }
 
         // Play effects
-        if (material.getEffects() != null) {
-            playEffects(player, location, material.getEffects());
+        if (material.effects() != null) {
+            playEffects(player, location, material.effects());
         }
 
         // Send message
         String message = File.getMessage().getString("special_material.found", "#prefix# &aYou found a special material: &e#material#!");
-        message = message.replace("#material#", material.getItem().getItemMeta().getDisplayName());
+        message = message.replace("#material#", material.item().getItemMeta().getDisplayName());
         player.sendMessage(ChatUtils.colorizewp(message.replace("#prefix#", File.getConfig().getString("prefix", ""))));
     }
 
     private static void playEffects(Player player, Location location, SpecialMaterialEffects effects) {
         // Play sound
-        if (effects.getSound() != null) {
-            SpecialMaterialSound sound = effects.getSound();
+        if (effects.sound() != null) {
+            SpecialMaterialSound sound = effects.sound();
             try {
-                XSound xSound = XSound.matchXSound(sound.getName()).orElse(XSound.UI_BUTTON_CLICK);
-                xSound.play(player, sound.getVolume(), sound.getPitch());
+                XSound xSound = XSound.matchXSound(sound.name()).orElse(XSound.UI_BUTTON_CLICK);
+                xSound.play(player, sound.volume(), sound.pitch());
             } catch (Exception e) {
-                Storage.getStorage().getLogger().warning("Failed to play special material sound: " + sound.getName());
+                Storage.getStorage().getLogger().warning("Failed to play special material sound: " + sound.name());
             }
         }
 
         // Play particles
-        if (effects.getParticle() != null) {
-            SpecialMaterialParticle particle = effects.getParticle();
-            ParticleManager.playSpecialMaterialParticle(location, particle.getType(), particle.getCount(),
-                    particle.getSpeed(), particle.getAnimation(), particle.getRadius());
+        if (effects.particle() != null) {
+            SpecialMaterialParticle particle = effects.particle();
+            ParticleManager.playSpecialMaterialParticle(location, particle.type(), particle.count(),
+                    particle.speed(), particle.animation(), particle.radius());
         }
     }
 
@@ -332,11 +332,11 @@ public class SpecialMaterialManager {
         if (material == null) return null;
 
         return String.format("ID: %s, Drop Chance: %.2f%%, Source Blocks: %d, Amount: %d-%d",
-                material.getId(),
-                material.getDropChance(),
-                material.getSourceBlocks().size(),
-                material.getMinAmount(),
-                material.getMaxAmount());
+                material.id(),
+                material.dropChance(),
+                material.sourceBlocks().size(),
+                material.minAmount(),
+                material.maxAmount());
     }
 
     // Give special material to player
@@ -348,7 +348,7 @@ public class SpecialMaterialManager {
 
         try {
             for (int i = 0; i < amount; i++) {
-                ItemStack item = material.getItem().clone();
+                ItemStack item = material.item().clone();
                 if (player.getInventory().firstEmpty() != -1) {
                     player.getInventory().addItem(item);
                 } else {
@@ -363,135 +363,20 @@ public class SpecialMaterialManager {
     }
 
     // Inner classes for data structure
-    private static class SpecialMaterial {
-        private final String id;
-        private final ItemStack item;
-        private final double dropChance;
-        private final List<String> sourceBlocks;
-        private final int minAmount;
-        private final int maxAmount;
-        private final SpecialMaterialEffects effects;
-
-        public SpecialMaterial(String id, ItemStack item, double dropChance, List<String> sourceBlocks,
-                               int minAmount, int maxAmount, SpecialMaterialEffects effects) {
-            this.id = id;
-            this.item = item;
-            this.dropChance = dropChance;
-            this.sourceBlocks = sourceBlocks;
-            this.minAmount = minAmount;
-            this.maxAmount = maxAmount;
-            this.effects = effects;
-        }
+    private record SpecialMaterial(String id, ItemStack item, double dropChance, List<String> sourceBlocks,
+                                   int minAmount, int maxAmount, SpecialMaterialEffects effects) {
 
         public boolean canDropFrom(String blockKey) {
             return sourceBlocks.contains(blockKey);
         }
-
-        // Getters
-        public String getId() {
-            return id;
-        }
-
-        public ItemStack getItem() {
-            return item;
-        }
-
-        public double getDropChance() {
-            return dropChance;
-        }
-
-        public List<String> getSourceBlocks() {
-            return sourceBlocks;
-        }
-
-        public int getMinAmount() {
-            return minAmount;
-        }
-
-        public int getMaxAmount() {
-            return maxAmount;
-        }
-
-        public SpecialMaterialEffects getEffects() {
-            return effects;
-        }
     }
 
-    private static class SpecialMaterialEffects {
-        private final SpecialMaterialSound sound;
-        private final SpecialMaterialParticle particle;
-
-        public SpecialMaterialEffects(SpecialMaterialSound sound, SpecialMaterialParticle particle) {
-            this.sound = sound;
-            this.particle = particle;
-        }
-
-        public SpecialMaterialSound getSound() {
-            return sound;
-        }
-
-        public SpecialMaterialParticle getParticle() {
-            return particle;
-        }
+    private record SpecialMaterialEffects(SpecialMaterialSound sound, SpecialMaterialParticle particle) {
     }
 
-    private static class SpecialMaterialSound {
-        private final String name;
-        private final float volume;
-        private final float pitch;
-
-        public SpecialMaterialSound(String name, float volume, float pitch) {
-            this.name = name;
-            this.volume = volume;
-            this.pitch = pitch;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public float getVolume() {
-            return volume;
-        }
-
-        public float getPitch() {
-            return pitch;
-        }
+    private record SpecialMaterialSound(String name, float volume, float pitch) {
     }
 
-    private static class SpecialMaterialParticle {
-        private final String type;
-        private final int count;
-        private final double speed;
-        private final String animation;
-        private final double radius;
-
-        public SpecialMaterialParticle(String type, int count, double speed, String animation, double radius) {
-            this.type = type;
-            this.count = count;
-            this.speed = speed;
-            this.animation = animation;
-            this.radius = radius;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        public double getSpeed() {
-            return speed;
-        }
-
-        public String getAnimation() {
-            return animation;
-        }
-
-        public double getRadius() {
-            return radius;
-        }
+    private record SpecialMaterialParticle(String type, int count, double speed, String animation, double radius) {
     }
 }

@@ -169,7 +169,7 @@ public class CropStorageManager {
         }
 
         PlayerData data = Storage.dataStorage.getData(player.getName());
-        status = data != null ? parseGroundStoreStatus(data.getData()) : null;
+        status = data != null ? parseGroundStoreStatus(data.data()) : null;
         if (status == null) {
             status = File.getCropStorageConfig().getBoolean(
                     "ground_store.default_enabled",
@@ -877,7 +877,7 @@ public class CropStorageManager {
             return;
         }
 
-        String dataString = data.getData();
+        String dataString = data.data();
         if (dataString == null || dataString.isEmpty()) {
             int permissionMax = Math.max(0, getPermissionMaxStorage(player));
             playermaxdata.put(playerId, permissionMax);
@@ -972,7 +972,7 @@ public class CropStorageManager {
             }
         }
 
-        int databaseMax = Math.max(0, data.getMax());
+        int databaseMax = Math.max(0, data.max());
         int permissionMax = Math.max(0, getPermissionMaxStorage(player));
         Integer overrideMax = maxOverrideData.get(playerId);
         int resolvedMax;
@@ -1015,7 +1015,7 @@ public class CropStorageManager {
         }
 
         PlayerData existingData = Storage.dataStorage.getData(playerName);
-        String existingDataString = existingData != null ? existingData.getData() : "";
+        String existingDataString = existingData != null ? existingData.data() : "";
 
         StringBuilder finalData = new StringBuilder();
         if (existingDataString != null && !existingDataString.isEmpty()) {
@@ -1114,7 +1114,7 @@ public class CropStorageManager {
 
         int maxStorage;
         if (existingData != null) {
-            maxStorage = existingData.getMax();
+            maxStorage = existingData.max();
         } else {
             maxStorage = File.getCropStorageConfig().getInt(
                     "settings.default_max_storage",
@@ -1215,7 +1215,7 @@ public class CropStorageManager {
         }
 
         Integer overrideMax = null;
-        String rawData = data.getData();
+        String rawData = data.data();
         if (rawData != null && !rawData.isEmpty()) {
             int idx = rawData.indexOf(MAX_OVERRIDE_DATA_PREFIX);
             if (idx >= 0) {
@@ -1236,7 +1236,7 @@ public class CropStorageManager {
             return Math.max(0, overrideMax);
         }
 
-        int databaseMax = Math.max(0, data.getMax());
+        int databaseMax = Math.max(0, data.max());
         int permissionMaxFallback = Math.max(0, defaultMax);
         int resolved = File.resolveMaxStorage(
                 File.getCropStorageConfig(),
@@ -1266,7 +1266,7 @@ public class CropStorageManager {
             return false;
         }
 
-        String dataString = data.getData();
+        String dataString = data.data();
         if (dataString == null || dataString.isEmpty()) {
             return false;
         }
@@ -1393,7 +1393,7 @@ public class CropStorageManager {
         // Tìm player name từ UUID để lấy disabled items
         org.bukkit.OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUuid);
         if (offlinePlayer.getName() == null) {
-            return toggleStatus != null ? toggleStatus : true;
+            return toggleStatus == null || toggleStatus;
         }
 
         Set<String> disabledItems = disabledAutoPickupItems.get(offlinePlayer.getName());

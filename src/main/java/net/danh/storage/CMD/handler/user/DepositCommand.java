@@ -76,11 +76,10 @@ public class DepositCommand extends BaseCommand {
         }
 
         if (args.length == 2) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 return completions;
             }
 
-            Player player = (Player) sender;
             String material = resolveMaterial(args[0]);
             if (!MineManager.getPluginBlocks().contains(material)) {
                 return completions;

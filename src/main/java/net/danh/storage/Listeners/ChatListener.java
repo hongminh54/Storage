@@ -7,6 +7,8 @@ import net.danh.storage.GUI.Crop.CropStorageGUI;
 import net.danh.storage.GUI.Crop.CropTransferGUI;
 import net.danh.storage.GUI.Crop.CropTransferMultiGUI;
 import net.danh.storage.GUI.Mob.MobStorageGUI;
+import net.danh.storage.GUI.Mob.MobTransferGUI;
+import net.danh.storage.GUI.Mob.MobTransferMultiGUI;
 import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferGUI;
 import net.danh.storage.GUI.Mythic.MythicTransferMultiGUI;
@@ -52,6 +54,8 @@ public class ChatListener implements Listener {
     public static HashMap<UUID, String> chat_mob_sell = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_multi_transfer_item = new HashMap<>();
     public static HashMap<UUID, String> chat_crop_multi_transfer_target = new HashMap<>();
+    public static HashMap<UUID, String> chat_mob_multi_transfer_item = new HashMap<>();
+    public static HashMap<UUID, String> chat_mob_multi_transfer_target = new HashMap<>();
     public static HashMap<UUID, Integer> chat_return_page = new HashMap<>();
     public static HashMap<UUID, String> craftingRequests = new HashMap<>();
 
@@ -731,6 +735,38 @@ public class ChatListener implements Listener {
             e.setCancelled(true);
         }
 
+        // Handle MobTransferGUI amount input
+        if (MobTransferGUI.isWaitingForInput(p)) {
+            if (isCancelCommand(message)) {
+                MobTransferGUI.setWaitingForInput(p, false);
+                MobTransferGUI activeGUI = MobTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    handleCancel(p, activeGUI::updateGUI);
+                }
+                e.setCancelled(true);
+                return;
+            }
+            if (Number.getInteger(message) > 0) {
+                MobTransferGUI activeGUI = MobTransferGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    int amount = Number.getInteger(message);
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                        activeGUI.setTransferAmountAndUpdate(amount);
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("mobstorage.transfer.gui_enter_amount_success")
+                                        .replace("#amount#", String.valueOf(amount))));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(
+                        ChatUtils.colorize(Objects.requireNonNull(File.getMessage().getString("user.unknown_number"))
+                                .replace("<number>", message)));
+            }
+            MobTransferGUI.setWaitingForInput(p, false);
+            e.setCancelled(true);
+        }
+
         // Handle CropTransferMultiGUI amount input
         if (chat_crop_multi_transfer_item.containsKey(playerId)
                 && chat_crop_multi_transfer_item.get(playerId) != null) {
@@ -811,6 +847,89 @@ public class ChatListener implements Listener {
                                 .replace("#player#", message)));
             }
             CropTransferMultiGUI.setWaitingForReceiver(p, false);
+            e.setCancelled(true);
+        }
+
+        // Handle MobTransferMultiGUI amount input
+        if (chat_mob_multi_transfer_item.containsKey(playerId)
+                && chat_mob_multi_transfer_item.get(playerId) != null) {
+            if (isCancelCommand(message)) {
+                MobTransferMultiGUI gui = MobTransferMultiGUI.getActiveGUI(p);
+                String target = chat_mob_multi_transfer_target.get(playerId);
+                chat_mob_multi_transfer_item.remove(playerId);
+                chat_mob_multi_transfer_target.remove(playerId);
+                if (gui != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            gui.getInventory(SoundContext.SILENT)));
+                } else if (target != null) {
+                    handleCancel(p, () -> p.openInventory(
+                            new MobTransferMultiGUI(p, target)
+                                    .getInventory(SoundContext.SILENT)));
+                } else {
+                    handleCancel(p, () -> {
+                    });
+                }
+                e.setCancelled(true);
+                return;
+            }
+
+            int amount = Number.getInteger(message);
+            if (amount > 0) {
+                String itemName = chat_mob_multi_transfer_item.get(playerId);
+                MobTransferMultiGUI gui = MobTransferMultiGUI.getActiveGUI(p);
+                SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                    if (gui != null) {
+                        gui.setSelectedAmount(itemName, amount);
+                        p.openInventory(gui.getInventory(SoundContext.SILENT));
+                    } else {
+                        String target = chat_mob_multi_transfer_target.get(playerId);
+                        if (target != null) {
+                            MobTransferMultiGUI newGui = new MobTransferMultiGUI(p, target);
+                            newGui.setSelectedAmount(itemName, amount);
+                            p.openInventory(newGui.getInventory(SoundContext.SILENT));
+                        }
+                    }
+                });
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(Objects.requireNonNull(
+                                File.getMessage().getString("user.unknown_number"))
+                        .replace("<number>", message)));
+            }
+            chat_mob_multi_transfer_item.remove(playerId);
+            chat_mob_multi_transfer_target.remove(playerId);
+            e.setCancelled(true);
+        }
+
+        // Handle MobTransferMultiGUI receiver input
+        if (MobTransferMultiGUI.isWaitingForReceiver(p)) {
+            if (isCancelCommand(message)) {
+                MobTransferMultiGUI.setWaitingForReceiver(p, false);
+                MobTransferMultiGUI activeGUI = MobTransferMultiGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    handleCancel(p, activeGUI::updateGUI);
+                }
+                e.setCancelled(true);
+                return;
+            }
+            Player targetPlayer = Bukkit.getPlayer(message);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                MobTransferMultiGUI activeGUI = MobTransferMultiGUI.getActiveGUI(p);
+                if (activeGUI != null) {
+                    SchedulerUtil.runTask(Storage.getStorage(), () -> {
+                        activeGUI.setTargetPlayerAndUpdate(message);
+                        p.sendMessage(ChatUtils.colorize(
+                                File.getMessage().getString("mobstorage.transfer.gui_enter_receiver_success")
+                                        .replace("#player#", message)));
+                    });
+                }
+            } else {
+                SoundManager.playChatErrorSound(p);
+                p.sendMessage(ChatUtils.colorize(
+                        File.getMessage().getString("mobstorage.transfer.failed_offline")
+                                .replace("#player#", message)));
+            }
+            MobTransferMultiGUI.setWaitingForReceiver(p, false);
             e.setCancelled(true);
         }
     }

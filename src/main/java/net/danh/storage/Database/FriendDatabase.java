@@ -740,19 +740,6 @@ public class FriendDatabase {
         }
     }
 
-    public static class FriendActionLog {
-        public final UUID ownerUuid;
-        public final UUID actorUuid;
-        public final String action;
-        public final String detail;
-        public final long timestamp;
-
-        public FriendActionLog(UUID ownerUuid, UUID actorUuid, String action, String detail, long timestamp) {
-            this.ownerUuid = ownerUuid;
-            this.actorUuid = actorUuid;
-            this.action = action;
-            this.detail = detail;
-            this.timestamp = timestamp;
-        }
+    public record FriendActionLog(UUID ownerUuid, UUID actorUuid, String action, String detail, long timestamp) {
     }
 }

@@ -398,9 +398,7 @@ public class ItemManager {
         if (item == null || playerName == null || playerName.isEmpty()) return item;
 
         ItemMeta meta = item.getItemMeta();
-        if (!(meta instanceof SkullMeta)) return item;
-
-        SkullMeta skullMeta = (SkullMeta) meta;
+        if (!(meta instanceof SkullMeta skullMeta)) return item;
 
         try {
             if (NMS.isVersionGreaterThanOrEqualTo(12)) {

@@ -61,10 +61,10 @@ public abstract class Database {
     public void createTable(@NotNull PlayerData playerData) {
         try (Connection conn = getSQLConnection();
              PreparedStatement ps = conn.prepareStatement("INSERT INTO " + table + " (player,data,max,autopickup) VALUES(?,?,?,?)")) {
-            ps.setString(1, playerData.getPlayer());
-            ps.setString(2, playerData.getData());
-            ps.setInt(3, playerData.getMax());
-            ps.setBoolean(4, playerData.isAutoPickup());
+            ps.setString(1, playerData.player());
+            ps.setString(2, playerData.data());
+            ps.setInt(3, playerData.max());
+            ps.setBoolean(4, playerData.autoPickup());
             ps.executeUpdate();
         } catch (SQLException ex) {
             Storage.getStorage().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
@@ -78,10 +78,10 @@ public abstract class Database {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(
                     "UPDATE " + table + " SET data = ?, max = ?, autopickup = ? WHERE player = ?")) {
-                ps.setString(1, playerData.getData());
-                ps.setInt(2, playerData.getMax());
-                ps.setBoolean(3, playerData.isAutoPickup());
-                ps.setString(4, playerData.getPlayer());
+                ps.setString(1, playerData.data());
+                ps.setInt(2, playerData.max());
+                ps.setBoolean(3, playerData.autoPickup());
+                ps.setString(4, playerData.player());
                 ps.executeUpdate();
             }
             conn.commit();

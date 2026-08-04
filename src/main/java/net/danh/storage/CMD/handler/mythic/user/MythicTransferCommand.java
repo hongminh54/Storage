@@ -213,8 +213,7 @@ public class MythicTransferCommand extends BaseCommand {
             } else if (checkPermission(sender, "storage.mythicstorage.transfer")) {
                 Player target = getPlayer(args[0]);
                 String itemName = args[1];
-                if (target != null && sender instanceof Player && MythicStorageManager.isConfiguredDrop(itemName)) {
-                    Player player = (Player) sender;
+                if (target != null && sender instanceof Player player && MythicStorageManager.isConfiguredDrop(itemName)) {
                     int currentAmount = MythicStorageManager.getPlayerItem(player, itemName);
 
                     List<String> suggestions = new ArrayList<>();

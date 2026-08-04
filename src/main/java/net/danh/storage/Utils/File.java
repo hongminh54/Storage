@@ -208,6 +208,18 @@ public class File {
         return getFileSetting().get("GUI/mob-items.yml");
     }
 
+    public static FileConfiguration getViewMobStorageGUIConfig() {
+        return getFileSetting().get("GUI/view-mobstorage.yml");
+    }
+
+    public static FileConfiguration getMobTransferGUIConfig() {
+        return getFileSetting().get("GUI/mob-transfer.yml");
+    }
+
+    public static FileConfiguration getMobTransferMultiGUIConfig() {
+        return getFileSetting().get("GUI/mob-transfer-multi.yml");
+    }
+
     public static FileConfiguration getCropStorageGUIConfig() {
         return getFileSetting().get("GUI/cropstorage.yml");
     }
@@ -285,7 +297,8 @@ public class File {
                 "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml",
                 "GUI/view-cropstorage.yml", "GUI/crop-items.yml", "GUI/crop-transfer.yml",
                 "GUI/crop-transfer-multi.yml",
-                "GUI/mobstorage.yml", "GUI/mob-items.yml",
+                "GUI/mobstorage.yml", "GUI/mob-items.yml", "GUI/view-mobstorage.yml", "GUI/mob-transfer.yml",
+                "GUI/mob-transfer-multi.yml",
                 "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml",
                 "GUI/recipe-list.yml", "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml",
                 "GUI/material-selection.yml", "GUI/material-editor.yml", "GUI/mythic-material-selection.yml",
@@ -319,7 +332,8 @@ public class File {
                 "GUI/transfer-multi.yml", "GUI/convert-ore.yml", "GUI/view-storage.yml", "GUI/mythicstorage.yml",
                 "GUI/view-mythicstorage.yml", "GUI/cropstorage.yml", "GUI/view-cropstorage.yml",
                 "GUI/crop-items.yml", "GUI/crop-transfer.yml", "GUI/crop-transfer-multi.yml",
-                "GUI/mobstorage.yml", "GUI/mob-items.yml",
+                "GUI/mobstorage.yml", "GUI/mob-items.yml", "GUI/view-mobstorage.yml", "GUI/mob-transfer.yml",
+                "GUI/mob-transfer-multi.yml",
                 "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "GUI/recipe-list.yml",
                 "GUI/recipe-editor.yml", "GUI/recipe-editor-list.yml", "GUI/material-selection.yml",
                 "GUI/material-editor.yml", "GUI/mythic-material-selection.yml", "GUI/confirmation.yml");

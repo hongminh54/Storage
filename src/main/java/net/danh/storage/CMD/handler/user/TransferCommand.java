@@ -186,8 +186,7 @@ public class TransferCommand extends BaseCommand {
             } else if (checkPermission(sender, "storage.transfer.use")) {
                 Player target = getPlayer(args[0]);
                 String material = args[1];
-                if (target != null && sender instanceof Player && MineManager.getPluginBlocks().contains(material)) {
-                    Player player = (Player) sender;
+                if (target != null && sender instanceof Player player && MineManager.getPluginBlocks().contains(material)) {
                     int currentAmount = MineManager.getPlayerBlock(player, material);
 
                     List<String> suggestions = new ArrayList<>();

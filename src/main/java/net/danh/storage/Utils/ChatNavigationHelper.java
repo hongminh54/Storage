@@ -47,6 +47,20 @@ public class ChatNavigationHelper {
                 "cropstorage.transfer.log_nav_colors", messageConfig);
     }
 
+    // Send navigation for MobStorage Transfer log
+    public static void sendMobTransferNavigation(Player player, String targetPlayer, int currentPage, int totalPages,
+                                                 int prevPage, int nextPage, boolean hasPrev, boolean hasNext) {
+        FileConfiguration messageConfig = File.getMessage();
+        String prevCommand = buildMobNavigationCommand(targetPlayer, player.getName(), prevPage);
+        String nextCommand = buildMobNavigationCommand(targetPlayer, player.getName(), nextPage);
+
+        sendTellrawNavigation(player, prevCommand, nextCommand, hasPrev, hasNext, prevPage, nextPage,
+                "mobstorage.transfer.log_nav_previous", "mobstorage.transfer.log_nav_previous_disabled",
+                "mobstorage.transfer.log_nav_next", "mobstorage.transfer.log_nav_next_disabled",
+                "mobstorage.transfer.log_nav_hover", "mobstorage.transfer.log_nav_spacing",
+                "mobstorage.transfer.log_nav_colors", messageConfig);
+    }
+
     private static String buildStorageNavigationCommand(String targetPlayer, String viewerName, int page) {
         if (targetPlayer == null || targetPlayer.equals(viewerName)) {
             return "/storage transfer log " + page;
@@ -68,6 +82,14 @@ public class ChatNavigationHelper {
             return "/cropstorage transfer log " + page;
         } else {
             return "/cropstorage transfer log " + targetPlayer + " " + page;
+        }
+    }
+
+    private static String buildMobNavigationCommand(String targetPlayer, String viewerName, int page) {
+        if (targetPlayer == null || targetPlayer.equalsIgnoreCase(viewerName)) {
+            return "/mobstorage transfer log " + page;
+        } else {
+            return "/mobstorage transfer log " + targetPlayer + " " + page;
         }
     }
 

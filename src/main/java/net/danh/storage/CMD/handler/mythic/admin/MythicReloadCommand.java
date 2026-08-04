@@ -13,7 +13,7 @@ public class MythicReloadCommand extends MythicCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        File.getFileSetting().reload("mythicstorage.yml", "GUI/mythicstorage.yml", "message.yml");
+        File.getFileSetting().reload("mythicstorage.yml", "GUI/mythicstorage.yml", "GUI/view-mythicstorage.yml", "GUI/mythictransfer.yml", "GUI/mythictransfer-multi.yml", "message.yml");
         MythicStorageManager.reloadConfiguredDrops();
 
         sendMessage(sender, "admin.reload_success");

@@ -100,11 +100,10 @@ public class CropDepositCommand extends CropCommand {
         }
 
         if (args.length == 2) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 return completions;
             }
 
-            Player player = (Player) sender;
             String itemName = args[0].toUpperCase();
             if (!CropStorageManager.isConfiguredDrop(itemName)) {
                 return completions;

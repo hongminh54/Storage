@@ -17,9 +17,7 @@ import java.util.stream.Collectors;
  * @author VoChiDanh, hongminh54
  * @version 2.3.2
  */
-public class StoragePlayer {
-
-    private final Player player;
+public record StoragePlayer(Player player) {
 
     /**
      * Create StoragePlayer wrapper
@@ -35,8 +33,9 @@ public class StoragePlayer {
      *
      * @return Bukkit Player instance
      */
+    @Override
     @NotNull
-    public Player getPlayer() {
+    public Player player() {
         return player;
     }
 
@@ -300,7 +299,7 @@ public class StoragePlayer {
      */
     public boolean transferTo(@NotNull StoragePlayer receiver, @NotNull String material, int amount)
             throws StorageException {
-        return transferTo(receiver.getPlayer(), material, amount);
+        return transferTo(receiver.player(), material, amount);
     }
 
     /**

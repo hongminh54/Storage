@@ -30,7 +30,6 @@ public class MobWithdraw {
         }
 
         String upper = itemName.toUpperCase(Locale.ENGLISH);
-        int currentAmount = MobStorageManager.getPlayerItem(player, upper);
         int requestedAmount = amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount;
 
         MobStorageWithdrawEvent event = new MobStorageWithdrawEvent(player, upper, requestedAmount);
@@ -40,6 +39,7 @@ public class MobWithdraw {
         }
         requestedAmount = event.getAmount();
 
+        int currentAmount = MobStorageManager.getPlayerItem(player, upper);
         if (currentAmount < requestedAmount) {
             sendMessage("mobstorage.action.withdraw.not_enough", "#amount#", String.valueOf(currentAmount));
             return;

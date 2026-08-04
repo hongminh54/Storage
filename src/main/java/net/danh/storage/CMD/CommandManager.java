@@ -74,8 +74,7 @@ public class CommandManager {
     }
 
     private void handleDefaultCommand(CommandSender sender) {
-        if (sender instanceof org.bukkit.entity.Player) {
-            org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+        if (sender instanceof org.bukkit.entity.Player player) {
 
             if (net.danh.storage.Utils.File.getConfig().contains("blacklist_world")) {
                 if (net.danh.storage.Utils.File.getConfig().getStringList("blacklist_world").contains(player.getWorld().getName())) {

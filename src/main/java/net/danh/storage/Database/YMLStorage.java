@@ -93,12 +93,12 @@ public class YMLStorage implements IDataStorage {
      * @param playerData Player data to save
      */
     private void savePlayerData(@NotNull PlayerData playerData) {
-        java.io.File playerFile = getPlayerFile(playerData.getPlayer());
+        java.io.File playerFile = getPlayerFile(playerData.player());
 
         FileConfiguration playerConfig = new YamlConfiguration();
-        playerConfig.set("data", playerData.getData());
-        playerConfig.set("max", playerData.getMax());
-        playerConfig.set("autopickup", playerData.isAutoPickup());
+        playerConfig.set("data", playerData.data());
+        playerConfig.set("max", playerData.max());
+        playerConfig.set("autopickup", playerData.autoPickup());
 
         // Last updated timestamp
         playerConfig.set("last_updated", formatTimestamp(System.currentTimeMillis()));
@@ -106,7 +106,7 @@ public class YMLStorage implements IDataStorage {
         try {
             playerConfig.save(playerFile);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save player data for: " + playerData.getPlayer(), e);
+            plugin.getLogger().log(Level.SEVERE, "Could not save player data for: " + playerData.player(), e);
         }
     }
 

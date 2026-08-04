@@ -2,6 +2,7 @@ package net.danh.storage.Placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.danh.storage.Data.MythicTransferData;
+import net.danh.storage.Database.MobTransferDatabase;
 import net.danh.storage.Database.MythicTransferDatabase;
 import net.danh.storage.Event.BaseEvent;
 import net.danh.storage.Event.EventType;
@@ -15,6 +16,7 @@ import net.danh.storage.Manager.Friend.FriendManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mob.MobStorageManager;
+import net.danh.storage.Manager.Mob.MobTransferManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
@@ -466,11 +468,9 @@ public class PAPI extends PlaceholderExpansion {
         String placeholder = args.substring(15);
 
         BaseEvent event = EventManager.getAllEvents().get(EventType.MINING_CONTEST);
-        if (event == null || !event.isActive() || !(event instanceof MiningContestEvent)) {
+        if (event == null || !event.isActive() || !(event instanceof MiningContestEvent miningEvent)) {
             return getDefaultValue(placeholder);
         }
-
-        MiningContestEvent miningEvent = (MiningContestEvent) event;
 
         switch (placeholder) {
             case "rank":
@@ -515,11 +515,9 @@ public class PAPI extends PlaceholderExpansion {
         String placeholder = args.substring(10);
 
         BaseEvent event = EventManager.getAllEvents().get(EventType.COMMUNITY_EVENT);
-        if (event == null || !event.isActive() || !(event instanceof CommunityEvent)) {
+        if (event == null || !event.isActive() || !(event instanceof CommunityEvent communityEvent)) {
             return getDefaultValue(placeholder);
         }
-
-        CommunityEvent communityEvent = (CommunityEvent) event;
 
         switch (placeholder) {
             case "progress":
@@ -541,11 +539,9 @@ public class PAPI extends PlaceholderExpansion {
         String placeholder = args.substring(12);
 
         BaseEvent event = EventManager.getAllEvents().get(EventType.DOUBLE_DROP);
-        if (event == null || !(event instanceof DoubleDropEvent)) {
+        if (event == null || !(event instanceof DoubleDropEvent doubleDropEvent)) {
             return getDefaultValue(placeholder);
         }
-
-        DoubleDropEvent doubleDropEvent = (DoubleDropEvent) event;
 
         switch (placeholder) {
             case "player_blocks":
@@ -953,6 +949,10 @@ public class PAPI extends PlaceholderExpansion {
             return handleMobLeaderboardPlaceholders(placeholder.substring(4));
         }
 
+        if (placeholder.startsWith("transfer_")) {
+            return handleMobTransferPlaceholders(p, placeholder.substring(9));
+        }
+
         if (placeholder.endsWith("_amount_formatted")) {
             String itemName = placeholder.substring(0, placeholder.length() - 17);
             if (MobStorageManager.isConfiguredDrop(itemName)) {
@@ -981,6 +981,30 @@ public class PAPI extends PlaceholderExpansion {
                 return MobStorageManager.getItemDisplayName(itemName);
             }
             return itemName;
+        }
+
+        return "0";
+    }
+
+    private String handleMobTransferPlaceholders(Player p, String placeholder) {
+        MobTransferDatabase transferDb = MobTransferManager.getTransferDatabase();
+        if (transferDb == null) {
+            return "0";
+        }
+
+        // %storage_mob_transfer_sent_total% - Total items sent
+        if (placeholder.equals("sent_total")) {
+            return String.valueOf(transferDb.getTotalSentAmount(p.getName()));
+        }
+
+        // %storage_mob_transfer_received_total% - Total items received
+        if (placeholder.equals("received_total")) {
+            return String.valueOf(transferDb.getTotalReceivedAmount(p.getName()));
+        }
+
+        // %storage_mob_transfer_count% - Total transfer count
+        if (placeholder.equals("count")) {
+            return String.valueOf(transferDb.getTotalTransferCount(p.getName()));
         }
 
         return "0";

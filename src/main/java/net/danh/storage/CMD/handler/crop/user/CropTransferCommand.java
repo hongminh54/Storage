@@ -240,8 +240,7 @@ public class CropTransferCommand extends CropCommand {
             }
 
             // Single item transfer - suggest amounts
-            if (sender instanceof Player) {
-                Player p = (Player) sender;
+            if (sender instanceof Player p) {
                 Player target = Bukkit.getPlayer(args[0]);
                 String itemName = args[1].toUpperCase();
 

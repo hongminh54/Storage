@@ -146,7 +146,7 @@ public class MobStorageManager {
         }
 
         PlayerData data = Storage.dataStorage.getData(player.getName());
-        status = data != null ? parseGroundStoreStatus(data.getData()) : null;
+        status = data != null ? parseGroundStoreStatus(data.data()) : null;
         if (status == null) {
             status = File.getMobStorageConfig().getBoolean("ground_store.default_enabled", false);
         }
@@ -261,6 +261,14 @@ public class MobStorageManager {
 
     public static List<String> getConfiguredDrops() {
         return new ArrayList<>(configuredDrops);
+    }
+
+    public static List<String> getInvalidItems() {
+        return new ArrayList<>(invalidItems);
+    }
+
+    public static boolean hasInvalidItems() {
+        return !invalidItems.isEmpty();
     }
 
     public static boolean isConfiguredDrop(@NotNull String itemName) {
@@ -822,7 +830,7 @@ public class MobStorageManager {
             return;
         }
 
-        String dataString = data.getData();
+        String dataString = data.data();
         if (dataString != null && !dataString.isEmpty()) {
             for (String part : dataString.split(";")) {
                 if (part == null || part.isEmpty()) {
@@ -853,7 +861,7 @@ public class MobStorageManager {
             }
         }
 
-        int databaseMax = Math.max(0, data.getMax());
+        int databaseMax = Math.max(0, data.max());
         int permissionMax = Math.max(0, getPermissionMaxStorage(player));
         Integer overrideMax = maxOverrideData.get(playerId);
         int resolvedMax = overrideMax != null ? overrideMax : File.resolveMaxStorage(File.getMobStorageConfig(), "settings.max_storage_mode", databaseMax, permissionMax);
@@ -953,7 +961,7 @@ public class MobStorageManager {
         }
 
         PlayerData existingData = Storage.dataStorage.getData(playerName);
-        String existingDataString = existingData != null ? existingData.getData() : "";
+        String existingDataString = existingData != null ? existingData.data() : "";
         StringBuilder finalData = new StringBuilder();
         if (existingDataString != null && !existingDataString.isEmpty()) {
             for (String part : existingDataString.split(";")) {
@@ -1018,7 +1026,7 @@ public class MobStorageManager {
             appendData(finalData, GROUND_STORE_DATA_PREFIX, String.valueOf(groundStoreToggle.get(playerId)));
         }
 
-        int maxStorage = existingData != null ? existingData.getMax() : File.getMobStorageConfig().getInt("settings.default_max_storage", 5000);
+        int maxStorage = existingData != null ? existingData.max() : File.getMobStorageConfig().getInt("settings.default_max_storage", 5000);
         boolean autoPickup = toggle.getOrDefault(playerId, File.getMobStorageConfig().getBoolean("settings.default_auto_pickup", false));
 
         PlayerData newData = new PlayerData(playerName, finalData.toString(), Math.max(0, maxStorage), autoPickup);

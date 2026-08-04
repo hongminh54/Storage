@@ -46,11 +46,10 @@ public class LuckPermsListener {
             Storage plugin,
             NodeMutateEvent event
     ) {
-        if (!(event.getTarget() instanceof User)) {
+        if (!(event.getTarget() instanceof User user)) {
             return;
         }
 
-        User user = (User) event.getTarget();
         UUID uuid = user.getUniqueId();
 
         Player player = Bukkit.getPlayer(uuid);

@@ -79,11 +79,10 @@ public class GroundStoreListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityPickup(@NotNull EntityPickupItemEvent event) {
         Entity entity = event.getEntity();
-        if (!(entity instanceof Player)) {
+        if (!(entity instanceof Player player)) {
             return;
         }
 
-        Player player = (Player) entity;
         if (!isAnyGroundStoreEnabled(player)) {
             return;
         }
@@ -238,7 +237,7 @@ public class GroundStoreListener implements Listener {
                             "items." + storageDrop);
                     String itemName = name != null ? name
                             : storageDrop
-                              .replace("_", " ");
+                            .replace("_", " ");
                     SoundManager.playActionSound(player, "ground_store",
                             File.getConfig());
                     sendGroundStoreMessage(player, NOTIFY_TYPE_STORAGE, itemName,

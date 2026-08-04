@@ -61,6 +61,15 @@ public class MobStorageGUI implements IGUI {
                 .replace("#player#", player.getName()));
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
+        // Notify admin if there are invalid items
+        if (MobStorageManager.hasInvalidItems() && player.hasPermission("storage.mobstorage.admin")) {
+            player.sendMessage(ChatUtils.colorizewp("&c&l[!] MobStorage Warning:"));
+            player.sendMessage(ChatUtils.colorizewp("&e" + MobStorageManager.getInvalidItems().size()
+                    + " &7invalid item(s) detected: &c"
+                    + String.join(", ", MobStorageManager.getInvalidItems())));
+            player.sendMessage(ChatUtils.colorizewp("&7Use &e/mobstorage reload &7to see detailed errors"));
+        }
+
         List<String> configuredDrops = MobStorageManager.getConfiguredDrops();
         String slotConfig = Objects.requireNonNull(config.getString("items.mob_item.slot")).replace(" ", "");
         int itemsPerPage = slotConfig.split(",").length;
@@ -182,7 +191,12 @@ public class MobStorageGUI implements IGUI {
             }
             ItemStack itemStack = buildConfiguredItem(itemTag, section);
             InteractiveItem item = new InteractiveItem(itemStack, slotNumber);
-            if (itemTag.equalsIgnoreCase("toggle_item")) {
+            if (itemTag.equalsIgnoreCase("close")) {
+                item.onClick((p, clickType) -> {
+                    SoundManager.playItemSound(p, config, "items." + itemTag, SoundContext.INITIAL_OPEN);
+                    p.closeInventory();
+                });
+            } else if (itemTag.equalsIgnoreCase("toggle_item")) {
                 item.onClick((p, clickType) -> handleToggleClick(p));
             } else if (itemTag.equalsIgnoreCase("groundstore_item")) {
                 item.onClick((p, clickType) -> handleGroundStoreClick(p));

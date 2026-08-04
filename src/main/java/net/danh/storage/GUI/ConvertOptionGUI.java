@@ -108,21 +108,21 @@ public class ConvertOptionGUI implements IGUI {
         int maxConversions = option.calculateMaxConversions(playerAmount);
         int resultAmount = option.calculateResultAmount(maxConversions);
 
-        String toMaterialName = getMaterialDisplayName(option.getToMaterial());
-        String fromMaterialName = getMaterialDisplayName(option.getFromMaterial());
+        String toMaterialName = getMaterialDisplayName(option.toMaterial());
+        String fromMaterialName = getMaterialDisplayName(option.fromMaterial());
 
         ConfigurationSection section = config.getConfigurationSection("option_items.convert_option");
         ItemStack itemStack = ItemManager.getItemConfigWithPlaceholders(player, section,
-                "#from_amount#", String.valueOf(option.getFromAmount()),
+                "#from_amount#", String.valueOf(option.fromAmount()),
                 "#from_material#", fromMaterialName,
-                "#to_amount#", String.valueOf(option.getToAmount()),
+                "#to_amount#", String.valueOf(option.toAmount()),
                 "#to_material#", toMaterialName,
                 "#max_conversions#", String.valueOf(maxConversions),
                 "#result_amount#", String.valueOf(resultAmount));
 
         if (itemStack != null) {
             try {
-                itemStack.setType(org.bukkit.Material.valueOf(option.getToMaterial().split(";")[0]));
+                itemStack.setType(org.bukkit.Material.valueOf(option.toMaterial().split(";")[0]));
             } catch (IllegalArgumentException e) {
                 itemStack.setType(org.bukkit.Material.STONE);
             }
@@ -138,23 +138,23 @@ public class ConvertOptionGUI implements IGUI {
     private void handleConvertClick(Player clickPlayer, ConvertOreManager.ConvertOption option, int maxConversions, boolean isLeftClick) {
         if (maxConversions <= 0) {
             SoundManager.playErrorSound(clickPlayer);
-            int playerAmount = MineManager.getPlayerBlock(clickPlayer, option.getFromMaterial());
+            int playerAmount = MineManager.getPlayerBlock(clickPlayer, option.fromMaterial());
             sendMessage(clickPlayer, "convert.insufficient_materials",
-                    "#required#", String.valueOf(option.getFromAmount()),
+                    "#required#", String.valueOf(option.fromAmount()),
                     "#current#", String.valueOf(playerAmount),
-                    "#material#", getMaterialName(option.getFromMaterial()));
+                    "#material#", getMaterialName(option.fromMaterial()));
             return;
         }
 
         playItemSound(clickPlayer, "convert_option");
 
         if (isLeftClick) {
-            new ConvertOre(clickPlayer, option.getFromMaterial(), option.getToMaterial(), maxConversions).doAction();
+            new ConvertOre(clickPlayer, option.fromMaterial(), option.toMaterial(), maxConversions).doAction();
             SoundManager.setShouldPlayCloseSound(clickPlayer, false);
             clickPlayer.openInventory(new ConvertOptionGUI(clickPlayer, material, returnPage).getInventory(SoundContext.SILENT));
         } else {
-            ChatListener.chat_convert_from.put(clickPlayer.getUniqueId(), option.getFromMaterial());
-            ChatListener.chat_convert_to.put(clickPlayer.getUniqueId(), option.getToMaterial());
+            ChatListener.chat_convert_from.put(clickPlayer.getUniqueId(), option.fromMaterial());
+            ChatListener.chat_convert_to.put(clickPlayer.getUniqueId(), option.toMaterial());
             ChatListener.chat_return_page.put(clickPlayer.getUniqueId(), returnPage);
             clickPlayer.sendMessage(ChatUtils.colorize(File.getMessage().getString("convert.chat_amount")));
             SoundManager.setShouldPlayCloseSound(clickPlayer, false);

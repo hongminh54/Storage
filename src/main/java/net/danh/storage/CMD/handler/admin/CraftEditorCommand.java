@@ -34,12 +34,10 @@ public class CraftEditorCommand extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sendMessage(sender, "admin.only_players");
             return;
         }
-
-        Player player = (Player) sender;
 
         if (args.length > 0 && args[0].equalsIgnoreCase("import")) {
             handleImportCommand(player);

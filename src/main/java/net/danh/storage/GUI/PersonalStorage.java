@@ -151,7 +151,7 @@ public class PersonalStorage implements IGUI {
                                             ? configItemName
                                             : item_list.get(
                                             slotIndex +
-                                            (currentPage * itemsPerPage)
+                                                    (currentPage * itemsPerPage)
                                     ).split(";")[0];
 
                                     p.sendMessage(ChatUtils.colorize(

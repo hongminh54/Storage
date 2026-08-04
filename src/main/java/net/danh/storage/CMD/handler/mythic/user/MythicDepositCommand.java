@@ -95,11 +95,10 @@ public class MythicDepositCommand extends MythicCommand {
         }
 
         if (args.length == 2) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 return completions;
             }
 
-            Player player = (Player) sender;
             String itemName = args[0];
             if (!MythicStorageManager.isConfiguredDrop(itemName)) {
                 return completions;

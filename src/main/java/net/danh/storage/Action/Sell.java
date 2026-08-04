@@ -272,13 +272,6 @@ public class Sell {
         return config;
     }
 
-    private static class WorthEntry {
-        private final double worth;
-        private final String methodOverride;
-
-        private WorthEntry(double worth, String methodOverride) {
-            this.worth = worth;
-            this.methodOverride = methodOverride;
-        }
+    private record WorthEntry(double worth, String methodOverride) {
     }
 }
