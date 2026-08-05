@@ -1,8 +1,6 @@
 package net.danh.storage.Listeners;
 
 import com.cryptomorin.xseries.XEnchantment;
-import com.cryptomorin.xseries.messages.ActionBar;
-import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Enchant.HasteEnchant;
 import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.Enchant.TNTEnchant;
@@ -15,8 +13,8 @@ import net.danh.storage.Manager.StorageFullNotificationManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
-import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.NotificationQueue;
 import net.danh.storage.Utils.Number;
 import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.block.Block;
@@ -180,40 +178,12 @@ public class BlockBreak implements Listener {
                     if (actionBarEnabled || titleEnabled) {
                         String name = File.getConfig().getString("items." + drop);
                         String itemName = name != null ? name : drop.replace("_", " ");
-                        String displayAmount = bonusAmount > 0 ? totalAmount + " (+" + bonusAmount + " bonus)"
-                                : String.valueOf(totalAmount);
+                        String suffix = bonusAmount > 0 ? " (+" + bonusAmount + " bonus)" : "";
                         int newStoredAmount = MineManager.getPlayerBlock(p, drop);
                         int maxStorage = MineManager.getMaxBlock(p);
-
-                        if (actionBarEnabled) {
-                            String template = File.getConfig().getString("mine.actionbar.action");
-                            if (template != null) {
-                                String msg = template
-                                        .replace("#item#", itemName)
-                                        .replace("#amount#", displayAmount)
-                                        .replace("#storage#", String.valueOf(newStoredAmount))
-                                        .replace("#max#", String.valueOf(maxStorage));
-                                ActionBar.sendActionBar(Storage.getStorage(), p, ChatUtils.colorizewp(msg));
-                            }
-                        }
-                        if (titleEnabled) {
-                            String titleTemplate = File.getConfig().getString("mine.title.title");
-                            String subtitleTemplate = File.getConfig().getString("mine.title.subtitle");
-                            if (titleTemplate != null && subtitleTemplate != null) {
-                                String title = titleTemplate
-                                        .replace("#item#", itemName)
-                                        .replace("#amount#", displayAmount)
-                                        .replace("#storage#", String.valueOf(newStoredAmount))
-                                        .replace("#max#", String.valueOf(maxStorage));
-                                String subtitle = subtitleTemplate
-                                        .replace("#item#", itemName)
-                                        .replace("#amount#", displayAmount)
-                                        .replace("#storage#", String.valueOf(newStoredAmount))
-                                        .replace("#max#", String.valueOf(maxStorage));
-                                Titles.sendTitle(p, ChatUtils.colorizewp(title),
-                                        ChatUtils.colorizewp(subtitle));
-                            }
-                        }
+                        NotificationQueue.add(p, NotificationQueue.TYPE_STORAGE, drop, itemName,
+                                totalAmount, suffix, newStoredAmount, maxStorage,
+                                actionBarEnabled, titleEnabled);
                     }
 
                     if (CAN_DISABLE_DROPS) {
@@ -437,46 +407,10 @@ public class BlockBreak implements Listener {
         if (actionBarEnabled || titleEnabled) {
             String name = File.getConfig().getString("items." + dropKey);
             String itemName = name != null ? name : dropKey.replace("_", " ");
-            String displayAmount = String.valueOf(amount);
             int newStoredAmount = MineManager.getPlayerBlock(player, dropKey);
             int maxStorage = MineManager.getMaxBlock(player);
-
-            if (actionBarEnabled) {
-                String template = File.getConfig().getString(
-                        "mine.actionbar.action");
-                if (template != null) {
-                    String msg = template
-                            .replace("#item#", itemName)
-                            .replace("#amount#", displayAmount)
-                            .replace("#storage#",
-                                    String.valueOf(newStoredAmount))
-                            .replace("#max#", String.valueOf(maxStorage));
-                    ActionBar.sendActionBar(Storage.getStorage(), player,
-                            ChatUtils.colorizewp(msg));
-                }
-            }
-            if (titleEnabled) {
-                String titleTemplate = File.getConfig().getString(
-                        "mine.title.title");
-                String subtitleTemplate = File.getConfig().getString(
-                        "mine.title.subtitle");
-                if (titleTemplate != null && subtitleTemplate != null) {
-                    String title = titleTemplate
-                            .replace("#item#", itemName)
-                            .replace("#amount#", displayAmount)
-                            .replace("#storage#",
-                                    String.valueOf(newStoredAmount))
-                            .replace("#max#", String.valueOf(maxStorage));
-                    String subtitle = subtitleTemplate
-                            .replace("#item#", itemName)
-                            .replace("#amount#", displayAmount)
-                            .replace("#storage#",
-                                    String.valueOf(newStoredAmount))
-                            .replace("#max#", String.valueOf(maxStorage));
-                    Titles.sendTitle(player, ChatUtils.colorizewp(title),
-                            ChatUtils.colorizewp(subtitle));
-                }
-            }
+            NotificationQueue.add(player, NotificationQueue.TYPE_STORAGE, dropKey, itemName,
+                    amount, "", newStoredAmount, maxStorage, actionBarEnabled, titleEnabled);
         }
         return true;
     }

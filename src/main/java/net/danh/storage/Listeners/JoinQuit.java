@@ -30,6 +30,7 @@ import net.danh.storage.Manager.Mob.MobTransferManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
 import net.danh.storage.Storage;
+import net.danh.storage.Utils.NotificationQueue;
 import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -151,6 +152,9 @@ public class JoinQuit implements Listener {
 
         // Cleanup storage full notification data
         StorageFullNotificationManager.removePlayer(p);
+
+        // Cleanup pending pickup notifications
+        NotificationQueue.cleanup(p);
 
         // Cleanup enchant cooldown data
         TNTEnchant.clearPlayerCooldown(p);

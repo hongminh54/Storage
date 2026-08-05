@@ -2,7 +2,7 @@
 #If you encounter any issues, please report them to me at: https://github.com/TheBlueSkyARL/Storage/issues
 
 #Do not touch it
-config_version: 7
+config_version: 8
 
 #Database configuration
 database:
@@ -316,6 +316,17 @@ mine:
   actionbar:
     enable: true
     action: "&6+#amount# #item# [#storage#/#max#]"
+  # Combine multiple picked-up items into one notification within a short window
+  combine:
+    enable: true
+    # Max items displayed in a single notification
+    max_items: 3
+    # Max wait (in seconds) from the first picked-up item before sending.
+    # Items merge while pickups keep coming and are sent ~0.1s after the last pickup,
+    # so 0 = no visible delay while still combining bursts (vein-mine/TNT, ground-store).
+    duration_seconds: 0
+    # Separator between entries (use "\n" for multiline subtitle on 1.20.3+)
+    separator: " "
 
 # Animation for particles: none, circle, spiral, line, burst, helix, wave, dna_helix, galaxy, tornado, lightning, geometric_star
 transfer:

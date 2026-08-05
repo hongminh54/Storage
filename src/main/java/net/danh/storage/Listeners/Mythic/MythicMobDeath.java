@@ -7,6 +7,7 @@ import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.NotificationQueue;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -153,13 +154,6 @@ public class MythicMobDeath implements Listener {
                     File.getMythicStorageConfig().getInt(
                             "storage_full_notification.cooldown_seconds", 10));
 
-            String actionBarTemplate = File.getMythicStorageConfig()
-                    .getString("notification.actionbar.item_added",
-                            "&a+ #amount# #item# &7| &a#storage#&7/&a#max#");
-            String titleTemplate = File.getMythicStorageConfig()
-                    .getString("notification.title.item_added.title", "&a+ #amount# #item#");
-            String subtitleTemplate = File.getMythicStorageConfig()
-                    .getString("notification.title.item_added.subtitle", "&7Storage: &a#storage#&7/&a#max#");
             String storageFullActionBarTemplate = File
                     .getMythicStorageConfig().getString(
                             "notification.actionbar.storage_full",
@@ -203,41 +197,12 @@ public class MythicMobDeath implements Listener {
                 if (MythicStorageManager.addItemAmount(killer, mythicItemName, amount)) {
                     entityDrops.remove(drop);
 
-                    int currentStorage = MythicStorageManager.getPlayerItem(killer, mythicItemName);
-                    int maxStorage = MythicStorageManager.getMaxStorage(killer);
-
-                    // Get display name or fallback to ID
-                    String displayName = MythicStorageManager.getItemDisplayNameOrId(mythicItemName, killer);
-
-                    // Send ActionBar notification
-                    if (actionBarEnabled && actionBarTemplate != null) {
-                        String actionBarMessage = actionBarTemplate
-                                .replace("#amount#", String.valueOf(amount))
-                                .replace("#item#", displayName)
-                                .replace("#storage#",
-                                        String.valueOf(currentStorage))
-                                .replace("#max#", String.valueOf(maxStorage));
-                        ActionBar.sendActionBar(Storage.getStorage(), killer,
-                                ChatUtils.colorizewp(actionBarMessage));
-                    }
-
-                    // Send Title notification
-                    if (titleEnabled && titleTemplate != null && subtitleTemplate != null) {
-                        String title = titleTemplate
-                                .replace("#amount#", String.valueOf(amount))
-                                .replace("#item#", displayName)
-                                .replace("#storage#",
-                                        String.valueOf(currentStorage))
-                                .replace("#max#", String.valueOf(maxStorage));
-                        String subtitle = subtitleTemplate
-                                .replace("#amount#", String.valueOf(amount))
-                                .replace("#item#", displayName)
-                                .replace("#storage#",
-                                        String.valueOf(currentStorage))
-                                .replace("#max#", String.valueOf(maxStorage));
-                        Titles.sendTitle(killer, ChatUtils.colorizewp(title),
-                                ChatUtils.colorizewp(subtitle));
-                    }
+                    NotificationQueue.add(killer, NotificationQueue.TYPE_MYTHIC, mythicItemName,
+                            MythicStorageManager.getItemDisplayNameOrId(mythicItemName, killer),
+                            amount, "",
+                            MythicStorageManager.getPlayerItem(killer, mythicItemName),
+                            MythicStorageManager.getMaxStorage(killer),
+                            actionBarEnabled, titleEnabled);
                 } else {
                     // Storage is full
                     if (storageFullEnabled) {

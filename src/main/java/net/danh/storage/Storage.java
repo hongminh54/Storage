@@ -28,10 +28,7 @@ import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Placeholder.CraftingPlaceholder;
 import net.danh.storage.Placeholder.PAPI;
-import net.danh.storage.Utils.AutoPickupCache;
-import net.danh.storage.Utils.File;
-import net.danh.storage.Utils.SchedulerUtil;
-import net.danh.storage.Utils.UpdateChecker;
+import net.danh.storage.Utils.*;
 import net.xconfig.bukkit.model.SimpleConfigurationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -612,6 +609,7 @@ public final class Storage extends JavaPlugin {
         CraftingManager.cancelAllCrafting();
         ParticleManager.stopAllAnimations();
         RecipeEditManager.clearFlagCache();
+        NotificationQueue.shutdown();
 
         MineManager.savePlacedBlocks(false);
 

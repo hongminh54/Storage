@@ -9,6 +9,7 @@ import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.NotificationQueue;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -204,20 +205,12 @@ public class MobDeath implements Listener {
     }
 
     private void sendNotification(@NotNull Player player, @NotNull String itemName, int amount) {
-        String displayName = MobStorageManager.getItemDisplayName(itemName);
-        int currentAmount = MobStorageManager.getPlayerItem(player, itemName);
-        int maxStorage = MobStorageManager.getMaxStorage(player);
-
-        if (AutoPickupCache.isMobActionBarEnabled()) {
-            String template = File.getMobStorageConfig().getString("notification.actionbar.item_added");
-            sendActionBar(player, template, displayName, amount, currentAmount, maxStorage);
-        }
-
-        if (AutoPickupCache.isMobTitleEnabled()) {
-            String titleTemplate = File.getMobStorageConfig().getString("notification.title.item_added.title");
-            String subtitleTemplate = File.getMobStorageConfig().getString("notification.title.item_added.subtitle");
-            sendTitle(player, titleTemplate, subtitleTemplate, displayName, amount, currentAmount, maxStorage);
-        }
+        NotificationQueue.add(player, NotificationQueue.TYPE_MOB, itemName,
+                MobStorageManager.getItemDisplayName(itemName),
+                amount, "",
+                MobStorageManager.getPlayerItem(player, itemName),
+                MobStorageManager.getMaxStorage(player),
+                AutoPickupCache.isMobActionBarEnabled(), AutoPickupCache.isMobTitleEnabled());
     }
 
     private void sendStorageFullNotification(@NotNull Player player, @NotNull String itemName) {

@@ -1,4 +1,4 @@
-# Storage [1.8.x - 26.1.x]
+# Storage [1.8.x - 26.x]
 
 > A comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined blocks, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
 
@@ -39,7 +39,7 @@ For detailed information, guides, and API documentation, please visit our **[Wik
 - **Convert System** - Convert materials between different forms (ingots ↔ blocks) with configurable ratios
 - **Transfer System** - Send items to other players with single or multi-item transfers
 - **Event System** - Participate in server-wide mining contests and special events
-- **Multi-Version Support** - Compatible with Minecraft 1.8.x to 1.21.11
+- **Multi-Version Support** - Compatible with Minecraft 1.8.x to 26.x
 - **WorldGuard Integration** - Respect region protections
 - **PlaceholderAPI Support** - Rich placeholder system for other plugins
 - **Custom Enchant System** - Custom enchantments for tools with configurable effects, particles, and sounds
@@ -61,6 +61,9 @@ For detailed information, guides, and API documentation, please visit our **[Wik
 3) Run `/storage` (alias: `/kho`) to open the GUI.
 
 4) Have fun :D
+
+## Require
+- Java 17
 
 ## Soft-Depend
 

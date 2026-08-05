@@ -1,14 +1,11 @@
 package net.danh.storage.Listeners.Crop;
 
-import com.cryptomorin.xseries.messages.ActionBar;
-import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.NMS.NMSAssistant;
-import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
-import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
+import net.danh.storage.Utils.NotificationQueue;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -608,40 +605,11 @@ public class CropBreak implements Listener {
     }
 
     private void sendNotification(@NotNull Player player, @NotNull String dropItem, int amount) {
-        String displayName = CropStorageManager.getItemDisplayName(dropItem);
-        int currentAmount = CropStorageManager.getPlayerItem(player, dropItem);
-        int maxStorage = CropStorageManager.getMaxStorage(player);
-        boolean actionBarEnabled = AutoPickupCache.isCropActionBarEnabled();
-        if (actionBarEnabled) {
-            String template = File.getCropStorageConfig().getString("notification.actionbar.item_added");
-            if (template != null) {
-                String msg = template
-                        .replace("#item#", displayName)
-                        .replace("#amount#", String.valueOf(amount))
-                        .replace("#storage#", String.valueOf(currentAmount))
-                        .replace("#max#", String.valueOf(maxStorage));
-                ActionBar.sendActionBar(Storage.getStorage(), player, ChatUtils.colorizewp(msg));
-            }
-        }
-
-        boolean titleEnabled = AutoPickupCache.isCropTitleEnabled();
-        if (titleEnabled) {
-            String titleTemplate = File.getCropStorageConfig().getString("notification.title.item_added.title");
-            String subtitleTemplate = File.getCropStorageConfig().getString("notification.title.item_added.subtitle");
-            if (titleTemplate != null && subtitleTemplate != null) {
-                String title = titleTemplate
-                        .replace("#item#", displayName)
-                        .replace("#amount#", String.valueOf(amount))
-                        .replace("#storage#", String.valueOf(currentAmount))
-                        .replace("#max#", String.valueOf(maxStorage));
-                String subtitle = subtitleTemplate
-                        .replace("#item#", displayName)
-                        .replace("#amount#", String.valueOf(amount))
-                        .replace("#storage#", String.valueOf(currentAmount))
-                        .replace("#max#", String.valueOf(maxStorage));
-                Titles.sendTitle(player, ChatUtils.colorizewp(title),
-                        ChatUtils.colorizewp(subtitle));
-            }
-        }
+        NotificationQueue.add(player, NotificationQueue.TYPE_CROP, dropItem,
+                CropStorageManager.getItemDisplayName(dropItem),
+                amount, "",
+                CropStorageManager.getPlayerItem(player, dropItem),
+                CropStorageManager.getMaxStorage(player),
+                AutoPickupCache.isCropActionBarEnabled(), AutoPickupCache.isCropTitleEnabled());
     }
 }

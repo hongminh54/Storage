@@ -1,6 +1,6 @@
 #MobStorage Configuration
 
-mobstorage_version: 1
+mobstorage_version: 2
 
 # Worlds that will not be affected by MobStorage feature
 blacklist_world:
@@ -240,6 +240,17 @@ notification:
     # Placeholders: #item#, #amount#, #storage#, #max#
     item_added: "&a+ #amount# #item# &7| &a#storage#&7/&a#max#"
     storage_full: "&cMobStorage Full! &7(&c#storage#&7/&c#max#&7)"
+  # Combine multiple picked-up items into one notification within a short window
+  combine:
+    enable: true
+    # Max items displayed in a single notification
+    max_items: 3
+    # Max wait (in seconds) from the first picked-up item before sending.
+    # Items merge while pickups keep coming and are sent ~0.1s after the last pickup,
+    # so 0 = no visible delay while still combining bursts (vein-mine/TNT, ground-store).
+    duration_seconds: 0
+    # Separator between entries (use "\n" for multiline subtitle on 1.20.3+)
+    separator: " "
 
 # Worth per mob drop item. Key supports both MATERIAL and MATERIAL;0.
 # Format:

@@ -89,6 +89,8 @@ public final class AutoPickupCache {
                     && mob.getBoolean("ground_store.notification.title.enable", true);
             mobBlacklist = immutableSet(mob.getStringList("blacklist_world"));
 
+            NotificationQueue.reload();
+
         } catch (Exception ex) {
             getStorage().getLogger()
                     .warning("[AutoPickupCache] Failed to reload cache: " + ex.getMessage());
