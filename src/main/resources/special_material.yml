@@ -1,7 +1,7 @@
 # Special Material Configuration
 
 # Do not touch it
-special_materials_version: 3
+special_materials_version: 4
 
 settings:
   # Enable/disable special material system
@@ -18,6 +18,16 @@ enchant_bonuses:
   tnt:
     enabled: true
     drop_chance_modifier: 0.7  # 70% of normal drop chance to balance AoE mining
+
+  # Crop bonus (applies to all crop drops)
+  crop:
+    enabled: true
+    bonus_drop_chance: 5.0  # +5% drop chance when harvesting crops
+
+  # Mob bonus (applies to all mob drops)
+  mob:
+    enabled: true
+    bonus_drop_chance: 3.0  # +3% drop chance when killing mobs
 
 # Format: material_id:
 special_materials:
@@ -51,18 +61,75 @@ special_materials:
         # HIDE_POTION_EFFECTS: true
     
     # Drop configuration
+    # Single value applies to all sources, or use a map for per-source chances:
+    # drop_chance:
+    #   block: 5.0
+    #   crop: 3.0
+    #   mob: 2.0
     drop_chance: 5.0  # 5% chance to drop
     
+    # Drop mode:
+    #   DROP - drop the special material item into the world
+    #   STORAGE_REWARD - deposit a reward item into the player's storage
+    mode: "DROP"
+
+    # Cooldown between drops (seconds). 0 = no cooldown
+    cooldown_seconds: 0
+    # Max drops per day. 0 = unlimited
+    daily_limit: 0
+
     # Which blocks can drop this special material
     # Use same format as config.yml blocks section
     source_blocks:
       - "DIAMOND_ORE;0"
       - "EMERALD_ORE;0"
-    
+
+    # Which crops can drop this material (crop item names, same as cropstorage.yml)
+    source_crops: []
+    # Which mobs can drop this material (mob names, same as mobstorage.yml)
+    source_mobs: []
+
+    # Optional loot table. When configured, a random entry is rolled instead of the base item
+    # loot_table:
+    #   entry_1:
+    #     item:
+    #       material: "DIAMOND"
+    #       name: "&b&lRefined Diamond"
+    #     min: 1
+    #     max: 2
+    #     weight: 60
+    #   entry_2:
+    #     item:
+    #       material: "NETHERITE_SCRAP"
+    #     min: 1
+    #     max: 1
+    #     weight: 15
+
+    # Reward configuration for STORAGE_REWARD mode (per source type)
+    # rewards:
+    #   crop:
+    #     item: "WHEAT"  # must be a configured drop in cropstorage.yml
+    #     amount: 32
+    #   mob:
+    #     item: "ROTTEN_FLESH"
+    #     amount: 16
+
     # Amount range when dropped
     amount:
       min: 1
       max: 2
+
+    # Additional drop conditions
+    require_stored: true  # only when items were actually stored
+    require_auto_pickup: false  # only when auto-pickup is enabled
+    permission: ""  # e.g. "storage.special.rare_gem"
+
+    # World restrictions
+    world_blacklist: []
+    world_whitelist: []  # empty = all worlds
+
+    # Console commands to run when the material drops (#player# #amount#)
+    commands: []
 
     # Effects for this specific material
     effects:
@@ -81,6 +148,30 @@ special_materials:
         speed: 0.1
         animation: "burst"
         radius: 1.5
+
+      # Strike lightning (visual only, no damage)
+      lightning: false
+
+      # Firework effect
+      firework:
+        enabled: false
+        power: 1
+        colors:
+          - "#FFD700"
+          - "#00FFFF"
+        flicker: true
+        trail: false
+
+      # Title message (#material# placeholder)
+      title:
+        enabled: false
+        title: "&e#material#!"
+        subtitle: "&7A special material was found"
+
+      # Actionbar message (#material# placeholder)
+      actionbar:
+        enabled: false
+        message: "&eYou found #material#!"
 
   # Another example
   ancient_crystal:
@@ -165,3 +256,145 @@ special_materials:
   #       speed: 0.2
   #       animation: "helix"
   #       radius: 1.8
+
+  # Crop example: reward item goes into crop storage
+  farmer_blessing:
+    item:
+      material: "GOLDEN_CARROT"
+      name: "&6&lFarmer's Blessing"
+      lore:
+        - "&7A blessing from the harvest"
+        - "&7gods. Grants extra crops."
+        - ""
+        - "&6&lFARMER REWARD"
+      glow: true
+      flags:
+        ALL: true
+
+    # Map format: per-source drop chances
+    drop_chance:
+      crop: 8.0
+
+    # Reward goes straight into crop storage instead of dropping
+    mode: "STORAGE_REWARD"
+    rewards:
+      crop:
+        item: "WHEAT"
+        amount: 16
+
+    source_crops:
+      - "WHEAT"
+      - "CARROT"
+      - "POTATO"
+
+    amount:
+      min: 1
+      max: 1
+
+    cooldown_seconds: 30
+    daily_limit: 5
+
+    effects:
+      sound:
+        enabled: true
+        name: "ENTITY_EXPERIENCE_ORB_PICKUP"
+        volume: 1.0
+        pitch: 1.5
+
+      particles:
+        enabled: true
+        type: "VILLAGER_HAPPY"
+        count: 20
+        speed: 0.15
+        animation: "burst"
+        radius: 2.0
+
+      actionbar:
+        enabled: true
+        message: "&6&lFarmer's Blessing! &7+16 Wheat stored!"
+
+  # Mob example: drop from mobs with loot table + firework
+  beast_core:
+    item:
+      material: "BLAZE_ROD"
+      name: "&c&lBeast Core"
+      lore:
+        - "&7The concentrated essence"
+        - "&7of a slain beast."
+        - ""
+        - "&c&lHUNTER LOOT"
+      glow: true
+      custom_model_data: 2001
+      flags:
+        ALL: true
+
+    drop_chance:
+      mob: 3.0
+
+    source_mobs:
+      - "ZOMBIE"
+      - "SKELETON"
+      - "SPIDER"
+      - "CREEPER"
+
+    # Weighted loot table
+    loot_table:
+      common:
+        item:
+          material: "GUNPOWDER"
+          name: "&7Coarse Powder"
+        min: 1
+        max: 3
+        weight: 60
+      rare:
+        item:
+          material: "ENDER_PEARL"
+          name: "&d&lStable Ender Pearl"
+        min: 1
+        max: 1
+        weight: 15
+      legendary:
+        item:
+          material: "NETHER_STAR"
+          name: "&6&lBeast Core Star"
+        min: 1
+        max: 1
+        weight: 2
+
+    amount:
+      min: 1
+      max: 1
+
+    cooldown_seconds: 60
+    daily_limit: 3
+
+    effects:
+      sound:
+        enabled: true
+        name: "ENTITY_ENDER_DRAGON_GROWL"
+        volume: 1.0
+        pitch: 1.0
+
+      particles:
+        enabled: true
+        type: "FLAME"
+        count: 25
+        speed: 0.2
+        animation: "helix"
+        radius: 2.0
+
+      lightning: true
+
+      firework:
+        enabled: true
+        power: 1
+        colors:
+          - "#FF0000"
+          - "#FFA500"
+        flicker: true
+        trail: false
+
+      title:
+        enabled: true
+        title: "&c&l#material#!"
+        subtitle: "&7Dropped by a slain beast"

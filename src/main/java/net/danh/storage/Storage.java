@@ -595,6 +595,7 @@ public final class Storage extends JavaPlugin {
             MythicStorageManager.savePlayerData(p);
             CropStorageManager.savePlayerData(p);
             MobStorageManager.savePlayerData(p);
+            SpecialMaterialManager.savePlayerData(p);
             // Cleanup player-specific data from managers
             MineManager.cleanupPlayerData(p);
             MythicStorageManager.cleanupPlayerData(p);

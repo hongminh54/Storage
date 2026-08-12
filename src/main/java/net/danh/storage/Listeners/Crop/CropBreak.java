@@ -2,6 +2,7 @@ package net.danh.storage.Listeners.Crop;
 
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.File;
@@ -116,6 +117,9 @@ public class CropBreak implements Listener {
             }
         }
 
+        SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_CROP,
+                dropItem, block.getLocation(), stored);
+
         try {
             ageable.setAge(1);
             block.setBlockData(ageable, false);
@@ -194,6 +198,8 @@ public class CropBreak implements Listener {
             }
 
             sendNotification(player, dropItem, fruitAmount);
+            SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_CROP,
+                    dropItem, block.getLocation(), true);
             return;
         }
 
@@ -286,6 +292,8 @@ public class CropBreak implements Listener {
             }
 
             sendNotification(player, dropItem, columnCount);
+            SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_CROP,
+                    dropItem, block.getLocation(), true);
             return;
         }
 
@@ -315,6 +323,8 @@ public class CropBreak implements Listener {
             sendNotification(player, dropItem, amount);
         }
         // If storage is full, let the items drop normally
+        SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_CROP,
+                dropItem, block.getLocation(), stored);
     }
 
     private boolean isTallColumnCrop(@NotNull Material blockType,

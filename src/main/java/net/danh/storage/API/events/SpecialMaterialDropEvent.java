@@ -19,13 +19,22 @@ public class SpecialMaterialDropEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private final Player player;
     private final Block block;
+    private final String sourceType;
+    private final String sourceKey;
     private String enchantType;
     private boolean cancelled;
 
     public SpecialMaterialDropEvent(@NotNull Player player, @NotNull Block block, @Nullable String enchantType) {
+        this(player, block, enchantType, "block", block.getType().name());
+    }
+
+    public SpecialMaterialDropEvent(@NotNull Player player, @Nullable Block block, @Nullable String enchantType,
+                                    @NotNull String sourceType, @Nullable String sourceKey) {
         this.player = player;
         this.block = block;
         this.enchantType = enchantType;
+        this.sourceType = sourceType;
+        this.sourceKey = sourceKey;
         this.cancelled = false;
     }
 
@@ -39,9 +48,19 @@ public class SpecialMaterialDropEvent extends Event implements Cancellable {
         return player;
     }
 
-    @NotNull
+    @Nullable
     public Block getBlock() {
         return block;
+    }
+
+    @NotNull
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    @Nullable
+    public String getSourceKey() {
+        return sourceKey;
     }
 
     @Nullable

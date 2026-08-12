@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
 import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.MythicMobs.MythicMobsHelper;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
@@ -89,6 +90,7 @@ public class MobDeath implements Listener {
             return;
         }
 
+        boolean storedAny = false;
         boolean allowCustomMeta = File.getMobStorageConfig().getBoolean("settings.allow_custom_item_meta", false);
         boolean ignoreMythicItems = File.getMobStorageConfig().getBoolean("settings.ignore_mythic_items", true);
         boolean partialStoreWhenFull = File.getMobStorageConfig().getBoolean("settings.partial_store_when_full", false);
@@ -124,6 +126,7 @@ public class MobDeath implements Listener {
                 }
                 int toStore = Math.min(amount, space);
                 if (MobStorageManager.addItemAmount(player, itemName, toStore)) {
+                    storedAny = true;
                     if (toStore >= amount) {
                         event.getDrops().remove(drop);
                     } else {
@@ -134,12 +137,16 @@ public class MobDeath implements Listener {
                     sendStorageFullNotification(player, itemName);
                 }
             } else if (MobStorageManager.addItemAmount(player, itemName, amount)) {
+                storedAny = true;
                 event.getDrops().remove(drop);
                 sendNotification(player, itemName, amount);
             } else {
                 sendStorageFullNotification(player, itemName);
             }
         }
+
+        SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_MOB,
+                event.getEntityType().name(), event.getEntity().getLocation(), storedAny);
     }
 
     private boolean isMythicItem(@NotNull ItemStack itemStack) {

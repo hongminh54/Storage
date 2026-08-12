@@ -1,4 +1,4 @@
-message_version: 10
+message_version: 11
 admin:
   new_version_available: "#prefix# &6&lNew version is available. You are using &e&lv#old_version#&6&l, new version &e&lv#new_version#"
   add_material_amount: "#prefix# &bAdded &6#amount# #material# &bto &e#player#"
@@ -315,7 +315,13 @@ enchant:
   setmaxlevel_success: "#prefix# &aSuccessfully set max level for &e#enchant# &ato &6#level#&a! Levels have been auto-generated."
   setmaxlevel_failed: "#prefix# &cFailed to update max level for enchant '&e#enchant#&c'!"
 special_material:
-  found: "#prefix# &eYou found a special material: #material#&e!"
+  found: "#prefix# &eYou found a special material: #material# &7#source#&e!"
+  cooldown: "#prefix# &cThe #material# &cisn't ready yet! (&e#time#&c)"
+  daily_limit_reached: "#prefix# &cYou've reached the daily limit for #material#!"
+  sources:
+    block: "&7from mining blocks"
+    crop: "&7from harvesting crops"
+    mob: "&7from killing mobs"
   invalid_subcommand: "#prefix# &cInvalid subcommand '&e#subcommand#&c'! Use: list, info, give"
   no_materials: "#prefix# &cNo special materials are configured!"
   material_not_found: "#prefix# &cSpecial material '&e#material#&c' not found!"

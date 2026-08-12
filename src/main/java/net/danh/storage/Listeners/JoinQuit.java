@@ -29,6 +29,7 @@ import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mob.MobTransferManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.Mythic.MythicTransferManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.NotificationQueue;
 import net.danh.storage.Utils.SchedulerUtil;
@@ -85,6 +86,8 @@ public class JoinQuit implements Listener {
             MobStorageManager.cleanupPlayerData(p);
             MobDeath.cleanupPlayer(p);
         }
+        SpecialMaterialManager.savePlayerData(p);
+        SpecialMaterialManager.cleanupPlayerData(p);
         PersonalStorage.playerCurrentPage.remove(p.getUniqueId());
         MythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ViewMythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());

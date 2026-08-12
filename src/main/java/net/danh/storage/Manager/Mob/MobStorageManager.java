@@ -299,7 +299,7 @@ public class MobStorageManager {
         return MaterialUtils.matchMaterial(itemName.toUpperCase(Locale.ENGLISH));
     }
 
-    private static Set<String> getMobLookupKeys(@NotNull String mobName) {
+    public static Set<String> getMobLookupKeys(@NotNull String mobName) {
         String upper = mobName.toUpperCase(Locale.ENGLISH);
         Set<String> keys = new LinkedHashSet<>();
         keys.add(upper);
