@@ -1,14 +1,6 @@
-# Storage [1.8.x - 26.x] — DISCONTINUED
-
-> ⚠️ **Storage has been officially discontinued and is no longer actively maintained or developed.**
->
-> There will be no further feature updates, new features, or regular bug fixes. The existing version and source code remain available for existing users, reference, and community use.
->
-> ❤️ **Thank you to everyone who used, tested, supported, and contributed to Storage throughout its development.**
+# Storage [1.8.x - 26.x]
 
 Storage is a comprehensive virtual storage system for Minecraft servers that allows players to automatically store mined resources, transfer items between players, participate in server events, and manage their resources through an intuitive GUI system.
-
-This project is now archived from active development, but the existing documentation is still available for users who continue to run the plugin.
 
 ## Wiki & Documentation
 
@@ -58,7 +50,7 @@ For detailed information, guides, configuration references, and API documentatio
 
 > **Important:** This is a complete rework of the original Storage plugin. If you are upgrading from v1 to v2, you **must reset all configuration files**.
 >
-> **Reworked by:** TheBlueSkyARL (A.k.a hongminh54)
+> **Reworked by:** hongminh54
 
 ## Quick Start
 
@@ -84,15 +76,11 @@ The following plugins are optional and provide additional functionality:
 * [Vault](https://www.spigotmc.org/resources/vault.34315/)
 
 
-## Issues & Existing Support
+## Issues & Suggestion
 
-Although active development has ended, existing issues and documentation can still be viewed through the repository.
+If you have any suggestions or bugs to report, you can visit the “Issues” section; your contributions will help the plugin continue to improve and grow.
 
 * **[Bug Reports & Issues](https://github.com/TheBlueSkyARL/Storage/issues)**
-* **[Wiki & Documentation](https://github.com/TheBlueSkyARL/Storage/wiki)**
-* **[Source Code](https://github.com/TheBlueSkyARL/Storage)**
-
-Please keep in mind that issues may not receive a response because the project is discontinued.
 
 ## Special Thanks
 
