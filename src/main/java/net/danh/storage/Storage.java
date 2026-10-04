@@ -7,6 +7,7 @@ import net.danh.storage.CMD.MythicStorageCMD;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
 import net.danh.storage.GUI.GUI;
+import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.Listeners.*;
 import net.danh.storage.Listeners.Crop.CropBreak;
 import net.danh.storage.Listeners.LuckPerms.LuckPermsListener;
@@ -587,6 +588,8 @@ public final class Storage extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        PersonalStorage.clearSorting();
+        GUI.getItemMapper().clear();
         getLogger().log(Level.INFO, "Shutting down...");
         EventManager.shutdown();
         AutoSaveManager.stopAutoSave();

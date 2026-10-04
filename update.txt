@@ -1,1 +1,1 @@
-Final Commit
+- Tính năng mới: SortingOption (Hiện tại chỉ đang demo cho GUI PersonalStorage, sẽ bổ sung thêm cho các GUI còn lại sau)

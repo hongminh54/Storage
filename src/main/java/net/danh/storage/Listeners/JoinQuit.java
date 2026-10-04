@@ -89,6 +89,7 @@ public class JoinQuit implements Listener {
         SpecialMaterialManager.savePlayerData(p);
         SpecialMaterialManager.cleanupPlayerData(p);
         PersonalStorage.playerCurrentPage.remove(p.getUniqueId());
+        PersonalStorage.cleanupSorting(p.getUniqueId());
         MythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         ViewMythicStorageGUI.playerCurrentPage.remove(p.getUniqueId());
         CropStorageGUI.playerCurrentPage.remove(p.getUniqueId());

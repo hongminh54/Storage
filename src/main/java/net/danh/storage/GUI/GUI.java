@@ -8,16 +8,17 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GUI {
     /**
      * The item mapper, which is used to recognize which item was clicked based on NBT tag.
      */
-    private static final HashMap<UUID, InteractiveItem> itemMapper = new HashMap<>();
+    private static final Map<UUID, InteractiveItem> itemMapper = new ConcurrentHashMap<>();
 
-    public static HashMap<UUID, InteractiveItem> getItemMapper() {
+    public static Map<UUID, InteractiveItem> getItemMapper() {
         return itemMapper;
     }
 

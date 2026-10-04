@@ -280,12 +280,12 @@ public class MineManager {
 
     @Contract(" -> new")
     public static @NotNull List<String> getOrderedPluginBlocks() {
-        List<String> orderedBlocks = new ArrayList<>();
+        Set<String> orderedBlocks = new LinkedHashSet<>();
         ConfigurationSection section = File.getConfig().getConfigurationSection(
                 "blocks"
         );
         if (section == null) {
-            return orderedBlocks;
+            return new ArrayList<>(orderedBlocks);
         }
         for (String block_break : section.getKeys(false)) {
             String item_drop = File.getConfig().getString("blocks." + block_break + ".drop");
@@ -296,33 +296,27 @@ public class MineManager {
             addOrderedDrop(orderedBlocks, item_drop);
             addOrderedDrop(orderedBlocks, item_drop_autosmelt);
         }
-        return orderedBlocks;
+        return new ArrayList<>(orderedBlocks);
     }
 
-    private static void addOrderedDrop(@NotNull List<String> orderedBlocks,
+    private static void addOrderedDrop(@NotNull Set<String> orderedBlocks,
                                        String configuredDrop) {
         if (configuredDrop == null) {
             return;
         }
         if (!configuredDrop.contains(";")) {
             String material = configuredDrop + ";0";
-            if (!orderedBlocks.contains(material)) {
-                orderedBlocks.add(material);
-            }
+            orderedBlocks.add(material);
             return;
         }
 
         String[] item_data = configuredDrop.split(";");
         if (IS_LEGACY) {
             String item_material = item_data[0] + ";" + item_data[1];
-            if (!orderedBlocks.contains(item_material)) {
-                orderedBlocks.add(item_material);
-            }
+            orderedBlocks.add(item_material);
         } else {
             String material = item_data[0] + ";0";
-            if (!orderedBlocks.contains(material)) {
-                orderedBlocks.add(material);
-            }
+            orderedBlocks.add(material);
         }
     }
 

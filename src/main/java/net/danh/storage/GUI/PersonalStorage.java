@@ -2,30 +2,36 @@ package net.danh.storage.GUI;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.GUI.manager.SortingOptions;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Storage;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PersonalStorage implements IGUI {
 
+    private static final Map<UUID, SortingOptions> playerSorting = new ConcurrentHashMap<>();
+    private static final Set<String> sortingWarnings = ConcurrentHashMap.newKeySet();
     public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player p;
     private final FileConfiguration config;
-    private final int currentPage;
+    private boolean refreshPending;
+    private int currentPage;
 
     public PersonalStorage(Player p) {
         this(p, 0);
@@ -43,6 +49,15 @@ public class PersonalStorage implements IGUI {
         return playerCurrentPage.getOrDefault(player.getUniqueId(), 0);
     }
 
+    public static void cleanupSorting(UUID playerId) {
+        playerSorting.remove(playerId);
+    }
+
+    public static void clearSorting() {
+        playerSorting.clear();
+        sortingWarnings.clear();
+    }
+
     @NotNull
     @Override
     public Inventory getInventory() {
@@ -57,9 +72,28 @@ public class PersonalStorage implements IGUI {
                 ChatUtils.colorizewp(p, Objects.requireNonNull(config.getString("title"))
                         .replace("#player#", p.getName())));
         List<String> item_list = new ArrayList<>(MineManager.getOrderedPluginBlocks());
+        ConfigurationSection sortingSection = config.getConfigurationSection("items.sorting_options");
+        Set<Integer> sortingSlots = SortingOptions.resolveSlots(sortingSection,
+                Objects.requireNonNull(config.getConfigurationSection("items")), inventory.getSize(), warning -> {
+                    if (sortingWarnings.add(warning)) Storage.getStorage().getLogger().warning(warning);
+                });
+        SortingOptions sorting = sortingSlots.isEmpty() ? null : new SortingOptions(
+                sortingSection, playerSorting.get(p.getUniqueId()));
+        if (sorting != null) {
+            playerSorting.put(p.getUniqueId(), sorting);
+            sorting.sort(item_list, MineManager::getMaterial,
+                    key -> ChatColor.stripColor(ChatUtils.colorizewp(p,
+                            File.getConfig().getString("items." + key, key.split(";")[0]))),
+                    key -> MineManager.getPlayerBlock(p, MineManager.getMaterial(key)));
+        } else {
+            playerSorting.remove(p.getUniqueId());
+        }
         int itemsPerPage = Objects.requireNonNull(config.getString("items.storage_item.slot")).split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) item_list.size() / itemsPerPage));
         boolean hasMultiplePages = totalPages > 1;
+        int displayPage = Math.min(currentPage, totalPages - 1);
+        currentPage = displayPage;
+        playerCurrentPage.put(p.getUniqueId(), displayPage);
 
         Set<Integer> navigationSlots = new HashSet<>();
         if (hasMultiplePages) {
@@ -82,17 +116,19 @@ public class PersonalStorage implements IGUI {
         }
 
         for (String item_tag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
+            if (item_tag.equalsIgnoreCase("sorting_options")) continue;
             String slot = Objects.requireNonNull(config.getString("items." + item_tag + ".slot")).replace(" ", "");
             if (item_tag.equalsIgnoreCase("storage_item")) {
                 if (slot.contains(",")) {
                     List<String> slot_list = new ArrayList<>(Arrays.asList(slot.split(",")));
-                    int startIndex = currentPage * itemsPerPage;
+                    int startIndex = displayPage * itemsPerPage;
                     int endIndex = Math.min(startIndex + itemsPerPage, item_list.size());
                     for (int i = startIndex; i < endIndex; i++) {
                         int slotIndex = i - startIndex;
                         if (slotIndex < slot_list.size()) {
                             String material = MineManager.getMaterial(item_list.get(i));
-                            String name = File.getConfig().getString("items." + item_list.get(i));
+                            String itemKey = item_list.get(i);
+                            String name = File.getConfig().getString("items." + itemKey);
                             String autopickupStatus = MineManager.isAutoPickupEnabledForItem(
                                     p,
                                     material
@@ -127,7 +163,7 @@ public class PersonalStorage implements IGUI {
                             InteractiveItem interactiveItem = new InteractiveItem(itemStack, Number.getInteger(slot_list.get(slotIndex))).onClick((player, clickType) -> {
                                 SoundManager.playItemSound(player, config, "items.storage_item", SoundContext.INITIAL_OPEN);
                                 SoundManager.setShouldPlayCloseSound(player, false);
-                                if (clickType == org.bukkit.event.inventory.ClickType.DROP) {
+                                if (clickType == ClickType.DROP) {
                                     boolean enabled = MineManager.toggleItemAutoPickup(p, material);
                                     String status = enabled
                                             ? Objects.requireNonNull(
@@ -141,18 +177,11 @@ public class PersonalStorage implements IGUI {
                                             )
                                     );
 
-                                    String itemKey = "items." + item_list.get(
-                                            slotIndex +
-                                                    (currentPage * itemsPerPage)
-                                    );
                                     String configItemName = File.getConfig()
-                                            .getString(itemKey);
+                                            .getString("items." + itemKey);
                                     String itemName = configItemName != null
                                             ? configItemName
-                                            : item_list.get(
-                                            slotIndex +
-                                                    (currentPage * itemsPerPage)
-                                    ).split(";")[0];
+                                            : itemKey.split(";")[0];
 
                                     p.sendMessage(ChatUtils.colorize(
                                             (File.getMessage().getString(
@@ -165,11 +194,11 @@ public class PersonalStorage implements IGUI {
                                                     .replace("#item#", itemName)
                                                     .replace("#status#", status)
                                     ));
-                                    p.openInventory(new PersonalStorage(p, currentPage)
+                                    p.openInventory(new PersonalStorage(p, displayPage)
                                             .getInventory(SoundContext.SILENT));
                                     return;
                                 }
-                                player.openInventory(new ItemStorage(p, material, currentPage).getInventory(SoundContext.SILENT));
+                                player.openInventory(new ItemStorage(p, material, displayPage).getInventory(SoundContext.SILENT));
                             });
                             inventory.setItem(interactiveItem.getSlot(), interactiveItem);
                         }
@@ -420,6 +449,7 @@ public class PersonalStorage implements IGUI {
                 if (slot.contains(",")) {
                     for (String slot_string : slot.split(",")) {
                         int slotNumber = Number.getInteger(slot_string);
+                        if (sortingSlots.contains(slotNumber)) continue;
                         if (hasMultiplePages && navigationSlots.contains(slotNumber)) {
                             continue;
                         }
@@ -428,11 +458,35 @@ public class PersonalStorage implements IGUI {
                     }
                 } else {
                     int slotNumber = Number.getInteger(slot);
+                    if (sortingSlots.contains(slotNumber)) continue;
                     if (!(hasMultiplePages && navigationSlots.contains(slotNumber))) {
                         InteractiveItem item = new InteractiveItem(ItemManager.getItemConfig(Objects.requireNonNull(config.getConfigurationSection("items." + item_tag))), slotNumber);
                         inventory.setItem(item.getSlot(), item);
                     }
                 }
+            }
+        }
+        if (sorting != null) {
+            ItemStack button = ItemManager.getItemConfigWithPlaceholders(p, sortingSection, sorting.placeholders());
+            for (int buttonSlot : sortingSlots) {
+                InteractiveItem item = new InteractiveItem(button, buttonSlot).onClick((player, clickType) -> {
+                    boolean changed;
+                    if (clickType == ClickType.SHIFT_LEFT) changed = sorting.change(0, true);
+                    else if (clickType == ClickType.LEFT) changed = sorting.change(1, false);
+                    else if (clickType == ClickType.RIGHT) changed = sorting.change(-1, false);
+                    else return;
+                    if (!changed) return;
+                    SoundManager.playItemSound(player, config, "items.sorting_options", SoundContext.INITIAL_OPEN);
+                    if (refreshPending) return;
+                    refreshPending = true;
+                    SchedulerUtil.runTask(Storage.getStorage(), player, () -> {
+                        refreshPending = false;
+                        if (!player.isOnline() || !inventory.getViewers().contains(player)) return;
+                        SoundManager.setShouldPlayCloseSound(player, false);
+                        player.openInventory(new PersonalStorage(player, 0).getInventory(SoundContext.SILENT));
+                    });
+                });
+                inventory.setItem(buttonSlot, item);
             }
         }
         return inventory;

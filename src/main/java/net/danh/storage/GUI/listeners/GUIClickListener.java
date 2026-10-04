@@ -4,8 +4,10 @@ import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
 import net.danh.storage.GUI.GUI;
 import net.danh.storage.GUI.Mythic.ViewMythicStorageGUI;
+import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.ViewStorageGUI;
 import net.danh.storage.GUI.manager.IGUI;
+import net.danh.storage.GUI.manager.InteractiveItem;
 import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
@@ -25,12 +27,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GUIClickListener implements Listener {
-    private static final HashMap<UUID, Long> interactTimeout = new HashMap<>();
+    private static final Map<UUID, Long> interactTimeout = new ConcurrentHashMap<>();
     private static boolean nbtWarningLogged = false;
 
     private static void logNBTWarning(Exception e) {
@@ -111,8 +114,8 @@ public class GUIClickListener implements Listener {
                     NBTItem nbtItem = new NBTItem(currentItem);
                     if (nbtItem.hasTag("storage:id")) {
                         UUID uuid = nbtItem.getUUID("storage:id");
-                        if (GUI.getItemMapper().containsKey(uuid))
-                            GUI.getItemMapper().get(uuid).handleClick(player, e.getClick());
+                        InteractiveItem callback = GUI.getItemMapper().get(uuid);
+                        if (callback != null) callback.handleClick(player, e.getClick());
                     }
                 } catch (Exception ex) {
                     logNBTWarning(ex);
@@ -134,9 +137,10 @@ public class GUIClickListener implements Listener {
 
             UUID uuid = nbtItem.getUUID("storage:id");
 
-            if (GUI.getItemMapper().containsKey(uuid)
+            InteractiveItem callback = GUI.getItemMapper().get(uuid);
+            if (callback != null
                     && System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)) {
-                GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), e.getAction());
+                callback.handleClick(e.getPlayer(), e.getAction());
 
                 interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L);
             }
@@ -171,9 +175,10 @@ public class GUIClickListener implements Listener {
 
             UUID uuid = nbtItem.getUUID("storage:id");
 
+            InteractiveItem callback = GUI.getItemMapper().get(uuid);
             if (System.currentTimeMillis() >= interactTimeout.getOrDefault(e.getPlayer().getUniqueId(), -1L)
-                    && GUI.getItemMapper().containsKey(uuid)) {
-                GUI.getItemMapper().get(uuid).handleClick(e.getPlayer(), Action.RIGHT_CLICK_BLOCK);
+                    && callback != null) {
+                callback.handleClick(e.getPlayer(), Action.RIGHT_CLICK_BLOCK);
 
                 interactTimeout.put(e.getPlayer().getUniqueId(), System.currentTimeMillis() + 100L);
             }
@@ -219,6 +224,17 @@ public class GUIClickListener implements Listener {
         Player player = (Player) e.getPlayer();
 
         if (e.getInventory().getHolder() instanceof IGUI) {
+            if (e.getInventory().getHolder() instanceof PersonalStorage) {
+                for (ItemStack item : e.getInventory().getContents()) {
+                    if (item == null || item.getType() == Material.AIR) continue;
+                    try {
+                        NBTItem nbt = new NBTItem(item);
+                        if (nbt.hasTag("storage:id")) GUI.getItemMapper().remove(nbt.getUUID("storage:id"));
+                    } catch (Exception ex) {
+                        logNBTWarning(ex);
+                    }
+                }
+            }
             if (e.getInventory().getHolder() instanceof RecipeEditorGUI) {
                 if (RecipeEditorGUI.getShouldRestoreOnClose(player)
                         && RecipeEditorGUI.hasActiveSession(player.getUniqueId())) {
