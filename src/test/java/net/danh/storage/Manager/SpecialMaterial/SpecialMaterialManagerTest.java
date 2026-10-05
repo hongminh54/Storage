@@ -5,17 +5,20 @@ import org.bukkit.Location;
 import net.danh.storage.API.events.SpecialMaterialDropEvent;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Proxy;
+import org.mockito.MockMakers;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class SpecialMaterialManagerTest {
 
     private Player player() {
-        UUID id = UUID.randomUUID();
-        return (Player) Proxy.newProxyInstance(Player.class.getClassLoader(), new Class<?>[]{Player.class},
-                (proxy, method, args) -> method.getName().equals("getUniqueId") ? id : null);
+        // JDK proxies initialize every method's signature types, including Bukkit registries.
+        // A subclass mock avoids requiring a running server or an inline Java agent.
+        Player player = mock(Player.class, withSettings().mockMaker(MockMakers.SUBCLASS));
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        return player;
     }
 
     @Test
