@@ -2,14 +2,15 @@ package net.danh.storage.GUI.Mob;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.GUI.manager.SortingOptions;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Storage;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,13 +22,17 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MobStorageGUI implements IGUI {
 
+    private static final Map<UUID, SortingOptions> playerSorting = new ConcurrentHashMap<>();
+    private static final Set<String> sortingWarnings = ConcurrentHashMap.newKeySet();
     public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player player;
     private final FileConfiguration config;
-    private final int currentPage;
+    private int currentPage;
+    private boolean refreshPending;
 
     public MobStorageGUI(Player player) {
         this(player, 0);
@@ -38,6 +43,15 @@ public class MobStorageGUI implements IGUI {
         this.currentPage = Math.max(0, page);
         this.config = File.getMobStorageGUIConfig();
         playerCurrentPage.put(player.getUniqueId(), this.currentPage);
+    }
+
+    public static void cleanupSorting(UUID playerId) {
+        playerSorting.remove(playerId);
+    }
+
+    public static void clearSorting() {
+        playerSorting.clear();
+        sortingWarnings.clear();
     }
 
     public static int getPlayerCurrentPage(Player player) {
@@ -71,10 +85,30 @@ public class MobStorageGUI implements IGUI {
         }
 
         List<String> configuredDrops = MobStorageManager.getConfiguredDrops();
+        ConfigurationSection sortingSection = config.getConfigurationSection("items.sorting_options");
+        Set<Integer> sortingSlots = SortingOptions.resolveSlots(sortingSection,
+                Objects.requireNonNull(config.getConfigurationSection("items")), inventory.getSize(),
+                "GUI/mobstorage.yml", warning -> {
+                    if (sortingWarnings.add(warning)) Storage.getStorage().getLogger().warning(warning);
+                });
+        SortingOptions sorting = sortingSlots.isEmpty() ? null : new SortingOptions(
+                sortingSection, playerSorting.get(player.getUniqueId()));
+        if (sorting != null) {
+            playerSorting.put(player.getUniqueId(), sorting);
+            sorting.sort(configuredDrops, key -> {
+                        Material material = MobStorageManager.resolveMaterial(key);
+                        return material == null ? key : material.name();
+                    }, key -> ChatColor.stripColor(ChatUtils.colorizewp(MobStorageManager.getItemDisplayName(key))),
+                    key -> MobStorageManager.getPlayerItem(player, key));
+        } else {
+            playerSorting.remove(player.getUniqueId());
+        }
         String slotConfig = Objects.requireNonNull(config.getString("items.mob_item.slot")).replace(" ", "");
         int itemsPerPage = slotConfig.split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) configuredDrops.size() / itemsPerPage));
         boolean hasMultiplePages = totalPages > 1;
+        currentPage = Math.min(currentPage, totalPages - 1);
+        playerCurrentPage.put(player.getUniqueId(), currentPage);
         Set<Integer> navigationSlots = getNavigationSlots(hasMultiplePages);
 
         ConfigurationSection itemsSection = config.getConfigurationSection("items");
@@ -83,6 +117,7 @@ public class MobStorageGUI implements IGUI {
         }
 
         for (String itemTag : itemsSection.getKeys(false)) {
+            if (itemTag.equalsIgnoreCase("sorting_options")) continue;
             String slot = Objects.requireNonNull(config.getString("items." + itemTag + ".slot")).replace(" ", "");
             if (itemTag.equalsIgnoreCase("mob_item")) {
                 addMobItems(inventory, configuredDrops, slot, itemsPerPage);
@@ -91,7 +126,33 @@ public class MobStorageGUI implements IGUI {
             } else if (itemTag.equalsIgnoreCase("next_page")) {
                 addPageItem(inventory, itemTag, slot, hasMultiplePages && currentPage < totalPages - 1, currentPage + 1, totalPages);
             } else {
+                if (itemTag.equalsIgnoreCase("decorates")) {
+                    StringJoiner remaining = new StringJoiner(",");
+                    for (String value : slot.split(",")) {
+                        if (!sortingSlots.contains(Number.getInteger(value.trim()))) remaining.add(value);
+                    }
+                    if (remaining.length() == 0) continue;
+                    slot = remaining.toString();
+                }
                 addConfiguredItem(inventory, itemTag, slot, navigationSlots, hasMultiplePages);
+            }
+        }
+        if (sorting != null) {
+            ItemStack button = ItemManager.getItemConfigWithPlaceholders(player, sortingSection, sorting.placeholders());
+            for (int buttonSlot : sortingSlots) {
+                InteractiveItem item = new InteractiveItem(button, buttonSlot).onClick((p, clickType) -> {
+                    if (!sorting.change(clickType)) return;
+                    SoundManager.playItemSound(p, config, "items.sorting_options", SoundContext.INITIAL_OPEN);
+                    if (refreshPending) return;
+                    refreshPending = true;
+                    SchedulerUtil.runTask(Storage.getStorage(), p, () -> {
+                        refreshPending = false;
+                        if (!p.isOnline() || !inventory.getViewers().contains(p)) return;
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new MobStorageGUI(p, 0).getInventory(SoundContext.SILENT));
+                    });
+                });
+                inventory.setItem(buttonSlot, item);
             }
         }
         return inventory;

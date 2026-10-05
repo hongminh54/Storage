@@ -2,14 +2,15 @@ package net.danh.storage.GUI.Crop;
 
 import net.danh.storage.GUI.manager.IGUI;
 import net.danh.storage.GUI.manager.InteractiveItem;
+import net.danh.storage.GUI.manager.SortingOptions;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.ItemManager;
 import net.danh.storage.Manager.SoundManager;
-import net.danh.storage.Utils.ChatUtils;
-import net.danh.storage.Utils.File;
+import net.danh.storage.Storage;
+import net.danh.storage.Utils.*;
 import net.danh.storage.Utils.Number;
-import net.danh.storage.Utils.SoundContext;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,13 +22,17 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CropStorageGUI implements IGUI {
 
+    private static final Map<UUID, SortingOptions> playerSorting = new ConcurrentHashMap<>();
+    private static final Set<String> sortingWarnings = ConcurrentHashMap.newKeySet();
     public static HashMap<UUID, Integer> playerCurrentPage = new HashMap<>();
     private final Player player;
     private final FileConfiguration config;
-    private final int currentPage;
+    private int currentPage;
+    private boolean refreshPending;
 
     public CropStorageGUI(Player player) {
         this(player, 0);
@@ -38,6 +43,15 @@ public class CropStorageGUI implements IGUI {
         this.currentPage = Math.max(0, page);
         this.config = File.getCropStorageGUIConfig();
         playerCurrentPage.put(player.getUniqueId(), this.currentPage);
+    }
+
+    public static void cleanupSorting(UUID playerId) {
+        playerSorting.remove(playerId);
+    }
+
+    public static void clearSorting() {
+        playerSorting.clear();
+        sortingWarnings.clear();
     }
 
     public static int getPlayerCurrentPage(Player player) {
@@ -63,10 +77,30 @@ public class CropStorageGUI implements IGUI {
         Inventory inventory = Bukkit.createInventory(this, config.getInt("size") * 9, title);
 
         List<String> configuredDrops = CropStorageManager.getConfiguredDrops();
+        ConfigurationSection sortingSection = config.getConfigurationSection("items.sorting_options");
+        Set<Integer> sortingSlots = SortingOptions.resolveSlots(sortingSection,
+                Objects.requireNonNull(config.getConfigurationSection("items")), inventory.getSize(),
+                "GUI/cropstorage.yml", warning -> {
+                    if (sortingWarnings.add(warning)) Storage.getStorage().getLogger().warning(warning);
+                });
+        SortingOptions sorting = sortingSlots.isEmpty() ? null : new SortingOptions(
+                sortingSection, playerSorting.get(player.getUniqueId()));
+        if (sorting != null) {
+            playerSorting.put(player.getUniqueId(), sorting);
+            sorting.sort(configuredDrops, key -> {
+                        Material material = MaterialUtils.matchMaterial(key);
+                        return material == null ? key : material.name();
+                    }, key -> ChatColor.stripColor(ChatUtils.colorizewp(CropStorageManager.getItemDisplayName(key))),
+                    key -> CropStorageManager.getPlayerItem(player, key));
+        } else {
+            playerSorting.remove(player.getUniqueId());
+        }
         String slotConfig = Objects.requireNonNull(config.getString("items.crop_item.slot")).replace(" ", "");
         int itemsPerPage = slotConfig.split(",").length;
         int totalPages = Math.max(1, (int) Math.ceil((double) configuredDrops.size() / itemsPerPage));
         boolean hasMultiplePages = totalPages > 1;
+        currentPage = Math.min(currentPage, totalPages - 1);
+        playerCurrentPage.put(player.getUniqueId(), currentPage);
 
         Set<Integer> navigationSlots = new HashSet<>();
         if (hasMultiplePages) {
@@ -97,6 +131,7 @@ public class CropStorageGUI implements IGUI {
         }
 
         for (String itemTag : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
+            if (itemTag.equalsIgnoreCase("sorting_options")) continue;
             String slot = Objects.requireNonNull(config.getString("items." + itemTag + ".slot")).replace(" ", "");
 
             if (itemTag.equalsIgnoreCase("crop_item")) {
@@ -109,12 +144,8 @@ public class CropStorageGUI implements IGUI {
                         int slotIndex = i - startIndex;
                         if (slotIndex < slotList.size()) {
                             String itemName = configuredDrops.get(i);
-                            Material material;
-                            try {
-                                material = Material.valueOf(itemName.toUpperCase());
-                            } catch (IllegalArgumentException e) {
-                                continue;
-                            }
+                            Material material = MaterialUtils.matchMaterial(itemName);
+                            if (material == null || material == Material.AIR) continue;
 
                             ItemStack displayItem = new ItemStack(material, 1);
                             ItemMeta meta = displayItem.getItemMeta();
@@ -224,6 +255,7 @@ public class CropStorageGUI implements IGUI {
                 if (slot.contains(",")) {
                     for (String slotString : slot.split(",")) {
                         int slotNumber = Number.getInteger(slotString);
+                        if (sortingSlots.contains(slotNumber)) continue;
                         if (hasMultiplePages && navigationSlots.contains(slotNumber)) {
                             continue;
                         }
@@ -236,6 +268,7 @@ public class CropStorageGUI implements IGUI {
                     }
                 } else {
                     int slotNumber = Number.getInteger(slot);
+                    if (sortingSlots.contains(slotNumber)) continue;
                     if (!(hasMultiplePages && navigationSlots.contains(slotNumber))) {
                         ConfigurationSection section = config.getConfigurationSection("items." + itemTag);
                         if (section != null) {
@@ -370,6 +403,24 @@ public class CropStorageGUI implements IGUI {
             }
         }
 
+        if (sorting != null) {
+            ItemStack button = ItemManager.getItemConfigWithPlaceholders(player, sortingSection, sorting.placeholders());
+            for (int buttonSlot : sortingSlots) {
+                InteractiveItem item = new InteractiveItem(button, buttonSlot).onClick((p, clickType) -> {
+                    if (!sorting.change(clickType)) return;
+                    SoundManager.playItemSound(p, config, "items.sorting_options", SoundContext.INITIAL_OPEN);
+                    if (refreshPending) return;
+                    refreshPending = true;
+                    SchedulerUtil.runTask(Storage.getStorage(), p, () -> {
+                        refreshPending = false;
+                        if (!p.isOnline() || !inventory.getViewers().contains(p)) return;
+                        SoundManager.setShouldPlayCloseSound(p, false);
+                        p.openInventory(new CropStorageGUI(p, 0).getInventory(SoundContext.SILENT));
+                    });
+                });
+                inventory.setItem(buttonSlot, item);
+            }
+        }
         return inventory;
     }
 

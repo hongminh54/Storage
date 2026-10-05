@@ -470,12 +470,7 @@ public class PersonalStorage implements IGUI {
             ItemStack button = ItemManager.getItemConfigWithPlaceholders(p, sortingSection, sorting.placeholders());
             for (int buttonSlot : sortingSlots) {
                 InteractiveItem item = new InteractiveItem(button, buttonSlot).onClick((player, clickType) -> {
-                    boolean changed;
-                    if (clickType == ClickType.SHIFT_LEFT) changed = sorting.change(0, true);
-                    else if (clickType == ClickType.LEFT) changed = sorting.change(1, false);
-                    else if (clickType == ClickType.RIGHT) changed = sorting.change(-1, false);
-                    else return;
-                    if (!changed) return;
+                    if (!sorting.change(clickType)) return;
                     SoundManager.playItemSound(player, config, "items.sorting_options", SoundContext.INITIAL_OPEN);
                     if (refreshPending) return;
                     refreshPending = true;

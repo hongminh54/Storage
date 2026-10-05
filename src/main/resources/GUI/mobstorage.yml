@@ -24,6 +24,45 @@ items:
     sound:
       enabled: false
 
+  # Optional: remove this section to disable sorting. It is not re-added on startup.
+  # Sorting replaces decoration, but never overwrites storage items or other controls.
+  sorting_options:
+    slot: 4
+    material: BOOK
+    name: "&eSorting Options"
+    amount: 1
+    default-mode: NONE
+    active-prefix: "&a→ "
+    inactive-prefix: "&7• "
+    # The order of these modes controls the click cycle. Unsupported modes are ignored.
+    modes:
+      TYPE:
+        label: "Item Type"
+        direction: ASCENDING
+      NAME:
+        label: "Item Name"
+        direction: ASCENDING
+      AMOUNT:
+        label: "Amount"
+        direction: DESCENDING
+      NONE:
+        label: "No Sorting"
+    lore:
+      - ""
+      - " #sort_type#"
+      - " #sort_name#"
+      - " #sort_amount#"
+      - " #sort_none#"
+      - ""
+      - " &a▶ &7[&6Left-click&7]: &fNext option"
+      - " &a▶ &7[&6Right-click&7]: &fPrevious option"
+      - " &a▶ &7[&6Shift + left-click&7]: &fReverse order"
+    sound:
+      enabled: true
+      name: "UI_BUTTON_CLICK"
+      volume: 0.5
+      pitch: 1.2
+
   mob_item:
     slot: 10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 31
     lore:

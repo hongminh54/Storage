@@ -1,6 +1,7 @@
 package net.danh.storage.GUI.manager;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.event.inventory.ClickType;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -15,6 +16,7 @@ public final class SortingOptions {
     private final String inactivePrefix;
     private Mode mode;
     private boolean reversed;
+
     public SortingOptions(ConfigurationSection section, SortingOptions previous) {
         activePrefix = section.getString("active-prefix", "");
         inactivePrefix = section.getString("inactive-prefix", "");
@@ -50,6 +52,12 @@ public final class SortingOptions {
     public static Set<Integer> resolveSlots(ConfigurationSection section,
                                             ConfigurationSection items, int size,
                                             Consumer<String> warning) {
+        return resolveSlots(section, items, size, "GUI/storage.yml", warning);
+    }
+
+    public static Set<Integer> resolveSlots(ConfigurationSection section,
+                                            ConfigurationSection items, int size,
+                                            String fileName, Consumer<String> warning) {
         Set<Integer> slots = new LinkedHashSet<>();
         if (section == null) return slots;
         Map<Integer, String> reserved = new HashMap<>();
@@ -64,22 +72,22 @@ public final class SortingOptions {
         }
         String configuredSlots = section.getString("slot", "");
         if (configuredSlots.trim().isEmpty()) {
-            warning.accept("Sorting options disabled: items.sorting_options.slot is missing or empty (You can ignore this warning)");
+            warning.accept("Sorting options disabled in " + fileName + ": items.sorting_options.slot is missing or empty.");
             return slots;
         }
         for (String value : configuredSlots.split(",")) {
             try {
                 int slot = Integer.parseInt(value.trim());
                 if (slot < 0 || slot >= size) {
-                    warning.accept("Ignoring sorting slot " + slot + " in GUI/storage.yml: outside inventory bounds.");
+                    warning.accept("Ignoring sorting slot " + slot + " in " + fileName + ": outside inventory bounds.");
                 } else if (reserved.containsKey(slot)) {
-                    warning.accept("Ignoring sorting slot " + slot + " in GUI/storage.yml: overlaps items."
+                    warning.accept("Ignoring sorting slot " + slot + " in " + fileName + ": overlaps items."
                             + reserved.get(slot) + ".slot.");
                 } else {
                     slots.add(slot);
                 }
             } catch (NumberFormatException ignored) {
-                warning.accept("Ignoring invalid sorting slot '" + value.trim() + "' in GUI/storage.yml.");
+                warning.accept("Ignoring invalid sorting slot '" + value.trim() + "' in " + fileName + ".");
             }
         }
         return slots;
@@ -96,6 +104,17 @@ public final class SortingOptions {
             reversed = false;
         }
         return true;
+    }
+
+    public boolean change(ClickType clickType) {
+        if (clickType == ClickType.SHIFT_LEFT) return change(0, true);
+        if (clickType == ClickType.LEFT) return change(1, false);
+        if (clickType == ClickType.RIGHT) return change(-1, false);
+        return false;
+    }
+
+    public Mode getMode() {
+        return mode;
     }
 
     public String[] placeholders() {

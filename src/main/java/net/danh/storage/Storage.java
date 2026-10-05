@@ -6,7 +6,10 @@ import net.danh.storage.CMD.MobStorageCMD;
 import net.danh.storage.CMD.MythicStorageCMD;
 import net.danh.storage.CMD.StorageCMD;
 import net.danh.storage.Database.*;
+import net.danh.storage.GUI.Crop.CropStorageGUI;
 import net.danh.storage.GUI.GUI;
+import net.danh.storage.GUI.Mob.MobStorageGUI;
+import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.Listeners.*;
 import net.danh.storage.Listeners.Crop.CropBreak;
@@ -589,6 +592,9 @@ public final class Storage extends JavaPlugin {
     @Override
     public void onDisable() {
         PersonalStorage.clearSorting();
+        MobStorageGUI.clearSorting();
+        CropStorageGUI.clearSorting();
+        MythicStorageGUI.clearSorting();
         GUI.getItemMapper().clear();
         getLogger().log(Level.INFO, "Shutting down...");
         EventManager.shutdown();

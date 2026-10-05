@@ -52,7 +52,7 @@ items:
     amount: 1
     default-mode: NONE
     active-prefix: "&a→ "
-    inactive-prefix: "&7"
+    inactive-prefix: "&7• "
     # The order of these modes controls the click cycle. Unsupported modes are ignored.
     modes:
       TYPE:
@@ -67,14 +67,15 @@ items:
       NONE:
         label: "No Sorting"
     lore:
-      - "#sort_type#"
-      - "#sort_name#"
-      - "#sort_amount#"
-      - "#sort_none#"
       - ""
-      - "&eLeft-click: &fNext option"
-      - "&eRight-click: &fPrevious option"
-      - "&eShift + left-click: &fReverse order"
+      - " #sort_type#"
+      - " #sort_name#"
+      - " #sort_amount#"
+      - " #sort_none#"
+      - ""
+      - " &a▶ &7[&6Left-click&7]: &fNext option"
+      - " &a▶ &7[&6Right-click&7]: &fPrevious option"
+      - " &a▶ &7[&6Shift + left-click&7]: &fReverse order"
     sound:
       enabled: true
       name: "UI_BUTTON_CLICK"

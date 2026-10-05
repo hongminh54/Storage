@@ -2,7 +2,10 @@ package net.danh.storage.GUI.listeners;
 
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import net.danh.storage.GUI.Crafting.RecipeEditorGUI;
+import net.danh.storage.GUI.Crop.CropStorageGUI;
 import net.danh.storage.GUI.GUI;
+import net.danh.storage.GUI.Mob.MobStorageGUI;
+import net.danh.storage.GUI.Mythic.MythicStorageGUI;
 import net.danh.storage.GUI.Mythic.ViewMythicStorageGUI;
 import net.danh.storage.GUI.PersonalStorage;
 import net.danh.storage.GUI.ViewStorageGUI;
@@ -224,7 +227,10 @@ public class GUIClickListener implements Listener {
         Player player = (Player) e.getPlayer();
 
         if (e.getInventory().getHolder() instanceof IGUI) {
-            if (e.getInventory().getHolder() instanceof PersonalStorage) {
+            if (e.getInventory().getHolder() instanceof PersonalStorage
+                    || e.getInventory().getHolder() instanceof MobStorageGUI
+                    || e.getInventory().getHolder() instanceof CropStorageGUI
+                    || e.getInventory().getHolder() instanceof MythicStorageGUI) {
                 for (ItemStack item : e.getInventory().getContents()) {
                     if (item == null || item.getType() == Material.AIR) continue;
                     try {
