@@ -3,10 +3,12 @@ package net.danh.storage.Manager.SpecialMaterial;
 import com.cryptomorin.xseries.XSound;
 import com.cryptomorin.xseries.messages.ActionBar;
 import com.cryptomorin.xseries.messages.Titles;
+import net.danh.storage.API.events.SpecialMaterialDropEvent;
 import net.danh.storage.Database.PlayerData;
 import net.danh.storage.Enchant.MultiplierEnchant;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.EnchantManager;
+import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.ParticleManager;
 import net.danh.storage.NMS.NMSAssistant;
@@ -14,6 +16,7 @@ import net.danh.storage.Storage;
 import net.danh.storage.Utils.ChatUtils;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.MaterialUtils;
+import net.danh.storage.Utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -28,7 +31,9 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,17 +44,16 @@ public class SpecialMaterialManager {
     public static final String SOURCE_BLOCK = "block";
     public static final String SOURCE_CROP = "crop";
     public static final String SOURCE_MOB = "mob";
-
+    public static final String FIREWORK_METADATA = "StorageSpecialMaterialFirework";
     private static final String MODE_DROP = "DROP";
     private static final String MODE_STORAGE_REWARD = "STORAGE_REWARD";
     private static final String DAILY_PREFIX = "spmat:";
-
-    private static final Map<String, SpecialMaterial> specialMaterials = new HashMap<>();
     private static final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
     private static final Map<UUID, Map<String, DailyCounter>> dailyLimits = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> lastBlockedMessageAt = new ConcurrentHashMap<>();
     private static final long BLOCKED_MESSAGE_INTERVAL_MS = 5000L;
-    private static boolean systemEnabled = false;
+    private static volatile Map<String, SpecialMaterial> specialMaterials = Collections.emptyMap();
+    private static volatile boolean systemEnabled = false;
 
     public static String getMaterialDisplayName(String materialId) {
         SpecialMaterial material = specialMaterials.get(materialId);
@@ -62,10 +66,12 @@ public class SpecialMaterialManager {
     }
 
     public static void loadSpecialMaterials() {
-        specialMaterials.clear();
+        Map<String, SpecialMaterial> loaded = new LinkedHashMap<>();
 
         FileConfiguration config = File.getSpecialMaterialConfig();
         if (config == null) {
+            specialMaterials = Collections.emptyMap();
+            systemEnabled = false;
             Storage.getStorage().getLogger().warning("Could not load special_material.yml!");
             return;
         }
@@ -73,12 +79,14 @@ public class SpecialMaterialManager {
         systemEnabled = config.getBoolean("settings.enabled", true);
 
         if (!systemEnabled) {
+            specialMaterials = Collections.emptyMap();
             Storage.getStorage().getLogger().info("Special Material system is disabled");
             return;
         }
 
         ConfigurationSection materialsSection = config.getConfigurationSection("special_materials");
         if (materialsSection == null) {
+            specialMaterials = Collections.emptyMap();
             Storage.getStorage().getLogger().warning("No special materials configured!");
             return;
         }
@@ -88,7 +96,7 @@ public class SpecialMaterialManager {
             try {
                 SpecialMaterial material = loadSpecialMaterial(materialId, materialsSection.getConfigurationSection(materialId));
                 if (material != null) {
-                    specialMaterials.put(materialId, material);
+                    loaded.put(materialId, material);
                     loadedCount++;
                 }
             } catch (Exception e) {
@@ -96,21 +104,29 @@ public class SpecialMaterialManager {
             }
         }
 
+        specialMaterials = Collections.unmodifiableMap(loaded);
         Storage.getStorage().getLogger().info("Loaded " + loadedCount + " special materials");
     }
 
     private static SpecialMaterial loadSpecialMaterial(String id, ConfigurationSection section) {
         if (section == null) return null;
+        if (id.contains(":") || id.contains(";")) {
+            throw new IllegalArgumentException("ID must not contain ':' or ';'");
+        }
 
         ItemStack item = loadItem(section.getConfigurationSection("item"));
         if (item == null) return null;
 
         double dropChance = section.getDouble("drop_chance", 0.0);
+        if (!Double.isFinite(dropChance)) throw new IllegalArgumentException("drop_chance must be finite");
         Map<String, Double> dropChanceOverrides = new HashMap<>();
         ConfigurationSection chanceSection = section.getConfigurationSection("drop_chance");
         if (chanceSection != null) {
             for (String key : chanceSection.getKeys(false)) {
-                dropChanceOverrides.put(key.toLowerCase(Locale.ENGLISH), chanceSection.getDouble(key));
+                double chance = chanceSection.getDouble(key);
+                if (!Double.isFinite(chance))
+                    throw new IllegalArgumentException("drop_chance." + key + " must be finite");
+                dropChanceOverrides.put(key.toLowerCase(Locale.ENGLISH), chance);
             }
         }
 
@@ -121,7 +137,7 @@ public class SpecialMaterialManager {
         int minAmount = Math.max(1, section.getInt("amount.min", 1));
         int maxAmount = Math.max(minAmount, section.getInt("amount.max", minAmount));
 
-        long cooldownSeconds = Math.max(0, section.getLong("cooldown_seconds", 0));
+        long cooldownSeconds = Math.min(Long.MAX_VALUE / 1000L, Math.max(0, section.getLong("cooldown_seconds", 0)));
         int dailyLimit = Math.max(0, section.getInt("daily_limit", 0));
         boolean requireStored = section.getBoolean("require_stored", true);
         boolean requireAutoPickup = section.getBoolean("require_auto_pickup", false);
@@ -130,11 +146,28 @@ public class SpecialMaterialManager {
         List<String> worldWhitelist = normalizeKeys(section.getStringList("world_whitelist"));
         List<String> commands = section.getStringList("commands");
         String mode = section.getString("mode", MODE_DROP).toUpperCase(Locale.ENGLISH);
+        if (!MODE_DROP.equals(mode) && !MODE_STORAGE_REWARD.equals(mode)) {
+            throw new IllegalArgumentException("Invalid mode: " + mode);
+        }
+        SpecialMaterialReward reward = loadReward(section.getConfigurationSection("rewards"));
+        if (MODE_STORAGE_REWARD.equals(mode)) {
+            for (String source : Arrays.asList(SOURCE_BLOCK, SOURCE_CROP, SOURCE_MOB)) {
+                boolean hasSources = switch (source) {
+                    case SOURCE_BLOCK -> !sourceBlocks.isEmpty();
+                    case SOURCE_CROP -> !sourceCrops.isEmpty();
+                    default -> !sourceMobs.isEmpty();
+                };
+                if (hasSources && (SOURCE_BLOCK.equals(source) || reward == null || reward.rewardFor(source) == null)) {
+                    Storage.getStorage().getLogger().warning("special_materials." + id
+                            + ": STORAGE_REWARD has no supported reward for source '" + source + "'; this source is skipped.");
+                }
+            }
+        }
 
         return new SpecialMaterial(id, item, dropChance, dropChanceOverrides, sourceBlocks, sourceCrops,
                 sourceMobs, minAmount, maxAmount, loadEffects(section.getConfigurationSection("effects")),
                 loadLootTable(section.getConfigurationSection("loot_table")),
-                loadReward(section.getConfigurationSection("rewards")), cooldownSeconds, dailyLimit,
+                reward, cooldownSeconds, dailyLimit,
                 requireStored, requireAutoPickup, permission, worldBlacklist, worldWhitelist, commands, mode);
     }
 
@@ -204,7 +237,7 @@ public class SpecialMaterialManager {
             if (durabilityEnchant == null) {
                 durabilityEnchant = Enchantment.getByName("DURABILITY");
             }
-            meta.addEnchant(durabilityEnchant, 1, true);
+            if (durabilityEnchant != null) meta.addEnchant(durabilityEnchant, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
 
@@ -313,49 +346,70 @@ public class SpecialMaterialManager {
     }
 
     public static void checkSpecialMaterialDrop(Player player, Block block, String enchantType) {
-        if (!systemEnabled || specialMaterials.isEmpty()) return;
+        if (!systemEnabled || specialMaterials.isEmpty() || player == null || block == null) return;
+        String drop = MineManager.getDrop(block);
+        boolean autoPickup = MineManager.getToggleStatus(player) && drop != null
+                && MineManager.isAutoPickupEnabledForItem(player, drop);
+        // Legacy API cannot know the deposit result; gameplay uses the explicit overload.
+        checkSpecialMaterialDrop(player, block, getBlockKey(block), block.getLocation(), enchantType, true, autoPickup);
+    }
 
-        String blockKey = getBlockKey(block);
-        for (SpecialMaterial material : specialMaterials.values()) {
-            if (material.canDropFrom(SOURCE_BLOCK, blockKey)) {
-                rollDrop(player, block.getLocation(), material, SOURCE_BLOCK, enchantType, true);
-            }
-        }
+    public static void checkSpecialMaterialDrop(Player player, Block block, String sourceKey, Location location,
+                                                String enchantType, boolean stored, boolean autoPickup) {
+        checkSpecialMaterialDrop(player, block, SOURCE_BLOCK, sourceKey, location, enchantType, stored, autoPickup);
     }
 
     public static void checkSpecialMaterialDrop(Player player, String sourceType, String sourceKey, Location location, boolean stored) {
-        if (!systemEnabled || specialMaterials.isEmpty() || location == null) return;
-
+        if (!systemEnabled || specialMaterials.isEmpty() || player == null || sourceType == null || sourceKey == null)
+            return;
+        boolean autoPickup = isAutoPickupEnabled(player, sourceType);
         if (SOURCE_CROP.equals(sourceType)) {
-            for (SpecialMaterial material : specialMaterials.values()) {
-                if (material.canDropFrom(SOURCE_CROP, sourceKey)) {
-                    rollDrop(player, location, material, SOURCE_CROP, null, stored);
-                }
-            }
-        } else if (SOURCE_MOB.equals(sourceType)) {
-            for (SpecialMaterial material : specialMaterials.values()) {
-                for (String key : MobStorageManager.getMobLookupKeys(sourceKey)) {
-                    if (material.canDropFrom(SOURCE_MOB, key)) {
-                        rollDrop(player, location, material, SOURCE_MOB, null, stored);
-                        break;
-                    }
+            autoPickup &= !CropStorageManager.isItemAutoPickupDisabled(player, sourceKey);
+        }
+        checkSpecialMaterialDrop(player, null, sourceType, sourceKey, location, null, stored, autoPickup);
+    }
+
+    public static void checkSpecialMaterialDrop(Player player, String sourceType, String sourceKey,
+                                                Location location, boolean stored, boolean autoPickup) {
+        checkSpecialMaterialDrop(player, null, sourceType, sourceKey, location, null, stored, autoPickup);
+    }
+
+    private static void checkSpecialMaterialDrop(Player player, Block block, String sourceType, String sourceKey,
+                                                 Location location, String enchantType, boolean stored, boolean autoPickup) {
+        Map<String, SpecialMaterial> materials = specialMaterials;
+        if (!systemEnabled || materials.isEmpty() || player == null || sourceKey == null
+                || location == null || location.getWorld() == null) return;
+        SpecialMaterialDropEvent event = new SpecialMaterialDropEvent(player, block, enchantType,
+                sourceType, sourceKey, location, stored);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+        Collection<String> keys = SOURCE_MOB.equals(sourceType)
+                ? MobStorageManager.getMobLookupKeys(sourceKey) : Collections.singleton(sourceKey);
+        for (SpecialMaterial material : materials.values()) {
+            for (String key : keys) {
+                if (material.canDropFrom(sourceType, key)) {
+                    rollDrop(player, location, material, sourceType, event.getEnchantType(), stored, autoPickup);
+                    break;
                 }
             }
         }
     }
 
     private static void rollDrop(Player player, Location location, SpecialMaterial material, String sourceType,
-                                 String enchantType, boolean stored) {
+                                 String enchantType, boolean stored, boolean autoPickup) {
         if (material.requireStored() && !stored) return;
-        if (material.requireAutoPickup() && !isAutoPickupEnabled(player, sourceType)) return;
+        if (material.requireAutoPickup() && !autoPickup) return;
+        RewardEntry reward = material.reward() != null ? material.reward().rewardFor(sourceType) : null;
+        boolean storageReward = MODE_STORAGE_REWARD.equals(material.mode());
+        if (storageReward && (reward == null || SOURCE_BLOCK.equals(sourceType))) return;
         if (material.permission() != null && !material.permission().isEmpty()
                 && !player.hasPermission(material.permission())) return;
-        if (!isWorldAllowed(player, material)) return;
+        if (!isWorldAllowed(location, material)) return;
 
         double dropChance = applyEnchantModifier(material.dropChanceFor(sourceType), enchantType);
         dropChance = applySourceBonus(dropChance, sourceType);
 
-        if (ThreadLocalRandom.current().nextDouble(100.0) > dropChance) return;
+        if (!passesChance(dropChance, ThreadLocalRandom.current().nextDouble(100.0))) return;
 
         if (!isCooldownReady(player, material)) {
             sendCooldownMessage(player, material);
@@ -366,24 +420,21 @@ public class SpecialMaterialManager {
             return;
         }
 
-        RewardEntry reward = material.reward() != null ? material.reward().rewardFor(sourceType) : null;
-        boolean storageReward = MODE_STORAGE_REWARD.equals(material.mode()) && reward != null;
         LootEntry entry = storageReward ? null : material.rollLoot();
         int amount = entry != null
-                ? ThreadLocalRandom.current().nextInt(entry.min(), entry.max() + 1)
-                : ThreadLocalRandom.current().nextInt(material.minAmount(), material.maxAmount() + 1);
+                ? randomAmount(entry.min(), entry.max())
+                : randomAmount(material.minAmount(), material.maxAmount());
         amount = Math.max(1, amount);
 
         if (storageReward) {
-            if (!giveStorageReward(player, sourceType, reward)) return;
+            amount = giveStorageReward(player, sourceType, reward);
+            if (amount <= 0) return;
         } else {
             amount = applyMultiplier(player, amount);
             if (entry != null) {
                 dropItemStack(location, entry.item(), amount);
             } else {
-                for (int i = 0; i < amount; i++) {
-                    location.getWorld().dropItemNaturally(location, material.item().clone());
-                }
+                dropItemStack(location, material.item(), amount);
             }
         }
 
@@ -397,20 +448,23 @@ public class SpecialMaterialManager {
         sendFoundMessage(player, material, sourceType);
     }
 
-    private static boolean giveStorageReward(Player player, String sourceType, RewardEntry reward) {
+    private static int giveStorageReward(Player player, String sourceType, RewardEntry reward) {
         if (SOURCE_CROP.equals(sourceType)) {
-            return CropStorageManager.isConfiguredDrop(reward.item())
-                    && CropStorageManager.addItemAmount(player, reward.item(), reward.amount());
+            int before = CropStorageManager.getPlayerItem(player, reward.item());
+            if (!CropStorageManager.addItemAmount(player, reward.item(), reward.amount(), true, true)) return 0;
+            return CropStorageManager.getPlayerItem(player, reward.item()) - before;
         }
         if (SOURCE_MOB.equals(sourceType)) {
-            return MobStorageManager.isConfiguredDrop(reward.item())
-                    && MobStorageManager.addItemAmount(player, reward.item(), reward.amount());
+            int before = MobStorageManager.getPlayerItem(player, reward.item());
+            if (!MobStorageManager.addItemAmount(player, reward.item(), reward.amount(), true)) return 0;
+            return MobStorageManager.getPlayerItem(player, reward.item()) - before;
         }
-        return false;
+        return 0;
     }
 
     private static int applyMultiplier(Player player, int amount) {
-        ItemStack hand = player.getInventory().getItemInMainHand();
+        ItemStack hand = MineManager.isBefore9() ? player.getInventory().getItemInHand()
+                : player.getInventory().getItemInMainHand();
         if (hand != null && !hand.getType().name().equals("AIR") && hand.getAmount() > 0
                 && EnchantManager.hasEnchant(hand, "multiplier")) {
             int multiplierLevel = EnchantManager.getEnchantLevel(hand, "multiplier");
@@ -420,6 +474,16 @@ public class SpecialMaterialManager {
     }
 
     private static void dropItemStack(Location location, ItemStack item, int amount) {
+        if (SchedulerUtil.isFolia()) {
+            Location snapshot = location.clone();
+            ItemStack template = item.clone();
+            SchedulerUtil.runTask(Storage.getStorage(), snapshot, () -> dropStacks(snapshot, template, amount));
+        } else {
+            dropStacks(location, item, amount);
+        }
+    }
+
+    private static void dropStacks(Location location, ItemStack item, int amount) {
         while (amount > 0) {
             int stackSize = Math.min(amount, item.getMaxStackSize());
             ItemStack drop = item.clone();
@@ -435,8 +499,8 @@ public class SpecialMaterialManager {
         return true;
     }
 
-    private static boolean isWorldAllowed(Player player, SpecialMaterial material) {
-        String world = player.getWorld().getName();
+    private static boolean isWorldAllowed(Location location, SpecialMaterial material) {
+        String world = location.getWorld().getName().toUpperCase(Locale.ENGLISH);
         if (material.worldBlacklist().contains(world)) return false;
         return material.worldWhitelist().isEmpty() || material.worldWhitelist().contains(world);
     }
@@ -473,20 +537,8 @@ public class SpecialMaterialManager {
     }
 
     private static Map<String, DailyCounter> loadDailyLimits(Player player) {
-        Map<String, DailyCounter> loaded = new ConcurrentHashMap<>();
         PlayerData data = Storage.dataStorage.getData(player.getName());
-        if (data == null || data.data() == null || data.data().isEmpty()) return loaded;
-
-        for (String part : data.data().split(";")) {
-            if (!part.startsWith(DAILY_PREFIX)) continue;
-            String[] tokens = part.split(":");
-            if (tokens.length != 4) continue;
-            try {
-                loaded.put(tokens[1], new DailyCounter(Integer.parseInt(tokens[2]), tokens[3]));
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return loaded;
+        return parseDailyLimits(data == null ? null : data.data());
     }
 
     private static void incrementDailyLimit(Player player, SpecialMaterial material) {
@@ -494,21 +546,35 @@ public class SpecialMaterialManager {
         Map<String, DailyCounter> playerLimits = dailyLimits
                 .computeIfAbsent(player.getUniqueId(), key -> loadDailyLimits(player));
         String today = LocalDate.now().toString();
-        DailyCounter counter = playerLimits.get(material.id());
-        if (counter == null || !today.equals(counter.date())) {
-            playerLimits.put(material.id(), new DailyCounter(1, today));
-        } else {
-            playerLimits.put(material.id(), new DailyCounter(counter.count() + 1, counter.date()));
-        }
-        persistDailyLimits(player, playerLimits);
+        playerLimits.compute(material.id(), (key, counter) -> counter == null || !today.equals(counter.date())
+                ? new DailyCounter(1, today)
+                : new DailyCounter(counter.count() == Integer.MAX_VALUE ? Integer.MAX_VALUE : counter.count() + 1, today));
     }
 
-    // Persist daily limits immediately after an increment
-    private static void persistDailyLimits(Player player, Map<String, DailyCounter> playerLimits) {
-        PlayerData existing = Storage.dataStorage.getData(player.getName());
-        if (existing == null) return;
-        Storage.dataStorage.updateTable(new PlayerData(player.getName(),
-                mergeDailyLimitsData(existing.data(), playerLimits), existing.max(), existing.autoPickup()));
+    public static void loadPlayerData(Player player, String data) {
+        dailyLimits.put(player.getUniqueId(), parseDailyLimits(data));
+    }
+
+    private static Map<String, DailyCounter> parseDailyLimits(String data) {
+        Map<String, DailyCounter> loaded = new ConcurrentHashMap<>();
+        if (data == null) return loaded;
+        for (String part : data.split(";")) {
+            if (!part.startsWith(DAILY_PREFIX)) continue;
+            String[] tokens = part.split(":");
+            if (tokens.length != 4) continue;
+            try {
+                LocalDate.parse(tokens[3]);
+                loaded.put(tokens[1], new DailyCounter(Math.max(0, Integer.parseInt(tokens[2])), tokens[3]));
+            } catch (IllegalArgumentException | DateTimeException ignored) {
+            }
+        }
+        return loaded;
+    }
+
+    public static String mergePlayerData(Player player, String storageData, String existingData) {
+        Map<String, DailyCounter> limits = dailyLimits.computeIfAbsent(player.getUniqueId(),
+                key -> parseDailyLimits(existingData));
+        return mergeDailyLimitsData(storageData, limits);
     }
 
     // Merge the spmat: entries into the existing data string, preserving all other entries
@@ -529,16 +595,23 @@ public class SpecialMaterialManager {
         return data.toString();
     }
 
-    // Called on quit / autosave so MineManager's full overwrite can't wipe the daily limits
+    // Kept for integrations; MineManager now writes limits in the same storage snapshot.
     public static void savePlayerData(Player player) {
         if (player == null) return;
-        Map<String, DailyCounter> playerLimits = dailyLimits.get(player.getUniqueId());
-        if (playerLimits == null || playerLimits.isEmpty()) return;
-
+        Map<String, DailyCounter> limits = dailyLimits.get(player.getUniqueId());
+        if (limits == null || limits.isEmpty()) return;
         PlayerData existing = Storage.dataStorage.getData(player.getName());
         if (existing == null) return;
         Storage.dataStorage.updateTable(new PlayerData(player.getName(),
-                mergeDailyLimitsData(existing.data(), playerLimits), existing.max(), existing.autoPickup()));
+                mergeDailyLimitsData(existing.data(), limits), existing.max(), existing.autoPickup()));
+    }
+
+    static boolean passesChance(double chance, double roll) {
+        return Double.isFinite(chance) && roll >= 0 && roll < Math.min(100.0, Math.max(0.0, chance));
+    }
+
+    static int randomAmount(int min, int max) {
+        return (int) ThreadLocalRandom.current().nextLong(min, (long) max + 1L);
     }
 
     public static void cleanupPlayerData(Player player) {
@@ -560,19 +633,17 @@ public class SpecialMaterialManager {
             }
         }
 
-        if (effects.particle() != null) {
-            SpecialMaterialParticle particle = effects.particle();
-            ParticleManager.playSpecialMaterialParticle(location, particle.type(), particle.count(),
-                    particle.speed(), particle.animation(), particle.radius());
-        }
-
-        if (effects.lightning() && location.getWorld() != null) {
-            location.getWorld().strikeLightningEffect(location);
-        }
-
-        if (effects.firework() != null) {
-            playFirework(location, effects.firework());
-        }
+        Runnable worldEffects = () -> {
+            if (effects.particle() != null) {
+                SpecialMaterialParticle particle = effects.particle();
+                ParticleManager.playSpecialMaterialParticle(location, particle.type(), particle.count(),
+                        particle.speed(), particle.animation(), particle.radius());
+            }
+            if (effects.lightning()) location.getWorld().strikeLightningEffect(location);
+            if (effects.firework() != null) playFirework(location, effects.firework());
+        };
+        if (SchedulerUtil.isFolia()) SchedulerUtil.runTask(Storage.getStorage(), location, worldEffects);
+        else worldEffects.run();
 
         if (effects.title() != null) {
             SpecialMaterialTitle title = effects.title();
@@ -592,6 +663,7 @@ public class SpecialMaterialManager {
     private static void playFirework(Location location, SpecialMaterialFirework firework) {
         try {
             Firework entity = location.getWorld().spawn(location, Firework.class);
+            entity.setMetadata(FIREWORK_METADATA, new FixedMetadataValue(Storage.getStorage(), true));
             FireworkMeta meta = entity.getFireworkMeta();
             List<Color> colors = firework.colors().isEmpty()
                     ? Arrays.asList(Color.WHITE, Color.AQUA, Color.PURPLE)
@@ -616,7 +688,12 @@ public class SpecialMaterialManager {
             String cmd = command.replace("#player#", player.getName())
                     .replace("#amount#", String.valueOf(amount))
                     .replace("#world#", player.getWorld().getName());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), ChatUtils.colorize(player, cmd));
+            String formatted = ChatUtils.colorize(player, cmd);
+            if (SchedulerUtil.isFolia()) {
+                SchedulerUtil.runTask(Storage.getStorage(), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), formatted));
+            } else {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), formatted);
+            }
         }
     }
 
@@ -662,7 +739,7 @@ public class SpecialMaterialManager {
         FileConfiguration config = File.getSpecialMaterialConfig();
         if (config == null) return baseDropChance;
 
-        ConfigurationSection bonusSection = config.getConfigurationSection("enchant_bonuses." + enchantType);
+        ConfigurationSection bonusSection = config.getConfigurationSection("enchant_bonuses." + enchantType.toLowerCase(Locale.ENGLISH));
         if (bonusSection == null || !bonusSection.getBoolean("enabled", false)) {
             return baseDropChance;
         }
@@ -690,7 +767,7 @@ public class SpecialMaterialManager {
         return baseDropChance + bonusSection.getDouble("bonus_drop_chance", 0.0);
     }
 
-    private static String getBlockKey(Block block) {
+    public static String getBlockKey(Block block) {
         NMSAssistant nms = new NMSAssistant();
         return block.getType().name() + ";" + (nms.isVersionLessThanOrEqualTo(12) ? block.getData() : "0");
     }
@@ -721,19 +798,20 @@ public class SpecialMaterialManager {
     }
 
     public static boolean giveSpecialMaterial(Player player, String materialId, int amount) {
-        if (player == null || !player.isOnline()) return false;
+        if (player == null || !player.isOnline() || amount <= 0) return false;
 
         SpecialMaterial material = specialMaterials.get(materialId);
         if (material == null) return false;
 
         try {
-            for (int i = 0; i < amount; i++) {
+            while (amount > 0) {
                 ItemStack item = material.item().clone();
-                if (player.getInventory().firstEmpty() != -1) {
-                    player.getInventory().addItem(item);
-                } else {
-                    player.getWorld().dropItemNaturally(player.getLocation(), item);
+                int stackSize = Math.min(amount, item.getMaxStackSize());
+                item.setAmount(stackSize);
+                for (ItemStack leftover : player.getInventory().addItem(item).values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), leftover);
                 }
+                amount -= stackSize;
             }
             return true;
         } catch (Exception e) {
@@ -770,11 +848,11 @@ public class SpecialMaterialManager {
         public LootEntry rollLoot() {
             if (lootTable == null || lootTable.isEmpty()) return null;
 
-            int total = 0;
+            long total = 0;
             for (LootEntry entry : lootTable) total += entry.weight();
 
-            int roll = ThreadLocalRandom.current().nextInt(total);
-            int cumulative = 0;
+            long roll = ThreadLocalRandom.current().nextLong(total);
+            long cumulative = 0;
             for (LootEntry entry : lootTable) {
                 cumulative += entry.weight();
                 if (roll < cumulative) return entry;

@@ -569,6 +569,11 @@ public class CropStorageManager {
 
     public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount,
                                         boolean fireEvent) {
+        return addItemAmount(player, itemName, amount, fireEvent, false);
+    }
+
+    public static boolean addItemAmount(@NotNull Player player, @NotNull String itemName, int amount,
+                                        boolean fireEvent, boolean requireFullAmount) {
         if (!isSystemEnabled() || !isConfiguredDrop(itemName) || amount <= 0)
             return false;
 
@@ -588,6 +593,7 @@ public class CropStorageManager {
         String key = player.getName() + "_crop_" + itemName.toUpperCase();
         int current = playerdata.getOrDefault(key, 0);
         int max = getMaxStorage(player);
+        if (requireFullAmount && requestedAmount > (long) max - current) return false;
         if (current >= max)
             return false;
 

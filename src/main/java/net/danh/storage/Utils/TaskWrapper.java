@@ -1,6 +1,7 @@
 package net.danh.storage.Utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -10,7 +11,7 @@ public class TaskWrapper {
 
     private BukkitTask bukkitTask;
     private Object foliaTask; // ScheduledTask for Folia
-    private boolean cancelled = false;
+    private volatile boolean cancelled = false;
 
     private TaskWrapper() {
     }
@@ -41,10 +42,14 @@ public class TaskWrapper {
     }
 
     public static TaskWrapper runTaskTimer(Plugin plugin, Runnable task, long delayTicks, long periodTicks) {
+        return runTaskTimer(plugin, null, task, delayTicks, periodTicks);
+    }
+
+    public static TaskWrapper runTaskTimer(Plugin plugin, Location location, Runnable task, long delayTicks, long periodTicks) {
         TaskWrapper wrapper = new TaskWrapper();
         if (SchedulerUtil.isFolia()) {
             try {
-                wrapper.foliaTask = SchedulerUtil.runGlobalTaskTimer(plugin, () -> {
+                Runnable guardedTask = () -> {
                     if (!wrapper.cancelled) {
                         try {
                             task.run();
@@ -52,7 +57,10 @@ public class TaskWrapper {
                             plugin.getLogger().warning("Error in Folia timer task: " + taskEx.getMessage());
                         }
                     }
-                }, delayTicks, periodTicks);
+                };
+                wrapper.foliaTask = location == null
+                        ? SchedulerUtil.runGlobalTaskTimer(plugin, guardedTask, delayTicks, periodTicks)
+                        : SchedulerUtil.runRegionTaskTimer(plugin, location, guardedTask, delayTicks, periodTicks);
             } catch (Exception e) {
                 Throwable cause = e instanceof InvocationTargetException ? ((InvocationTargetException) e).getTargetException() : e;
                 String errorMsg = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
@@ -66,8 +74,12 @@ public class TaskWrapper {
     }
 
     public static TaskWrapper runTaskTimerSafe(Plugin plugin, Runnable task, long delayTicks, long periodTicks) {
+        return runTaskTimerSafe(plugin, null, task, delayTicks, periodTicks);
+    }
+
+    public static TaskWrapper runTaskTimerSafe(Plugin plugin, Location location, Runnable task, long delayTicks, long periodTicks) {
         try {
-            return runTaskTimer(plugin, task, delayTicks, periodTicks);
+            return runTaskTimer(plugin, location, task, delayTicks, periodTicks);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to schedule timer task (safe mode): " + e.getMessage());
             return null;

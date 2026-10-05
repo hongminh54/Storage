@@ -70,12 +70,14 @@ special_materials:
     
     # Drop mode:
     #   DROP - drop the special material item into the world
-    #   STORAGE_REWARD - deposit a reward item into the player's storage
+    #   STORAGE_REWARD - deposit a crop/mob reward; unsupported or missing rewards are skipped
+    # Storage rewards require room for the full deposit and respect deposit-event cancellation.
     mode: "DROP"
 
     # Cooldown between drops (seconds). 0 = no cooldown
     cooldown_seconds: 0
-    # Max drops per day. 0 = unlimited
+    # Max successful reward rolls per day (not item count). 0 = unlimited.
+    # Saved together with storage data on autosave, logout, reload and shutdown.
     daily_limit: 0
 
     # Which blocks can drop this special material

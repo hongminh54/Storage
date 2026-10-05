@@ -5,6 +5,7 @@ import net.danh.storage.API.events.StorageDepositEvent;
 import net.danh.storage.API.events.StorageToggleEvent;
 import net.danh.storage.API.events.StorageWithdrawEvent;
 import net.danh.storage.Database.PlayerData;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
@@ -979,6 +980,7 @@ public class MineManager {
 
     public static void loadPlayerData(Player p) {
         PlayerData playerData = getPlayerDatabase(p);
+        SpecialMaterialManager.loadPlayerData(p, playerData.data());
         List<String> list = convertOnlineData(playerData.data());
 
         int databaseMax = Math.max(0, playerData.max());
@@ -1048,7 +1050,8 @@ public class MineManager {
         }
         PlayerData playerData = new PlayerData(
                 p.getName(),
-                convertOfflineData(p),
+                SpecialMaterialManager.mergePlayerData(p,
+                        convertOfflineData(p), existing == null ? null : existing.data()),
                 Math.max(0, maxToSave),
                 autoPickup
         );

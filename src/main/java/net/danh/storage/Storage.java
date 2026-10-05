@@ -402,7 +402,7 @@ public final class Storage extends JavaPlugin {
             new CraftingPlaceholder(this).register();
         }
         UpdateChecker updateChecker = new UpdateChecker(storage);
-        registerEvents(updateChecker, new JoinQuit(), new BlockBreak(), new ChatListener(), new BlockPlace(),
+        registerEvents(updateChecker, new JoinQuit(), new SpecialMaterialEffects(), new BlockBreak(), new ChatListener(), new BlockPlace(),
                 new GroundStoreListener(), new PluginLoadListener());
         updateChecker.fetch();
         new StorageCMD("storage");
@@ -604,12 +604,12 @@ public final class Storage extends JavaPlugin {
             MythicStorageManager.savePlayerData(p);
             CropStorageManager.savePlayerData(p);
             MobStorageManager.savePlayerData(p);
-            SpecialMaterialManager.savePlayerData(p);
             // Cleanup player-specific data from managers
             MineManager.cleanupPlayerData(p);
             MythicStorageManager.cleanupPlayerData(p);
             CropStorageManager.cleanupPlayerData(p);
             MobStorageManager.cleanupPlayerData(p);
+            SpecialMaterialManager.cleanupPlayerData(p);
             SoundManager.cleanupPlayer(p);
         }
         TransferManager.cancelAllTransfers();

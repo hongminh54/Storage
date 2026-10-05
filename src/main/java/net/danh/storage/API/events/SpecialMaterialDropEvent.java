@@ -1,5 +1,6 @@
 package net.danh.storage.API.events;
 
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -21,6 +22,8 @@ public class SpecialMaterialDropEvent extends Event implements Cancellable {
     private final Block block;
     private final String sourceType;
     private final String sourceKey;
+    private final Location location;
+    private final boolean stored;
     private String enchantType;
     private boolean cancelled;
 
@@ -30,11 +33,20 @@ public class SpecialMaterialDropEvent extends Event implements Cancellable {
 
     public SpecialMaterialDropEvent(@NotNull Player player, @Nullable Block block, @Nullable String enchantType,
                                     @NotNull String sourceType, @Nullable String sourceKey) {
+        this(player, block, enchantType, sourceType, sourceKey,
+                block == null ? player.getLocation() : block.getLocation(), true);
+    }
+
+    public SpecialMaterialDropEvent(@NotNull Player player, @Nullable Block block, @Nullable String enchantType,
+                                    @NotNull String sourceType, @Nullable String sourceKey,
+                                    @NotNull Location location, boolean stored) {
         this.player = player;
         this.block = block;
         this.enchantType = enchantType;
         this.sourceType = sourceType;
         this.sourceKey = sourceKey;
+        this.location = location.clone();
+        this.stored = stored;
         this.cancelled = false;
     }
 
@@ -61,6 +73,15 @@ public class SpecialMaterialDropEvent extends Event implements Cancellable {
     @Nullable
     public String getSourceKey() {
         return sourceKey;
+    }
+
+    @NotNull
+    public Location getLocation() {
+        return location.clone();
+    }
+
+    public boolean isStored() {
+        return stored;
     }
 
     @Nullable

@@ -97,6 +97,7 @@ public class BlockBreak implements Listener {
                         block.getType().name(),
                         MineManager.isBefore9() ? (short) block.getData() : 0,
                         drop,
+                        SpecialMaterialManager.getBlockKey(block),
                         System.currentTimeMillis()));
     }
 
@@ -106,6 +107,11 @@ public class BlockBreak implements Listener {
         Block block = e.getBlock();
         boolean breakable = MineManager.checkBreak(block);
         boolean inv_full = (p.getInventory().firstEmpty() == -1);
+        String specialSource = SpecialMaterialManager.getBlockKey(block);
+        boolean specialStored = false;
+        String specialDrop = MineManager.getDrop(block);
+        boolean specialAutoPickup = MineManager.getToggleStatus(p) && specialDrop != null
+                && MineManager.isAutoPickupEnabledForItem(p, specialDrop);
         if (Storage.isWorldGuardInstalled()) {
             if (!WorldGuard.handleForLocation(p, block.getLocation())) {
                 return;
@@ -171,6 +177,7 @@ public class BlockBreak implements Listener {
                 int totalAmount = amount + bonusAmount;
 
                 boolean stored = MineManager.addBlockAmount(p, drop, totalAmount);
+                specialStored = stored;
                 if (stored) {
                     EventManager.onPlayerMine(p, drop, amount);
                     boolean actionBarEnabled = AutoPickupCache.isStorageActionBarEnabled();
@@ -195,6 +202,12 @@ public class BlockBreak implements Listener {
             }
         }
 
+        // Roll the original block once, before an enchant can change it to AIR.
+        if (breakable) {
+            SpecialMaterialManager.checkSpecialMaterialDrop(p, block, specialSource, block.getLocation(),
+                    null, specialStored, specialAutoPickup);
+        }
+
         // Trigger enchants regardless of autopickup status
         if (breakable) {
             ItemStack hand = p.getInventory().getItemInMainHand();
@@ -216,10 +229,6 @@ public class BlockBreak implements Listener {
             }
         }
 
-        // Check for special material drops
-        if (breakable) {
-            SpecialMaterialManager.checkSpecialMaterialDrop(p, block);
-        }
     }
 
     private void processInventoryItems(Player player) {
@@ -412,6 +421,10 @@ public class BlockBreak implements Listener {
             NotificationQueue.add(player, NotificationQueue.TYPE_STORAGE, dropKey, itemName,
                     amount, "", newStoredAmount, maxStorage, actionBarEnabled, titleEnabled);
         }
+        // Only the successfully captured and stored MMOItems path is eligible;
+        // arbitrary cancelled break events must never produce special rewards.
+        SpecialMaterialManager.checkSpecialMaterialDrop(player, block,
+                capture.sourceKey, block.getLocation(), null, true, true);
         return true;
     }
 
@@ -537,6 +550,7 @@ public class BlockBreak implements Listener {
 
     }
 
-    private record MmoitemsCapture(String materialName, short data, String dropKey, long createdAtMs) {
+    private record MmoitemsCapture(String materialName, short data, String dropKey, String sourceKey,
+                                   long createdAtMs) {
     }
 }

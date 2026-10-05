@@ -1,1 +1,10 @@
 - Tính năng mới: SortingOption
+- Cập nhật hỗ trợ phiên bản 26.2
+- Sửa Special Material: dùng đúng nguồn block cho TNT/VeinMiner, tránh xử lý lại block gốc và không roll khi block phụ chưa được phá thành công.
+- Sửa điều kiện require_stored, auto-pickup theo item và world blacklist/whitelist; bổ sung kiểm tra WorldGuard cho block phụ và berry harvest.
+- Đồng bộ SpecialMaterialDropEvent giữa gameplay và API, bổ sung source snapshot/location/stored; tôn trọng cancellation và enchant override.
+- Bổ sung special roll cho luồng MMOItems autosmelt đã capture và lưu thành công; không phát thưởng từ break event bị cancel thông thường.
+- Bảo toàn daily limit trong snapshot lưu storage, bỏ ghi database riêng mỗi lần drop; giữ định dạng dữ liệu cũ và API lưu daily limit.
+- Sửa storage reward: yêu cầu đủ chỗ, tôn trọng deposit event, không fallback sang drop khi thiếu reward và dùng lượng lưu thực tế cho #amount#.
+- Sửa give/drop special item: chia stack, gộp inventory và xử lý phần dư; firework hiệu ứng không gây damage.
+- Sửa scheduler world effects/particle animation của Special Material trên Folia; bổ sung validation và regression tests.

@@ -321,7 +321,6 @@ public class File {
                 MobStorageManager.savePlayerData(p);
                 MobStorageManager.loadPlayerData(p);
             }
-            SpecialMaterialManager.savePlayerData(p);
         }
         ConvertOreManager.loadConvertOptions();
         SpecialMaterialManager.loadSpecialMaterials();

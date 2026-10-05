@@ -131,6 +131,14 @@ public class SchedulerUtil {
                 .invoke(scheduler, plugin, toConsumer(task), normalizeTicks(delayTicks), normalizeTicks(periodTicks));
     }
 
+    static Object runRegionTaskTimer(Plugin plugin, Location location, Runnable task,
+                                     long delayTicks, long periodTicks) throws Exception {
+        Object scheduler = Bukkit.class.getMethod("getRegionScheduler").invoke(null);
+        return scheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Location.class,
+                        Consumer.class, long.class, long.class)
+                .invoke(scheduler, plugin, location, toConsumer(task), normalizeTicks(delayTicks), normalizeTicks(periodTicks));
+    }
+
     private static void runEntityTask(Plugin plugin, Entity entity, Runnable task) throws Exception {
         Object scheduler = entity.getClass().getMethod("getScheduler").invoke(entity);
         scheduler.getClass().getMethod("run", Plugin.class, Consumer.class, Runnable.class)

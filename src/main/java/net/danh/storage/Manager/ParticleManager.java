@@ -440,7 +440,7 @@ public class ParticleManager {
         String animationKey = "special_material_" + location.hashCode();
         stopAnimation(animationKey);
 
-        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), new Runnable() {
+        TaskWrapper task = TaskWrapper.runTaskTimerSafe(Storage.getStorage(), location, new Runnable() {
             private int ticks = 0;
 
             @Override

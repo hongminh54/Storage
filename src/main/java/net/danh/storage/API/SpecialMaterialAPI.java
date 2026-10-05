@@ -1,8 +1,6 @@
 package net.danh.storage.API;
 
-import net.danh.storage.API.events.SpecialMaterialDropEvent;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -100,15 +98,20 @@ public class SpecialMaterialAPI {
      */
     public static void checkSpecialMaterialDrop(@NotNull Player player, @NotNull Block block,
                                                 @Nullable String enchantType) {
-        // Fire event before checking
-        SpecialMaterialDropEvent event = new SpecialMaterialDropEvent(player, block, enchantType);
-        Bukkit.getPluginManager().callEvent(event);
+        SpecialMaterialManager.checkSpecialMaterialDrop(player, block, enchantType);
+    }
 
-        if (event.isCancelled()) {
-            return;
-        }
-
-        SpecialMaterialManager.checkSpecialMaterialDrop(player, block, event.getEnchantType());
+    /**
+     * Check a completed block action using its original source snapshot.
+     * Prefer this overload when the block may already be AIR or the deposit may fail.
+     * The legacy Block overload assumes stored=true for compatibility.
+     * Call on the player's owning server thread, not asynchronously.
+     */
+    public static void checkSpecialMaterialDrop(@NotNull Player player, @NotNull Block block,
+                                                @NotNull String sourceKey, @NotNull Location location,
+                                                @Nullable String enchantType, boolean stored, boolean autoPickup) {
+        SpecialMaterialManager.checkSpecialMaterialDrop(player, block, sourceKey, location,
+                enchantType, stored, autoPickup);
     }
 
     /**
@@ -123,13 +126,6 @@ public class SpecialMaterialAPI {
     public static void checkSpecialMaterialDrop(@NotNull Player player, @NotNull String sourceType,
                                                 @NotNull String sourceKey, @NotNull Location location,
                                                 boolean stored) {
-        SpecialMaterialDropEvent event = new SpecialMaterialDropEvent(player, null, null, sourceType, sourceKey);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return;
-        }
-
         SpecialMaterialManager.checkSpecialMaterialDrop(player, sourceType, sourceKey, location, stored);
     }
 

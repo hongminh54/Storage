@@ -91,6 +91,7 @@ public class MobDeath implements Listener {
         }
 
         boolean storedAny = false;
+        boolean autoPickupAny = false;
         boolean allowCustomMeta = File.getMobStorageConfig().getBoolean("settings.allow_custom_item_meta", false);
         boolean ignoreMythicItems = File.getMobStorageConfig().getBoolean("settings.ignore_mythic_items", true);
         boolean partialStoreWhenFull = File.getMobStorageConfig().getBoolean("settings.partial_store_when_full", false);
@@ -116,6 +117,7 @@ public class MobDeath implements Listener {
             if (!MobStorageManager.isAutoPickupEnabledForItem(player, itemName)) {
                 continue;
             }
+            autoPickupAny = true;
 
             int amount = drop.getAmount();
             if (partialStoreWhenFull) {
@@ -146,7 +148,7 @@ public class MobDeath implements Listener {
         }
 
         SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_MOB,
-                event.getEntityType().name(), event.getEntity().getLocation(), storedAny);
+                event.getEntityType().name(), event.getEntity().getLocation(), storedAny, autoPickupAny);
     }
 
     private boolean isMythicItem(@NotNull ItemStack itemStack) {

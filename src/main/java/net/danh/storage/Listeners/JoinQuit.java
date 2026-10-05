@@ -86,7 +86,6 @@ public class JoinQuit implements Listener {
             MobStorageManager.cleanupPlayerData(p);
             MobDeath.cleanupPlayer(p);
         }
-        SpecialMaterialManager.savePlayerData(p);
         SpecialMaterialManager.cleanupPlayerData(p);
         PersonalStorage.playerCurrentPage.remove(p.getUniqueId());
         PersonalStorage.cleanupSorting(p.getUniqueId());

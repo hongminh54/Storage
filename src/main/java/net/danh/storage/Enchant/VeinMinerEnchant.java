@@ -80,6 +80,7 @@ public class VeinMinerEnchant {
 
         int maxBlocks = (int) levelData.maxBlocks; // Using maxBlocks field
         List<Block> veinBlocks = findConnectedBlocks(centerBlock, targetMaterial, maxBlocks);
+        veinBlocks.remove(centerBlock); // The normal break listener owns the original block.
 
         createCustomEffects(location, enchantData);
 
@@ -139,6 +140,11 @@ public class VeinMinerEnchant {
 
         for (Block block : blocks) {
             if (MineManager.checkBreak(block)) {
+                if (Storage.isWorldGuardInstalled() && !WorldGuard.handleForLocation(player, block.getLocation()))
+                    continue;
+                String specialSource = SpecialMaterialManager.getBlockKey(block);
+                boolean processed = false;
+                boolean stored = false;
                 boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
                 boolean placedBlock = isPlacedBlock(block);
                 if (preventRebreak && !placedBlock) {
@@ -161,23 +167,32 @@ public class VeinMinerEnchant {
                     if (totalAmount > 0) {
                         // Check storage integration setting
                         if (enchantData.storageIntegration
-                                && MineManager.getToggleStatus(player)) {
+                                && MineManager.getToggleStatus(player)
+                                && MineManager.isAutoPickupEnabledForItem(player, drop)) {
                             // Add to storage if autopickup is enabled and storage integration is true
                             if (MineManager.addBlockAmount(player, drop, totalAmount)) {
                                 EventManager.onPlayerMine(player, drop, amount);
                                 block.setType(Material.AIR);
+                                processed = true;
+                                stored = true;
                             }
                         } else {
                             // Drop items vanilla style when storage integration is false or autopickup is disabled
                             EventManager.onPlayerMine(player, drop, amount);
                             block.setType(Material.AIR);
                             dropItemsVanilla(block.getLocation(), drop, totalAmount);
+                            processed = true;
                         }
                     }
                 }
 
                 // Check for special material drops with Vein Miner bonus
-                SpecialMaterialManager.checkSpecialMaterialDrop(player, block, "veinminer");
+                if (processed) {
+                    boolean autoPickup = MineManager.getToggleStatus(player) && drop != null
+                            && MineManager.isAutoPickupEnabledForItem(player, drop);
+                    SpecialMaterialManager.checkSpecialMaterialDrop(player, block, specialSource,
+                            block.getLocation(), "veinminer", stored, autoPickup);
+                }
             }
         }
     }

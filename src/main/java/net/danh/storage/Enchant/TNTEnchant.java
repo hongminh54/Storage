@@ -158,7 +158,7 @@ public class TNTEnchant {
                         Location blockLoc = center.clone().add(x, y, z);
                         Block block = blockLoc.getBlock();
 
-                        if (block != null && !block.getType().name().equals("AIR")) {
+                        if (block != null && !block.equals(center.getBlock()) && !block.getType().name().equals("AIR")) {
                             blocks.add(block);
                         }
                     }
@@ -177,6 +177,11 @@ public class TNTEnchant {
 
         for (Block block : blocks) {
             if (MineManager.checkBreak(block)) {
+                if (Storage.isWorldGuardInstalled() && !WorldGuard.handleForLocation(player, block.getLocation()))
+                    continue;
+                String specialSource = SpecialMaterialManager.getBlockKey(block);
+                boolean processed = false;
+                boolean stored = false;
                 boolean preventRebreak = File.getConfig().getBoolean("prevent_rebreak");
                 boolean placedBlock = isPlacedBlock(block);
                 if (preventRebreak && !placedBlock) {
@@ -199,23 +204,32 @@ public class TNTEnchant {
                     if (totalAmount > 0) {
                         // Check storage integration setting
                         if (enchantData.storageIntegration
-                                && MineManager.getToggleStatus(player)) {
+                                && MineManager.getToggleStatus(player)
+                                && MineManager.isAutoPickupEnabledForItem(player, drop)) {
                             // Add to storage if autopickup is enabled and storage integration is true
                             if (MineManager.addBlockAmount(player, drop, totalAmount)) {
                                 EventManager.onPlayerMine(player, drop, amount);
                                 block.setType(Material.AIR);
+                                processed = true;
+                                stored = true;
                             }
                         } else {
                             // Drop items vanilla style when storage integration is false or autopickup is disabled
                             EventManager.onPlayerMine(player, drop, amount);
                             block.setType(Material.AIR);
                             dropItemsVanilla(block.getLocation(), drop, totalAmount);
+                            processed = true;
                         }
                     }
                 }
 
                 // Check for special material drops with TNT penalty
-                SpecialMaterialManager.checkSpecialMaterialDrop(player, block, "tnt");
+                if (processed) {
+                    boolean autoPickup = MineManager.getToggleStatus(player) && drop != null
+                            && MineManager.isAutoPickupEnabledForItem(player, drop);
+                    SpecialMaterialManager.checkSpecialMaterialDrop(player, block, specialSource,
+                            block.getLocation(), "tnt", stored, autoPickup);
+                }
             }
         }
     }

@@ -4,9 +4,11 @@ import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.SoundManager;
 import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.NMS.NMSAssistant;
+import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.NotificationQueue;
+import net.danh.storage.WorldGuard.WorldGuard;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -14,6 +16,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -62,6 +65,8 @@ public class CropBreak implements Listener {
         }
 
         Block block = e.getClickedBlock();
+        if (e.useInteractedBlock() == Event.Result.DENY) return;
+        if (Storage.isWorldGuardInstalled() && !WorldGuard.handleForLocation(player, block.getLocation())) return;
         if (!"SWEET_BERRY_BUSH".equalsIgnoreCase(block.getType().name())) {
             return;
         }
@@ -96,6 +101,13 @@ public class CropBreak implements Listener {
             return;
         }
 
+        // Reset the bush before granting anything; a failed mutation must not duplicate harvests.
+        try {
+            ageable.setAge(1);
+            block.setBlockData(ageable, false);
+        } catch (Throwable ignored) {
+            return;
+        }
         e.setCancelled(true);
 
         int amount = ThreadLocalRandom.current().nextInt(2, 4);
@@ -119,12 +131,6 @@ public class CropBreak implements Listener {
 
         SpecialMaterialManager.checkSpecialMaterialDrop(player, SpecialMaterialManager.SOURCE_CROP,
                 dropItem, block.getLocation(), stored);
-
-        try {
-            ageable.setAge(1);
-            block.setBlockData(ageable, false);
-        } catch (Throwable ignored) {
-        }
     }
 
     private boolean isMelonBlockType(@NotNull String blockType) {

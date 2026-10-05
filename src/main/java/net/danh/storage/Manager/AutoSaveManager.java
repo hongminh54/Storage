@@ -3,7 +3,6 @@ package net.danh.storage.Manager;
 import net.danh.storage.Manager.Crop.CropStorageManager;
 import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
-import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.File;
 import net.danh.storage.Utils.SchedulerUtil;
@@ -102,7 +101,6 @@ public class AutoSaveManager {
                 if (MobStorageManager.isSystemEnabled()) {
                     MobStorageManager.savePlayerData(player);
                 }
-                SpecialMaterialManager.savePlayerData(player);
                 playerCount++;
             }
 

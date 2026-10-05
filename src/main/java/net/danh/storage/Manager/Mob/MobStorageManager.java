@@ -545,7 +545,7 @@ public class MobStorageManager {
         String key = player.getName() + "_mob_" + upper;
         int current = playerdata.getOrDefault(key, 0);
         int max = getMaxStorage(player);
-        if (current >= max || current + requestedAmount > max) {
+        if (current >= max || (long) current + requestedAmount > max) {
             return false;
         }
 
