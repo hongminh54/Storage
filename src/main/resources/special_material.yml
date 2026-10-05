@@ -1,7 +1,7 @@
 # Special Material Configuration
 
 # Do not touch it
-special_materials_version: 4
+special_materials_version: 5
 
 settings:
   # Enable/disable special material system
@@ -68,10 +68,12 @@ special_materials:
     #   mob: 2.0
     drop_chance: 5.0  # 5% chance to drop
     
-    # Drop mode:
-    #   DROP - drop the special material item into the world
-    #   STORAGE_REWARD - deposit a crop/mob reward; unsupported or missing rewards are skipped
-    # Storage rewards require room for the full deposit and respect deposit-event cancellation.
+    # The main special item is always granted; rewards and loot_table are additional bonuses.
+    # DROP (default): drop at the source. INVENTORY: give to the player, dropping only leftovers.
+    delivery: DROP
+    # Legacy mode is accepted for command #amount# compatibility, not item delivery.
+    # Prefer #special_amount#, #reward_amount# and #loot_amount# in commands.
+    # Storage bonuses require room for the full deposit and respect deposit-event cancellation.
     mode: "DROP"
 
     # Cooldown between drops (seconds). 0 = no cooldown
@@ -259,7 +261,7 @@ special_materials:
   #       animation: "helix"
   #       radius: 1.8
 
-  # Crop example: reward item goes into crop storage
+  # Crop example: Golden Carrot special item PLUS an optional crop storage bonus.
   farmer_blessing:
     item:
       material: "GOLDEN_CARROT"
@@ -277,12 +279,21 @@ special_materials:
     drop_chance:
       crop: 8.0
 
-    # Reward goes straight into crop storage instead of dropping
+    # Give the custom Golden Carrot; if inventory is full, drop only the leftovers.
+    delivery: INVENTORY
+    # Legacy mode retained. The Wheat bonus no longer replaces the Golden Carrot.
     mode: "STORAGE_REWARD"
     rewards:
       crop:
         item: "WHEAT"
         amount: 16
+
+    # Optional per-material chat. Empty strings disable individual lines.
+    # Missing 'found' falls back to message.yml; missing bonus messages are silent.
+    messages:
+      found: "#prefix# &aYou found &e#material# &7x#special_amount#!"
+      storage-reward: "#prefix# &aBonus: &e#reward_amount#x #reward_item# &7added to #storage#."
+      storage-reward-failed: "#prefix# &7The storage bonus could not be deposited. You still received #material#."
 
     source_crops:
       - "WHEAT"
@@ -313,9 +324,10 @@ special_materials:
 
       actionbar:
         enabled: true
-        message: "&6&lFarmer's Blessing! &7+16 Wheat stored!"
+        message: "&6&lFarmer's Blessing! &7See chat for your bonus."
 
-  # Mob example: drop from mobs with loot table + firework
+  # Mob example: ALWAYS grants the custom Blaze Rod PLUS one weighted bonus loot entry.
+  # Uses the same item/reward delivery logic as crops; a loot table never replaces the core.
   beast_core:
     item:
       material: "BLAZE_ROD"
@@ -333,13 +345,30 @@ special_materials:
     drop_chance:
       mob: 3.0
 
+    # DROP: main core and bonus loot drop at the slain mob's position.
+    # INVENTORY: both go into the killer's inventory; leftovers drop at the player.
+    delivery: DROP
+    # This condition concerns the original mob drops, not space for the bonus loot.
+    require_stored: true
+    messages:
+      found: "#prefix# &aYou found &e#material# &7x#special_amount#!"
+      loot-reward: "#prefix# &aBonus loot: &e#loot_amount#x #loot_item#."
+    # Optional extra MobStorage bonus, independent of the weighted loot:
+    # rewards:
+    #   mob:
+    #     item: BONE
+    #     amount: 8
+    # Add messages.storage-reward to announce a successfully stored bonus.
+
     source_mobs:
       - "ZOMBIE"
       - "SKELETON"
       - "SPIDER"
       - "CREEPER"
 
-    # Weighted loot table
+    # Selects exactly ONE additional entry per successful find.
+    # Weights are relative: 60/77 common, 15/77 rare, 2/77 legendary (not percentages).
+    # min/max control the bonus count; amount below controls the main Blaze Rod count.
     loot_table:
       common:
         item:
@@ -367,6 +396,7 @@ special_materials:
       min: 1
       max: 1
 
+    # One find consumes one cooldown/daily-limit use, not one use per bonus item.
     cooldown_seconds: 60
     daily_limit: 3
 

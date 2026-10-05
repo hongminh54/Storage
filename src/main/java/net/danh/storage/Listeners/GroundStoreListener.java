@@ -5,6 +5,7 @@ import net.danh.storage.Manager.MineManager;
 import net.danh.storage.Manager.Mob.MobStorageManager;
 import net.danh.storage.Manager.Mythic.MythicStorageManager;
 import net.danh.storage.Manager.SoundManager;
+import net.danh.storage.Manager.SpecialMaterial.SpecialMaterialManager;
 import net.danh.storage.Storage;
 import net.danh.storage.Utils.AutoPickupCache;
 import net.danh.storage.Utils.File;
@@ -69,7 +70,7 @@ public class GroundStoreListener implements Listener {
         }
 
         Item itemEntity = event.getItem();
-        if (itemEntity == null) {
+        if (itemEntity == null || itemEntity.hasMetadata(SpecialMaterialManager.ITEM_METADATA)) {
             return;
         }
 
@@ -93,7 +94,7 @@ public class GroundStoreListener implements Listener {
         }
 
         Item itemEntity = event.getItem();
-        if (itemEntity == null) {
+        if (itemEntity == null || itemEntity.hasMetadata(SpecialMaterialManager.ITEM_METADATA)) {
             return;
         }
 

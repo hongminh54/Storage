@@ -8,3 +8,10 @@
 - Sửa storage reward: yêu cầu đủ chỗ, tôn trọng deposit event, không fallback sang drop khi thiếu reward và dùng lượng lưu thực tế cho #amount#.
 - Sửa give/drop special item: chia stack, gộp inventory và xử lý phần dư; firework hiệu ứng không gây damage.
 - Sửa scheduler world effects/particle animation của Special Material trên Folia; bổ sung validation và regression tests.
+- Sửa Farmer's Blessing và Beast Core: luôn cấp special item chính; storage reward và weighted loot là bonus bổ sung, không thay thế item chính.
+- Thêm delivery: DROP/INVENTORY; inventory đầy chỉ drop phần dư, giữ custom item meta và dùng chung logic với command give.
+- Thêm messages tùy chỉnh trong special_material.yml để báo item tìm thấy, storage bonus thành công/thất bại và loot bonus qua chat.
+- Bonus storage đầy hoặc deposit event bị cancel không làm mất item chính; cooldown/daily limit chỉ tính một lần tìm thấy.
+- Bổ sung #special_amount#, #reward_amount#, #loot_amount# và tên reward/loot; giữ #amount# của commands theo legacy mode.
+- Cập nhật cấu hình/comment Farmer's Blessing và Beast Core; actionbar không còn khẳng định bonus đã được lưu khi thất bại.
+- GroundStore bỏ qua item entity special/loot được đánh dấu để tránh chuyển custom item thành material thường khi bật allow_custom_item_meta.

@@ -26,6 +26,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -45,6 +46,7 @@ public class SpecialMaterialManager {
     public static final String SOURCE_CROP = "crop";
     public static final String SOURCE_MOB = "mob";
     public static final String FIREWORK_METADATA = "StorageSpecialMaterialFirework";
+    public static final String ITEM_METADATA = "StorageSpecialMaterialItem";
     private static final String MODE_DROP = "DROP";
     private static final String MODE_STORAGE_REWARD = "STORAGE_REWARD";
     private static final String DAILY_PREFIX = "spmat:";
@@ -159,7 +161,7 @@ public class SpecialMaterialManager {
                 };
                 if (hasSources && (SOURCE_BLOCK.equals(source) || reward == null || reward.rewardFor(source) == null)) {
                     Storage.getStorage().getLogger().warning("special_materials." + id
-                            + ": STORAGE_REWARD has no supported reward for source '" + source + "'; this source is skipped.");
+                            + ": no supported storage bonus for source '" + source + "'; the main item still drops.");
                 }
             }
         }
@@ -168,7 +170,25 @@ public class SpecialMaterialManager {
                 sourceMobs, minAmount, maxAmount, loadEffects(section.getConfigurationSection("effects")),
                 loadLootTable(section.getConfigurationSection("loot_table")),
                 reward, cooldownSeconds, dailyLimit,
-                requireStored, requireAutoPickup, permission, worldBlacklist, worldWhitelist, commands, mode);
+                requireStored, requireAutoPickup, permission, worldBlacklist, worldWhitelist, commands, mode,
+                loadDelivery(section, id), loadMessages(section.getConfigurationSection("messages")));
+    }
+
+    static String loadDelivery(ConfigurationSection section, String id) {
+        String delivery = section.getString("delivery", MODE_DROP).trim().toUpperCase(Locale.ENGLISH);
+        if (!MODE_DROP.equals(delivery) && !"INVENTORY".equals(delivery)) {
+            Storage.getStorage().getLogger().warning("special_materials." + id + ".delivery: invalid value; using DROP.");
+            return MODE_DROP;
+        }
+        return delivery;
+    }
+
+    private static Map<String, String> loadMessages(ConfigurationSection section) {
+        Map<String, String> messages = new HashMap<>();
+        if (section != null) {
+            for (String key : section.getKeys(false)) messages.put(key, section.getString(key, ""));
+        }
+        return messages;
     }
 
     private static ItemStack loadItem(ConfigurationSection itemSection) {
@@ -388,7 +408,12 @@ public class SpecialMaterialManager {
         for (SpecialMaterial material : materials.values()) {
             for (String key : keys) {
                 if (material.canDropFrom(sourceType, key)) {
-                    rollDrop(player, location, material, sourceType, event.getEnchantType(), stored, autoPickup);
+                    Runnable roll = () -> {
+                        if (player.isOnline())
+                            rollDrop(player, location, material, sourceType, event.getEnchantType(), stored, autoPickup);
+                    };
+                    if (SchedulerUtil.isFolia()) SchedulerUtil.runTask(Storage.getStorage(), player, roll);
+                    else roll.run();
                     break;
                 }
             }
@@ -400,8 +425,6 @@ public class SpecialMaterialManager {
         if (material.requireStored() && !stored) return;
         if (material.requireAutoPickup() && !autoPickup) return;
         RewardEntry reward = material.reward() != null ? material.reward().rewardFor(sourceType) : null;
-        boolean storageReward = MODE_STORAGE_REWARD.equals(material.mode());
-        if (storageReward && (reward == null || SOURCE_BLOCK.equals(sourceType))) return;
         if (material.permission() != null && !material.permission().isEmpty()
                 && !player.hasPermission(material.permission())) return;
         if (!isWorldAllowed(location, material)) return;
@@ -420,23 +443,12 @@ public class SpecialMaterialManager {
             return;
         }
 
-        LootEntry entry = storageReward ? null : material.rollLoot();
-        int amount = entry != null
-                ? randomAmount(entry.min(), entry.max())
-                : randomAmount(material.minAmount(), material.maxAmount());
-        amount = Math.max(1, amount);
-
-        if (storageReward) {
-            amount = giveStorageReward(player, sourceType, reward);
-            if (amount <= 0) return;
-        } else {
-            amount = applyMultiplier(player, amount);
-            if (entry != null) {
-                dropItemStack(location, entry.item(), amount);
-            } else {
-                dropItemStack(location, material.item(), amount);
-            }
-        }
+        int amount = Math.max(1, applyMultiplier(player, randomAmount(material.minAmount(), material.maxAmount())));
+        deliverItem(player, location, material.item(), amount, material.delivery());
+        int rewardAmount = reward == null ? 0 : giveStorageReward(player, sourceType, reward);
+        LootEntry entry = material.rollLoot();
+        int lootAmount = entry == null ? 0 : Math.max(1, applyMultiplier(player, randomAmount(entry.min(), entry.max())));
+        if (entry != null) deliverItem(player, location, entry.item(), lootAmount, material.delivery());
 
         markCooldown(player, material);
         incrementDailyLimit(player, material);
@@ -444,8 +456,11 @@ public class SpecialMaterialManager {
         if (material.effects() != null) {
             playEffects(player, location, material.effects(), material);
         }
-        runCommands(player, material, amount);
-        sendFoundMessage(player, material, sourceType);
+        Map<String, String> placeholders = rewardPlaceholders(player, material, sourceType, amount, reward, rewardAmount, entry, lootAmount);
+        // Preserve legacy command #amount# semantics; explicit amount keys are unambiguous.
+        int legacyAmount = MODE_STORAGE_REWARD.equals(material.mode()) ? rewardAmount : entry == null ? amount : lootAmount;
+        runCommands(player, material, legacyAmount, placeholders);
+        sendRewardMessages(player, material, placeholders, reward != null, rewardAmount, entry != null);
     }
 
     private static int giveStorageReward(Player player, String sourceType, RewardEntry reward) {
@@ -488,8 +503,26 @@ public class SpecialMaterialManager {
             int stackSize = Math.min(amount, item.getMaxStackSize());
             ItemStack drop = item.clone();
             drop.setAmount(stackSize);
-            location.getWorld().dropItemNaturally(location, drop);
+            Item entity = location.getWorld().dropItemNaturally(location, drop);
+            // Do not let ground-store convert a custom special/loot drop into a plain material.
+            if (entity != null) entity.setMetadata(ITEM_METADATA, new FixedMetadataValue(Storage.getStorage(), true));
             amount -= stackSize;
+        }
+    }
+
+    static void deliverItem(Player player, Location location, ItemStack template, int amount, String delivery) {
+        if (!"INVENTORY".equals(delivery)) {
+            dropItemStack(location, template, amount);
+            return;
+        }
+        while (amount > 0) {
+            ItemStack stack = template.clone();
+            int size = Math.min(amount, Math.max(1, stack.getMaxStackSize()));
+            stack.setAmount(size);
+            for (ItemStack leftover : player.getInventory().addItem(stack).values()) {
+                dropItemStack(player.getLocation(), leftover, leftover.getAmount());
+            }
+            amount -= size;
         }
     }
 
@@ -682,10 +715,10 @@ public class SpecialMaterialManager {
         }
     }
 
-    private static void runCommands(Player player, SpecialMaterial material, int amount) {
+    private static void runCommands(Player player, SpecialMaterial material, int amount, Map<String, String> placeholders) {
         if (material.commands().isEmpty()) return;
         for (String command : material.commands()) {
-            String cmd = command.replace("#player#", player.getName())
+            String cmd = replacePlaceholders(command, placeholders).replace("#player#", player.getName())
                     .replace("#amount#", String.valueOf(amount))
                     .replace("#world#", player.getWorld().getName());
             String formatted = ChatUtils.colorize(player, cmd);
@@ -697,12 +730,43 @@ public class SpecialMaterialManager {
         }
     }
 
-    private static void sendFoundMessage(Player player, SpecialMaterial material, String sourceType) {
-        String message = File.getMessage().getString("special_material.found",
-                "#prefix# &aYou found a special material: &e#material#!");
-        String sourceLabel = File.getMessage().getString("special_material.sources." + sourceType, sourceType);
-        message = message.replace("#source#", sourceLabel).replace("#material#", getDisplayName(material));
-        player.sendMessage(ChatUtils.colorizewp(message.replace("#prefix#", File.getConfig().getString("prefix", ""))));
+    private static Map<String, String> rewardPlaceholders(Player player, SpecialMaterial material, String sourceType,
+                                                          int amount, RewardEntry reward, int rewardAmount, LootEntry loot, int lootAmount) {
+        Map<String, String> values = new HashMap<>();
+        values.put("#prefix#", File.getConfig().getString("prefix", ""));
+        values.put("#player#", player.getName());
+        values.put("#material#", getDisplayName(material));
+        values.put("#source#", File.getMessage().getString("special_material.sources." + sourceType, sourceType));
+        values.put("#special_amount#", String.valueOf(amount));
+        values.put("#reward_amount#", String.valueOf(rewardAmount));
+        values.put("#loot_amount#", String.valueOf(lootAmount));
+        values.put("#storage#", SOURCE_CROP.equals(sourceType) ? "CropStorage" : SOURCE_MOB.equals(sourceType) ? "MobStorage" : "");
+        values.put("#reward_item#", reward == null ? "" : SOURCE_CROP.equals(sourceType)
+                ? CropStorageManager.getItemDisplayName(reward.item()) : MobStorageManager.getItemDisplayName(reward.item()));
+        ItemMeta meta = loot == null ? null : loot.item().getItemMeta();
+        values.put("#loot_item#", loot == null ? "" : meta != null && meta.hasDisplayName()
+                ? meta.getDisplayName() : loot.item().getType().name());
+        return values;
+    }
+
+    static String replacePlaceholders(String text, Map<String, String> placeholders) {
+        for (Map.Entry<String, String> entry : placeholders.entrySet())
+            text = text.replace(entry.getKey(), entry.getValue());
+        return text;
+    }
+
+    private static void sendRewardMessages(Player player, SpecialMaterial material, Map<String, String> values,
+                                           boolean hasReward, int rewardAmount, boolean hasLoot) {
+        String found = material.messages().getOrDefault("found", File.getMessage().getString("special_material.found",
+                "#prefix# &aYou found a special material: &e#material#!"));
+        sendRewardMessage(player, found, values);
+        if (hasReward) sendRewardMessage(player, material.messages().getOrDefault(
+                rewardAmount > 0 ? "storage-reward" : "storage-reward-failed", ""), values);
+        if (hasLoot) sendRewardMessage(player, material.messages().getOrDefault("loot-reward", ""), values);
+    }
+
+    private static void sendRewardMessage(Player player, String message, Map<String, String> values) {
+        if (!message.isEmpty()) player.sendMessage(ChatUtils.colorizewp(replacePlaceholders(message, values)));
     }
 
     private static void sendCooldownMessage(Player player, SpecialMaterial material) {
@@ -804,15 +868,7 @@ public class SpecialMaterialManager {
         if (material == null) return false;
 
         try {
-            while (amount > 0) {
-                ItemStack item = material.item().clone();
-                int stackSize = Math.min(amount, item.getMaxStackSize());
-                item.setAmount(stackSize);
-                for (ItemStack leftover : player.getInventory().addItem(item).values()) {
-                    player.getWorld().dropItemNaturally(player.getLocation(), leftover);
-                }
-                amount -= stackSize;
-            }
+            deliverItem(player, player.getLocation(), material.item(), amount, "INVENTORY");
             return true;
         } catch (Exception e) {
             Storage.getStorage().getLogger().warning("Failed to give special material " + materialId + " to " + player.getName() + ": " + e.getMessage());
@@ -828,7 +884,7 @@ public class SpecialMaterialManager {
                                    SpecialMaterialReward reward, long cooldownSeconds, int dailyLimit,
                                    boolean requireStored, boolean requireAutoPickup, String permission,
                                    List<String> worldBlacklist, List<String> worldWhitelist,
-                                   List<String> commands, String mode) {
+                                   List<String> commands, String mode, String delivery, Map<String, String> messages) {
 
         public boolean canDropFrom(String sourceType, String sourceKey) {
             if (sourceKey == null) return false;
