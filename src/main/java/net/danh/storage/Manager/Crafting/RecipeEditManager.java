@@ -1170,15 +1170,6 @@ public class RecipeEditManager {
     }
 
     // Category info holder
-    public static class CategoryInfo {
-        public final String displayName;
-        public final String icon;
-        public final String description;
-
-        public CategoryInfo(String displayName, String icon, String description) {
-            this.displayName = displayName;
-            this.icon = icon;
-            this.description = description;
-        }
+        public record CategoryInfo(String displayName, String icon, String description) {
     }
 }

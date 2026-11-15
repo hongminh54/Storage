@@ -1,24 +1,33 @@
 package net.danh.storage.Database;
 
-import net.danh.storage.Storage;
+import net.danh.storage.Database.connection.SqlDialect;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.List;
 
 public class DatabaseCompatibilityWrapper extends Database {
 
     private final IDataStorage dataStorage;
 
     public DatabaseCompatibilityWrapper(IDataStorage dataStorage) {
-        super(Storage.getStorage());
+        super(null);
         this.dataStorage = dataStorage;
     }
 
     @Override
     public Connection getSQLConnection() {
         throw new UnsupportedOperationException("SQL connections not supported for " + dataStorage.getType() + " database");
+    }
+
+    @Override
+    public SqlDialect getDialect() {
+        throw new UnsupportedOperationException("SQL dialect not available for " + dataStorage.getType() + " database");
+    }
+
+    @Override
+    public boolean isSqlBacked() {
+        return false;
     }
 
     @Override
@@ -29,6 +38,11 @@ public class DatabaseCompatibilityWrapper extends Database {
     @Override
     public PlayerData getData(String player) {
         return dataStorage.getData(player);
+    }
+
+    @Override
+    public @NotNull List<PlayerData> getAllData() {
+        return dataStorage.getAllData();
     }
 
     @Override
@@ -47,7 +61,7 @@ public class DatabaseCompatibilityWrapper extends Database {
     }
 
     @Override
-    public void close(PreparedStatement ps, ResultSet rs) {
-        // No-op for non-SQL databases
+    public void close() {
+        dataStorage.close();
     }
 }

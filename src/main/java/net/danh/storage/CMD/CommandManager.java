@@ -37,6 +37,7 @@ public class CommandManager {
         registerCommand("event", new EventCommand());
         registerCommand("max", new MaxCommand());
         registerCommand("resetlimit", new ResetLimitCommand());
+        registerCommand("migrate", new MigrateCommand());
         registerCommand("add", new AddCommand());
         registerCommand("remove", new RemoveCommand());
         registerCommand("set", new SetCommand());

@@ -414,10 +414,8 @@ public final class Storage extends JavaPlugin {
         dataStorage.load();
         getLogger().info("Using " + dataStorage.getType() + " database for data storage");
 
-        if (dataStorage instanceof SQLiteAdapter) {
-            db = ((SQLiteAdapter) dataStorage).getSQLiteDatabase();
-        } else if (dataStorage instanceof MySQLAdapter) {
-            db = ((MySQLAdapter) dataStorage).getMySQLDatabase();
+        if (dataStorage instanceof SqlDataStorage) {
+            db = ((SqlDataStorage) dataStorage).database();
         } else {
             db = new DatabaseCompatibilityWrapper(dataStorage);
         }
@@ -627,6 +625,11 @@ public final class Storage extends JavaPlugin {
 
         StorageAPI.shutdown();
         getLogger().log(Level.INFO, "Storage API shutdown");
+
+        if (dataStorage != null) {
+            dataStorage.close();
+            getLogger().log(Level.INFO, "Database connections closed");
+        }
 
         getLogger().log(Level.INFO, "Shutting down completed. See you again!");
     }

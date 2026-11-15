@@ -1,15 +1,15 @@
 package net.danh.storage.Database;
 
-import net.danh.storage.Storage;
+import net.danh.storage.Database.connection.ConnectionFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SQLiteAdapter implements IDataStorage {
+import java.util.List;
 
-    private final SQLite database;
+public record SqlDataStorage(Database database) implements IDataStorage {
 
-    public SQLiteAdapter(Storage plugin) {
-        this.database = new SQLite(plugin);
+    public SqlDataStorage(ConnectionFactory factory) {
+        this(new Database(factory));
     }
 
     @Override
@@ -21,6 +21,12 @@ public class SQLiteAdapter implements IDataStorage {
     @Nullable
     public PlayerData getData(@NotNull String player) {
         return database.getData(player);
+    }
+
+    @Override
+    @NotNull
+    public List<PlayerData> getAllData() {
+        return database.getAllData();
     }
 
     @Override
@@ -40,15 +46,11 @@ public class SQLiteAdapter implements IDataStorage {
 
     @Override
     public String getType() {
-        return "SQLite";
+        return database.getConnectionFactory().getImplementationName();
     }
 
-    /**
-     * Get the underlying SQLite database for compatibility
-     *
-     * @return SQLite database instance
-     */
-    public SQLite getSQLiteDatabase() {
-        return database;
+    @Override
+    public void close() {
+        database.close();
     }
 }

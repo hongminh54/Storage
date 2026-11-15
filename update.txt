@@ -1,3 +1,4 @@
+Ngày 5 Tháng 10:
 - Tính năng mới: SortingOption
 - Cập nhật hỗ trợ phiên bản 26.2
 - Sửa Special Material: dùng đúng nguồn block cho TNT/VeinMiner, tránh xử lý lại block gốc và không roll khi block phụ chưa được phá thành công.
@@ -5,7 +6,7 @@
 - Đồng bộ SpecialMaterialDropEvent giữa gameplay và API, bổ sung source snapshot/location/stored; tôn trọng cancellation và enchant override.
 - Bổ sung special roll cho luồng MMOItems autosmelt đã capture và lưu thành công; không phát thưởng từ break event bị cancel thông thường.
 - Bảo toàn daily limit trong snapshot lưu storage, bỏ ghi database riêng mỗi lần drop; giữ định dạng dữ liệu cũ và API lưu daily limit.
-- Sửa storage reward: yêu cầu đủ chỗ, tôn trọng deposit event, không fallback sang drop khi thiếu reward và dùng lượng lưu thực tế cho #amount#.
+- Sửa storage reward: yêu cầu slot trong túi đồ, tôn trọng deposit event, không fallback sang drop khi thiếu reward và dùng lượng lưu thực tế cho #amount#.
 - Sửa give/drop special item: chia stack, gộp inventory và xử lý phần dư; firework hiệu ứng không gây damage.
 - Sửa scheduler world effects/particle animation của Special Material trên Folia; bổ sung validation và regression tests.
 - Sửa Farmer's Blessing và Beast Core: luôn cấp special item chính; storage reward và weighted loot là bonus bổ sung, không thay thế item chính.
@@ -15,3 +16,12 @@
 - Bổ sung #special_amount#, #reward_amount#, #loot_amount# và tên reward/loot; giữ #amount# của commands theo legacy mode.
 - Cập nhật cấu hình/comment Farmer's Blessing và Beast Core; actionbar không còn khẳng định bonus đã được lưu khi thất bại.
 - GroundStore bỏ qua item entity special/loot được đánh dấu để tránh chuyển custom item thành material thường khi bật allow_custom_item_meta.
+
+Ngày 15 Tháng 11:
+- Hỗ trợ đa cơ sở dữ liệu kiểu LuckPerms: MySQL, MariaDB, PostgreSQL, SQLite, H2, MongoDB (vẫn giữ YML).
+- Connection pool HikariCP cho database remote; schema SQL theo từng dialect, hỗ trợ table-prefix; mỗi query lấy connection mới từ pool (an toàn đa luồng/Folia), đóng pool/connection khi shutdown.
+- Driver hybrid: SQLite/MySQL đóng gói sẵn; MariaDB/PostgreSQL/H2/MongoDB tự tải từ Maven Central khi dùng lần đầu (verify SHA-256, cache trong plugins/Storage/libs, classloader riêng biệt).
+- MongoDB chỉ lưu PlayerData; transfer logs fallback YML. Friends yêu cầu backend SQL, tự tắt nhẹ nhàng trên YML/MongoDB thay vì crash plugin.
+- Thêm lệnh /storage migrate <type> [confirm]: chuyển PlayerData giữa các backend, xác nhận 2 bước, chạy async.
+- Gộp 4 MySQL transfer storage thành SqlTransferStorage chung; dọn dead code; sửa migration cột autopickup (DEFAULT FALSE) tương thích cả 5 dialect.
+- Cập nhật config.yml (config_version 9), message.yml, plugin.yml (permission storage.admin.migrate); thêm unit test cho dialect/schema/round-trip.

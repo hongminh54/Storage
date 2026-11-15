@@ -136,6 +136,7 @@ permissions:
       storage.admin.set: true
       storage.admin.max: true
       storage.admin.resetlimit: true
+      storage.admin.migrate: true
       storage.admin.reload: true
       storage.admin.specialmaterial: true
       storage.admin.reset: true
@@ -169,6 +170,10 @@ permissions:
 
   storage.admin.resetlimit:
     description: Admin reset storage max limit override
+    default: op
+
+  storage.admin.migrate:
+    description: Admin migrate PlayerData between database backends
     default: op
 
   storage.admin.reload:

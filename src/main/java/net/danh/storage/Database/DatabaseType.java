@@ -3,7 +3,11 @@ package net.danh.storage.Database;
 public enum DatabaseType {
     SQLITE("sqlite"),
     YML("yml"),
-    MYSQL("mysql");
+    MYSQL("mysql"),
+    MARIADB("mariadb"),
+    POSTGRESQL("postgresql"),
+    H2("h2"),
+    MONGODB("mongodb");
 
     private final String name;
 
@@ -22,5 +26,9 @@ public enum DatabaseType {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isSql() {
+        return this == SQLITE || this == MYSQL || this == MARIADB || this == POSTGRESQL || this == H2;
     }
 }

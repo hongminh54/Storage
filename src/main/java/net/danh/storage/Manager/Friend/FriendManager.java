@@ -50,6 +50,14 @@ public class FriendManager {
             return;
         }
 
+        if (!Storage.db.isSqlBacked()) {
+            systemEnabled = false;
+            Storage.getStorage().getLogger().warning("[FriendStorage] Friends require an SQL backend "
+                    + "(sqlite, mysql, mariadb, postgresql, h2). The current backend is not SQL-backed, "
+                    + "so the friend feature is disabled. Transfer logs still fall back to YML.");
+            return;
+        }
+
         database = new FriendDatabase();
         database.createTables();
         database.cleanExpiredRequests();

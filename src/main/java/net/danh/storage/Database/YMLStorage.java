@@ -53,6 +53,23 @@ public class YMLStorage implements IDataStorage {
     }
 
     @Override
+    @NotNull
+    public java.util.List<PlayerData> getAllData() {
+        java.util.List<PlayerData> result = new java.util.ArrayList<>();
+        java.io.File[] files = playersFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files != null) {
+            for (java.io.File file : files) {
+                String player = file.getName().substring(0, file.getName().length() - 4);
+                PlayerData data = getData(player);
+                if (data != null) {
+                    result.add(data);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     public void createTable(@NotNull PlayerData playerData) {
         savePlayerData(playerData);
     }

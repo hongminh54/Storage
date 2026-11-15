@@ -286,7 +286,7 @@ public class CraftingManager {
             return ChatUtils.colorizewp(configName);
         }
         // Fallback to RecipeEditManager default
-        return ChatUtils.colorizewp(RecipeEditManager.getCategoryInfo(categoryKey).displayName);
+        return ChatUtils.colorizewp(RecipeEditManager.getCategoryInfo(categoryKey).displayName());
     }
 
     public static boolean isValidCategory(String categoryKey) {

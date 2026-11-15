@@ -11,83 +11,14 @@ import java.util.logging.Level;
 
 public class FriendDatabase {
 
-    private static final String FRIENDS_TABLE = "StorageFriends";
-    private static final String REQUESTS_TABLE = "StorageFriendRequests";
-    private static final String LOGS_TABLE = "StorageFriendLogs";
-    private static final String ACCESS_SETTINGS_TABLE = "StorageFriendAccessSettings";
-    private static final String ACTION_SETTINGS_TABLE = "StorageFriendActionSettings";
+    private static final String FRIENDS_TABLE = Database.applyPrefix("StorageFriends");
+    private static final String REQUESTS_TABLE = Database.applyPrefix("StorageFriendRequests");
+    private static final String LOGS_TABLE = Database.applyPrefix("StorageFriendLogs");
+    private static final String ACCESS_SETTINGS_TABLE = Database.applyPrefix("StorageFriendAccessSettings");
+    private static final String ACTION_SETTINGS_TABLE = Database.applyPrefix("StorageFriendActionSettings");
 
     public void createTables() {
-        Connection conn = null;
-        try {
-            conn = Storage.db.getSQLConnection();
-            if (conn == null) {
-                return;
-            }
-
-            try (java.sql.Statement s = conn.createStatement()) {
-                boolean isMySQL = Storage.dataStorage instanceof MySQLAdapter;
-
-                String autoInc = isMySQL ? "AUTO_INCREMENT" : "AUTOINCREMENT";
-                String engine = isMySQL ? " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "";
-
-                s.executeUpdate("CREATE TABLE IF NOT EXISTS " + FRIENDS_TABLE + " (" +
-                        "player_uuid VARCHAR(36) NOT NULL," +
-                        "friend_uuid VARCHAR(36) NOT NULL," +
-                        "created_at BIGINT NOT NULL," +
-                        "PRIMARY KEY (player_uuid, friend_uuid)" +
-                        ")" + engine + ";");
-
-                s.executeUpdate("CREATE TABLE IF NOT EXISTS " + REQUESTS_TABLE + " (" +
-                        "sender_uuid VARCHAR(36) NOT NULL," +
-                        "receiver_uuid VARCHAR(36) NOT NULL," +
-                        "created_at BIGINT NOT NULL," +
-                        "expires_at BIGINT NOT NULL," +
-                        "PRIMARY KEY (sender_uuid, receiver_uuid)" +
-                        ")" + engine + ";");
-
-                String logIdCol = isMySQL
-                        ? "id BIGINT NOT NULL " + autoInc
-                        : "id INTEGER PRIMARY KEY " + autoInc;
-                String logPk = isMySQL ? ", PRIMARY KEY (id)" : "";
-
-                s.executeUpdate("CREATE TABLE IF NOT EXISTS " + LOGS_TABLE + " (" +
-                        logIdCol + "," +
-                        "owner_uuid VARCHAR(36) NOT NULL," +
-                        "actor_uuid VARCHAR(36) NOT NULL," +
-                        "action VARCHAR(32) NOT NULL," +
-                        "detail TEXT," +
-                        "timestamp BIGINT NOT NULL" +
-                        logPk +
-                        ")" + engine + ";");
-
-                // Access settings table for per-player storage type access control
-                s.executeUpdate("CREATE TABLE IF NOT EXISTS " + ACCESS_SETTINGS_TABLE + " (" +
-                        "player_uuid VARCHAR(36) NOT NULL," +
-                        "storage_type VARCHAR(32) NOT NULL," +
-                        "allowed BOOLEAN NOT NULL DEFAULT 0," +
-                        "PRIMARY KEY (player_uuid, storage_type)" +
-                        ")" + engine + ";");
-
-                // Action settings table for per-player storage type action control
-                s.executeUpdate("CREATE TABLE IF NOT EXISTS " + ACTION_SETTINGS_TABLE + " (" +
-                        "player_uuid VARCHAR(36) NOT NULL," +
-                        "storage_type VARCHAR(32) NOT NULL," +
-                        "action VARCHAR(32) NOT NULL," +
-                        "allowed BOOLEAN NOT NULL DEFAULT 0," +
-                        "PRIMARY KEY (player_uuid, storage_type, action)" +
-                        ")" + engine + ";");
-
-                createIndexIfMissing(conn, LOGS_TABLE, "idx_storage_friend_logs_owner_time",
-                        "CREATE INDEX idx_storage_friend_logs_owner_time ON " + LOGS_TABLE + " (owner_uuid, timestamp)");
-                createIndexIfMissing(conn, LOGS_TABLE, "idx_storage_friend_logs_actor_time",
-                        "CREATE INDEX idx_storage_friend_logs_actor_time ON " + LOGS_TABLE + " (actor_uuid, timestamp)");
-            }
-        } catch (SQLException ex) {
-            Storage.getStorage().getLogger().log(Level.SEVERE, "[FriendStorage] Failed to create tables", ex);
-        } finally {
-            closeConnection(conn);
-        }
+        // tables and indexes are created by the dialect schema during SqlDataStorage.load()
     }
 
     // ==================== Friends ====================
@@ -101,9 +32,9 @@ public class FriendDatabase {
             conn.setAutoCommit(false);
 
             // Insert both directions for mutual friendship
-            String sql = isMySQL()
-                    ? "INSERT IGNORE INTO " + FRIENDS_TABLE + " (player_uuid, friend_uuid, created_at) VALUES (?, ?, ?)"
-                    : "INSERT OR IGNORE INTO " + FRIENDS_TABLE + " (player_uuid, friend_uuid, created_at) VALUES (?, ?, ?)";
+            String sql = dialect().insertIgnore(FRIENDS_TABLE,
+                    new String[]{"player_uuid", "friend_uuid", "created_at"},
+                    new String[]{"player_uuid", "friend_uuid"});
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, playerUuid.toString());
@@ -121,6 +52,7 @@ public class FriendDatabase {
             Storage.getStorage().getLogger().log(Level.SEVERE, "[FriendStorage] Failed to add friend", ex);
             rollback(conn);
         } finally {
+            resetAutoCommit(conn);
             closeConnection(conn);
         }
     }
@@ -145,6 +77,7 @@ public class FriendDatabase {
             Storage.getStorage().getLogger().log(Level.SEVERE, "[FriendStorage] Failed to remove friend", ex);
             rollback(conn);
         } finally {
+            resetAutoCommit(conn);
             closeConnection(conn);
         }
     }
@@ -229,9 +162,9 @@ public class FriendDatabase {
             conn = Storage.db.getSQLConnection();
             if (conn == null) return;
 
-            String sql = isMySQL()
-                    ? "REPLACE INTO " + REQUESTS_TABLE + " (sender_uuid, receiver_uuid, created_at, expires_at) VALUES (?, ?, ?, ?)"
-                    : "INSERT OR REPLACE INTO " + REQUESTS_TABLE + " (sender_uuid, receiver_uuid, created_at, expires_at) VALUES (?, ?, ?, ?)";
+            String sql = dialect().upsert(REQUESTS_TABLE,
+                    new String[]{"sender_uuid", "receiver_uuid", "created_at", "expires_at"},
+                    new String[]{"sender_uuid", "receiver_uuid"});
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, senderUuid.toString());
@@ -536,9 +469,9 @@ public class FriendDatabase {
             conn = Storage.db.getSQLConnection();
             if (conn == null) return;
 
-            String sql = isMySQL()
-                    ? "REPLACE INTO " + ACCESS_SETTINGS_TABLE + " (player_uuid, storage_type, allowed) VALUES (?, ?, ?)"
-                    : "INSERT OR REPLACE INTO " + ACCESS_SETTINGS_TABLE + " (player_uuid, storage_type, allowed) VALUES (?, ?, ?)";
+            String sql = dialect().upsert(ACCESS_SETTINGS_TABLE,
+                    new String[]{"player_uuid", "storage_type", "allowed"},
+                    new String[]{"player_uuid", "storage_type"});
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, playerUuid.toString());
@@ -617,9 +550,9 @@ public class FriendDatabase {
             conn = Storage.db.getSQLConnection();
             if (conn == null) return;
 
-            String sql = isMySQL()
-                    ? "REPLACE INTO " + ACTION_SETTINGS_TABLE + " (player_uuid, storage_type, action, allowed) VALUES (?, ?, ?, ?)"
-                    : "INSERT OR REPLACE INTO " + ACTION_SETTINGS_TABLE + " (player_uuid, storage_type, action, allowed) VALUES (?, ?, ?, ?)";
+            String sql = dialect().upsert(ACTION_SETTINGS_TABLE,
+                    new String[]{"player_uuid", "storage_type", "action", "allowed"},
+                    new String[]{"player_uuid", "storage_type", "action"});
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, playerUuid.toString());
@@ -689,44 +622,24 @@ public class FriendDatabase {
 
     // ==================== Helpers ====================
 
-    private boolean isMySQL() {
-        return Storage.dataStorage instanceof MySQLAdapter;
-    }
-
-    private void createIndexIfMissing(Connection conn, String table, String index, String sql) throws SQLException {
-        if (indexExists(conn, table, index)) {
-            return;
-        }
-        try (java.sql.Statement s = conn.createStatement()) {
-            s.executeUpdate(sql);
-        } catch (SQLException ex) {
-            if (!isDuplicateIndexError(ex)) {
-                throw ex;
-            }
-        }
-    }
-
-    private boolean indexExists(Connection conn, String table, String index) throws SQLException {
-        try (ResultSet rs = conn.getMetaData().getIndexInfo(null, null, table, false, false)) {
-            while (rs.next()) {
-                String indexName = rs.getString("INDEX_NAME");
-                if (index.equalsIgnoreCase(indexName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean isDuplicateIndexError(SQLException ex) {
-        return ex.getErrorCode() == 1061
-                || (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("already exists"));
+    private net.danh.storage.Database.connection.SqlDialect dialect() {
+        return Storage.db.getDialect();
     }
 
     private void rollback(Connection conn) {
         if (conn == null) return;
         try {
             conn.rollback();
+        } catch (SQLException ignored) {
+        }
+    }
+
+    private void resetAutoCommit(Connection conn) {
+        if (conn == null) return;
+        try {
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
         } catch (SQLException ignored) {
         }
     }

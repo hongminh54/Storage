@@ -49,7 +49,20 @@
                             <pattern>org.codemc.worldguardwrapper</pattern>
                             <shadedPattern>net.danh.worldguardwrapper</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.zaxxer.hikari</pattern>
+                            <shadedPattern>net.danh.libs.hikari</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>net.danh.libs.slf4j</shadedPattern>
+                        </relocation>
                     </relocations>
+                    <transformers>
+                        <!-- Merge META-INF/services and apply relocation to provider names,
+                             so the relocated SLF4J LoggerFactory can bind the JUL provider. -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    </transformers>
                     <!-- Here you can remove the classes you don't use. -->
                     <!-- These are some examples. -->
                     <!-- The "unused" package and SkullCacheListener are excluded by default. -->
@@ -96,6 +109,12 @@
                         <include>**/*Test.java</include>
                         <include>**/*Properties.java</include>
                     </includes>
+                    <!-- These provided API jars bundle an old unrelocated org.slf4j that
+                         shadows slf4j-api 2.0.16 on the test classpath. No test uses them. -->
+                    <classpathDependencyExcludes>
+                        <classpathDependencyExclude>io.lumine:Mythic-Dist</classpathDependencyExclude>
+                        <classpathDependencyExclude>org.black_ixx:playerpoints</classpathDependencyExclude>
+                    </classpathDependencyExcludes>
                 </configuration>
             </plugin>
         </plugins>
@@ -268,6 +287,35 @@
         </dependency>
 
         <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.16</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>2.0.16</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Compile-only: driver jars are downloaded at runtime by DriverLoader -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>5.2.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>net.milkbowl.vault</groupId>
             <artifactId>VaultUnlockedAPI</artifactId>
             <version>2.3</version><!-- Validate this is the most recent version from the CI -->
@@ -285,6 +333,14 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- In-memory engine for schema/dialect round-trip tests; runtime uses the downloaded driver -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
             <scope>test</scope>
         </dependency>
 

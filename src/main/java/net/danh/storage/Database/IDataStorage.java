@@ -3,6 +3,8 @@ package net.danh.storage.Database;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public interface IDataStorage {
 
     /**
@@ -18,6 +20,12 @@ public interface IDataStorage {
      */
     @Nullable
     PlayerData getData(@NotNull String player);
+
+    /**
+     * Get every player record (used for backend migration)
+     */
+    @NotNull
+    List<PlayerData> getAllData();
 
     /**
      * Create new player data in database
@@ -46,4 +54,10 @@ public interface IDataStorage {
      * @return Database type
      */
     String getType();
+
+    /**
+     * Release connections/pools. Called once on plugin disable, after all saves.
+     */
+    default void close() {
+    }
 }

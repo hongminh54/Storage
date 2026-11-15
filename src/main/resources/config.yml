@@ -2,14 +2,29 @@
 #If you encounter any issues, please report them to me at: https://github.com/TheBlueSkyARL/Storage/issues
 
 #Do not touch it
-config_version: 8
+config_version: 9
 
 #Database configuration
 database:
-  #Database type: sqlite, yml, mysql
+  #Database type: sqlite, mysql, mariadb, postgresql, h2, mongodb, yml
+  #Remote databases (mysql, mariadb, postgresql, mongodb) require connection info below.
+  #Flatfile databases (sqlite, h2) and yml need no extra configuration.
+  #Drivers for mariadb, postgresql, h2 and mongodb are downloaded automatically
+  #from Maven Central on first use (requires internet once, cached in plugins/Storage/libs).
   #Required: Restart server to apply changes
   type: sqlite
-  
+
+  #Prefix for SQL table names / MongoDB collection names (optional)
+  table-prefix: ""
+
+  #Connection pool settings (only used by mysql, mariadb, postgresql)
+  pool:
+    max-pool-size: 10
+    min-idle: 2
+    max-lifetime: 1800000
+    keepalive-time: 0
+    connection-timeout: 5000
+
   #MySQL configuration (only used when type is mysql)
   mysql:
     host: "localhost"
@@ -18,6 +33,36 @@ database:
     username: "root"
     password: ""
     useSSL: false
+
+  #MariaDB configuration (only used when type is mariadb)
+  mariadb:
+    host: "localhost"
+    port: "3306"
+    database: "storage"
+    username: "root"
+    password: ""
+    useSSL: false
+
+  #PostgreSQL configuration (only used when type is postgresql)
+  postgresql:
+    host: "localhost"
+    port: "5432"
+    database: "storage"
+    username: "postgres"
+    password: ""
+    useSSL: false
+
+  #MongoDB configuration (only used when type is mongodb)
+  #Note: transfer logs fall back to YML files when using mongodb.
+  #Friends require an SQL backend (sqlite/mysql/mariadb/postgresql/h2) and are disabled on mongodb/yml.
+  mongodb:
+    #Full connection URI. When set, it takes priority over host/port/credentials below.
+    connection-uri: ""
+    host: "localhost"
+    port: 27017
+    database: "storage"
+    username: ""
+    password: ""
 
 # Worlds that will not be affected by the plugin
 blacklist_world:
