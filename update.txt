@@ -18,7 +18,7 @@ Ngày 5 Tháng 10:
 - GroundStore bỏ qua item entity special/loot được đánh dấu để tránh chuyển custom item thành material thường khi bật allow_custom_item_meta.
 
 Ngày 15 Tháng 11:
-- Hỗ trợ đa cơ sở dữ liệu kiểu LuckPerms: MySQL, MariaDB, PostgreSQL, SQLite, H2, MongoDB (vẫn giữ YML).
+- Hỗ trợ đa cơ sở dữ liệu: MySQL, MariaDB, PostgreSQL, SQLite, H2, MongoDB (vẫn giữ YML).
 - Connection pool HikariCP cho database remote; schema SQL theo từng dialect, hỗ trợ table-prefix; mỗi query lấy connection mới từ pool (an toàn đa luồng/Folia), đóng pool/connection khi shutdown.
 - Driver hybrid: SQLite/MySQL đóng gói sẵn; MariaDB/PostgreSQL/H2/MongoDB tự tải từ Maven Central khi dùng lần đầu (verify SHA-256, cache trong plugins/Storage/libs, classloader riêng biệt).
 - MongoDB chỉ lưu PlayerData; transfer logs fallback YML. Friends yêu cầu backend SQL, tự tắt nhẹ nhàng trên YML/MongoDB thay vì crash plugin.
