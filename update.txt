@@ -25,3 +25,8 @@ Ngày 15 Tháng 11:
 - Thêm lệnh /storage migrate <type> [confirm]: chuyển PlayerData giữa các backend, xác nhận 2 bước, chạy async.
 - Gộp 4 MySQL transfer storage thành SqlTransferStorage chung; dọn dead code; sửa migration cột autopickup (DEFAULT FALSE) tương thích cả 5 dialect.
 - Cập nhật config.yml (config_version 9), message.yml, plugin.yml (permission storage.admin.migrate); thêm unit test cho dialect/schema/round-trip.
+
+Ngày 16 Tháng 11:
+- Sửa lỗi về H2 (Thay classloader parent-first bằng IsolatedClassLoader child-first)
+- Thay đổi tham số trong lệnh admin của MobStorage cho phù hợp hơn
+- Cập nhật lại message

@@ -38,7 +38,8 @@ public class DatabaseFactory {
     private static IDataStorage createMongoStorage(Storage plugin) {
         // MongoDataStorage is loaded through the isolated driver classloader so its
         // com.mongodb references resolve against the runtime-downloaded driver jars
-        ClassLoader classLoader = DriverLoader.obtainClassLoader(plugin,
+        ClassLoader classLoader = DriverLoader.obtainBridgeClassLoader(plugin,
+                "net.danh.storage.Database.MongoDataStorage",
                 DriverLoader.Library.MONGO_DRIVER_SYNC,
                 DriverLoader.Library.MONGO_BSON,
                 DriverLoader.Library.MONGO_DRIVER_CORE);

@@ -1,4 +1,4 @@
-message_version: 12
+message_version: 13
 admin:
   new_version_available: "#prefix# &6&lNew version is available. You are using &e&lv#old_version#&6&l, new version &e&lv#new_version#"
   add_material_amount: "#prefix# &bAdded &6#amount# #material# &bto &e#player#"
@@ -49,7 +49,7 @@ admin:
     error: "#prefix# &cError during &eauto-save: #error#"
     manual_executed: "#prefix# &7Manual save executed"
   help:
-    - "&6=== &eStorage Admin Commands &6v2.3.9 &6==="
+    - "&6=== &eStorage Admin Commands &6v2.4.3 &6==="
     - "&e/Storage reload &f- &7Reload Files"
     - "&e/Storage max &a<player> &6<amount> &f- &7Set max item player can storage"
     - "&e/Storage resetlimit &a<player> &f- &7Remove admin max override and use permission/default"
@@ -123,7 +123,7 @@ user:
     no_permission: "#prefix# &cYou don't have permission to use this feature."
     notify: "#prefix# &aStored picked up items into storage"
   help:
-    - "&6=== &eStorage Commands &6v2.3.9 &6==="
+    - "&6=== &eStorage Commands &6v2.4.3 &6==="
     - "&e/Storage &f- &7Open Gui"
     - "&e/Storage toggle &f- &7Toggle autoPickup"
     - "&e/Storage deposit &b<material;data> &6[amount|all] &f- &7Deposit items into storage"
@@ -1003,11 +1003,11 @@ mobstorage:
     invalid_usage: "#prefix# &cInvalid usage! &eUsage: #usage#"
     help:
       - "&6=== &eMobStorage Admin Commands &6==="
-      - "&e/mobstorage admin add &a<player> &b<item> &6<amount> &f- &7Add items"
-      - "&e/mobstorage admin remove &a<player> &b<item> &6<amount> &f- &7Remove items"
-      - "&e/mobstorage admin set &a<player> &b<item> &6<amount> &f- &7Set item amount"
-      - "&e/mobstorage admin max &a<player> &6<amount> &f- &7Set max override"
-      - "&e/mobstorage admin resetlimit &a<player> &f- &7Remove max override and use permission/default"
-      - "&e/mobstorage admin reset &a<player> &b[item] &f- &7Reset player's storage (all or specific item)"
-      - "&e/mobstorage admin reload &f- &7Reload MobStorage configuration"
+      - "&e/mobstorage add &a<player> &b<item|*|item1,item2,...> &6<amount> &f- &7Add mob drops to player's storage"
+      - "&e/mobstorage remove &a<player> &b<item|*|item1,item2,...> &6<amount> &f- &7Remove mob drops from player's storage"
+      - "&e/mobstorage set &a<player> &b<item|*|item1,item2,...> &6<amount> &f- &7Set mob drop amount"
+      - "&e/mobstorage max &a<player> &6<amount> &f- &7Set max storage override"
+      - "&e/mobstorage resetlimit &a<player> &f- &7Remove max override and use permission/default"
+      - "&e/mobstorage reset &a<player> &b[item] &f- &7Reset player's storage (all or specific item)"
+      - "&e/mobstorage reload &f- &7Reload MobStorage configuration"
 

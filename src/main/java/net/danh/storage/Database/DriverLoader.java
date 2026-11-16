@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Downloads optional JDBC/Mongo drivers from Maven Central at runtime,
  * verifies them against pinned SHA-256 checksums and exposes them through
- * isolated classloaders (child of the plugin classloader).
+ * isolated classloaders so they never clash with libraries bundled by the server.
  */
 public final class DriverLoader {
 
@@ -24,6 +24,16 @@ public final class DriverLoader {
     }
 
     public static synchronized ClassLoader obtainClassLoader(Storage plugin, Library... libraries) {
+        return new IsolatedClassLoader(resolveUrls(plugin, libraries), plugin.getClass().getClassLoader(), null);
+    }
+
+    public static synchronized ClassLoader obtainBridgeClassLoader(Storage plugin, String bridgeClass, Library... libraries) {
+        List<URL> urls = resolveUrls(plugin, libraries);
+        urls.add(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
+        return new IsolatedClassLoader(urls, plugin.getClass().getClassLoader(), bridgeClass);
+    }
+
+    private static List<URL> resolveUrls(Storage plugin, Library... libraries) {
         List<URL> urls = new ArrayList<>();
         try {
             Path libsDir = plugin.getDataFolder().toPath().resolve("libs");
@@ -36,7 +46,7 @@ public final class DriverLoader {
         } catch (IOException e) {
             throw new IllegalStateException("Unable to prepare driver libraries: " + e.getMessage(), e);
         }
-        return new URLClassLoader("storage-drivers", urls.toArray(new URL[0]), plugin.getClass().getClassLoader());
+        return urls;
     }
 
     private static void ensureLibrary(Storage plugin, Library library, Path file) throws IOException {
@@ -117,6 +127,53 @@ public final class DriverLoader {
 
         public String getUrl() {
             return "https://repo.maven.apache.org/maven2/" + path;
+        }
+    }
+
+    private static final class IsolatedClassLoader extends URLClassLoader {
+        static {
+            ClassLoader.registerAsParallelCapable();
+        }
+
+        private final ClassLoader parent;
+        private final String bridgeClass;
+
+        IsolatedClassLoader(List<URL> urls, ClassLoader parent, String bridgeClass) {
+            super("storage-drivers", urls.toArray(new URL[0]), null);
+            this.parent = parent;
+            this.bridgeClass = bridgeClass;
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            synchronized (getClassLoadingLock(name)) {
+                Class<?> loaded = findLoadedClass(name);
+                if (loaded == null) {
+                    if (isShared(name)) {
+                        loaded = parent.loadClass(name);
+                    } else {
+                        try {
+                            loaded = findClass(name);
+                        } catch (ClassNotFoundException e) {
+                            loaded = parent.loadClass(name);
+                        }
+                    }
+                }
+                if (resolve) {
+                    resolveClass(loaded);
+                }
+                return loaded;
+            }
+        }
+
+        // JDK types and the plugin API must stay shared with the parent; only the bridge
+        // class is defined here so it binds to the isolated driver jars.
+        private boolean isShared(String name) {
+            if (name.startsWith("java.") || name.startsWith("javax.")
+                    || name.startsWith("jdk.") || name.startsWith("sun.")) {
+                return true;
+            }
+            return name.startsWith("net.danh.") && !name.equals(bridgeClass);
         }
     }
 }
